@@ -15,7 +15,7 @@ links:
   - { label: "SuperMarioWorldRecomp on GitHub", href: "https://github.com/mstan/SuperMarioWorldRecomp" }
   - { label: "snesrecomp's First Title: Super Mario World (1379.tech)", href: "https://1379.tech/snesrecomps-first-title-super-mario-world/" }
   - { label: "The Future of Game Preservation is Decomp-Annotated-Recomps (1379.tech)", href: "https://1379.tech/recomp-vs-decomp-wrong-question/" }
-cover: "https://i.ytimg.com/vi/Owuku0zj4As/hqdefault.jpg"
+cover: "https://i.ytimg.com/vi/Owuku0zj4As/hq2.jpg"
 videoUrl: "https://www.youtube.com/watch?v=Owuku0zj4As"
 ---
 

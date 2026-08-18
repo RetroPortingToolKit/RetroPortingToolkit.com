@@ -119,10 +119,6 @@
       "body": "Turn local multiplayer and console link modes into LAN and online play."
     },
     {
-      "title": "Modern controllers",
-      "body": "Remapping, contemporary gamepads, keyboard and mouse, and new input devices."
-    },
-    {
       "title": "Modding",
       "body": "Expose game data and behavior for characters, assets, rules, levels, and entirely new experiences."
     },
@@ -158,10 +154,6 @@
     {
       "title": "Link cable becomes network play",
       "body": "Some PlayStation games connected two consoles with a serial cable. Reimplement the transport, and the same game logic can travel over LAN or the internet while the game still believes it is talking to another PlayStation."
-    },
-    {
-      "title": "Memory card becomes modern storage",
-      "body": "Keep the game's expectations intact while saves gain management, backups, and sync."
     },
     {
       "title": "Controller port becomes modern input",

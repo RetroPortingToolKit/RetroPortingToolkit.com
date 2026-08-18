@@ -1,135 +1,123 @@
 import { useEffect, useRef, useState } from "react";
 
-// The hero plays a rolling gameplay reel built from the project's verified
-// YouTube coverage: each clip shows ~3 seconds of a different recompiled game,
-// then crossfades to the next. Clips are embedded YouTube players (muted,
-// chromeless), double-buffered so the next clip is already playing off-screen
-// when the crossfade happens. No video files ship with the site and nothing is
-// re-hosted; the reel is the coverage itself.
+// The hero is a living collage of real gameplay captures: frames published by
+// YouTube for the project's verified coverage videos (every frame below was
+// reviewed as actual gameplay). Tiles crossfade one at a time on a gentle
+// cadence, so the hero always reads as "a bunch of games running" without
+// booting a single video player. Nothing is re-hosted.
 //
 // still=true (pager panes being dragged in) and prefers-reduced-motion render
-// only the static poster frame.
+// the static grid with no rotation.
 
-interface Clip {
-  id: string; // YouTube video id
-  start: number; // seconds into the video where gameplay is on screen
-}
-
-// Verified coverage videos (Video Game Esoterica + Gamemaster1379).
-const CLIPS: Clip[] = [
-  { id: "aITjH0LoEeA", start: 90 }, // Street Fighter Alpha 3
-  { id: "sbqPnJhb3uk", start: 120 }, // Tomba!
-  { id: "Owuku0zj4As", start: 20 }, // SMW character replacement
-  { id: "XRwKZ0_8u-c", start: 150 }, // Mega Man X (SNES)
-  { id: "FFUglxqa_eI", start: 95 }, // Metroid Prime Hunters
-  { id: "IXMHXC2BLSc", start: 180 }, // Mega Man X6
-  { id: "tvqnW6J6KU0", start: 60 }, // Prime Hunters 21:9
-  { id: "Rbh5wKb112A", start: 120 }, // Mega Man X4
-  { id: "L36ppNkuJG0", start: 30 }, // Save states & rewind showcase
+// Curated capture pool: videoId/frame pairs. hq1/hq2/hq3 are YouTube's real
+// frames at 25/50/75% of the video; hqdefault is its chosen key frame.
+const POOL: string[] = [
+  "https://i.ytimg.com/vi/aITjH0LoEeA/hq2.jpg", // Street Fighter Alpha 3
+  "https://i.ytimg.com/vi/Owuku0zj4As/hq2.jpg", // SMW character replacement
+  "https://i.ytimg.com/vi/FFUglxqa_eI/hq2.jpg", // Metroid Prime Hunters
+  "https://i.ytimg.com/vi/sbqPnJhb3uk/hq2.jpg", // Tomba!
+  "https://i.ytimg.com/vi/XRwKZ0_8u-c/hq2.jpg", // Mega Man X
+  "https://i.ytimg.com/vi/L36ppNkuJG0/hq1.jpg", // Tomba! (save states capture)
+  "https://i.ytimg.com/vi/Rbh5wKb112A/hq2.jpg", // Mega Man X4
+  "https://i.ytimg.com/vi/tvqnW6J6KU0/hq1.jpg", // Prime Hunters 21:9
+  "https://i.ytimg.com/vi/IXMHXC2BLSc/hq2.jpg", // Mega Man X6
+  "https://i.ytimg.com/vi/Owuku0zj4As/hq1.jpg", // SMW char replacement (action)
+  "https://i.ytimg.com/vi/L36ppNkuJG0/hq2.jpg", // Tomba!
+  "https://i.ytimg.com/vi/tvqnW6J6KU0/hq2.jpg", // Prime Hunters 21:9
+  "https://i.ytimg.com/vi/Owuku0zj4As/hqdefault.jpg", // SMW overworld
+  "https://i.ytimg.com/vi/L36ppNkuJG0/hq3.jpg", // Tomba!
+  "https://i.ytimg.com/vi/tvqnW6J6KU0/hq3.jpg", // Prime Hunters 21:9
 ];
 
-const SLIDE_MS = 3000;
-const FADE_MS = 450;
+const TILES = 12; // 4x3 on desktop; CSS hides the last rows' overflow on mobile
+const TICK_MS = 2600; // one tile swaps per tick
 
-function embedUrl(c: Clip): string {
-  const p = new URLSearchParams({
-    autoplay: "1",
-    mute: "1",
-    controls: "0",
-    start: String(c.start),
-    playsinline: "1",
-    rel: "0",
-    modestbranding: "1",
-    iv_load_policy: "3",
-    disablekb: "1",
-    fs: "0",
-    loop: "1",
-    playlist: c.id, // loop needs playlist=id, keeps a slow network from ending a clip early
-  });
-  return `https://www.youtube.com/embed/${c.id}?${p.toString()}`;
+// Deterministic image pick: tile i after u updates. Primes stride the pool so
+// neighboring tiles never show the same capture at the same time.
+function imageFor(i: number, updates: number): string {
+  return POOL[(i * 5 + updates * 7) % POOL.length];
 }
 
-function thumb(c: Clip): string {
-  return `https://i.ytimg.com/vi/${c.id}/hqdefault.jpg`;
+// One tile: keeps the previous capture mounted under the incoming one, which
+// fades in over it. No layout shift, no flash.
+function Tile({ src, delay }: { src: string; delay: number }) {
+  const [layers, setLayers] = useState<string[]>([src]);
+  useEffect(() => {
+    setLayers((prev) => (prev[prev.length - 1] === src ? prev : [...prev.slice(-1), src]));
+  }, [src]);
+  return (
+    <span className="hn-tile" style={{ animationDelay: `${delay}ms` }}>
+      {layers.map((s) => (
+        <img key={s} className="hn-tile-img" src={s} alt="" aria-hidden="true" decoding="async" />
+      ))}
+    </span>
+  );
 }
 
 export function HeroReel({ still = false }: { still?: boolean }) {
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [i, setI] = useState(0);
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const reduced =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const live = !still && !reduced;
+  const [playing, setPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  // A 16:9 element sized to COVER the hero box (iframes have no object-fit).
-  useEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    const measure = () => {
-      const r = el.getBoundingClientRect();
-      const scale = Math.max(r.width / 16, r.height / 9);
-      // overscan ~15% so YouTube's edge chrome never peeks in
-      setSize({ w: 16 * scale * 1.15, h: 9 * scale * 1.15 });
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
-  // Advance the reel; hold while the tab is hidden so background tabs don't
-  // churn through players.
+  // Autoplay can be denied (Low Power Mode, data saver, hidden tab). Retry on
+  // the first gesture and whenever the tab becomes visible; until then the
+  // collage carries the hero.
   useEffect(() => {
     if (!live) return;
-    const t = window.setInterval(() => {
-      if (document.hidden) return;
-      setI((v) => v + 1);
-    }, SLIDE_MS);
-    return () => window.clearInterval(t);
+    const tryPlay = () => {
+      const v = videoRef.current;
+      if (v && v.paused) v.play().catch(() => {});
+    };
+    window.addEventListener("pointerdown", tryPlay, { passive: true });
+    document.addEventListener("visibilitychange", tryPlay);
+    return () => {
+      window.removeEventListener("pointerdown", tryPlay);
+      document.removeEventListener("visibilitychange", tryPlay);
+    };
   }, [live]);
 
-  const cur = CLIPS[i % CLIPS.length];
-
-  // Three layers keyed by ABSOLUTE index: on advance the incoming frame keeps
-  // its DOM node (it was preloading invisibly and is already playing), the
-  // outgoing frame keeps its node and fades to 0, and only the frame beyond
-  // that unmounts, which is invisible anyway. Net effect: a real crossfade.
-  const frame = (abs: number, visible: boolean) => {
-    if (abs < 0 || !size) return null;
-    const c = CLIPS[abs % CLIPS.length];
-    return (
-      <iframe
-        key={abs}
-        className="hn-reel-embed"
-        style={{
-          width: size.w,
-          height: size.h,
-          opacity: visible ? 1 : 0,
-          transition: `opacity ${FADE_MS}ms ease`,
-        }}
-        src={embedUrl(c)}
-        title=""
-        aria-hidden="true"
-        tabIndex={-1}
-        allow="autoplay; encrypted-media"
-      />
-    );
-  };
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    // The collage keeps rotating only until the montage takes over.
+    if (!live || playing) return;
+    const t = window.setInterval(() => {
+      if (document.hidden) return;
+      setTick((v) => v + 1);
+    }, TICK_MS);
+    return () => window.clearInterval(t);
+  }, [live, playing]);
 
   return (
-    <div className="hn-hero-reel" ref={rootRef}>
-      {/* instant paint + the only layer in still/reduced-motion mode */}
-      <img
-        className="hn-reel-poster"
-        src={thumb(cur)}
-        alt=""
-        aria-hidden="true"
-        decoding="async"
-      />
-      {live && frame(i - 1, false)}
-      {live && frame(i, true)}
-      {live && frame(i + 1, false)}
+    <div className="hn-hero-reel" aria-hidden="true">
+      <div className="hn-collage">
+        {Array.from({ length: TILES }, (_, i) => {
+          // tile i updates on ticks where tick % TILES === i
+          const updates = Math.floor((tick + (TILES - 1 - i)) / TILES);
+          return <Tile key={i} src={imageFor(i, updates)} delay={(i % 5) * 900} />;
+        })}
+      </div>
+      {/* The real reel: a 27s montage of verified gameplay clips cut from the
+          coverage footage (used with the channel's permission), self-hosted in
+          /public/previews. It fades in over the collage once it actually
+          plays, so a slow network or blocked autoplay still shows gameplay. */}
+      {live && (
+        <video
+          ref={videoRef}
+          className={"hn-reel-canvas" + (playing ? " is-playing" : "")}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onPlaying={() => setPlaying(true)}
+        >
+          <source src="/previews/hero-montage.webm" type="video/webm" />
+          <source src="/previews/hero-montage.mp4" type="video/mp4" />
+        </video>
+      )}
     </div>
   );
 }

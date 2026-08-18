@@ -8,8 +8,18 @@ emulation, Recompile/Understand/Augment, One improvement many games, console-fea
 transforms, See it in action (videos), then Hardware/Games strips, In the wild,
 Articles. New home.json keys: videos, capabilities, pillars, transforms, thesis
 (CMS home saves now MERGE over the stored file so these survive editor saves).
-Hero background: YouTube gameplay reel (HeroReel.tsx), 3s crossfade cycle over the
-verified coverage videos; no video files hosted.
+Hero background (final form): a self-hosted 27s gameplay montage
+(public/previews/hero-montage.{webm,mp4}) cut from the coverage footage. Video Game
+Esoterica footage used with the channel's permission (relayed by the owner
+2026-08-18); Gamemaster1379 footage is the team's own. Nine 3s clips, every cut
+visually verified as gameplay (no FMV per owner). Under it, a crossfading collage of
+verified gameplay stills (YouTube frame captures) serves as instant paint and the
+reduced-motion / blocked-autoplay fallback. SFA3 could not be included in the montage
+(only menu footage was retrievable from the first minute of the video; YouTube
+throttled full downloads at ~10MB); its demo section embeds the full video instead.
+Montage rebuild notes: source cuts and ffmpeg pipeline in the session scratchpad;
+re-cut by downloading the videos and concatenating 3s segments at verified gameplay
+timestamps, 1280x720/30fps, cropdetect to strip pillarboxing.
 
 Demo blocks shipped 2026-08-18 with owner-supplied videos (verified via oEmbed):
 - SFA3 "Five minutes from disc" demo: youtube aITjH0LoEeA (Video Game Esoterica,
