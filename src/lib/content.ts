@@ -180,9 +180,8 @@ function asLinks(v: unknown): LinkRef[] {
 }
 
 function kindFromPath(path: string): Kind | null {
-  if (path.startsWith("/data/projects/")) return "project";
-  if (path.startsWith("/data/talks/")) return "talk";
-  if (path.startsWith("/data/writing/")) return "writing";
+  if (path.startsWith("/data/hardware/")) return "hardware";
+  if (path.startsWith("/data/software/")) return "software";
   if (path.startsWith("/data/blog/")) return "blog";
   return null;
 }
@@ -242,6 +241,12 @@ export function parseItem(path: string, raw: string): Item | null {
     demo: asString(fm.demo) || undefined,
     layout: fm.layout === "split" || fm.layout === "article" ? fm.layout : undefined,
     preview: fm.preview === true || undefined,
+    status: asString(fm.status) || undefined,
+    provenance:
+      fm.provenance === "core" || fm.provenance === "community" ? fm.provenance : undefined,
+    platform: asString(fm.platform) || undefined,
+    arch: asString(fm.arch) || undefined,
+    repo: asString(fm.repo) || undefined,
   };
 }
 
@@ -250,9 +255,8 @@ const allItems: Item[] = Object.entries(rawMd)
   .filter((x): x is Item => x !== null)
   .sort((a, b) => a.order - b.order);
 
-export const PROJECTS = allItems.filter((i) => i.kind === "project");
-export const TALKS = allItems.filter((i) => i.kind === "talk");
-export const WRITING = allItems.filter((i) => i.kind === "writing");
+export const HARDWARE = allItems.filter((i) => i.kind === "hardware");
+export const SOFTWARE = allItems.filter((i) => i.kind === "software");
 export const BLOGS = allItems.filter((i) => i.kind === "blog");
 
 export function findItem(kind: Kind, slug: string): Item | undefined {
@@ -260,9 +264,8 @@ export function findItem(kind: Kind, slug: string): Item | undefined {
 }
 
 const PATH_SEGMENT: Record<Kind, string> = {
-  project: "projects",
-  talk: "talks",
-  writing: "writing",
+  hardware: "hardware",
+  software: "software",
   blog: "blog",
 };
 
@@ -270,15 +273,8 @@ export function pathFor(kind: Kind, slug: string): string {
   return `/${PATH_SEGMENT[kind]}/${slug}`;
 }
 
-const ALL_SEGMENT: Record<Kind, "projects" | "talks" | "writing" | "blog"> = {
-  project: "projects",
-  talk: "talks",
-  writing: "writing",
-  blog: "blog",
-};
-
 export function allPath(kind: Kind): string {
-  return `/all/${ALL_SEGMENT[kind]}`;
+  return `/all/${PATH_SEGMENT[kind]}`;
 }
 
 export function topicPath(topicId: string): string {
@@ -286,14 +282,13 @@ export function topicPath(topicId: string): string {
 }
 
 export const COLLECTION_KIND: Record<string, Kind> = {
-  projects: "project",
-  talks: "talk",
-  writing: "writing",
+  hardware: "hardware",
+  software: "software",
   blog: "blog",
 };
 
 export function itemsForKind(kind: Kind): Item[] {
-  return kind === "project" ? PROJECTS : kind === "talk" ? TALKS : kind === "blog" ? BLOGS : WRITING;
+  return kind === "hardware" ? HARDWARE : kind === "software" ? SOFTWARE : BLOGS;
 }
 
 function itemMatchesTopic(item: Item, topic: Topic): boolean {

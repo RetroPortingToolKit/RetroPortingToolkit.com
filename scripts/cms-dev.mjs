@@ -36,10 +36,9 @@ const COPY_FILES = [
 const COPY_LABEL = new Map(COPY_FILES);
 
 const KIND_GROUP = [
-  ["blog", "Blog"],
-  ["projects", "Projects"],
-  ["talks", "Talks"],
-  ["writing", "Writing"],
+  ["blog", "Articles"],
+  ["hardware", "Hardware"],
+  ["software", "Software"],
 ];
 
 const FOLDER_RE = /^(\d+)_(.+)$/;
@@ -50,7 +49,7 @@ function isAllowed(id) {
   if (COPY_LABEL.has(id)) return true;
   if (id === "data/about.md") return true;
   if (/^data\/sources\/[^/]+\.md$/.test(id)) return true;
-  if (/^data\/(projects|talks|writing|blog)\/[^/]+\/index\.md$/.test(id)) return true;
+  if (/^data\/(blog|hardware|software)\/[^/]+\/index\.md$/.test(id)) return true;
   return false;
 }
 function resolveSafe(id) {
@@ -319,10 +318,10 @@ export function writeEditable(id, payload) {
 // post means allocating a folder, not just writing a file. The slug becomes the
 // URL and is permanent in practice (renaming the folder changes the URL), so it
 // is derived from the title once, here, and never rewritten on later saves.
-const KIND_DIRS = new Set(["blog", "projects", "talks", "writing"]);
+const KIND_DIRS = new Set(["blog", "hardware", "software"]);
 
 // Reads naturally in the stub description: "this post", not "this blog".
-const KIND_NOUN = { blog: "post", projects: "project", talks: "talk", writing: "article" };
+const KIND_NOUN = { blog: "article", hardware: "platform", software: "project" };
 
 export function slugify(title) {
   return String(title)
@@ -348,18 +347,13 @@ function stubFrontmatter(kind, title) {
   const esc = (s) => String(s).replace(/"/g, '\\"');
   const lines = [
     `title: "${esc(title)}"`,
-    `kicker: "${kind === "talks" ? "Venue" : "New"}"`,
+    `kicker: "New"`,
     `tags: ["New"]`,
-    // matches every seeded item, so a new post shows up in the home decks too
-    `featured: true`,
+    `featured: false`,
     `desc: "One line describing this ${KIND_NOUN[kind]}."`,
   ];
-  if (kind === "blog" || kind === "writing") lines.push(`date: "${today}"`);
+  if (kind === "blog") lines.push(`date: "${today}"`);
   else lines.push(`year: "${year}"`);
-  if (kind === "talks") {
-    lines.push(`venue: "Venue"`);
-    lines.push(`duration: "20 min"`);
-  }
   return lines.join("\n");
 }
 
@@ -415,14 +409,14 @@ export function createEditable(payload) {
 const UPLOAD_EXT = /\.(jpe?g|png|webp|gif|avif|mp4|mov|m4v|webm)$/i;
 
 function contentFolder(id) {
-  if (!/^data\/(projects|talks|writing|blog)\/[^/]+\/index\.md$/.test(id)) return null;
+  if (!/^data\/(blog|hardware|software)\/[^/]+\/index\.md$/.test(id)) return null;
   const abs = resolveSafe(id);
   return abs ? path.dirname(abs) : null;
 }
 
 async function doUpload({ id, filename, contentBase64 }) {
   const folder = contentFolder(id);
-  if (!folder) return { ok: false, error: "Uploads are only for blog / project / talk / writing items." };
+  if (!folder) return { ok: false, error: "Uploads are only for article / hardware / software items." };
   const clean = path.basename(String(filename || "")).replace(/[^\w.-]/g, "_");
   if (!clean || clean.startsWith(".") || !UPLOAD_EXT.test(clean)) {
     return { ok: false, error: "Unsupported file type (use jpg/png/webp/gif/mp4/mov)." };

@@ -1,4 +1,4 @@
-export type Kind = "project" | "talk" | "writing" | "blog";
+export type Kind = "hardware" | "software" | "blog";
 
 export interface TopicItemRef {
   kind: Kind;
@@ -56,6 +56,16 @@ export interface Item {
   year?: string;
   duration?: string;
   date?: string;
+  /** Normalized maturity label (e.g. "Mature", "Alpha", "Tech demo", "Research"). */
+  status?: string;
+  /** Who maintains it: the core team or a community project built on the toolkit. */
+  provenance?: "core" | "community";
+  /** Software items: slug of the hardware ecosystem page this project runs on. */
+  platform?: string;
+  /** Hardware items: the original processor architecture (e.g. "MIPS R3000A"). */
+  arch?: string;
+  /** Canonical source repository URL. */
+  repo?: string;
   videoUrl?: string;
   coverBgSize?: string;
   coverBgPos?: string;

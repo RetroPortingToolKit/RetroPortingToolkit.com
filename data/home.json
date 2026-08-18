@@ -1,20 +1,38 @@
 {
   "proof": [
-    "Placeholder proof paragraph. These read as the opening claims on the home page, and support inline markdown links such as [a topic](/topic/porting) or [a project](/projects/first-project).",
-    "Second placeholder proof paragraph. Keep each one to a few sentences; the layout is tuned for two or three of them."
+    "Retro Porting Toolkit is a collection of platform-specific recompilation ecosystems. Each one pairs a decoder, which statically translates a game's original machine code into C, with a runtime that stands in for the original hardware. The output compiles as a native program for modern platforms: no emulator core underneath, and no game data ever distributed. Every project builds from your own legally dumped ROM or disc image.",
+    "The most established ecosystem is [PSXRecomp](/hardware/playstation), which recompiles the real PlayStation BIOS and runs seven playable first-party titles alongside community ports like [OpenPete's Spyro the Dragon](/software/openpete-spyro). [NESRecomp](/hardware/nes) covers ten commercial titles across four mapper families. Newer targets run from [SNES](/hardware/super-nintendo) and [Game Boy Advance](/hardware/game-boy-advance) down to research experiments on [CD-i](/hardware/cd-i) and the [GameCube](/hardware/gamecube). The [Hardware](/hardware) section reports each one's real maturity, in the projects' own words.",
+    "Because the result is code rather than a ROM inside an emulator, games can grow past their original constraints: [adaptive widescreen](/topic/widescreen), 60 FPS rendering, [mods and runtime text translation](/topic/translation), gyro and solar-sensor hardware substitution, and shared [netplay and rollback](/topic/netplay) infrastructure. The [Software](/software) section documents every public game project, what works today, and what is still rough."
   ],
   "recognition": [
     {
-      "label": "Placeholder group",
+      "label": "Press",
       "items": [
-        { "text": "Placeholder entry", "href": "/topic/porting" },
-        { "text": "Another entry", "href": "/topic/preservation" }
+        { "text": "Time Extension on OpenPete + PSXRecomp", "href": "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp" },
+        { "text": "Notebookcheck on Pepsiman in the browser", "href": "https://www.notebookcheck.net/A-recompiled-version-of-Pepsiman-lets-you-play-the-PS1-cult-classic-natively-in-your-browser-at-60-FPS.1354060.0.html" },
+        { "text": "retro-gamer.jp on Twisted Metal 4", "href": "https://retro-gamer.jp/?p=45562" }
+      ]
+    },
+    {
+      "label": "Video",
+      "items": [
+        { "text": "Video Game Esoterica", "href": "https://www.youtube.com/watch?v=sbqPnJhb3uk" },
+        { "text": "Save states & rewind showcase", "href": "https://www.youtube.com/watch?v=L36ppNkuJG0" }
+      ]
+    },
+    {
+      "label": "Writing",
+      "items": [
+        { "text": "1379.tech, the team's technical blog", "href": "https://1379.tech" }
       ]
     }
   ],
   "philosophy": [
-    "Placeholder principle one.",
-    "Placeholder principle two.",
-    "Placeholder principle three."
+    "Native builds for modern platforms: Windows, Linux, macOS, Android, and even the browser, with no emulator core underneath.",
+    "Adaptive widescreen that genuinely widens the logical view, demonstrated up to 21:9 on titles like Tomba! 2 and Mega Man Zero.",
+    "Enhancements the original hardware could not do: 60 FPS patches, MSU-1 CD-quality audio, HD voxel renderers, and mod loaders that never modify the original ROM.",
+    "Hardware substitution: WarioWare: Twisted! gyro on a phone or DualSense controller, and Boktai's solar sensor driven by real local weather.",
+    "Runtime text replacement, powering Tsumu Light's first English fan translation and NES text overrides.",
+    "Shared netplay, rollback, and save-state infrastructure (recomp-net and retcomm-rbengine) that every ecosystem can adopt."
   ]
 }

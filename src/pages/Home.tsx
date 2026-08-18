@@ -6,21 +6,19 @@ import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
 import { HeroReel } from "@/components/HeroReel";
 import {
-  labProjects,
-  labTalks,
-  labArticles,
+  labHardware,
+  labSoftware,
   labBlog,
   labAll,
   type LabKind,
   type LabMedia,
 } from "@/lab/labContent";
-import { PROJECTS, TALKS, WRITING, BLOGS, pathFor } from "@/lib/content";
+import { HARDWARE, SOFTWARE, BLOGS, pathFor } from "@/lib/content";
 import { isMac } from "@/lib/platform";
 import { useAbout } from "@/lib/about";
 import {
   titleForCollection,
   titleForHome,
-  titleForWork,
   useDocumentTitle,
 } from "@/lib/pageTitle";
 import { useOverlayOpen } from "@/lib/overlay";
@@ -33,14 +31,16 @@ import {
 
 const TAB_PATH: Record<TabId, string> = {
   home: "/",
-  work: "/work",
+  hardware: "/hardware",
+  software: "/software",
   blog: "/blog",
 };
-const TAB_ORDER: TabId[] = ["home", "work", "blog"];
+const TAB_ORDER: TabId[] = ["home", "hardware", "software", "blog"];
 const NAV_TABS = [
   { id: "home" as TabId, label: "Home", path: "/" },
-  { id: "work" as TabId, label: "Work", path: "/work" },
-  { id: "blog" as TabId, label: "Blog", path: "/blog" },
+  { id: "hardware" as TabId, label: "Hardware", path: "/hardware" },
+  { id: "software" as TabId, label: "Software", path: "/software" },
+  { id: "blog" as TabId, label: "Articles", path: "/blog" },
 ];
 
 // Must equal what scripts/vite-prerender.mjs serves for each tab's route, so
@@ -48,7 +48,8 @@ const NAV_TABS = [
 // src/lib/pageTitle.ts, which is asserted against the prerender in its test.
 const TAB_TITLE: Record<TabId, string> = {
   home: titleForHome(),
-  work: titleForWork(),
+  hardware: titleForCollection("hardware"),
+  software: titleForCollection("software"),
   blog: titleForCollection("blog"),
 };
 
@@ -133,14 +134,22 @@ function SectionHead({
 }
 
 const GRID_TITLES: Record<LabKind, string> = {
-  project: "Projects",
-  talk: "Talks",
-  writing: "Articles",
-  blog: "Blog",
+  hardware: "Hardware",
+  software: "Software",
+  blog: "Articles",
 };
 
-// A full-catalog tab page: the home's featured cards first, then the rest of
-// that kind.
+const GRID_SUBS: Record<LabKind, string> = {
+  hardware:
+    "Platform-specific recompilation ecosystems: each one is a decoder and runtime for one original machine. Grouped by how far along they are, in the projects' own words.",
+  software:
+    "Game recompilations and shared runtime libraries built on the toolkit, from the core team and from the community. Every project builds from your own legally dumped ROM or disc; none distribute game data.",
+  blog: "Technical writing from the team on 1379.tech, plus independent press coverage and videos.",
+};
+
+// A full-catalog tab page. Items carry an optional `group` (from frontmatter):
+// grouped items render under their group heading in first-appearance order,
+// which the NN_ folder prefixes control. Ungrouped items lead.
 function TabGrid({
   kind,
   onOpen,
@@ -151,8 +160,14 @@ function TabGrid({
   still?: boolean;
 }) {
   const all = labAll[kind];
-  const main = kind === "project" ? all.filter((m) => m.group !== "side") : all;
-  const side = kind === "project" ? all.filter((m) => m.group === "side") : [];
+  const lead = all.filter((m) => !m.group);
+  const groups: { label: string; items: LabMedia[] }[] = [];
+  for (const m of all) {
+    if (!m.group) continue;
+    const g = groups.find((x) => x.label === m.group);
+    if (g) g.items.push(m);
+    else groups.push({ label: m.group, items: [m] });
+  }
   return (
     <section className="hn-section hn-subpage-section" aria-label={GRID_TITLES[kind]}>
       <div className="hn-container">
@@ -160,53 +175,24 @@ function TabGrid({
           <h1 className="hn-tab-title">{GRID_TITLES[kind]}</h1>
           <span className="hn-tab-count">{all.length}</span>
         </header>
-        <div className="tv-grid">
-          {main.map((m) => (
-            <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
-          ))}
-        </div>
-        {side.length > 0 && (
-          <>
-            <h2 className="hn-h2 hn-side-title">Fun side projects</h2>
+        <p className="blog-tab-sub">{GRID_SUBS[kind]}</p>
+        {lead.length > 0 && (
+          <div className="tv-grid">
+            {lead.map((m) => (
+              <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
+            ))}
+          </div>
+        )}
+        {groups.map((g) => (
+          <Fragment key={g.label}>
+            <h2 className="hn-h2 hn-side-title">{g.label}</h2>
             <div className="tv-grid">
-              {side.map((m) => (
+              {g.items.map((m) => (
                 <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
               ))}
             </div>
-          </>
-        )}
-      </div>
-    </section>
-  );
-}
-
-// The Blog tab: side-projects / demos (markdown items, kind "blog"). Renders the SAME SpatialCard
-// deck as the Work grids (via labAll.blog -> generated covers under /lab-media/blog), so blog cards
-// match the article/talk/project cards everywhere. Cards open the entry as a MODAL over the tab
-// (onOpen -> background state), exactly like every other item.
-function BlogGrid({
-  onOpen,
-  still = false,
-}: {
-  onOpen: (m: LabMedia) => void;
-  still?: boolean;
-}) {
-  return (
-    <section className="hn-section hn-subpage-section" aria-label="Blog">
-      <div className="hn-container">
-        <header className="hn-tab-head">
-          <h1 className="hn-tab-title">Blog</h1>
-          <span className="hn-tab-count">{BLOGS.length}</span>
-        </header>
-        <p className="blog-tab-sub">
-          Things I build. Small experiments and side projects where I use AI to take an idea to a
-          working, interactive product. Open one to read how it was made and try it in the page.
-        </p>
-        <div className="tv-grid">
-          {labAll.blog.map((m) => (
-            <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
-          ))}
-        </div>
+          </Fragment>
+        ))}
       </div>
     </section>
   );
@@ -323,23 +309,9 @@ function TabContent({
 
   return (
     <div ref={rootRef}>
-      {tab === "work" && (
-        <>
-          {/* one tab, three stacked sections with anchors (#talks/#articles/#projects).
-              the home "view all" links and the redirected /talks,/writing,/projects routes
-              land here and scroll to the right section (see the hash effect in Home). */}
-          <div id="talks" className="work-anchor">
-            <TabGrid kind="talk" onOpen={onOpen} still={!interactive} />
-          </div>
-          <div id="articles" className="work-anchor">
-            <TabGrid kind="writing" onOpen={onOpen} still={!interactive} />
-          </div>
-          <div id="projects" className="work-anchor">
-            <TabGrid kind="project" onOpen={onOpen} still={!interactive} />
-          </div>
-        </>
-      )}
-      {tab === "blog" && <BlogGrid onOpen={onOpen} still={!interactive} />}
+      {tab === "hardware" && <TabGrid kind="hardware" onOpen={onOpen} still={!interactive} />}
+      {tab === "software" && <TabGrid kind="software" onOpen={onOpen} still={!interactive} />}
+      {tab === "blog" && <TabGrid kind="blog" onOpen={onOpen} still={!interactive} />}
 
       {isHome && (
         <>
@@ -405,10 +377,10 @@ function TabContent({
             </div>
           </header>
 
-          <section className="hn-section" aria-label="About">
+          <section className="hn-section" aria-label="What it is">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                About me
+                What it is
               </h2>
               <div className="hn-proof" data-reveal>
                 {sections.proof.map((line, i) => (
@@ -418,10 +390,70 @@ function TabContent({
             </div>
           </section>
 
-          <section className="hn-section" aria-label="Recognition">
+          <section className="hn-section" aria-label="What recompilation makes possible">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                Recognition
+                What recompilation makes possible
+              </h2>
+              <ol className="hn-philosophy">
+                {sections.philosophy.map((p, i) => (
+                  <li className="hn-phil-row" key={i} data-reveal>
+                    <span className="hn-phil-num">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="hn-phil-text">{p}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Hardware">
+            <div className="hn-container">
+              <SectionHead
+                title="Hardware"
+                to="/hardware"
+                count={HARDWARE.length}
+                onNav={onNav}
+              />
+              <div className="tv-grid tv-strip">
+                {labHardware.map((m) => (
+                  <SpatialCard
+                    key={`${m.kind}-${m.slug}`}
+                    media={m}
+                    onOpen={onOpen}
+                    still={!interactive}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Software">
+            <div className="hn-container">
+              <SectionHead
+                title="Software"
+                to="/software"
+                count={SOFTWARE.length}
+                onNav={onNav}
+              />
+              <div className="tv-grid tv-strip">
+                {labSoftware.map((m) => (
+                  <SpatialCard
+                    key={`${m.kind}-${m.slug}`}
+                    media={m}
+                    onOpen={onOpen}
+                    still={!interactive}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Coverage">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                Coverage
               </h2>
               <dl className="hn-recognition" data-reveal>
                 {sections.recognition.map((group) => (
@@ -443,91 +475,10 @@ function TabContent({
             </div>
           </section>
 
-          <section className="hn-section" aria-label="Product Philosophy">
-            <div className="hn-container">
-              <h2 className="hn-h2" data-reveal>
-                Product Philosophy
-              </h2>
-              <ol className="hn-philosophy">
-                {sections.philosophy.map((p, i) => (
-                  <li className="hn-phil-row" key={i} data-reveal>
-                    <span className="hn-phil-num">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="hn-phil-text">{p}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="Selected Projects">
-            <div className="hn-container">
-              <SectionHead
-                title="Selected work"
-                to="/work#projects"
-                count={PROJECTS.length}
-                onNav={onNav}
-              />
-              <div className="tv-grid tv-strip">
-                {labProjects.map((m) => (
-                  <SpatialCard
-                    key={`${m.kind}-${m.slug}`}
-                    media={m}
-                    onOpen={onOpen}
-                    still={!interactive}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="Talks">
-            <div className="hn-container">
-              <SectionHead
-                title="Talks"
-                to="/work#talks"
-                count={TALKS.length}
-                onNav={onNav}
-              />
-              <div className="tv-grid tv-strip">
-                {labTalks.map((m) => (
-                  <SpatialCard
-                    key={`${m.kind}-${m.slug}`}
-                    media={m}
-                    onOpen={onOpen}
-                    still={!interactive}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
-
           <section className="hn-section" aria-label="Articles">
             <div className="hn-container">
               <SectionHead
                 title="Articles"
-                to="/work#articles"
-                count={WRITING.length}
-                onNav={onNav}
-              />
-              <div className="tv-grid tv-strip">
-                {labArticles.map((m) => (
-                  <SpatialCard
-                    key={`${m.kind}-${m.slug}`}
-                    media={m}
-                    onOpen={onOpen}
-                    still={!interactive}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="Blog">
-            <div className="hn-container">
-              <SectionHead
-                title="Blog"
                 to="/blog"
                 count={BLOGS.length}
                 onNav={onNav}
@@ -548,23 +499,16 @@ function TabContent({
           <section className="hn-section hn-closing">
             <div className="hn-container" data-reveal>
               <p className="hn-closing-line">
-                Exploring product and R&amp;D leadership roles with teams
-                building ambitious new technology.
+                Every ecosystem is open source. Bring a game you care about,
+                or build on the toolkit.
               </p>
               <div className="hn-cta-row">
                 {about.email && (
                   <a className="hn-cta" href={`mailto:${about.email}`}>
                     <MailIcon />
-                    Email me
+                    Get in touch
                   </a>
                 )}
-                <button
-                  type="button"
-                  className="hn-cta hn-cta--ghost"
-                  onClick={() => window.print()}
-                >
-                  Print this page
-                </button>
               </div>
             </div>
           </section>
@@ -637,34 +581,13 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
     if (id === tab) return;
     autoPageRef.current?.(id);
   };
-  // a "view all" link is "/work#section"; switch to the tab, remember the section, and the effect
-  // below scrolls to it once the pane has rendered. (goTab navigates to the base path, no hash.)
-  const pendingHash = useRef<string | null>(null);
+  // a "view all" section-title link targets a tab path; ride the page-turn.
   const onNav = (path: string) => {
-    const [base, hash] = path.split("#");
+    const base = path.split("#")[0];
     const id = (Object.keys(TAB_PATH) as TabId[]).find((k) => TAB_PATH[k] === base);
     if (!id) return;
-    if (hash) pendingHash.current = hash;
     goTab(id);
   };
-
-  // Scroll to a Work section: from a "view all" link (pendingHash) or a cold load / redirect to
-  // /work#section (location.hash). Runs once the work pane is the current tab.
-  useEffect(() => {
-    if (tab !== "work") return;
-    const id = pendingHash.current || (location.hash ? location.hash.slice(1) : "");
-    if (!id) return;
-    pendingHash.current = null;
-    const reduce =
-      typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = window.setTimeout(() => {
-      document
-        .getElementById(id)
-        ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
-    }, 60);
-    return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, location.hash]);
 
   // Keyboard: left/right cycles tabs; Esc returns home. Inactive while a modal
   // is open above this page (pathname no longer matches) or a lightbox is up.
@@ -685,7 +608,7 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         const next = TAB_ORDER[i + (e.key === "ArrowRight" ? 1 : -1)];
         if (next) goTab(next);
       } else if (e.key >= "1" && e.key <= "9") {
-        // number row jumps straight to that tab (1 = Home ... 3 = Blog),
+        // number row jumps straight to that tab (1 = Home ... 4 = Articles),
         // riding the same page-turn (direction follows tab order)
         const target = TAB_ORDER[Number(e.key) - 1];
         if (target) goTab(target);

@@ -22,17 +22,15 @@ const DEFAULT_OG = fs.existsSync(path.join(PUBLIC_DIR, "og", "default.jpg"))
   : null;
 
 const KIND_SEGMENT = {
-  project: "projects",
-  talk: "talks",
-  writing: "writing",
+  hardware: "hardware",
+  software: "software",
   blog: "blog",
 };
 
 const COLLECTION_TITLE = {
-  projects: "All projects",
-  talks: "All talks",
-  writing: "All articles",
-  blog: "All blog posts",
+  hardware: "Hardware",
+  software: "Software",
+  blog: "Articles",
 };
 
 const IMG_EXT = /\.(jpe?g|png|webp|gif|avif)$/i;
@@ -55,10 +53,8 @@ function walk(dir) {
 }
 
 function kindFromPath(rel) {
-  if (rel.startsWith("projects/") || rel.startsWith("projects\\"))
-    return "project";
-  if (rel.startsWith("talks/") || rel.startsWith("talks\\")) return "talk";
-  if (rel.startsWith("writing/") || rel.startsWith("writing\\")) return "writing";
+  if (rel.startsWith("hardware/") || rel.startsWith("hardware\\")) return "hardware";
+  if (rel.startsWith("software/") || rel.startsWith("software\\")) return "software";
   if (rel.startsWith("blog/") || rel.startsWith("blog\\")) return "blog";
   return null;
 }
@@ -167,7 +163,7 @@ function escapeAttr(s) {
 // ---- og assets: everything resolves to PUBLIC paths, so the exact same
 // URLs work on prod, on the dev tunnel, and in the dev middleware below. The
 // audit guarantees every item has a public poster (previews/ or lab-media/).
-const LAB_DIR = { project: "projects", talk: "talks", writing: "writing", blog: "blog" };
+const LAB_DIR = { hardware: "hardware", software: "software", blog: "blog" };
 
 function itemImagePath(item) {
   const prev = path.join(PUBLIC_DIR, "previews", `${item.slug}.webp`);
@@ -230,7 +226,7 @@ function pageLd(type, name, description, url) {
 
 function itemJsonLd(item, url, image) {
   const date = ldDate(item);
-  if (item.kind === "writing") {
+  if (item.kind === "blog") {
     return {
       "@type": "Article",
       headline: item.title,
@@ -244,7 +240,7 @@ function itemJsonLd(item, url, image) {
         : {}),
     };
   }
-  if (item.kind === "talk" && item.videoUrl) {
+  if (item.videoUrl) {
     const isYt = /youtu\.?be/.test(item.videoUrl);
     const videoUrl = /^https?:/.test(item.videoUrl)
       ? item.videoUrl
@@ -264,9 +260,9 @@ function itemJsonLd(item, url, image) {
       author: AUTHOR,
     };
   }
-  // projects, and talks without a video
+  // hardware ecosystems and software projects
   return {
-    "@type": "CreativeWork",
+    "@type": "SoftwareSourceCode",
     name: item.title,
     description: item.desc || item.title,
     url,
@@ -333,8 +329,9 @@ function mdToHtml(md) {
 
 const NAV_HTML = [
   ["/", "Home"],
-  ["/work", "Work"],
-  ["/blog", "Blog"],
+  ["/hardware", "Hardware"],
+  ["/software", "Software"],
+  ["/blog", "Articles"],
 ]
   .map(([href, label]) => `<a href="${href}">${label}</a>`)
   .join(" \u00b7 ");
@@ -410,11 +407,11 @@ function homeStaticHtml(items) {
     `<p>${escapeHtml(about.role || "")}</p>`,
     `<p>${escapeHtml(about.tagline || "")}</p>`,
     ...(about.bio ? [mdToHtml(about.bio)] : []),
-    "<h2>About me</h2>",
+    "<h2>What it is</h2>",
     ...prose.proof.map((t) => `<p>${escapeHtml(t)}</p>`),
   ];
   if (prose.recognition.length) {
-    parts.push("<h2>Recognition</h2><ul>");
+    parts.push("<h2>Coverage</h2><ul>");
     for (const g of prose.recognition)
       parts.push(
         `<li>${escapeHtml(g.label)}: ${escapeHtml(g.items.join(", "))}</li>`,
@@ -423,14 +420,14 @@ function homeStaticHtml(items) {
   }
   if (prose.philosophy.length) {
     parts.push(
-      "<h2>Philosophy</h2><ul>" +
+      "<h2>What recompilation makes possible</h2><ul>" +
         prose.philosophy.map((t) => `<li>${escapeHtml(t)}</li>`).join("") +
         "</ul>",
     );
   }
-  parts.push("<h2>Projects</h2>", itemListHtml(items, "project"));
-  parts.push("<h2>Talks</h2>", itemListHtml(items, "talk"));
-  parts.push("<h2>Articles</h2>", itemListHtml(items, "writing"));
+  parts.push("<h2>Hardware</h2>", itemListHtml(items, "hardware"));
+  parts.push("<h2>Software</h2>", itemListHtml(items, "software"));
+  parts.push("<h2>Articles</h2>", itemListHtml(items, "blog"));
   return wrapStatic(parts.join("\n"));
 }
 
@@ -630,19 +627,17 @@ export function buildRouteMeta(origin) {
     static: homeStaticHtml(items),
   });
 
-  const counts = { project: 0, talk: 0, writing: 0, blog: 0 };
+  const counts = { hardware: 0, software: 0, blog: 0 };
   for (const it of items) counts[it.kind] = (counts[it.kind] ?? 0) + 1;
-  // Derived from the real content counts, so a fresh template describes itself
-  // correctly before any copy is written. Override per site if you want richer
-  // collection descriptions.
+  // Derived from the real content counts so the descriptions never drift from
+  // what the pages actually list.
   const TAB_DESC = {
-    projects: `${counts.project} ${counts.project === 1 ? "project" : "projects"} from ${SITE_NAME}.`,
-    talks: `${counts.talk} ${counts.talk === 1 ? "talk" : "talks"} from ${SITE_NAME}.`,
-    writing: `${counts.writing} ${counts.writing === 1 ? "article" : "articles"} from ${SITE_NAME}.`,
-    blog: `${counts.blog} blog ${counts.blog === 1 ? "post" : "posts"} from ${SITE_NAME}.`,
+    hardware: `${counts.hardware} platform recompilation ${counts.hardware === 1 ? "ecosystem" : "ecosystems"} from ${SITE_NAME}: decoders and runtimes for original console hardware.`,
+    software: `${counts.software} ${counts.software === 1 ? "project" : "projects"} built on ${SITE_NAME}: game recompilations and shared runtime libraries.`,
+    blog: `${counts.blog} ${counts.blog === 1 ? "article" : "articles"}: technical writing from the team, press coverage, and videos.`,
   };
-  const SEG_KIND = { projects: "project", talks: "talk", writing: "writing", blog: "blog" };
-  for (const seg of ["projects", "talks", "writing", "blog"]) {
+  const SEG_KIND = { hardware: "hardware", software: "software", blog: "blog" };
+  for (const seg of ["hardware", "software", "blog"]) {
     const listHtml = wrapStatic(
       `<h1>${escapeHtml(COLLECTION_TITLE[seg])}</h1>\n` +
         `<p>${escapeHtml(TAB_DESC[seg])}</p>\n` +
@@ -666,28 +661,6 @@ export function buildRouteMeta(origin) {
     }
   }
 
-  // /work = the merged tab (talks + articles + projects stacked). Prerender one page that lists all
-  // three so it cold-loads and is crawlable; the old /talks,/writing,/projects pages still exist
-  // (and the React app redirects them here with a #section anchor).
-  {
-    const workDesc = `Talks, articles, and projects in one place: ${TAB_DESC.talks} ${TAB_DESC.projects}`;
-    const workStatic = wrapStatic(
-      `<h1>Work</h1>\n` +
-        `<h2 id="talks">Talks</h2>\n${itemListHtml(items, "talk")}\n` +
-        `<h2 id="articles">Articles</h2>\n${itemListHtml(items, "writing")}\n` +
-        `<h2 id="projects">Projects</h2>\n${itemListHtml(items, "project")}`,
-    );
-    add("/work", {
-      title: `Work · ${SITE_NAME}`,
-      description: truncate(workDesc, 280),
-      image: defaultImage,
-      url: `${origin}/work`,
-      type: "website",
-      jsonLd: pageLd("CollectionPage", `Work · ${SITE_NAME}`, truncate(workDesc, 280), `${origin}/work`),
-      static: workStatic,
-    });
-  }
-
   for (const item of items) {
     const segment = KIND_SEGMENT[item.kind];
     const url = `${origin}/${segment}/${item.slug}`;
@@ -704,7 +677,7 @@ export function buildRouteMeta(origin) {
       url,
       type: vidPath
         ? "video.other"
-        : item.kind === "writing"
+        : item.kind === "blog"
           ? "article"
           : "website",
       jsonLd: itemJsonLd(item, url, image),
@@ -739,7 +712,7 @@ export function buildRouteMeta(origin) {
   }
 
   for (const t of collectTopics()) {
-    const desc = `Selected projects, talks, and writing about ${t.label} by ${SITE_NAME}.`;
+    const desc = `Selected platforms, projects, and articles about ${t.label} from ${SITE_NAME}.`;
     add(`/topic/${t.id}`, {
       title: `${t.label} · ${SITE_NAME}`,
       description: desc,
@@ -796,12 +769,12 @@ function truncate(s, n) {
 
 // SEO: sitemap.xml + robots.txt, generated from the SAME route map as the
 // prerendered HTML so they can never drift. We index only the canonical
-// content routes; the /all/* aliases (duplicates of /projects etc.) and the
+// content routes; the /all/* aliases (duplicates of /hardware etc.) and the
 // dev-only editor are left out so crawlers don't index duplicate or
 // unrenderable pages.
 function sitemapPriority(route) {
   if (route === "/") return "1.0";
-  if (["/projects", "/talks", "/writing"].includes(route)) {
+  if (["/hardware", "/software", "/blog"].includes(route)) {
     return "0.9";
   }
   if (route.startsWith("/source/")) return "0.5";

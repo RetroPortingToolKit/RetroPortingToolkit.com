@@ -49,7 +49,7 @@ describe("read -> save is idempotent for every real content file (no drift)", ()
   // bytes that, read + saved again, are unchanged. So the editor can never
   // slowly corrupt content across successive saves. (A FIRST save may normalize
   // pre-existing frontmatter spacing; what must never happen is continued drift.)
-  const dirs = ["blog", "projects", "talks", "writing"];
+  const dirs = ["blog", "hardware", "software"];
   const ids = [];
   for (const kind of dirs) {
     const base = path.join(ROOT, "data", kind);

@@ -310,29 +310,15 @@ export function SpatialCard({
             );
             return cover;
           })()}
-          {media.kind === "talk" && <PlayBadge />}
-          {media.kind === "project" && (
-            <span className="tvcard-scrim" aria-hidden="true" />
-          )}
+          {media.video && <PlayBadge />}
             <span className="tvcard-sheen" aria-hidden="true" />
           </span>
           <span className="tvcard-body">
-            {media.kind === "project" ? (
-              <>
-                {/* Apple-TV poster layout: big title + the one-liner that says
-                    what it actually was (tags said nothing). */}
-                <span className="tvcard-title">{media.title}</span>
-                <span className="tvcard-desc">{media.desc}</span>
-              </>
-            ) : (
-              <>
-                <span className="tvcard-chip" style={{ background: media.color }}>
-                  {media.kicker}
-                </span>
-                <span className="tvcard-title">{media.title}</span>
-                <span className="tvcard-desc">{media.desc}</span>
-              </>
-            )}
+            <span className="tvcard-chip" style={{ background: media.color }}>
+              {media.kicker}
+            </span>
+            <span className="tvcard-title">{media.title}</span>
+            <span className="tvcard-desc">{media.desc}</span>
           </span>
         </span>
       </span>

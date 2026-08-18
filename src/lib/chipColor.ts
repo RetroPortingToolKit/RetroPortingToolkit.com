@@ -22,7 +22,23 @@ export const CHIP_PALETTE: readonly string[] = [
 // reads the same colour. Anything not listed falls back to the stable hash
 // below, so this map is optional.
 const LABEL_COLOR: Record<string, string> = {
-  Placeholder: COBALT,
+  PlayStation: COBALT,
+  "Super Nintendo": VIOLET,
+  "Game Boy Advance": TERRACOTTA,
+  NES: ROSE,
+  "Sega Genesis": TEAL,
+  "Virtual Boy": AMBER,
+  "Nintendo DS": FOREST,
+  "Original Xbox": OLIVE,
+  Library: OLIVE,
+  "1379.tech": COBALT,
+  Press: AMBER,
+  Video: ROSE,
+  MIPS: COBALT,
+  "65816": VIOLET,
+  ARM7: TERRACOTTA,
+  "6502": ROSE,
+  "68000": TEAL,
 };
 
 export function chipColorFor(label: string | undefined): string | undefined {

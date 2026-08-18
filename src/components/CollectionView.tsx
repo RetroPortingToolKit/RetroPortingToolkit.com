@@ -46,16 +46,15 @@ function CloseButton({ onClose }: { onClose: () => void }) {
 }
 
 const KIND_LABEL: Record<Kind, string> = {
-  project: "Projects",
-  talk: "Talks",
-  writing: "Articles",
-  blog: "Blog",
+  hardware: "Hardware",
+  software: "Software",
+  blog: "Articles",
 };
 
 // Item -> the SAME LabMedia the home/tab cards render, so every surface that
 // shows items (home grids, tab pages, these collection overlays) uses one card.
 const MEDIA_BY_KEY = new Map<string, LabMedia>();
-for (const k of ["project", "talk", "writing"] as const) {
+for (const k of ["hardware", "software", "blog"] as const) {
   for (const m of labAll[k]) MEDIA_BY_KEY.set(`${m.kind}-${m.slug}`, m);
 }
 
@@ -82,36 +81,14 @@ function KindGrid({ items }: { kind: Kind; items: Item[] }) {
   );
 }
 
-// Projects split into the main body of work and a lighter "side projects"
-// shelf (any item with `group: side` in its frontmatter). Side projects live
-// only on the Projects tab, never the home grid.
-function ProjectSections({ items }: { items: Item[] }) {
-  const main = items.filter((p) => p.group !== "side");
-  const side = items.filter((p) => p.group === "side");
-  if (side.length === 0) return <KindGrid kind="project" items={main} />;
-  return (
-    <div className="collection-sections">
-      <section className="collection-section">
-        <h2 className="collection-section-title">Selected work</h2>
-        <KindGrid kind="project" items={main} />
-      </section>
-      <section className="collection-section">
-        <h2 className="collection-section-title">Fun side projects</h2>
-        <KindGrid kind="project" items={side} />
-      </section>
-    </div>
-  );
-}
-
 export function CollectionBody({ items }: { items: Item[] }) {
   const buckets: Record<Kind, Item[]> = {
-    project: [],
-    talk: [],
-    writing: [],
+    hardware: [],
+    software: [],
     blog: [],
   };
   for (const item of items) buckets[item.kind].push(item);
-  const order: Kind[] = ["project", "talk", "writing", "blog"];
+  const order: Kind[] = ["hardware", "software", "blog"];
   const present = order.filter((k) => buckets[k].length > 0);
 
   if (items.length === 0) {
@@ -124,7 +101,6 @@ export function CollectionBody({ items }: { items: Item[] }) {
 
   if (present.length === 1) {
     const kind = present[0];
-    if (kind === "project") return <ProjectSections items={buckets.project} />;
     return <KindGrid kind={kind} items={buckets[kind]} />;
   }
 

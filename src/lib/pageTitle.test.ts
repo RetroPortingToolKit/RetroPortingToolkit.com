@@ -7,9 +7,8 @@ import {
   titleForHome,
   titleForItem,
   titleForTopic,
-  titleForWork,
 } from "./pageTitle";
-import { BLOGS, PROJECTS, TALKS, WRITING } from "./content";
+import { BLOGS, HARDWARE, SOFTWARE } from "./content";
 import { TOPICS } from "./topics";
 import type { Item } from "./types";
 
@@ -34,15 +33,10 @@ describe("client titles match the prerendered titles", () => {
     expect(served("/")).toBe(titleForHome());
   });
 
-  it("work", () => {
-    expect(served("/work")).toBe(titleForWork());
-  });
-
   it.each([
+    ["/hardware", "hardware"],
+    ["/software", "software"],
     ["/blog", "blog"],
-    ["/projects", "project"],
-    ["/talks", "talk"],
-    ["/writing", "writing"],
   ] as const)("collection %s", (route, kind) => {
     expect(served(route)).toBe(titleForCollection(kind));
   });
@@ -52,9 +46,8 @@ describe("client titles match the prerendered titles", () => {
   });
 
   const items: Array<[string, Item]> = [
-    ...PROJECTS.map((i) => [`/projects/${i.slug}`, i] as [string, Item]),
-    ...TALKS.map((i) => [`/talks/${i.slug}`, i] as [string, Item]),
-    ...WRITING.map((i) => [`/writing/${i.slug}`, i] as [string, Item]),
+    ...HARDWARE.map((i) => [`/hardware/${i.slug}`, i] as [string, Item]),
+    ...SOFTWARE.map((i) => [`/software/${i.slug}`, i] as [string, Item]),
     ...BLOGS.map((i) => [`/blog/${i.slug}`, i] as [string, Item]),
   ];
 

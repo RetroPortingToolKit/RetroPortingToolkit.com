@@ -11,21 +11,21 @@ export const SITE = {
   url: "https://retroportingtoolkit.com",
   /** One-line description for <meta name="description"> and feed subtitles. */
   description:
-    "A toolkit for porting and preserving retro software. Placeholder copy, replace it in src/lib/site.ts.",
+    "A family of platform-specific recompilation ecosystems that decouple legacy games from their original hardware: decoders and runtimes that turn a game binary back into code you can compile for modern platforms.",
   /**
    * Short positioning line. Used in the prerendered page title
    * ("<title> · <tagline>") and the static shell header crawlers read.
    */
-  tagline: "Porting and preservation tooling",
+  tagline: "Recompilation ecosystems for legacy games",
   /** Shown in the footer next to the copyright year. */
   owner: "Retro Porting Toolkit",
   /** Byline on articles and blog posts. */
-  author: "Placeholder Author",
+  author: "Matthew Stanley",
   /**
    * Contact address for feed authorship (RSS managingEditor/webMaster, Atom
    * <email>). Optional: both specs allow omitting it, and the feed generator
    * leaves those elements out entirely while this is empty, which is better
    * than publishing a placeholder address.
    */
-  email: "",
+  email: "hello@retroportingtoolkit.com",
 } as const;

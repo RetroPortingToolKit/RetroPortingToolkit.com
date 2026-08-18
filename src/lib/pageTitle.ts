@@ -12,18 +12,13 @@ import type { Item, Kind, Topic } from "./types";
 // title for the same route, so the two cannot drift.
 
 export const COLLECTION_TITLE: Record<Kind, string> = {
-  project: "All projects",
-  talk: "All talks",
-  writing: "All articles",
-  blog: "All blog posts",
+  hardware: "Hardware",
+  software: "Software",
+  blog: "Articles",
 };
 
 export function titleForHome(): string {
   return `${SITE.title} · ${SITE.tagline}`;
-}
-
-export function titleForWork(): string {
-  return `Work · ${SITE.title}`;
 }
 
 export function titleForCollection(kind: Kind): string {

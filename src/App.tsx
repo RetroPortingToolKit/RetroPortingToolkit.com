@@ -79,7 +79,7 @@ function ModalRoute({
 }
 
 const MODALISH_RE =
-  /^\/(projects|talks|writing|blog)\/[^/]+\/?$|^\/(all|topic)\/[^/]+\/?$/;
+  /^\/(hardware|software|blog)\/[^/]+\/?$|^\/(all|topic)\/[^/]+\/?$/;
 
 function CollectionAllRoute({
   onClose,
@@ -160,14 +160,13 @@ function ScrollManager() {
 }
 
 const COLLECTION_PATH_RE = /^\/all\/[^/]+\/?$|^\/topic\/[^/]+\/?$/;
-const ITEM_PATH_RE = /^\/(projects|talks|writing|blog)\/[^/]+\/?$/;
+const ITEM_PATH_RE = /^\/(hardware|software|blog)\/[^/]+\/?$/;
 
 // The tab page rendered UNDER an item opened by deep link, keyed by the item's
-// URL segment. Talks, projects and articles all live in the merged Work tab.
+// URL segment.
 const ITEM_TAB_PATH: Record<string, string> = {
-  projects: "/work",
-  talks: "/work",
-  writing: "/work",
+  hardware: "/hardware",
+  software: "/software",
   blog: "/blog",
 };
 
@@ -242,17 +241,17 @@ function AppRoutes() {
         <Suspense fallback={null}>
           <Routes location={pageLocation ?? location}>
             <Route path="/" element={<Home />} />
-            {/* Work = one tab stacking talks + articles + projects (anchors) */}
-            <Route path="/work" element={<Home tab="work" />} />
-            {/* per-kind index routes redirect into the merged Work tab */}
-            <Route path="/talks" element={<Navigate to="/work#talks" replace />} />
-            <Route path="/writing" element={<Navigate to="/work#articles" replace />} />
-            <Route path="/projects" element={<Navigate to="/work#projects" replace />} />
+            <Route path="/hardware" element={<Home tab="hardware" />} />
+            <Route path="/software" element={<Home tab="software" />} />
             <Route path="/blog" element={<Home tab="blog" />} />
+            {/* legacy routes from the pre-launch structure */}
+            <Route path="/work" element={<Navigate to="/software" replace />} />
+            <Route path="/projects" element={<Navigate to="/software" replace />} />
+            <Route path="/talks" element={<Navigate to="/" replace />} />
+            <Route path="/writing" element={<Navigate to="/blog" replace />} />
             <Route path="/blog/:slug" element={<ItemPage kind="blog" />} />
-            <Route path="/projects/:slug" element={<ItemPage kind="project" />} />
-            <Route path="/talks/:slug" element={<ItemPage kind="talk" />} />
-            <Route path="/writing/:slug" element={<ItemPage kind="writing" />} />
+            <Route path="/hardware/:slug" element={<ItemPage kind="hardware" />} />
+            <Route path="/software/:slug" element={<ItemPage kind="software" />} />
             <Route path="/all/:segment" element={<Home />} />
             <Route path="/topic/:topicId" element={<Home />} />
             <Route path="*" element={<NotFound />} />
@@ -269,16 +268,12 @@ function AppRoutes() {
         return (
           <Routes key={i} location={loc}>
             <Route
-              path="/projects/:slug"
-              element={<ModalRoute kind="project" onClose={closeModal} covered={covered} />}
+              path="/hardware/:slug"
+              element={<ModalRoute kind="hardware" onClose={closeModal} covered={covered} />}
             />
             <Route
-              path="/talks/:slug"
-              element={<ModalRoute kind="talk" onClose={closeModal} covered={covered} />}
-            />
-            <Route
-              path="/writing/:slug"
-              element={<ModalRoute kind="writing" onClose={closeModal} covered={covered} />}
+              path="/software/:slug"
+              element={<ModalRoute kind="software" onClose={closeModal} covered={covered} />}
             />
             <Route
               path="/blog/:slug"

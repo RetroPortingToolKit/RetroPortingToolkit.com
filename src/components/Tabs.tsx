@@ -7,7 +7,7 @@ import {
 import { useAbout } from "@/lib/about";
 import { ThemeToggle } from "./ThemeToggle";
 
-export type TabId = "home" | "work" | "blog";
+export type TabId = "home" | "hardware" | "software" | "blog";
 
 interface TabDef {
   id: TabId;
@@ -151,7 +151,7 @@ export function Tabs({
           >
             <img
               className="tabs-avatar"
-              src="/favicon.jpeg"
+              src="/favicon.svg"
               alt=""
               aria-hidden="true"
             />

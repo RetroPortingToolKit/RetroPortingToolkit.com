@@ -105,10 +105,8 @@ interface NavControlsProps {
 }
 
 function NavControls({ item, onClose, enableKeyboard = true }: NavControlsProps) {
-  // Project modal already has carousel arrows; a second pair would feel heavy.
-  const showSiblingNav = item.kind !== "project";
   const { canNav, go } = useSiblingNav(item);
-  const navVisible = showSiblingNav && canNav;
+  const navVisible = canNav;
 
   useEffect(() => {
     if (!enableKeyboard || !canNav) return;
@@ -191,7 +189,7 @@ export function ItemView({ item, onClose, covered }: Props) {
   const isProjectStacked = useMobile("(max-width: 1200px)");
   // A blog entry WITH a demo/media (split) gets the exact PROJECT experience: two-pane on desktop,
   // media-on-top + bottom-sheet on mobile. Body-only blog (article) falls through to the normal path.
-  const useProjectLayout = item.kind === "project" || blogIsSplit(item);
+  const useProjectLayout = blogIsSplit(item);
   let view;
   if (useProjectLayout) {
     view = isProjectStacked ? (
@@ -410,16 +408,24 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
               )}
               <h1 className="modal-title">{item.title}</h1>
               {item.kind === "blog" && <ArticleByline item={item} delay={0} />}
-              {item.kind !== "blog" && (item.year || item.meta.length > 0) && (
-                <div className="modal-meta">
-                  {item.year && <span className="pill">{item.year}</span>}
-                  {item.meta.map((m, i) => (
-                    <span key={i} className="pill">
-                      {m}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {item.kind !== "blog" &&
+                (item.year || item.status || item.arch || item.provenance || item.meta.length > 0) && (
+                  <div className="modal-meta">
+                    {item.status && <span className="pill">{item.status}</span>}
+                    {item.provenance && (
+                      <span className="pill">
+                        {item.provenance === "core" ? "Core team" : "Community"}
+                      </span>
+                    )}
+                    {item.arch && <span className="pill">{item.arch}</span>}
+                    {item.year && <span className="pill">{item.year}</span>}
+                    {item.meta.map((m, i) => (
+                      <span key={i} className="pill">
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                )}
               {item.body && (
                 <Markdown className="modal-content">{item.body}</Markdown>
               )}

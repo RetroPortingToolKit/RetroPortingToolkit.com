@@ -164,13 +164,13 @@ async function ghListTree(): Promise<{ path: string }[]> {
 }
 
 // ---------------------------------------------------------------- content model
-const KINDS = ["blog", "projects", "talks", "writing"] as const;
+const KINDS = ["blog", "hardware", "software"] as const;
 function isAllowed(id: string): boolean {
   if (typeof id !== "string" || id.includes("..") || id.includes("\0")) return false;
   if (id === "page:home") return true;
   if (id === "data/about.md" || id === "data/home.json") return true;
   if (/^data\/sources\/[^/]+\.md$/.test(id)) return true;
-  if (/^data\/(blog|projects|talks|writing)\/[^/]+\/index\.md$/.test(id)) return true;
+  if (/^data\/(blog|hardware|software)\/[^/]+\/index\.md$/.test(id)) return true;
   return false;
 }
 function typeOf(id: string): "md" | "json" | "home" {
@@ -300,7 +300,7 @@ async function writeEditable(id: string, payload: Record<string, unknown>) {
 // against the repo tree instead of the local filesystem. Keep the two in step:
 // the same editor UI calls whichever backend is serving.
 // Reads naturally in the stub description: "this post", not "this blog".
-const KIND_NOUN: Record<string, string> = { blog: "post", projects: "project", talks: "talk", writing: "article" };
+const KIND_NOUN: Record<string, string> = { blog: "article", hardware: "platform", software: "project" };
 
 function slugify(title: string): string {
   return String(title)
@@ -322,17 +322,13 @@ function stubFrontmatter(kind: string, title: string): string {
   const esc = (s: string) => s.replace(/"/g, '\\"');
   const lines = [
     `title: "${esc(title)}"`,
-    `kicker: "${kind === "talks" ? "Venue" : "New"}"`,
+    `kicker: "New"`,
     `tags: ["New"]`,
-    `featured: true`,
+    `featured: false`,
     `desc: "One line describing this ${KIND_NOUN[kind]}."`,
   ];
-  if (kind === "blog" || kind === "writing") lines.push(`date: "${today}"`);
+  if (kind === "blog") lines.push(`date: "${today}"`);
   else lines.push(`year: "${today.slice(0, 4)}"`);
-  if (kind === "talks") {
-    lines.push(`venue: "Venue"`);
-    lines.push(`duration: "20 min"`);
-  }
   return lines.join("\n");
 }
 

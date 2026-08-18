@@ -84,22 +84,21 @@ const recTextToItems = (text: string) =>
 // listed here (Pages, Sources) are not collections you add to from the editor.
 const FOLDER_KIND: Record<string, string> = {
   Blog: "blog",
-  Projects: "projects",
-  Talks: "talks",
-  Writing: "writing",
+  Articles: "blog",
+  Hardware: "hardware",
+  Software: "software",
 };
 
 const NEW_LABEL: Record<string, string> = {
-  blog: "post",
-  projects: "project",
-  talks: "talk",
-  writing: "article",
+  blog: "article",
+  hardware: "platform",
+  software: "project",
 };
 
 function previewFor(id: string): string {
   let m: RegExpMatchArray | null;
   if (id === "page:home") return "/";
-  if ((m = id.match(/^data\/(blog|projects|talks|writing)\/\d*_?([^/]+)\/index\.md$/)))
+  if ((m = id.match(/^data\/(blog|hardware|software)\/\d*_?([^/]+)\/index\.md$/)))
     return `/${m[1]}/${m[2]}`;
   if ((m = id.match(/^data\/sources\/(.+)\.md$/))) return `/source/${m[1]}`;
   return "/"; // home copy files render on the home page
@@ -1155,7 +1154,7 @@ export default function Admin() {
                       <Field label="Tags (comma-separated)">
                         <input style={styles.input} value={tagsInput} onChange={(e) => patchTags(e.target.value)} />
                       </Field>
-                      {!prod && selected && /^data\/(blog|projects|talks|writing)\//.test(selected.id) && (
+                      {!prod && selected && /^data\/(blog|hardware|software)\//.test(selected.id) && (
                         <Field label="Cover image / video">
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <input
@@ -1442,7 +1441,7 @@ function HomeFields({ home, setHome }: { home: HomeBuf; setHome: React.Dispatch<
         + Add paragraph
       </button>
 
-      <SectionHead title="Recognition" hint="One row per line as: Text | /href (e.g. TEDx | /talks/tedx)." />
+      <SectionHead title="Recognition" hint="One row per line as: Text | /href (e.g. Time Extension | https://...)." />
       {home.recognition.map((grp, i) => (
         <div key={i} style={{ marginBottom: 18, padding: 14, border: `1px solid ${V.line}`, borderRadius: 10 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 8 }}>

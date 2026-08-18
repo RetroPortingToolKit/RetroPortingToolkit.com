@@ -32,144 +32,15 @@ export function blogIsSplit(item: Item): boolean {
   return !!item.demo || item.gallery.length > 0;
 }
 
-export function ItemDetail({ item, variant = "modal" }: Props) {
-  if (item.kind === "project" && variant === "modal") {
-    return <ProjectSplit item={item} />;
-  }
-  // Blog: split entries render two-pane in BOTH modal and page (a live demo deserves the full page),
-  // unlike projects which only split in the modal. Body-only blog entries fall through to DefaultDetail.
+export function ItemDetail({ item }: Props) {
+  // Blog: split entries render two-pane in BOTH modal and page (a live demo
+  // deserves the full page). Everything else reads as an article.
   if (item.kind === "blog" && blogIsSplit(item)) {
     return <LabSplit item={item} />;
-  }
-  if (item.kind === "talk") {
-    return <TalkDetail item={item} />;
   }
   return <DefaultDetail item={item} />;
 }
 
-function TalkDetail({ item }: { item: Item }) {
-  const embedSrc =
-    item.videoUrl && isYouTubeSrc(item.videoUrl)
-      ? youtubeEmbedUrl(item.videoUrl)
-      : undefined;
-  const localVideo =
-    item.videoUrl && !embedSrc && isVideoSrc(item.videoUrl)
-      ? item.videoUrl
-      : undefined;
-  const dateLine = [item.venue, item.date ?? item.year, item.duration]
-    .filter(Boolean)
-    .join(" · ");
-
-  return (
-    <div className="talk-detail">
-      <div className="talk-detail-stage">
-        {embedSrc ? (
-          <iframe
-            className="talk-detail-iframe"
-            src={embedSrc}
-            title={item.title}
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen
-          />
-        ) : localVideo ? (
-          <video
-            className="talk-detail-iframe"
-            src={localVideo}
-            poster={item.cover}
-            controls
-            playsInline
-            preload="metadata"
-          />
-        ) : item.cover ? (
-          isVideoSrc(item.cover) ? (
-            <video
-              className="talk-detail-cover"
-              poster={item.poster}
-              muted
-              loop
-              playsInline
-              autoPlay
-              preload="metadata"
-            >
-              <source src={item.cover} />
-              {item.coverFallback && <source src={item.coverFallback} />}
-            </video>
-          ) : (
-            <img
-              className="talk-detail-cover"
-              src={item.cover}
-              alt={item.title}
-              loading="lazy"
-            />
-          )
-        ) : null}
-      </div>
-      <div className="talk-detail-meta">
-        <BlurText
-          as="h1"
-          className="talk-detail-title"
-          text={item.title}
-          stagger={12}
-          duration={360}
-        />
-        {dateLine && (
-          <div className="talk-detail-date blur-in" style={delayed(180)}>
-            {dateLine}
-          </div>
-        )}
-        {item.body ? (
-          <div className="talk-detail-desc blur-in" style={delayed(260)}>
-            <Markdown>{item.body}</Markdown>
-          </div>
-        ) : (
-          item.desc && (
-            <div className="talk-detail-desc blur-in" style={delayed(260)}>
-              {item.desc.split(/\n{2,}/).map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
-          )
-        )}
-        {/* Talks can carry artifacts too (decks, mockups, photos); same gallery
-            treatment as projects. The full recording is the stage above, so
-            galleries here are stills, not embeds. */}
-        {item.gallery.length > 0 && (
-          <div className="modal-gallery blur-in" style={delayed(340)}>
-            {item.gallery.map((g, i) =>
-              isVideoSrc(g.src) ? (
-                <video
-                  key={i}
-                  className="g-item"
-                  poster={g.lqip}
-                  muted
-                  loop
-                  playsInline
-                  autoPlay
-                  preload="metadata"
-                >
-                  <source src={g.src} />
-                  {g.srcFallback && <source src={g.srcFallback} />}
-                </video>
-              ) : (
-                <img
-                  key={i}
-                  className="g-item"
-                  src={g.src}
-                  alt={g.caption || ""}
-                  loading="lazy"
-                />
-              ),
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-
-// One links row for every detail layout. Internal links (cached sources, talk
-// pages, decks) ride the modal system via SmartLink; YouTube links play in an
 // in-site lightbox; only true externals leave the site.
 function LinksBlock({
   links,
@@ -232,7 +103,7 @@ export function ArticleByline({ item, delay = 200 }: { item: Item; delay?: numbe
   return (
     <div className="article-byline blur-in" style={delayed(delay)}>
       <span className="article-avatar" aria-hidden="true">
-        R
+        {SITE.author.charAt(0) || "?"}
       </span>
       <span className="article-byline-text">
         <span className="article-author">{SITE.author}</span>
@@ -250,12 +121,12 @@ function ArticleEndCard({ item }: { item: Item }) {
   return (
     <aside className="article-endcard">
       <span className="article-endcard-avatar" aria-hidden="true">
-        R
+        {SITE.author.charAt(0) || "?"}
       </span>
       <div className="article-endcard-text">
         <span className="article-endcard-name">Written by {SITE.author}</span>
         <span className="article-endcard-line">
-          Writing on product, AI, and craft.
+          Building recompilation ecosystems for legacy games.
         </span>
         {date && <span className="article-endcard-date">{date}</span>}
       </div>
@@ -265,9 +136,9 @@ function ArticleEndCard({ item }: { item: Item }) {
 
 // Singular noun per kind for the "Previous / Next …" labels.
 const ADJ_NOUN: Record<string, string> = {
-  project: "project",
-  writing: "article",
-  talk: "talk",
+  hardware: "platform",
+  software: "project",
+  blog: "article",
 };
 
 function AdjacentItemLink({
@@ -311,73 +182,6 @@ function AdjacentItems({ item }: { item: Item }) {
   );
 }
 
-function ProjectSplit({ item }: { item: Item }) {
-  const slides: Slide[] = item.gallery.map((g) => ({
-    src: g.src,
-    srcFallback: g.srcFallback,
-    lqip: g.lqip,
-    poster: g.poster,
-    caption: g.caption,
-  }));
-
-  const leftRef = useRef<HTMLElement>(null);
-  const rightRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const left = leftRef.current;
-    const right = rightRef.current;
-    if (!left || !right) return;
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      e.preventDefault();
-      left.scrollBy({ top: e.deltaY, behavior: "auto" });
-    };
-    right.addEventListener("wheel", onWheel, { passive: false });
-    return () => right.removeEventListener("wheel", onWheel);
-  }, []);
-
-  return (
-    <div className="project-split">
-      <aside className="project-split-left" ref={leftRef}>
-        <div className="project-split-inner">
-          <BlurText
-            as="h1"
-            className="modal-title"
-            text={item.title}
-            stagger={12}
-            duration={360}
-            delay={40}
-          />
-          {(item.kicker || item.tags.length > 0) && (
-            <div className="modal-tags blur-in" style={delayed(160)}>
-              {item.kicker && (
-                <span className="proj-tag proj-tag--kicker">{item.kicker}</span>
-              )}
-              {item.tags.map((t) => (
-                <span key={t} className="proj-tag">
-                  {t}
-                </span>
-              ))}
-            </div>
-          )}
-          {item.body && (
-            <div className="blur-in" style={delayed(320)}>
-              <Markdown className="modal-content">{item.body}</Markdown>
-            </div>
-          )}
-          <LinksBlock links={item.links} delay={520} />
-          <AdjacentItems item={item} />
-        </div>
-      </aside>
-      <div className="project-split-right" ref={rightRef}>
-        <ProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
-      </div>
-    </div>
-  );
-}
-
-// Lab two-pane: writeup on the left, the WORK on the right. The work pane is a LIVE interactive
-// embed (item.demo iframe) when present, otherwise the media carousel (screenshots / video). Mirrors
 // ProjectSplit, but the right pane can be the running thing, and it renders on the full page too.
 function LabSplit({ item }: { item: Item }) {
   const slides: Slide[] = item.gallery.map((g) => ({
@@ -451,7 +255,7 @@ function LabSplit({ item }: { item: Item }) {
 }
 
 function DefaultDetail({ item }: { item: Item }) {
-  const isArticle = item.kind === "blog" || item.kind === "writing";
+  const isArticle = item.kind === "blog";
   // The cover media, shared between the standalone hero (project pages) and the
   // in-masthead figure (articles). Articles keep the cover INSIDE
   // .modal-body--article so the desktop modal's click-outside bounds still fit.
@@ -513,7 +317,7 @@ function DefaultDetail({ item }: { item: Item }) {
               delay={40}
             />
             {item.kind === "blog" && <ArticleByline item={item} />}
-            {item.kind === "writing" && item.venue && item.links[0] && (
+            {item.kind === "blog" && item.venue && item.links[0] && (
               <div className="modal-meta blur-in" style={delayed(220)}>
                 <a
                   href={item.links[0].href}
@@ -556,7 +360,7 @@ function DefaultDetail({ item }: { item: Item }) {
               duration={360}
               delay={40}
             />
-            {item.kind === "project" && item.tags.length > 0 && (
+            {item.tags.length > 0 && (
               <div className="modal-tags blur-in" style={delayed(160)}>
                 {item.tags.map((t) => (
                   <span key={t} className="proj-tag">
@@ -565,11 +369,22 @@ function DefaultDetail({ item }: { item: Item }) {
                 ))}
               </div>
             )}
-            {(item.venue || item.year || item.duration || item.meta.length > 0) && (
+            {(item.venue ||
+              item.year ||
+              item.status ||
+              item.arch ||
+              item.provenance ||
+              item.meta.length > 0) && (
               <div className="modal-meta blur-in" style={delayed(220)}>
+                {item.status && <span className="pill">{item.status}</span>}
+                {item.provenance && (
+                  <span className="pill">
+                    {item.provenance === "core" ? "Core team" : "Community"}
+                  </span>
+                )}
+                {item.arch && <span className="pill">{item.arch}</span>}
                 {item.venue && <span className="pill">{item.venue}</span>}
                 {item.year && <span className="pill">{item.year}</span>}
-                {item.duration && <span className="pill">{item.duration}</span>}
                 {item.meta.map((m, i) => (
                   <span key={i} className="pill">
                     {m}
@@ -629,11 +444,11 @@ function DefaultDetail({ item }: { item: Item }) {
         )}
 
         {(() => {
-          // Writing surfaces links[0] as the "Originally published" line above
-          // (when a venue is set); show any remaining links here. Other kinds
+          // Blog entries with a venue surface links[0] as the "Originally
+          // published" line above; show any remaining links here. Other kinds
           // show all their links.
           const startAt =
-            item.kind === "writing" && item.venue && item.links[0] ? 1 : 0;
+            item.kind === "blog" && item.venue && item.links[0] ? 1 : 0;
           return <LinksBlock links={item.links.slice(startAt)} delay={520} />;
         })()}
         {item.kind === "blog" && <ArticleEndCard item={item} />}

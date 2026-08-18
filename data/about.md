@@ -1,13 +1,12 @@
 ---
 headerName: "Retro Porting Toolkit"
-heroTitle: "Retro Porting Toolkit"
-role: "Placeholder role line"
-eyebrow: "Placeholder eyebrow."
-tagline: "Placeholder tagline, one line about what this site is for."
+heroTitle: "Legacy games, decoupled from their hardware"
+role: "Retro Porting Toolkit"
+eyebrow: "Recompilation ecosystems"
+tagline: "A family of decoders and runtimes that turn a game's original binary back into code."
 locations:
-  - "Placeholder City"
+  - "Open source"
 email: "hello@retroportingtoolkit.com"
 ---
 
-Placeholder intro paragraph. This body text renders under the hero on the home
-page. Replace it with a couple of sentences describing the project.
+Recompiled games build as native programs for modern platforms, preserving the original behavior while opening the door to widescreen, higher frame rates, mods, translations, and netplay.

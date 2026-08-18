@@ -12,5 +12,5 @@ export const TOPIC_BLURBS: Record<string, string> = {};
 // reads as a real section, not a bare title + cards). Curated blurb when
 // present, else a derived line so every topic has context.
 export function topicBlurb(id: string, label: string): string {
-  return TOPIC_BLURBS[id] || `Selected projects, talks, and writing about ${label}.`;
+  return TOPIC_BLURBS[id] || `Selected platforms, projects, and articles about ${label}.`;
 }
