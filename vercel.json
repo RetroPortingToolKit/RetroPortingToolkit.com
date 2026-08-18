@@ -7,6 +7,16 @@
     { "source": "/feed", "destination": "/rss.xml" },
     { "source": "/feed.xml", "destination": "/rss.xml" },
     { "source": "/atom", "destination": "/atom.xml" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/(.*)", "destination": "/" }
+  ],
+  "headers": [
+    {
+      "source": "/(rss|rss\\.xml|feed|feed\\.xml)",
+      "headers": [{ "key": "Content-Type", "value": "application/rss+xml; charset=utf-8" }]
+    },
+    {
+      "source": "/(atom|atom\\.xml)",
+      "headers": [{ "key": "Content-Type", "value": "application/atom+xml; charset=utf-8" }]
+    }
   ]
 }
