@@ -1,0 +1,358 @@
+/* ---------- VIEW ALL + TOPIC LINKS ---------- */
+.view-all {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--hairline-2);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.004em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+.view-all:hover {
+  background: var(--hairline);
+}
+
+.proof-lines .topic-link,
+.proof-meta .topic-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+  cursor: pointer;
+  transition: color 0.15s var(--ease);
+}
+.proof-lines .topic-link:hover,
+.proof-meta .topic-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* ---------- COLLECTION MODAL ---------- */
+.modal-card:has(.collection-body),
+.sheet-content:has(.collection-body) {
+  background: var(--bg-soft);
+}
+.collection-body {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 64px 64px 96px;
+}
+.collection-header {
+  margin-bottom: 56px;
+}
+.collection-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+.collection-title {
+  font-size: 48px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink);
+}
+.collection-intro {
+  margin: 16px 0 0;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.collection-count {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.collection-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+}
+.collection-section {
+  margin: 0;
+}
+.collection-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.004em;
+  color: var(--ink);
+  margin: 0 0 24px;
+}
+.collection-grid {
+  display: grid;
+  gap: 36px;
+}
+.collection-grid--project {
+  grid-template-columns: repeat(3, 1fr);
+}
+.collection-grid--talk {
+  grid-template-columns: repeat(3, 1fr);
+}
+.collection-grid--writing {
+  grid-template-columns: repeat(3, 1fr);
+}
+.collection-empty {
+  color: var(--muted);
+  font-size: 16px;
+  padding: 24px 0;
+}
+
+@media (max-width: 880px) {
+  .modal-logoplate {
+    height: 132px;
+    padding: 22px 24px;
+  }
+  .modal-logoplate-img {
+    max-height: 60px;
+    max-width: 80%;
+  }
+  .collection-body {
+    padding: 40px 28px 64px;
+  }
+  .collection-header {
+    margin-bottom: 36px;
+  }
+  .collection-title {
+    font-size: 34px;
+  }
+  .collection-sections {
+    gap: 48px;
+  }
+  .collection-grid--project,
+  .collection-grid--talk,
+  .collection-grid--writing {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 560px) {
+  .collection-body {
+    padding: 32px 22px 48px;
+  }
+  .collection-title {
+    font-size: 28px;
+  }
+  .sheet-content .collection-body {
+    padding: 28px 22px 56px;
+  }
+}
+
+/* ---------- CLOSING / AVAILABILITY ---------- */
+/* Explicit hiring signal at the foot of the page so nobody has to infer that
+   he is open. Alternates against the white Résumé above it. */
+.section.closing {
+  padding-top: 60px;
+  padding-bottom: 60px;
+  min-height: auto;
+  background: var(--bg-soft);
+}
+.closing-line {
+  margin: 0 0 28px;
+  font-size: clamp(24px, 2.4vw, 34px);
+  line-height: 1.18;
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+}
+.closing-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.closing-cv {
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  cursor: pointer;
+  border-bottom: 1px solid var(--hairline);
+  padding: 0 0 2px;
+  transition: border-color 0.15s var(--ease);
+}
+.closing-cv:hover {
+  border-color: var(--ink);
+}
+
+/* ---------- DOWNLOADABLE CV (screen button + print stylesheet) ---------- */
+/* The site is the source of truth, so the résumé must be forwardable as a
+   clean PDF. The button triggers the browser's print / Save as PDF; the print
+   stylesheet strips the site chrome down to a black-on-white CV. */
+.resume-actions {
+  display: flex;
+  margin: 0 0 8px;
+}
+/* Résumé heading + download button on one row; center the pill against the
+   large title rather than baseline-aligning it. */
+.resume-head {
+  align-items: center;
+  margin-bottom: 28px;
+}
+.resume-download {
+  appearance: none;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 9px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s var(--ease),
+    background 0.15s var(--ease);
+}
+.resume-download:hover {
+  border-color: var(--ink);
+  background: var(--bg-soft);
+}
+
+/* Quiet framing line above the entries: founder and large-company operator. */
+.resume-summary {
+  margin: 4px 0 30px;
+  max-width: 720px;
+  font-size: clamp(16px, 1.2vw, 19px);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  color: var(--muted);
+}
+
+/* Hidden on screen; only rendered in the printed CV. */
+.cv-print-header {
+  display: none;
+}
+
+@media print {
+  /* The PDF must look exactly like the résumé on screen. Force the light
+     palette (so it matches the resume tab regardless of the dark toggle) and
+     keep every résumé element on its on-screen styles rather than a separate
+     black-and-white print layout. */
+  :root,
+  :root[data-theme="dark"],
+  :root:not([data-theme="light"]) {
+    --ink: #1d1d1f;
+    --ink-2: #424245;
+    --muted: #6e6e73;
+    --hairline: #d2d2d7;
+    --hairline-2: #e8e8ed;
+    --bg: #ffffff;
+    --bg-soft: #f5f5f7;
+    --section-bg-a: #ffffff;
+    --accent: #0066cc;
+    color-scheme: light;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Strip everything that is not the résumé (incl. the fixed WebGL canvas and
+     the Recognition band, which would otherwise bleed into the PDF). */
+  .tabs-wrap,
+  .hero,
+  .proof-section,
+  .recognition-section,
+  .philosophy-section,
+  #projects,
+  .hstrip-band,
+  .closing,
+  .site-footer,
+  .theme-toggle,
+  .resume-actions,
+  .hstrip-head,
+  .site-canvas,
+  canvas {
+    display: none !important;
+  }
+
+  /* New home (canonical /): keep only the résumé section in the PDF. */
+  .hn-hero,
+  .home-next-page .hn-section:not([aria-label="Résumé"]),
+  .hn-cta-row {
+    display: none !important;
+  }
+  /* the résumé section uses the shared scroll-reveal; force it visible to print */
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* Flatten the SPA layout so the résumé flows naturally across pages. */
+  html,
+  body,
+  .tab-strip,
+  .tab-track,
+  .tab-page,
+  .section,
+  #home-resume.section,
+  #resume.section,
+  .home-next-page,
+  .home-next-page .hn-section[aria-label="Résumé"],
+  .home-next-page .hn-container {
+    transform: none !important;
+    overflow: visible !important;
+    position: static !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+  body {
+    background: #ffffff !important;
+  }
+
+  /* Name and contact header: the PDF has no site nav, so it carries the
+     identity the nav provides on screen. Styled with the same tokens. */
+  .cv-print-header {
+    display: block !important;
+    margin: 0 0 28px;
+    padding: 0 0 18px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .cv-print-name {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .cv-print-role {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .cv-print-contact {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .resume-row {
+    page-break-inside: avoid;
+  }
+  @page {
+    margin: 1.5cm;
+  }
+}
+

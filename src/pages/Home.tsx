@@ -1,0 +1,1126 @@
+import { Fragment, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Tabs, type TabId } from "@/components/Tabs";
+import { ResumeRows } from "@/components/ResumeList";
+import { SmartLink } from "@/components/SmartLink";
+import { SpatialCard } from "@/components/SpatialCard";
+import { HeroReel } from "@/components/HeroReel";
+import {
+  labProjects,
+  labTalks,
+  labArticles,
+  labBlog,
+  labAll,
+  type LabKind,
+  type LabMedia,
+} from "@/lab/labContent";
+import { PROJECTS, TALKS, WRITING, BLOGS, pathFor } from "@/lib/content";
+import { isMac } from "@/lib/platform";
+import { useAbout } from "@/lib/about";
+import { SITE } from "@/lib/site";
+import {
+  PROOF_PRIMARY,
+  RECOGNITION,
+  PHILOSOPHY,
+  renderSegments,
+} from "@/lib/homeContent";
+
+const TAB_PATH: Record<TabId, string> = {
+  home: "/",
+  work: "/work",
+  blog: "/blog",
+  resume: "/resume",
+};
+const TAB_ORDER: TabId[] = ["home", "work", "blog", "resume"];
+const NAV_TABS = [
+  { id: "home" as TabId, label: "Home", path: "/" },
+  { id: "work" as TabId, label: "Work", path: "/work" },
+  { id: "blog" as TabId, label: "Blog", path: "/blog" },
+  { id: "resume" as TabId, label: "Résumé", path: "/resume" },
+];
+
+const TAB_TITLE: Record<TabId, string> = {
+  home: SITE.title,
+  work: `Work · ${SITE.title}`,
+  blog: `Blog · ${SITE.title}`,
+  resume: `About · ${SITE.title}`,
+};
+
+// Apple-marquee orphan protection: glue the final word pair of a line with a
+// no-break space so natural wrapping never strands a single word.
+function glueOrphan(text: string): string {
+  return text.replace(/ (\S+)$/, "\u00A0$1");
+}
+
+// An arrow that lives INSIDE the section-title link (one big click target).
+function HeadArrow() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path
+        d="M2.5 8H12M8.5 4.5 12 8 8.5 11.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+// Envelope glyph for the "Email me" CTA, so it reads as an email action (not a
+// page link). Sized via CSS (1em), inherits currentColor.
+function MailIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="2.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+      <path
+        d="M4 7.5 12 13l8-5.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SectionHead({
+  title,
+  to,
+  count,
+  onNav,
+}: {
+  title: string;
+  to: string;
+  count: number;
+  onNav: (path: string) => void;
+}) {
+  return (
+    <div className="hn-section-head" data-reveal>
+      <h2 className="hn-h2">
+        {/* Title + arrow are ONE link with a padded hit area (easy on mobile);
+            the onClick routes through the directional slide transition. */}
+        <Link
+          to={to}
+          className="hn-head-link"
+          aria-label={`All ${count} ${title.toLowerCase()}`}
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            onNav(to);
+          }}
+        >
+          {title}
+          <HeadArrow />
+        </Link>
+      </h2>
+    </div>
+  );
+}
+
+const GRID_TITLES: Record<LabKind, string> = {
+  project: "Projects",
+  talk: "Talks",
+  writing: "Articles",
+  blog: "Blog",
+};
+
+// A full-catalog tab page: the home's featured cards first, then the rest of
+// that kind.
+function TabGrid({
+  kind,
+  onOpen,
+  still = false,
+}: {
+  kind: LabKind;
+  onOpen: (m: LabMedia) => void;
+  still?: boolean;
+}) {
+  const all = labAll[kind];
+  const main = kind === "project" ? all.filter((m) => m.group !== "side") : all;
+  const side = kind === "project" ? all.filter((m) => m.group === "side") : [];
+  return (
+    <section className="hn-section hn-subpage-section" aria-label={GRID_TITLES[kind]}>
+      <div className="hn-container">
+        <header className="hn-tab-head">
+          <h1 className="hn-tab-title">{GRID_TITLES[kind]}</h1>
+          <span className="hn-tab-count">{all.length}</span>
+        </header>
+        <div className="tv-grid">
+          {main.map((m) => (
+            <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
+          ))}
+        </div>
+        {side.length > 0 && (
+          <>
+            <h2 className="hn-h2 hn-side-title">Fun side projects</h2>
+            <div className="tv-grid">
+              {side.map((m) => (
+                <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// The Blog tab: side-projects / demos (markdown items, kind "blog"). Renders the SAME SpatialCard
+// deck as the Work grids (via labAll.blog -> generated covers under /lab-media/blog), so blog cards
+// match the article/talk/project cards everywhere. Cards open the entry as a MODAL over the tab
+// (onOpen -> background state), exactly like every other item.
+function BlogGrid({
+  onOpen,
+  still = false,
+}: {
+  onOpen: (m: LabMedia) => void;
+  still?: boolean;
+}) {
+  return (
+    <section className="hn-section hn-subpage-section" aria-label="Blog">
+      <div className="hn-container">
+        <header className="hn-tab-head">
+          <h1 className="hn-tab-title">Blog</h1>
+          <span className="hn-tab-count">{BLOGS.length}</span>
+        </header>
+        <p className="blog-tab-sub">
+          Things I build. Small experiments and side projects where I use AI to take an idea to a
+          working, interactive product. Open one to read how it was made and try it in the page.
+        </p>
+        <div className="tv-grid">
+          {labAll.blog.map((m) => (
+            <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// The actual content of one tab, chrome-free, so the live pager can render the
+// current page and the incoming neighbor side by side. `interactive` is false
+// for the pane being dragged into view: reveals show instantly and the
+// scroll-coupled hero effects stay off.
+function TabContent({
+  tab,
+  onOpen,
+  onNav,
+  interactive,
+  tabsRef,
+}: {
+  tab: TabId;
+  onOpen: (m: LabMedia) => void;
+  onNav: (path: string) => void;
+  interactive: boolean;
+  tabsRef?: React.RefObject<HTMLDivElement>;
+}) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const isHome = tab === "home";
+
+  const about = useAbout();
+  // Sections come straight from data/home.json. parseHome stays exported so a
+  // CMS or preview layer can feed it a draft later without touching this page.
+  const sections = { proof: PROOF_PRIMARY, recognition: RECOGNITION, philosophy: PHILOSOPHY };
+  const resumeDraft = undefined;
+
+  // After a tab switch, whatever lands under the stationary cursor must NOT
+  // light up: freeze card hover until the mouse genuinely moves (>3px).
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add("hover-frozen");
+    let sx = -1;
+    let sy = -1;
+    const onMove = (e: MouseEvent) => {
+      if (sx < 0) {
+        sx = e.clientX;
+        sy = e.clientY;
+        return;
+      }
+      if (Math.abs(e.clientX - sx) + Math.abs(e.clientY - sy) > 3) {
+        root.classList.remove("hover-frozen");
+        window.removeEventListener("mousemove", onMove);
+      }
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      root.classList.remove("hover-frozen");
+    };
+  }, [tab]);
+
+  // Reveal text sections as they enter the viewport (home only; tab pages and
+  // the dragged-in pane show content immediately).
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const els = Array.from(root.querySelectorAll<HTMLElement>("[data-reveal]"));
+    if (!isHome || !interactive || !("IntersectionObserver" in window)) {
+      els.forEach((el) => el.classList.add("in"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("in");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      // Trigger almost as soon as the element peeks in: slow scrollers were
+      // staring at empty sections with the old -12% / 0.08 gate.
+      { rootMargin: "0px 0px -2% 0px", threshold: 0.01 },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [isHome, interactive]);
+
+  // Subtle hero parallax + fade on scroll (interactive home only). The nav
+  // reveals once scrolled past 25% of the viewport, OR (mouse only) when the
+  // cursor moves near the top of the screen.
+  useEffect(() => {
+    if (!isHome || !interactive) return;
+    const hero = heroRef.current;
+    if (!hero) return;
+    let raf = 0;
+    let mouseAtTop = false;
+
+    const updateReveal = () => {
+      const tabsEl = tabsRef?.current;
+      if (!tabsEl) return;
+      const scrolled = window.scrollY > window.innerHeight * 0.25;
+      tabsEl.classList.toggle("is-revealed", scrolled || mouseAtTop);
+    };
+
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const y = window.scrollY;
+        hero.style.setProperty("--hy", `${y * 0.25}px`);
+        // fully faded by ~22% of the viewport: gone BEFORE the bar reveals at 25%
+        hero.style.setProperty(
+          "--ho",
+          String(Math.max(0, 1 - y / (window.innerHeight * 0.22))),
+        );
+        updateReveal();
+      });
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      const atTop = e.clientY <= 90;
+      if (atTop !== mouseAtTop) {
+        mouseAtTop = atTop;
+        updateReveal();
+      }
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    onScroll();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("mousemove", onMouseMove);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [isHome, interactive, tabsRef]);
+
+  return (
+    <div ref={rootRef}>
+      {tab === "work" && (
+        <>
+          {/* one tab, three stacked sections with anchors (#talks/#articles/#projects).
+              the home "view all" links and the redirected /talks,/writing,/projects routes
+              land here and scroll to the right section (see the hash effect in Home). */}
+          <div id="talks" className="work-anchor">
+            <TabGrid kind="talk" onOpen={onOpen} still={!interactive} />
+          </div>
+          <div id="articles" className="work-anchor">
+            <TabGrid kind="writing" onOpen={onOpen} still={!interactive} />
+          </div>
+          <div id="projects" className="work-anchor">
+            <TabGrid kind="project" onOpen={onOpen} still={!interactive} />
+          </div>
+        </>
+      )}
+      {tab === "blog" && <BlogGrid onOpen={onOpen} still={!interactive} />}
+      {tab === "resume" && (
+        <section className="hn-section hn-subpage-section" aria-label="Résumé">
+          <div className="hn-container">
+            <header className="hn-tab-head">
+              <h1 className="hn-tab-title">Résumé</h1>
+            </header>
+            <ResumeRows headTitle={false} resume={resumeDraft} />
+          </div>
+        </section>
+      )}
+
+      {isHome && (
+        <>
+          <header className="hn-hero" ref={heroRef}>
+            <HeroReel still={!interactive} />
+            <div className="hn-hero-overlay" aria-hidden="true" />
+            <div className="hn-hero-inner">
+              {/* visionOS-style marquee: eyebrow -> headline -> copy -> CTA,
+                  one centered stack (was: brand pinned top-left + CTA floating
+                  bottom-right, which stranded both). */}
+              {about.role && <div className="hn-hero-eyebrow">{about.role}</div>}
+              {(about.heroTitle || about.headerName) && (
+                <p className="hn-title">{about.heroTitle || `Hi, I'm ${about.headerName}`}</p>
+              )}
+              {(about.tagline || about.bio) && (
+                <div className="hn-bio">
+                  {/* Apple-style copy block (apple.com/apple-vision-pro +
+                      /os/visionos): ONE paragraph, hand-placed <br>s at
+                      sentence/clause boundaries shown per breakpoint, and the
+                      last word pair of every line glued with a no-break space
+                      (Apple peppers &nbsp; through all marquee copy) so no
+                      width ever strands an orphan word. */}
+                  <p>
+                    {glueOrphan(about.tagline ?? "")}
+                    {about.bio &&
+                      (() => {
+                        const idx = about.bio.lastIndexOf(", and ");
+                        const head = glueOrphan(
+                          idx > 0 ? about.bio.slice(0, idx + 1) : about.bio,
+                        );
+                        const tail =
+                          idx > 0 ? glueOrphan(about.bio.slice(idx + 2)) : "";
+                        return (
+                          <>
+                            <br className="bio-br" />{" "}
+                            {head}
+                            {tail && (
+                              <>
+                                <br className="bio-br bio-br--clause" />{" "}
+                                {tail}
+                              </>
+                            )}
+                          </>
+                        );
+                      })()}
+                  </p>
+                </div>
+              )}
+              <div className="hn-hero-actions">
+                {/* Primary: the thing they're here to do — read the record.
+                    Secondary: email (icon makes the mailto obvious so the very
+                    first click doesn't yank them into a mail client by surprise). */}
+                <a
+                  className="hn-hero-cta hn-hero-cta--primary"
+                  href="#resume"
+                  onClick={(e) => {
+                    const el = document.getElementById("resume");
+                    if (!el) return; // fall back to the hash jump
+                    e.preventDefault();
+                    const reduce = window.matchMedia(
+                      "(prefers-reduced-motion: reduce)",
+                    ).matches;
+                    el.scrollIntoView({
+                      behavior: reduce ? "auto" : "smooth",
+                      block: "start",
+                    });
+                  }}
+                >
+                  View my résumé
+                </a>
+                {about.email && (
+                  <a
+                    className="hn-hero-cta hn-hero-cta--ghost"
+                    href={`mailto:${about.email}`}
+                  >
+                    <MailIcon />
+                    Email me
+                  </a>
+                )}
+              </div>
+            </div>
+          </header>
+
+          <section className="hn-section" aria-label="About">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                About me
+              </h2>
+              <div className="hn-proof" data-reveal>
+                {sections.proof.map((line, i) => (
+                  <p key={i}>{renderSegments(line)}</p>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Recognition">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                Recognition
+              </h2>
+              <dl className="hn-recognition" data-reveal>
+                {sections.recognition.map((group) => (
+                  <div className="hn-rec-row" key={group.label}>
+                    <dt className="hn-rec-label">{group.label}</dt>
+                    <dd className="hn-rec-items">
+                      {group.items.map((it, i) => (
+                        <Fragment key={it.text}>
+                          {i > 0 && <span className="hn-rec-sep">·</span>}
+                          <SmartLink href={it.href} className="hn-rec-link">
+                            {it.text}
+                          </SmartLink>
+                        </Fragment>
+                      ))}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Product Philosophy">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                Product Philosophy
+              </h2>
+              <ol className="hn-philosophy">
+                {sections.philosophy.map((p, i) => (
+                  <li className="hn-phil-row" key={i} data-reveal>
+                    <span className="hn-phil-num">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="hn-phil-text">{p}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Selected Projects">
+            <div className="hn-container">
+              <SectionHead
+                title="Selected work"
+                to="/work#projects"
+                count={PROJECTS.length}
+                onNav={onNav}
+              />
+              <div className="tv-grid tv-strip">
+                {labProjects.map((m) => (
+                  <SpatialCard
+                    key={`${m.kind}-${m.slug}`}
+                    media={m}
+                    onOpen={onOpen}
+                    still={!interactive}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Talks">
+            <div className="hn-container">
+              <SectionHead
+                title="Talks"
+                to="/work#talks"
+                count={TALKS.length}
+                onNav={onNav}
+              />
+              <div className="tv-grid tv-strip">
+                {labTalks.map((m) => (
+                  <SpatialCard
+                    key={`${m.kind}-${m.slug}`}
+                    media={m}
+                    onOpen={onOpen}
+                    still={!interactive}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Articles">
+            <div className="hn-container">
+              <SectionHead
+                title="Articles"
+                to="/work#articles"
+                count={WRITING.length}
+                onNav={onNav}
+              />
+              <div className="tv-grid tv-strip">
+                {labArticles.map((m) => (
+                  <SpatialCard
+                    key={`${m.kind}-${m.slug}`}
+                    media={m}
+                    onOpen={onOpen}
+                    still={!interactive}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Blog">
+            <div className="hn-container">
+              <SectionHead
+                title="Blog"
+                to="/blog"
+                count={BLOGS.length}
+                onNav={onNav}
+              />
+              <div className="tv-grid tv-strip">
+                {labBlog.map((m) => (
+                  <SpatialCard
+                    key={`${m.kind}-${m.slug}`}
+                    media={m}
+                    onOpen={onOpen}
+                    still={!interactive}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section
+            className="hn-section"
+            id="resume"
+            aria-label="Résumé"
+          >
+            <div className="hn-container" data-reveal>
+              <ResumeRows resume={resumeDraft} />
+            </div>
+          </section>
+
+          <section className="hn-section hn-closing">
+            <div className="hn-container" data-reveal>
+              <p className="hn-closing-line">
+                Exploring product and R&amp;D leadership roles with teams
+                building ambitious new technology.
+              </p>
+              <div className="hn-cta-row">
+                {about.email && (
+                  <a className="hn-cta" href={`mailto:${about.email}`}>
+                    <MailIcon />
+                    Email me
+                  </a>
+                )}
+                <button
+                  type="button"
+                  className="hn-cta hn-cta--ghost"
+                  onClick={() => window.print()}
+                >
+                  Download résumé
+                </button>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Live pager gesture state. Lives in a ref so navigations (which re-run the
+// engine effect) never reset a gesture mid-flight.
+interface PagerState {
+  active: boolean;
+  settling: boolean;
+  offset: number; // px, + = toward the next tab
+  vel: number; // px/ms, exponential average
+  lastT: number;
+  pre: number; // pre-intent accumulator (wheel)
+  raf: number;
+  quiet: number | undefined;
+  absorb: boolean; // swallowing leftover momentum after a settle
+  absorbLast: number;
+  absorbT: number | undefined;
+  touch: { x: number; y: number; lastDx: number; ok: boolean } | null;
+  touchActive: boolean;
+}
+
+export default function Home({ tab = "home" }: { tab?: TabId }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const currentPaneRef = useRef<HTMLDivElement>(null);
+  const incomingPaneRef = useRef<HTMLDivElement>(null);
+  const isHome = tab === "home";
+
+  // The live pager: which neighbor is being dragged in (mounts its content),
+  // and the gesture's progress as a fraction (drives the tab underline).
+  const [pagerTarget, setPagerTarget] = useState<TabId | null>(null);
+  const [fraction, setFraction] = useState(0);
+  const pager = useRef<PagerState>({
+    active: false,
+    settling: false,
+    offset: 0,
+    vel: 0,
+    lastT: 0,
+    pre: 0,
+    raf: 0,
+    quiet: undefined,
+    absorb: false,
+    absorbLast: 0,
+    absorbT: undefined,
+    touch: null,
+    touchActive: false,
+  });
+
+  useEffect(() => {
+    document.title = TAB_TITLE[tab];
+  }, [tab]);
+
+  // While a gesture is dragging a subpage in over the home, the bar (hidden
+  // over the hero) reveals so the destination's chrome is already in place;
+  // on cancel it re-hides unless the page is scrolled past the reveal point.
+  useEffect(() => {
+    if (!isHome) return;
+    const el = tabsRef.current;
+    if (!el) return;
+    if (pagerTarget && pagerTarget !== "home") {
+      el.classList.add("is-revealed");
+    } else if (window.scrollY <= window.innerHeight * 0.25) {
+      el.classList.remove("is-revealed");
+    }
+  }, [isHome, pagerTarget]);
+
+  // Open a card's detail as a modal over the current page.
+  const onOpen = (m: LabMedia) =>
+    navigate(pathFor(m.kind, m.slug), { state: { background: location } });
+
+  // Clicks and keyboard ride the same live pager as swipes (programmatic
+  // page-turn animated by the engine below).
+  const autoPageRef = useRef<((id: TabId) => void) | null>(null);
+  const goTab = (id: TabId) => {
+    if (id === tab) return;
+    autoPageRef.current?.(id);
+  };
+  // a "view all" link is "/work#section"; switch to the tab, remember the section, and the effect
+  // below scrolls to it once the pane has rendered. (goTab navigates to the base path, no hash.)
+  const pendingHash = useRef<string | null>(null);
+  const onNav = (path: string) => {
+    const [base, hash] = path.split("#");
+    const id = (Object.keys(TAB_PATH) as TabId[]).find((k) => TAB_PATH[k] === base);
+    if (!id) return;
+    if (hash) pendingHash.current = hash;
+    goTab(id);
+  };
+
+  // Scroll to a Work section: from a "view all" link (pendingHash) or a cold load / redirect to
+  // /work#section (location.hash). Runs once the work pane is the current tab.
+  useEffect(() => {
+    if (tab !== "work") return;
+    const id = pendingHash.current || (location.hash ? location.hash.slice(1) : "");
+    if (!id) return;
+    pendingHash.current = null;
+    const reduce =
+      typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const t = window.setTimeout(() => {
+      document
+        .getElementById(id)
+        ?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    }, 60);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, location.hash]);
+
+  // Keyboard: left/right cycles tabs; Esc returns home. Inactive while a modal
+  // is open above this page (pathname no longer matches) or a lightbox is up.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (
+        t &&
+        (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)
+      )
+        return;
+      if (window.location.pathname !== TAB_PATH[tab]) return;
+      if (document.body.classList.contains("modal-open")) return;
+      if (document.querySelector(".avatar-lightbox")) return;
+      if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        const i = TAB_ORDER.indexOf(tab);
+        const next = TAB_ORDER[i + (e.key === "ArrowRight" ? 1 : -1)];
+        if (next) goTab(next);
+      } else if (e.key >= "1" && e.key <= "9") {
+        // number row jumps straight to that tab (1 = Home ... 5 = Résumé),
+        // riding the same page-turn (direction follows tab order)
+        const target = TAB_ORDER[Number(e.key) - 1];
+        if (target) goTab(target);
+      } else if (e.key === "Escape" && tab !== "home") {
+        goTab("home");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
+  // THE LIVE PAGER. Trackpad wheel deltas and touch pans drag the actual
+  // pages: the current page shifts in real time and the neighbor slides in
+  // beside it (mounted lazily, only during the gesture). Release commits past
+  // 30% width (or a flick), else springs back. Vertical scroll positions
+  // survive a canceled pan because the current page never leaves normal flow.
+  useEffect(() => {
+    const g = pager.current;
+    const vw = () => window.innerWidth;
+    const iTab = TAB_ORDER.indexOf(tab);
+    const neighbor = (dir: 1 | -1): TabId | undefined =>
+      TAB_ORDER[iTab + dir];
+
+    const apply = () => {
+      g.raf = 0;
+      const cur = currentPaneRef.current;
+      const inc = incomingPaneRef.current;
+      if (cur)
+        cur.style.transform = g.offset
+          ? `translateX(${-g.offset}px)`
+          : "";
+      if (inc) {
+        const dir = g.offset >= 0 ? 1 : -1;
+        inc.style.transform = `translateX(${dir * vw() - g.offset}px)`;
+      }
+      setFraction(g.offset / vw());
+    };
+    const schedule = () => {
+      if (!g.raf) g.raf = requestAnimationFrame(apply);
+    };
+
+    const syncTarget = () => {
+      const t =
+        g.offset === 0 ? undefined : neighbor(g.offset > 0 ? 1 : -1);
+      setPagerTarget(t ?? null);
+    };
+
+    const settle = () => {
+      if (g.settling) return;
+      g.active = false;
+      g.settling = true;
+      const w = vw();
+      const dir = g.offset >= 0 ? 1 : -1;
+      const target = neighbor(dir > 0 ? 1 : -1);
+      const commit =
+        !!target &&
+        (Math.abs(g.offset) > w * 0.3 ||
+          (Math.abs(g.vel) > 0.8 && Math.abs(g.offset) > w * 0.15));
+      const from = g.offset;
+      const to = commit ? dir * w : 0;
+      const t0 = performance.now();
+      const dur = 170;
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / dur);
+        const ease = 1 - Math.pow(1 - p, 3);
+        g.offset = from + (to - from) * ease;
+        apply();
+        if (p < 1) {
+          requestAnimationFrame(step);
+          return;
+        }
+        if (commit && target) {
+          const promoted = incomingPaneRef.current;
+          flushSync(() => {
+            setPagerTarget(null);
+            setFraction(0);
+            navigate(TAB_PATH[target]);
+          });
+          // the pane is PROMOTED to current (same key, same DOM): clear the
+          // gesture transform we wrote outside React
+          if (promoted) promoted.style.transform = "";
+        }
+        g.offset = 0;
+        g.vel = 0;
+        g.pre = 0;
+        g.settling = false;
+        g.absorb = true;
+        g.absorbLast = 999; // first momentum event never reads as a spike
+        window.clearTimeout(g.absorbT);
+        g.absorbT = window.setTimeout(() => {
+          g.absorb = false;
+          g.absorbLast = 0;
+        }, 150);
+        const cur = currentPaneRef.current;
+        if (cur) cur.style.transform = "";
+        setPagerTarget(null);
+        setFraction(0);
+      };
+      requestAnimationFrame(step);
+    };
+
+    const insideXScroller = (el: EventTarget | null): boolean => {
+      if (!(el instanceof HTMLElement)) return false;
+      for (
+        let n: HTMLElement | null = el;
+        n && n !== document.body;
+        n = n.parentElement
+      ) {
+        const cs = getComputedStyle(n);
+        if (
+          (cs.overflowX === "auto" || cs.overflowX === "scroll") &&
+          n.scrollWidth > n.clientWidth + 1
+        )
+          return true;
+      }
+      return false;
+    };
+
+    // Programmatic page-turn (keyboard arrows, tab clicks, Esc, section
+    // titles): same panes, same motion as a swipe, target can be any tab.
+    const autoPage = (target: TabId) => {
+      if (g.active || g.settling || target === tab) return;
+      const dir = TAB_ORDER.indexOf(target) > iTab ? 1 : -1;
+      setPagerTarget(target);
+      g.settling = true;
+      const w = vw();
+      const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+      const t0 = performance.now();
+      // paced like a quick swipe-plus-settle, not a blink
+      const dur = reduced ? 0 : 380;
+      const step = (now: number) => {
+        const p = dur === 0 ? 1 : Math.min(1, (now - t0) / dur);
+        const ease =
+          p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+        g.offset = dir * w * ease;
+        apply();
+        if (p < 1) {
+          requestAnimationFrame(step);
+          return;
+        }
+        const promoted = incomingPaneRef.current;
+        flushSync(() => {
+          setPagerTarget(null);
+          setFraction(0);
+          navigate(TAB_PATH[target]);
+        });
+        if (promoted) promoted.style.transform = "";
+        g.offset = 0;
+        g.vel = 0;
+        g.pre = 0;
+        g.settling = false;
+      };
+      requestAnimationFrame(step);
+    };
+    autoPageRef.current = autoPage;
+
+    const blocked = () =>
+      window.location.pathname !== TAB_PATH[tab] ||
+      document.body.classList.contains("modal-open") ||
+      !!document.querySelector(".avatar-lightbox");
+
+    const drive = (delta: number) => {
+      g.offset += delta;
+      const w = vw();
+      if (g.offset > 0 && !neighbor(1)) g.offset = 0;
+      if (g.offset < 0 && !neighbor(-1)) g.offset = 0;
+      g.offset = Math.max(-w, Math.min(w, g.offset));
+      // real velocity (px/ms): a slow steady drag must not read as a flick
+      const now = performance.now();
+      const dt = Math.max(1, now - (g.lastT || now - 16));
+      g.lastT = now;
+      g.vel = 0.75 * g.vel + 0.25 * (delta / dt);
+      syncTarget();
+      schedule();
+    };
+
+    // ---- trackpad / wheel ----
+    // Horizontal-swipe-to-switch-tabs is a Mac trackpad idiom. Windows/Linux
+    // precision trackpads emit large horizontal deltas on near-vertical scrolls,
+    // so it switched tabs by accident no matter how deliberate the threshold;
+    // disabled on the wheel path off-Mac entirely. Tabs still switch by click
+    // there, and touch-swipe (below) still works on real touchscreens.
+    const SWIPE_RATIO = 1.2; // |deltaX| must exceed |deltaY| * this (Mac)
+    const SWIPE_ARM = 16; // px of horizontal travel before it engages (Mac)
+    const onWheel = (e: WheelEvent) => {
+      if (!isMac) return;
+      if (e.ctrlKey || e.metaKey) return;
+      if (g.settling) {
+        e.preventDefault();
+        return;
+      }
+      const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) * SWIPE_RATIO;
+      if (!g.active && !horizontal) return;
+      if (blocked()) return;
+      if (!g.active && insideXScroller(e.target)) return;
+      // leftover momentum from the previous gesture: swallow the decaying
+      // stream, escape on a genuine new spike
+      if (g.absorb) {
+        const mag = Math.abs(e.deltaX);
+        const spike = mag >= 30 && mag > 2.2 * Math.max(1, g.absorbLast);
+        g.absorbLast = mag;
+        if (!spike) {
+          e.preventDefault();
+          window.clearTimeout(g.absorbT);
+          g.absorbT = window.setTimeout(() => {
+            g.absorb = false;
+            g.absorbLast = 0;
+          }, 120);
+          return;
+        }
+        g.absorb = false;
+        g.absorbLast = 0;
+      }
+      e.preventDefault();
+      if (!g.active) {
+        g.pre += e.deltaX;
+        if (Math.abs(g.pre) < SWIPE_ARM) return;
+        if (!neighbor(g.pre > 0 ? 1 : -1)) {
+          g.pre = 0;
+          return;
+        }
+        g.active = true;
+        g.offset = 0;
+        g.vel = 0;
+        g.lastT = 0;
+        const start = g.pre;
+        g.pre = 0;
+        drive(start);
+      } else {
+        drive(e.deltaX);
+      }
+      window.clearTimeout(g.quiet);
+      g.quiet = window.setTimeout(() => {
+        if (g.active) settle();
+      }, 90);
+      // a confident drag past halfway commits immediately, momentum gets
+      // absorbed after the settle
+      if (g.active && Math.abs(g.offset) > vw() * 0.55) settle();
+    };
+
+    // ---- touch ----
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) {
+        g.touch = null;
+        return;
+      }
+      const t = e.touches[0];
+      const el = e.target as HTMLElement | null;
+      const edge = 28;
+      const ok =
+        t.clientX > edge &&
+        t.clientX < window.innerWidth - edge &&
+        !blocked() &&
+        !el?.closest(".tv-grid, .tabs, .modal, .sheet-content, .avatar-lightbox") &&
+        !insideXScroller(el);
+      g.touch = { x: t.clientX, y: t.clientY, lastDx: 0, ok };
+      g.touchActive = false;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      const s = g.touch;
+      if (!s || !s.ok || g.settling) return;
+      const t = e.touches[0];
+      const dx = t.clientX - s.x;
+      const dy = t.clientY - s.y;
+      if (!g.touchActive) {
+        if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)) {
+          g.touch = null; // vertical scroll wins
+          return;
+        }
+        if (Math.abs(dx) < 12 || Math.abs(dx) < 1.4 * Math.abs(dy)) return;
+        if (!neighbor(dx < 0 ? 1 : -1)) {
+          g.touch = null;
+          return;
+        }
+        g.touchActive = true;
+        g.active = true;
+        g.offset = 0;
+        g.vel = 0;
+        g.lastT = 0;
+      }
+      e.preventDefault();
+      const delta = -(dx - s.lastDx);
+      s.lastDx = dx;
+      drive(delta);
+    };
+    const onTouchEnd = () => {
+      if (g.touchActive && g.active) settle();
+      g.touch = null;
+      g.touchActive = false;
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
+      if (g.raf) cancelAnimationFrame(g.raf);
+      window.clearTimeout(g.quiet);
+      autoPageRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
+  const pagerDir = pagerTarget
+    ? TAB_ORDER.indexOf(pagerTarget) > TAB_ORDER.indexOf(tab)
+      ? 1
+      : -1
+    : 0;
+
+  return (
+      <div
+        className={"home-next-page" + (isHome ? "" : " is-subpage")}
+        ref={rootRef}
+      >
+        <Tabs
+          active={tab}
+          onChange={goTab}
+          tabsRef={tabsRef}
+          tabs={NAV_TABS}
+          swipeFraction={fraction}
+        />
+        {/* Both panes live in one keyed list: at commit the incoming pane is
+            RECONCILED into the current pane (same key = same DOM subtree), so
+            the new page never remounts and nothing repaints top-to-bottom. */}
+        {[
+          { tab, role: "current" as const },
+          ...(pagerTarget && pagerTarget !== tab
+            ? [{ tab: pagerTarget, role: "incoming" as const }]
+            : []),
+        ].map((p) => (
+          <div
+            key={p.tab}
+            ref={p.role === "current" ? currentPaneRef : incomingPaneRef}
+            className={p.role === "current" ? "pager-current" : "pager-incoming"}
+            style={
+              p.role === "incoming"
+                ? {
+                    transform: `translateX(${pagerDir * 100}vw)`,
+                    // the fixed pane starts at viewport top, but a committed
+                    // subpage flows BELOW the sticky bar; reproduce that
+                    // offset now or the title falls by the bar height on
+                    // commit
+                    paddingTop:
+                      p.tab === "home"
+                        ? 0
+                        : tabsRef.current?.getBoundingClientRect().height ?? 0,
+                  }
+                : undefined
+            }
+            aria-hidden={p.role === "incoming" || undefined}
+          >
+            <TabContent
+              tab={p.tab}
+              onOpen={onOpen}
+              onNav={onNav}
+              interactive={p.role === "current"}
+              tabsRef={p.role === "current" ? tabsRef : undefined}
+            />
+          </div>
+        ))}
+      </div>
+  );
+}

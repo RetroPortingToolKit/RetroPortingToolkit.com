@@ -1,0 +1,671 @@
+/* ---------- TABS (acts as site header) ---------- */
+.tabs-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--hairline-2) 50%, transparent);
+  padding-top: 0;
+  margin-top: 0;
+}
+/* Home only: the bar is hidden over the full-screen hero, then slides in on scroll. */
+.home-next-page .tabs-wrap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  transform: translateY(-100%);
+  opacity: 0;
+  transition:
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+}
+.home-next-page .tabs-wrap.is-revealed {
+  transform: translateY(0);
+  opacity: 1;
+}
+/* Tab pages (Talks/Articles/Projects/Résumé): no hero to hide behind, so the
+   bar is simply there -- sticky at the top, pill-styled on desktop. */
+.home-next-page.is-subpage .tabs-wrap {
+  position: sticky;
+  transform: none;
+  opacity: 1;
+}
+/* Tab-page header: big Apple-style title with a quiet count. */
+.hn-subpage-section {
+  /* clear the sticky bar + breathing room; fill the viewport so short tabs
+     (Résumé) don't show the footer halfway up the screen */
+  min-height: 70svh;
+}
+.hn-tab-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: clamp(10px, 3vh, 28px) 0 26px;
+}
+.hn-tab-title {
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  color: var(--ink);
+  margin: 0;
+}
+.hn-tab-count {
+  font-size: clamp(16px, 1.8vw, 20px);
+  font-weight: 500;
+  line-height: 1;
+  color: var(--muted);
+}
+.hn-side-title {
+  margin-top: 44px;
+}
+.tabs-inner {
+  max-width: none;
+  margin: 0;
+  position: relative;
+}
+/* Desktop only: the bar contracts into a centered floating pill once scrolled
+   (Aceternity-style resizable navbar). Mobile (<=760px) keeps the normal bar. */
+@media (min-width: 761px) {
+  .tabs-wrap {
+    transition:
+      background 0.4s ease,
+      border-color 0.4s ease,
+      padding-top 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .tabs-inner {
+    border: 1px solid transparent;
+    border-radius: 0;
+    transition:
+      max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      background 0.4s ease,
+      border-radius 0.4s ease,
+      border-color 0.4s ease,
+      box-shadow 0.4s ease;
+  }
+  /* The pill applies when scrolled (any page) and ALWAYS on the home bar: on
+     the home it's only ever seen as the floating pill (revealed by scroll or
+     top-hover), and keying the pill off .is-revealed made the hide animation
+     re-expand to the full-width bar while sliding out. Styling the hidden
+     state as a pill too keeps the exit animation in pill form. */
+  .tabs-wrap.scrolled,
+  .home-next-page .tabs-wrap {
+    background: transparent;
+    border-bottom-color: transparent;
+    padding-top: 12px;
+  }
+  .tabs-wrap.scrolled .tabs-inner,
+  .home-next-page .tabs-wrap .tabs-inner {
+    max-width: min(840px, 92%);
+    margin: 0 auto;
+    /* 92% bg: readable text; the blur keeps the floating feel */
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    backdrop-filter: blur(16px) saturate(1.4);
+    border-color: color-mix(in srgb, var(--hairline-2) 60%, transparent);
+    /* full pill, same as every pill button (Get in touch etc.) */
+    border-radius: 999px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+  }
+}
+.tabs {
+  margin: 0;
+  /* padding clears the flush-left avatar + name and flush-right theme toggle */
+  padding: 0 64px 0 200px;
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  align-items: stretch;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-padding-inline: 24px;
+}
+.tabs::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.tab {
+  position: relative;
+  z-index: 0;
+  padding: 14px 14px;
+  font-size: 14px;
+  font-weight: 450;
+  color: var(--muted);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: none;
+  border-radius: 999px;
+  transition: color 0.2s ease-in-out;
+  cursor: pointer;
+}
+/* the capsule: a proper button shape around the label, not a wash over the
+   whole tall hit area */
+.tab::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  /* at least as wide as the old active underline (the full button width) */
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 34px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+@media (hover: hover) {
+  /* hover/active = the capsule only (no underline) */
+  .tab:hover {
+    color: var(--ink);
+  }
+  .tab:hover::before {
+    opacity: 1;
+  }
+}
+.tab {
+  -webkit-tap-highlight-color: transparent;
+}
+.tab.active {
+  color: var(--ink);
+  font-weight: 600;
+}
+/* the ACTIVE capsule is the shared sliding .tab-pill, so the per-tab ::before
+   only serves hover */
+.tab-pill {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  height: 34px;
+  width: 0;
+  transform: translateX(0) translateY(-50%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  pointer-events: none;
+  will-change: transform, width;
+  transition:
+    transform 0.28s var(--ease),
+    width 0.28s var(--ease);
+}
+
+.tabs {
+  position: relative;
+}
+.tab .count {
+  font-size: 13px;
+  color: var(--muted);
+  margin-left: 6px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.tab.active .count {
+  color: var(--ink-2);
+}
+
+.tabs-brand {
+  position: absolute;
+  /* visible gap left of the avatar == its top/bottom gap (7.5px incl. the
+     bar's 1px border) */
+  left: 6.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 400;
+  letter-spacing: 0.009em;
+  color: var(--ink);
+  white-space: nowrap;
+  /* Sits over the left-aligned .tabs row, needs to be above it so clicks
+     actually hit the avatar rather than the (taller) tabs row underneath. */
+  z-index: 2;
+}
+.tabs-avatar-btn {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transition: transform 0.15s var(--ease);
+}
+.tabs-avatar-btn:hover {
+  transform: scale(1.04);
+}
+.tabs-avatar-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.tabs-avatar {
+  width: 36px;
+  height: 36px;
+  transition: transform 0.15s var(--ease);
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+}
+
+.avatar-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: avatar-lightbox-in 0.18s var(--ease);
+  cursor: zoom-out;
+}
+.avatar-lightbox-card {
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 4vw, 44px);
+  max-width: min(880px, 92vw);
+  cursor: default;
+}
+.avatar-lightbox-img {
+  flex: none;
+  width: min(38vw, 52vh, 340px);
+  height: min(38vw, 52vh, 340px);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+  display: block;
+}
+.avatar-lightbox-bio {
+  min-width: 0;
+}
+.avatar-lightbox-bio h2 {
+  margin: 0 0 14px;
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.avatar-lightbox-bio p {
+  margin: 0 0 12px;
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 42ch;
+}
+.avatar-lightbox-bio p:last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 700px) {
+  .avatar-lightbox-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    overflow-y: auto;
+    max-height: 86vh;
+  }
+  .avatar-lightbox-img {
+    width: min(48vw, 36vh, 220px);
+    height: min(48vw, 36vh, 220px);
+  }
+}
+@keyframes avatar-lightbox-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.media-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: avatar-lightbox-in 0.18s var(--ease);
+  cursor: zoom-out;
+}
+.media-lightbox-img {
+  max-width: min(100%, 1600px);
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  cursor: default;
+  display: block;
+}
+.media-lightbox .modal-close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 201;
+}
+
+.theme-toggle {
+  position: absolute;
+  /* mirrors the avatar: 7.5px visible gap incl. the bar border */
+  right: 6.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  /* real <button>: strip default chrome, keep the 36x36 circle */
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+.theme-toggle:hover {
+  background: var(--bg-soft);
+  color: var(--ink);
+}
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* Keyboard focus: a visible :focus-visible ring on every interactive control
+   (nav tabs, the brand + theme buttons, and the content cards). Mouse clicks
+   don't trigger :focus-visible, so this only shows for keyboard users. */
+.tab:focus-visible,
+.tabs-brand-btn:focus-visible,
+.theme-toggle:focus-visible,
+.writing-card:focus-visible,
+.proj-card:focus-visible,
+.talk-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- TAB STRIP / SWIPE ---------- */
+.tab-strip {
+  position: relative;
+  overflow-x: clip;
+  touch-action: pan-y;
+  padding-top: 0;
+}
+.tab-track {
+  position: relative;
+  width: 100%;
+  will-change: transform;
+}
+.tab-page--center {
+  position: relative;
+  width: 100%;
+}
+.tab-page--left,
+.tab-page--right {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  pointer-events: none;
+}
+.tab-page--left {
+  right: 100%;
+}
+.tab-page--right {
+  left: 100%;
+}
+
+/* ---------- SECTION ---------- */
+.section {
+  padding-top: 0;
+  padding-bottom: 60px;
+  min-height: 60vh;
+}
+#projects.section {
+  padding-top: 60px;
+  background: var(--section-bg-a);
+}
+#home-resume.section {
+  padding-top: 60px;
+  background: var(--section-bg-a);
+}
+/* The Résumé tab is a section.container (not .collection-tab), so it had no
+   opaque background and the fixed dark WebGL canvas showed through it in light
+   mode. Give it the same surface as the home résumé block. */
+#resume.section {
+  padding-top: 60px;
+  background: var(--section-bg-a);
+}
+.section.collection-tab {
+  padding-top: 60px;
+  background: var(--bg-soft);
+}
+.section.container {
+  max-width: var(--max);
+}
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 36px;
+}
+.section-title {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.section-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ---------- HORIZONTAL STRIPS ---------- */
+.hstrip-band {
+  padding: 60px 0;
+  background: var(--bg-soft);
+}
+.hstrip {
+  padding: 0;
+}
+.hstrip + .hstrip {
+  margin-top: 60px;
+}
+.hstrip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.hstrip-all {
+  flex: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.hstrip-all:hover {
+  color: var(--ink);
+}
+.hstrip-title {
+  font-size: 32px;
+  line-height: 1.125;
+  font-weight: 700;
+  letter-spacing: 0.004em;
+  color: var(--ink);
+  margin: 0;
+}
+.hstrip-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.hstrip-nav {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--hairline-2);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+.hstrip-nav svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+.hstrip-nav:hover:not(:disabled) {
+  background: var(--hairline);
+}
+.hstrip-nav:disabled {
+  background: #f0f0f3;
+  cursor: default;
+}
+
+.hstrip-scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* keep horizontal swipes inside the strip, `none` is stronger than
+     `contain` and reliably blocks Safari's trackpad back-navigation. The
+     wheel handler in HStrip also preventDefault()s for extra safety. */
+  overscroll-behavior-x: none;
+  touch-action: pan-x pan-y pinch-zoom;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  /* deliberately NOT setting scroll-behavior: smooth here, it would
+     animate every wheel-driven scrollLeft change, creating jank during
+     trackpad swipes. Arrow-button scrolls pass `behavior: "smooth"`
+     explicitly to scrollTo/scrollBy. */
+}
+.hstrip-scroller::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .hstrip-scroller {
+    cursor: grab;
+  }
+}
+/* Grabbing cursor while the pointer is held down. Driven by :active rather
+   than a JS-added class because WebKit latches the cursor at mousedown and
+   ignores cursor changes made afterward, :active is already in effect when
+   that latch happens. !important + the descendant selector beat each card's
+   own `cursor: pointer`. */
+.hstrip-scroller:active,
+.hstrip-scroller:active * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+/* never let the strip's cards/images become a native drag-and-drop source:
+   a press-hold-drag should always scroll, not lift the link off the page */
+.hstrip-scroller a,
+.hstrip-scroller img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.hstrip-rail {
+  display: flex;
+  justify-content: flex-start;
+  gap: 36px;
+  padding-left: max(56px, calc((100vw - var(--max)) / 2 + 56px));
+  padding-right: max(56px, calc((100vw - var(--max)) / 2 + 56px));
+  padding-top: 4px;
+  padding-bottom: 4px;
+  min-width: max-content;
+  box-sizing: border-box;
+}
+
+.hstrip-item {
+  flex: 0 0 auto;
+}
+.hstrip-item--talk {
+  width: clamp(288px, 32vw, 396px);
+}
+.hstrip-item--writing {
+  width: clamp(280px, 26vw, 380px);
+}
+.hstrip-item .talk-card,
+.hstrip-item .writing-card {
+  height: 100%;
+}
+
+@media (max-width: 880px) {
+  .hstrip-head {
+    margin-bottom: 18px;
+  }
+  .hstrip-scroller {
+    scroll-padding-left: 24px;
+  }
+  .hstrip-rail {
+    gap: 36px;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .hstrip-item--talk {
+    width: clamp(240px, 70vw, 320px);
+  }
+  .hstrip-item--writing {
+    width: 304px;
+  }
+}
+
+@media (max-width: 560px) {
+  .hstrip-scroller {
+    scroll-padding-left: 20px;
+  }
+  .hstrip-rail {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .hstrip-item--talk,
+  .hstrip-item--writing {
+    width: 78vw;
+  }
+}
+
+@media (max-width: 380px) {
+  .hstrip-scroller {
+    scroll-padding-left: 16px;
+  }
+  .hstrip-rail {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+

@@ -1,0 +1,80 @@
+import { useEffect, type CSSProperties } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import type { Kind } from "@/lib/types";
+import { findItem } from "@/lib/content";
+import { ItemDetail } from "@/components/ItemDetail";
+import { SITE } from "@/lib/site";
+
+interface Props {
+  kind: Kind;
+}
+
+export function ItemPage({ kind }: Props) {
+  const { slug = "" } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const item = findItem(kind, slug);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [slug]);
+
+  if (!item) {
+    return (
+      <div className="page page-missing">
+        <div className="container" style={{ padding: "120px 0" }}>
+          <h1 className="hero-title">Not found</h1>
+          <p className="hero-sub" style={{ marginTop: 16 }}>
+            That page doesn't exist.
+          </p>
+          <Link to="/" className="btn btn-secondary" style={{ marginTop: 24 }}>
+            ← Home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page page-fade">
+      <header className="page-bar">
+        <div className="page-bar-inner">
+          <button
+            className="page-back"
+            onClick={() => {
+              if (window.history.length > 1) navigate(-1);
+              else navigate("/");
+            }}
+            aria-label="Back"
+          >
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path
+                d="M9 1L3 7L9 13"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>Back</span>
+          </button>
+          <Link to="/" className="page-home">
+            {SITE.name}
+            <span className="dot">{SITE.nameSuffix}</span>
+          </Link>
+        </div>
+      </header>
+      <main className="page-main">
+        <article
+          className="page-article"
+          style={
+            item.kickerColor
+              ? ({ "--article-accent": item.kickerColor } as CSSProperties)
+              : undefined
+          }
+        >
+            <ItemDetail item={item} variant="page" />
+        </article>
+      </main>
+    </div>
+  );
+}

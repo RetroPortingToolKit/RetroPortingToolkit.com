@@ -1,0 +1,1673 @@
+/* ---------- ITEM SLIDE (sibling-nav transition) ---------- */
+.item-slide--right {
+  animation: itemSlideFromRight 0.7s var(--ease) both;
+}
+.item-slide--left {
+  animation: itemSlideFromLeft 0.7s var(--ease) both;
+}
+@keyframes itemSlideFromRight {
+  from {
+    transform: translateX(360px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes itemSlideFromLeft {
+  from {
+    transform: translateX(-360px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ---------- TALK DETAIL (video-first, minimal) ---------- */
+.talk-detail {
+  /* cap by viewport height so the title/desc below stay visible without
+     scrolling on common laptop sizes; the stage and meta share this width. */
+  max-width: min(1840px, calc((100vh - 260px) * 16 / 9));
+  margin: 0 auto;
+  padding: 48px 32px 64px;
+}
+.talk-detail-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0a0a0a;
+  overflow: hidden;
+  border-radius: 9px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+}
+.talk-detail-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+.talk-detail-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.talk-detail-meta {
+  margin-top: 20px;
+}
+.talk-detail-title {
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--ink);
+}
+.talk-detail-date {
+  margin-top: 8px;
+  font-size: 0.8125rem;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.talk-detail-desc {
+  margin: 12px 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.talk-detail-desc p {
+  margin: 0 0 12px;
+}
+.talk-detail-desc p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .talk-detail {
+    padding: 24px 20px 48px;
+  }
+  .talk-detail-stage {
+    border-radius: 6px;
+  }
+}
+
+.page-article .talk-detail {
+  padding-left: 0;
+  padding-right: 0;
+}
+.sheet-content .talk-detail {
+  padding-top: 16px;
+}
+
+/* ---------- RESUME ---------- */
+.resume-list {
+  display: flex;
+  flex-direction: column;
+}
+.resume-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 32px;
+  row-gap: 14px;
+  padding: 44px 0;
+  border-top: 1px solid var(--hairline-2);
+  align-items: baseline;
+}
+.resume-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+.resume-row:last-child {
+  padding-bottom: 0;
+}
+.resume-role {
+  grid-column: 1;
+  font-size: clamp(20px, 1.6vw, 24px);
+  font-weight: 600;
+  line-height: 1.22;
+  letter-spacing: -0.018em;
+  color: var(--ink);
+  margin: 0;
+}
+.resume-meta {
+  grid-column: 2;
+  justify-self: end;
+  align-self: baseline;
+  text-align: right;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+}
+.resume-tag::after {
+  content: "";
+}
+.resume-year {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+.resume-role .at {
+  font-weight: 400;
+  color: var(--muted);
+  margin: 0 8px;
+}
+.resume-role .co {
+  font-weight: 600;
+  color: var(--ink);
+}
+.resume-note {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  font-size: 16px;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+.resume-note p {
+  margin: 0 0 12px;
+}
+.resume-note p:last-child {
+  margin-bottom: 0;
+}
+.resume-note ul {
+  margin: 8px 0 12px;
+  padding-left: 1.2em;
+}
+.resume-note li {
+  margin-bottom: 4px;
+}
+
+.resume-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 28px;
+}
+.resume-foot a {
+  font-size: 13px;
+  color: var(--ink-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-radius: 980px;
+  border: 1px solid var(--hairline);
+  transition: all 0.15s var(--ease);
+}
+.resume-foot a:hover {
+  border-color: var(--ink-2);
+  color: var(--ink);
+}
+
+/* ---------- DESKTOP MODAL (App Store style) ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  z-index: 100;
+  pointer-events: none;
+  transition: background 0.35s var(--ease);
+}
+.modal-backdrop.open {
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  pointer-events: none;
+  overflow-y: auto;
+  background: var(--bg);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease);
+}
+.modal.open {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.modal-card {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+  position: relative;
+}
+
+.modal-controls {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.modal-controls .modal-close,
+.modal-controls .modal-nav {
+  position: static;
+  top: auto;
+  right: auto;
+}
+
+.modal-close {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 200;
+}
+
+.modal-close,
+.modal-nav {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.modal-close-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #fff;
+  transition: background 0.18s var(--ease);
+}
+
+.modal-close:hover .modal-close-icon,
+.modal-nav:hover .modal-close-icon {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal-close-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+
+.modal-hero {
+  height: 360px;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-soft);
+}
+.modal-hero .img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+.modal-hero.video::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 60%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+}
+/* Brand-logo header for reference collection modals: the entity's own logo
+   centered on a clean light plate. The plate is always light so dark-ink and
+   colored marks read in either theme; the logo is contained (never stretched). */
+.modal-logoplate {
+  height: 188px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 48px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+/* A white/knockout mark (e.g. the DNS triangles) sits on a dark plate. */
+.modal-logoplate.dark {
+  background: #0f1419;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+.modal-logoplate-img {
+  max-height: 84px;
+  max-width: min(72%, 440px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+.modal-body {
+  padding: 44px 56px 56px;
+}
+/* ================= "The Broadsheet": the article reader ==================
+   Blog + writing + cached sources. One self-hosted display serif sets the
+   headline / eyebrow / section marks / prev-next over the SF Pro body; the
+   post's accent survives only as hairline-weight structural signals. The static
+   state is always the finished state (no layout depends on motion). */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/Fraunces-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Scope the display face so serif never leaks to projects/talks. The system
+   faces lead the stack so the pre-swap frame is never Times. */
+.modal-body--article,
+.project-split.lab-split .project-split-left {
+  --article-display: "Fraunces", "SF Pro Display", -apple-system, Georgia, serif;
+}
+
+/* The centered editorial column, shared by writing + body-only blog + sources. */
+.modal-body--article {
+  position: relative;
+  max-width: 980px;
+  margin: 0 auto;
+  padding-top: 72px;
+  padding-bottom: 96px;
+}
+/* Ambient accent: a quiet warm wash of the post's color behind the headline.
+   Radial from the top so it fades out well inside the column (no seam against
+   the full-width card). No color -> transparent -> no wash. */
+.modal-body--article::before {
+  content: "";
+  position: absolute;
+  inset: -72px 0 auto 0;
+  height: 380px;
+  background: radial-gradient(
+    80% 380px at 50% 0,
+    color-mix(in srgb, var(--article-accent, transparent) 9%, transparent),
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.modal-body--article > * {
+  position: relative;
+  z-index: 1;
+}
+.modal-body--article .modal-kicker,
+.modal-body--article .modal-title,
+.modal-body--article .modal-meta {
+  text-align: center;
+}
+
+/* Eyebrow: a serif caps label + short centered rule (the "publication mark"),
+   not a filled pill. ink-floored so a very light/dark accent never drops below
+   AA as small text. Single color declaration. */
+.modal-body--article .modal-kicker {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-family: var(--article-display);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 14px;
+  /* Floored toward the theme ink so every hue clears AA in both themes
+     (84% still failed blue-on-dark at 3.77:1; 60% lands >=5.9:1). */
+  color: color-mix(in srgb, var(--article-accent, var(--muted)) 60%, var(--ink));
+}
+.modal-body--article .modal-kicker::after {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 2px;
+  margin: 10px auto 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--article-accent, var(--hairline)) 70%, transparent);
+}
+
+/* Serif headline. */
+.modal-body--article .modal-title {
+  font-family: var(--article-display);
+  font-weight: 600;
+  font-size: clamp(38px, 4.6vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+  margin-bottom: 16px;
+}
+
+/* ---------- byline as a masthead line (closed by a full-measure hairline) ---------- */
+.article-byline {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 2px 0 26px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--hairline);
+}
+.modal-body--article .article-byline,
+.modal-body--article .modal-meta {
+  justify-content: center;
+  max-width: 680px;
+  margin: 6px auto 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--hairline);
+}
+.article-avatar {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--article-accent, var(--ink));
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.article-byline-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.28;
+  text-align: left;
+}
+.article-author {
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.article-byline-meta {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- framed cover-as-hero (steps out past the text measure) ----------
+   Sits INSIDE the masthead (inside .modal-body--article) so the desktop modal's
+   click-outside bounds still contain it. */
+.article-cover {
+  max-width: 1000px;
+  margin: 20px auto 8px;
+}
+.article-cover .img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 18px;
+  display: block;
+  outline: 1px solid var(--hairline);
+  outline-offset: -1px;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--article-accent, var(--ink)) 20%, transparent),
+    0 24px 60px -30px rgba(0, 0, 0, 0.35);
+}
+[data-theme="dark"] .article-cover .img {
+  box-shadow: 0 1px 0
+    color-mix(in srgb, var(--article-accent, var(--ink)) 32%, transparent);
+}
+.article-cover-cap {
+  max-width: 680px;
+  margin-inline: auto;
+  text-align: center;
+}
+
+/* ---------- prose (Apple-Newsroom shape: narrow column, media steps out) ---------- */
+.modal-body--article .modal-content {
+  font-size: 18px;
+  line-height: 1.72;
+}
+.modal-body--article .modal-content > p,
+.modal-body--article .modal-content > h2,
+.modal-body--article .modal-content > h3,
+.modal-body--article .modal-content > ul,
+.modal-body--article .modal-content > ol,
+.modal-body--article .modal-content > pre,
+.modal-body--article .modal-content > blockquote {
+  max-width: 680px;
+  margin-inline: auto;
+}
+.modal-body--article .modal-content > p {
+  margin: 0 0 22px;
+}
+.modal-body--article .modal-content > p:has(.md-figure) {
+  max-width: 880px;
+}
+/* Lead paragraph -> a proper deck: larger, darker, no accent. */
+.modal-body--article .modal-content > p:first-child {
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--ink);
+  font-weight: 450;
+  letter-spacing: -0.004em;
+}
+.modal-body--article .modal-content li {
+  margin-bottom: 8px;
+}
+
+/* Serif section headings; accent survives as a top rule + short bar (dropped on
+   the first h2 so a post never opens with a floating rule). */
+.modal-body--article .modal-content h2 {
+  font-family: var(--article-display);
+  font-weight: 600;
+  font-size: 27px;
+  letter-spacing: -0.012em;
+  line-height: 1.15;
+  color: var(--ink);
+  margin: 52px auto 16px;
+  padding-top: 28px;
+  border-top: 1px solid var(--hairline);
+  position: relative;
+  scroll-margin-top: 24px;
+}
+.modal-body--article .modal-content h2::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--article-accent, var(--ink));
+}
+.modal-body--article .modal-content > h2:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+.modal-body--article .modal-content > h2:first-of-type::before {
+  display: none;
+}
+.modal-body--article .modal-content h3 {
+  font-family: var(--article-display);
+  font-weight: 600;
+  font-size: 21px;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+  margin: 36px auto 12px;
+}
+
+/* "**Lead-in.** body" pattern: a small accent dot before direct-paragraph
+   lead-ins only (list rows already carry bullets). */
+.modal-body--article .modal-content > p > strong:first-child {
+  color: var(--ink);
+  font-weight: 650;
+}
+.modal-body--article .modal-content > p > strong:first-child::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 9px;
+  vertical-align: 0.12em;
+  background: var(--article-accent, var(--muted));
+}
+
+/* Tinted body selection. */
+.modal-body--article ::selection {
+  background: color-mix(in srgb, var(--article-accent, var(--ink)) 22%, transparent);
+}
+
+/* Split-blog writeup: serif title only (never its body or chips). */
+.project-split.lab-split .project-split-left .modal-title {
+  font-family: var(--article-display);
+  letter-spacing: -0.014em;
+}
+
+/* ---------- inline article media ---------- */
+.md-figure {
+  display: block;
+  margin: 30px auto 10px;
+}
+.md-figure img,
+.md-figure video {
+  display: block;
+  width: 100%;
+  border-radius: 16px;
+}
+.md-figcaption {
+  display: block;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-align: center;
+}
+.modal-kicker {
+  display: inline-block;
+  padding: 3px 6px 0;
+  background: var(--chip-accent-bg);
+  color: var(--chip-accent-fg);
+  font-size: 12px;
+  line-height: 1.33;
+  font-weight: 700;
+  letter-spacing: -0.016em;
+  text-transform: uppercase;
+  border-radius: 16px;
+  margin-bottom: 14px;
+}
+.modal-title {
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  margin: 0 0 16px;
+}
+.modal-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 32px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.modal-meta .pill {
+  padding: 4px 10px;
+  background: var(--bg-soft);
+  border-radius: 980px;
+}
+.modal-published-link {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+}
+.modal-published-link:hover {
+  color: var(--ink);
+}
+.modal-published-link .ext {
+  opacity: 0.6;
+}
+.modal-content {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.modal-content > p,
+.modal-content > h3,
+.modal-content > ul,
+.modal-content > ol,
+.modal-content > blockquote {
+  margin: 0 0 18px;
+}
+.modal-content > p:first-child {
+  font-size: 19px;
+  color: var(--ink);
+  line-height: 1.55;
+  margin-bottom: 26px;
+}
+.modal-content h3 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 36px 0 14px;
+}
+.modal-content h2 {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 36px 0 14px;
+}
+/* Links pick up the post's accent, floored toward the theme ink so every hue
+   clears WCAG AA (>=4.5:1) on both the light and dark card. The accent shows
+   full-strength only in the underline (decorative, no contrast bar). Falls back
+   to neutral ink when a post has no color. */
+.modal-content a {
+  color: color-mix(in srgb, var(--article-accent, var(--ink-2)) 60%, var(--ink));
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--article-accent, var(--ink-2)) 32%, transparent);
+  transition:
+    border-color 0.15s var(--ease),
+    color 0.15s var(--ease);
+  cursor: pointer;
+}
+.modal-content a:hover {
+  color: var(--ink);
+  border-color: var(--article-accent, var(--ink-2));
+}
+.modal-content ul,
+.modal-content ol {
+  padding-left: 1.4em;
+}
+.modal-content li {
+  margin-bottom: 6px;
+}
+/* A "**Lead-in.** rest" line (heavily used in the posts) gets the darker ink so
+   the lead reads a touch stronger than the body. */
+.modal-content li > strong:first-child,
+.modal-content p > strong:first-child {
+  color: var(--ink);
+}
+/* Blockquotes: accent spine, not muted (all detail views). */
+.modal-content blockquote {
+  border-left: 3px solid var(--article-accent, var(--hairline));
+  padding-left: 18px;
+  color: var(--ink);
+  font-style: normal;
+}
+/* In an article they are promoted to the single visual set piece: serif-scale
+   type on a faint tinted plate reading as an Apple "Note" callout. */
+.modal-body--article .modal-content blockquote {
+  border-radius: 0 12px 12px 0;
+  background: color-mix(in srgb, var(--article-accent, var(--bg-soft)) 6%, var(--bg-soft));
+  padding: 18px 22px;
+  margin: 30px auto;
+  font-size: 24px;
+  line-height: 1.34;
+  font-weight: 500;
+  letter-spacing: -0.012em;
+}
+
+/* Code (future-proofing; no sample post uses it yet). */
+.modal-body--article .modal-content code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  background: var(--bg-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.modal-body--article .modal-content pre {
+  background: var(--bg-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 18px 20px;
+  overflow: auto;
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 760px;
+  margin-inline: auto;
+}
+.modal-body--article .modal-content pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+/* ---------- author end-card (blog sign-off) ----------
+   Accent-tinted 2px top border closes symmetrically with the eyebrow rule. */
+.article-endcard {
+  max-width: 680px;
+  margin: 56px auto 8px;
+  padding: 24px 26px;
+  border-radius: 18px;
+  background: var(--bg-soft);
+  border: 1px solid var(--hairline-2);
+  border-top: 2px solid
+    color-mix(in srgb, var(--article-accent, var(--hairline)) 60%, var(--hairline));
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+.article-endcard-avatar {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--article-accent, var(--ink));
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+.article-endcard-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.article-endcard-name {
+  font-family: var(--article-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.article-endcard-line {
+  font-size: 14px;
+  color: var(--ink-2);
+}
+.article-endcard-date {
+  font-size: 13px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Prev/next are already cards (04-cards.css). In an article, align them to the
+   reading measure and set their titles in the display serif. */
+.modal-body--article .adjacent-row,
+.modal-body--article .modal-links {
+  max-width: 680px;
+  margin-inline: auto;
+}
+.modal-body--article .modal-links {
+  margin-top: 40px;
+}
+.modal-body--article .adjacent-title,
+.project-split.lab-split .project-split-left .adjacent-title {
+  font-family: var(--article-display);
+}
+
+/* ---------- motion: one gated cover reveal; nothing the Reduce-Motion owner sees ---------- */
+@keyframes coverReveal {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .article-cover .img {
+    animation: coverReveal 0.7s var(--ease) both;
+  }
+}
+/* The reader entrances (BlurText headline/eyebrow, .blur-in byline/body) are not
+   gated anywhere else, and .blur-text-part rests at opacity:0 with inline
+   animation-delay AND animation-duration, so the reset must force opacity +
+   animation + filter + transform with !important. Scoped to reader containers
+   only, never Home/hero autoplay. */
+@media (prefers-reduced-motion: reduce) {
+  .modal-article .blur-in,
+  .modal-article .blur-text-part,
+  .page-article .blur-in,
+  .page-article .blur-text-part,
+  .sheet-content .blur-in,
+  .sheet-content .blur-text-part,
+  .proj-sheet .blur-in,
+  .proj-sheet .blur-text-part {
+    animation: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .modal-article .item-slide--left,
+  .modal-article .item-slide--right,
+  .sheet-content .item-slide--left,
+  .sheet-content .item-slide--right {
+    animation: none !important;
+  }
+  .article-cover .img {
+    animation: none;
+  }
+}
+
+.modal-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 28px 0 32px;
+}
+.modal-gallery .g-item {
+  aspect-ratio: 4/3;
+  border-radius: 14px;
+  background: var(--bg-soft);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+/* Embedded talks/demos (YouTube) span the full row at the video's real aspect,
+   so a talk reads as the gallery's centerpiece rather than a cropped cell. */
+.modal-gallery .g-item--embed {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+  /* iframes have no intrinsic size; the base .g-item height:100% collapses
+     them to 0 in an auto grid row. Let the aspect-ratio set the height. */
+  height: auto;
+  border: 0;
+}
+
+.modal-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 28px 0 8px;
+}
+.modal-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 980px;
+  background: var(--bg-soft);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: background 0.15s var(--ease);
+  cursor: pointer;
+}
+.modal-links a:hover {
+  background: var(--bg-soft-2);
+}
+.modal-links a .ext {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+/* visionOS / touch: a pinch-drag on the chrome must not start a text selection
+   (it reads as drag-to-select). Article text below stays selectable. */
+.tvcard,
+.tabs-wrap,
+.proj-carousel,
+.proj-carousel-nav,
+.hn-hero-contact,
+.hn-hero-cta,
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ---------- PROJECT SPLIT LAYOUT ---------- */
+.project-split {
+  display: grid;
+  grid-template-columns: 40fr 60fr;
+  align-items: stretch;
+  gap: 0;
+  height: 100vh;
+}
+
+.project-split-left {
+  border-right: 1px solid var(--hairline-2);
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+.project-split-left::-webkit-scrollbar {
+  width: 10px;
+}
+.project-split-left::-webkit-scrollbar-track {
+  background: transparent;
+}
+.project-split-left::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.project-split-left::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+.project-split-inner {
+  padding: 48px 48px 64px;
+}
+
+.project-split-left .modal-kicker {
+  margin-bottom: 14px;
+}
+
+.project-split-left .modal-title {
+  font-size: 36px;
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+}
+
+.project-split-right {
+  height: 100%;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ---------- PROJECT MOBILE (gallery + bottom sheet) ---------- */
+.proj-mobile {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50vh;
+  background: var(--bg);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.25s var(--ease);
+}
+
+.proj-mobile.open {
+  opacity: 1;
+}
+
+.proj-mobile .proj-carousel-nav {
+  display: none;
+}
+
+/* ---------- PROJECT CAROUSEL (shared mobile + desktop) ---------- */
+.proj-carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  /* grid (rows: stage 1fr, thumbs auto) is more reliable than flex column
+     in Safari, which sometimes collapses an auto-sized sibling next to a
+     flex:1 / min-height:0 sibling. */
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.proj-carousel-stage {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+}
+
+.proj-carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 56px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.proj-carousel-nav.prev {
+  left: 8px;
+}
+
+.proj-carousel-nav.next {
+  right: 8px;
+}
+
+.proj-carousel-nav-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.18s var(--ease);
+}
+
+.proj-carousel-nav:hover .proj-carousel-nav-icon {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.proj-carousel-nav svg {
+  width: 22px;
+  height: 24px;
+  display: block;
+}
+
+.proj-carousel-bg,
+.proj-carousel-bg-tint {
+  display: none;
+}
+
+.proj-carousel-viewport {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.proj-carousel-track {
+  display: flex;
+  height: 100%;
+  touch-action: pan-x;
+  backface-visibility: hidden;
+}
+
+.proj-carousel-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  height: 100%;
+  max-width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 56px 96px 16px;
+  box-sizing: border-box;
+}
+
+.proj-carousel-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.proj-carousel-stack {
+  display: grid;
+  /* media row sizes to content (capped), caption sits right under it, and the
+     pair centers as a group -- the old 1fr row stretched to fill the pane and
+     stranded the caption at the very bottom */
+  grid-template-rows: minmax(0, auto) auto;
+  align-content: center;
+  place-items: center;
+  gap: 16px;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.proj-carousel-media {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.proj-carousel-media > * {
+  grid-area: 1 / 1;
+}
+
+.proj-carousel-media video,
+.proj-carousel-media img {
+  /* width-driven on every variant: small-resolution clips scale UP to the
+     stage instead of sitting at natural pixel size; tall portraits clamp on
+     height and letterbox transparently to the sides */
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  -webkit-user-drag: none;
+  user-select: none;
+  visibility: hidden;
+}
+.proj-carousel-media video {
+  pointer-events: none;
+}
+
+.proj-carousel-media.is-loaded video,
+.proj-carousel-media.is-loaded img,
+.proj-carousel-media.is-loaded iframe {
+  visibility: visible;
+}
+
+.proj-carousel-video {
+  position: relative;
+  display: block;
+  width: 100%;
+  line-height: 0;
+  max-height: 100%;
+  pointer-events: none;
+}
+.proj-carousel-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+}
+.proj-carousel-video-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 8px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0)
+  );
+  pointer-events: none;
+  line-height: 1;
+}
+.proj-carousel-video-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.15s var(--ease);
+}
+.proj-carousel-video-btn:hover {
+  background: rgba(255, 255, 255, 1);
+}
+.proj-carousel-video-btn svg {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+.proj-carousel-video-progress {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  overflow: hidden;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.proj-carousel-video-progress-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  transition: width 0.12s linear;
+}
+
+.proj-carousel-iframe {
+  border: 0;
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  visibility: hidden;
+}
+
+.proj-carousel-skeleton {
+  width: min(45vw, 720px);
+  min-width: 320px;
+  min-height: 200px;
+  aspect-ratio: 16 / 9;
+  max-height: 60vh;
+  border-radius: 0;
+  background: var(--hairline-2);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  animation: skeleton-pulse 2.4s ease-in-out infinite;
+}
+@media (max-width: 880px) {
+  .proj-carousel-skeleton {
+    width: min(85vw, 560px);
+    min-width: 280px;
+    min-height: 180px;
+    max-height: 32vh;
+  }
+}
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.proj-carousel-caption {
+  max-width: min(100%, 760px);
+}
+
+.proj-carousel-caption {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--ink);
+  text-align: center;
+  letter-spacing: 0.005em;
+  overflow-wrap: anywhere;
+}
+
+.proj-carousel-status {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.proj-carousel-counter {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.proj-carousel-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Desktop split (Apple Store style): ONE fixed dots row pinned at the pane
+   bottom -- it does not travel with the slides. Ink-based colors because it
+   sits on the pane background, not the dark media backdrop the mobile
+   overlay dots assume (white-on-white was why they were 'missing'). */
+.with-thumbs .proj-carousel-status {
+  bottom: 20px;
+}
+/* the fixed dots row owns the bottom strip: slide content (tall images,
+   wrapped captions) can never reach into it */
+.with-thumbs .proj-carousel-slide {
+  padding-bottom: 64px;
+}
+
+.with-thumbs .proj-carousel-dot {
+  background: color-mix(in srgb, var(--ink) 28%, transparent);
+}
+.with-thumbs .proj-carousel-dot:hover {
+  background: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+.with-thumbs .proj-carousel-dot.active {
+  background: var(--ink);
+}
+
+.proj-carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.4);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), width 0.2s var(--ease);
+}
+
+.proj-carousel-dot.active {
+  background: #fff;
+  width: 18px;
+  border-radius: 3px;
+}
+
+@media (max-width: 880px) {
+  .proj-carousel-slide {
+    padding: 48px 24px 60px;
+  }
+  .proj-carousel-card {
+    max-width: 480px;
+    gap: 10px;
+  }
+  .proj-carousel-status {
+    bottom: 24px;
+  }
+}
+
+.proj-sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 110;
+  background: var(--bg);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.proj-sheet-handle {
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.proj-sheet-handle::before {
+  content: "";
+  display: block;
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--hairline);
+}
+
+.proj-sheet-scroll {
+  flex: 1;
+  overflow: hidden;
+  overscroll-behavior: contain;
+  padding: 12px 24px calc(40px + env(safe-area-inset-bottom));
+}
+
+.proj-sheet-scroll.full {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.proj-sheet-scroll .modal-kicker {
+  margin: 4px 0 10px;
+}
+
+.proj-sheet-scroll .modal-title {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  margin: 0 0 14px;
+}
+
+.proj-sheet-scroll .modal-meta {
+  margin-bottom: 18px;
+}
+
+.proj-sheet-scroll .modal-content {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+.proj-sheet-scroll .modal-content > p,
+.proj-sheet-scroll .modal-content > h2,
+.proj-sheet-scroll .modal-content > h3,
+.proj-sheet-scroll .modal-content > ul,
+.proj-sheet-scroll .modal-content > ol,
+.proj-sheet-scroll .modal-content > blockquote {
+  margin: 0 0 16px;
+}
+
+.proj-sheet-scroll .modal-content h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 24px 0 10px;
+}
+
+.proj-sheet-scroll .modal-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 22px 0 10px;
+}
+
+/* ---------- VAUL MOBILE SHEET ---------- */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+}
+.sheet-content {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  border-radius: 0;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+.sheet-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-top: 64px;
+}
+.sheet-content .modal-hero {
+  height: 220px;
+  border-radius: 0;
+}
+.sheet-content .modal-body {
+  padding: 28px 24px 32px;
+}
+.sheet-content .modal-title {
+  font-size: 28px;
+}
+.sheet-content .proj-grid,
+.sheet-content .talk-grid,
+.sheet-content .writing-grid {
+  grid-template-columns: 1fr;
+}
+
+/* ---------- STANDALONE PAGE ROUTE ---------- */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+.page-fade {
+  animation: page-in 0.42s var(--ease) both;
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--hairline-2);
+}
+.page-bar-inner {
+  max-width: var(--max-content);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 980px;
+  font-size: 14px;
+  color: var(--ink-2);
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease);
+  cursor: pointer;
+}
+.page-back svg {
+  width: 12px;
+  height: 12px;
+}
+.page-back:hover {
+  background: var(--bg-soft);
+  color: var(--ink);
+}
+.page-home {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.page-home .dot {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.page-main {
+  flex: 1;
+  padding: 32px 0 56px;
+}
+.page-article {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 0 24px;
+  background: var(--bg);
+  border-radius: 22px;
+}
+.page-article .modal-hero {
+  border-radius: 22px;
+  margin-bottom: 8px;
+}
+.page-article .modal-body {
+  padding: 36px 12px 40px;
+}

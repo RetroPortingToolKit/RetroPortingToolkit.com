@@ -1,0 +1,20 @@
+{
+  "proof": [
+    "Placeholder proof paragraph. These read as the opening claims on the home page, and support inline markdown links such as [a topic](/topic/porting) or [a project](/projects/first-project).",
+    "Second placeholder proof paragraph. Keep each one to a few sentences; the layout is tuned for two or three of them."
+  ],
+  "recognition": [
+    {
+      "label": "Placeholder group",
+      "items": [
+        { "text": "Placeholder entry", "href": "/topic/porting" },
+        { "text": "Another entry", "href": "/topic/preservation" }
+      ]
+    }
+  ],
+  "philosophy": [
+    "Placeholder principle one.",
+    "Placeholder principle two.",
+    "Placeholder principle three."
+  ]
+}

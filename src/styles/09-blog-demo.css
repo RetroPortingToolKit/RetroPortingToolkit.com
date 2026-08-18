@@ -1,0 +1,115 @@
+/* Blog entries with a live embed: split layout and demo chrome.
+   Derived file — see the note in 08-home-cards.css. */
+
+.work-anchor {
+  scroll-margin-top: 76px;
+}
+
+.blog-tab-sub {
+  max-width: 640px;
+  margin: -6px 0 28px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+
+
+
+
+
+.lab-split .project-split-right {
+  display: flex;
+  flex-direction: column;
+}
+.lab-demo-bar {
+  flex: 0 0 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--hairline-2);
+  
+  position: relative;
+  z-index: 1;
+}
+
+.modal--demo .modal-controls {
+  top: 0;
+  height: 64px;
+}
+.lab-demo-bar-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3, var(--ink-2));
+}
+.lab-demo-frame {
+  display: block;
+  width: 100%;
+  flex: 1 1 auto; 
+  height: auto;
+  min-height: 0;
+  border: 0;
+  background: var(--bg);
+}
+.page-main:has(.lab-split) {
+  padding: 0; 
+}
+.page-article:has(.lab-split) {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.page-article .lab-split {
+  height: calc(100vh - 53px);
+  grid-template-columns: minmax(380px, 520px) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0;
+}
+.page-article .lab-split .project-split-left {
+  height: 100%;
+  overflow-y: auto;
+}
+.page-article .lab-split .project-split-inner {
+  padding: 36px 40px 56px;
+}
+.page-article .lab-split .project-split-right {
+  height: 100%;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: var(--bg);
+}
+
+@media (max-width: 900px) {
+  
+  .lab-split,
+  .page-article .lab-split {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    height: auto;
+  }
+  .lab-split .project-split-left,
+  .page-article .lab-split .project-split-left {
+    height: auto;
+    overflow: visible;
+  }
+  .lab-split .project-split-right,
+  .page-article .lab-split .project-split-right {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  .lab-demo-frame {
+    height: 62vh;
+  }
+  .page-article .lab-split .project-split-inner {
+    padding: 20px 20px 40px;
+  }
+
+}

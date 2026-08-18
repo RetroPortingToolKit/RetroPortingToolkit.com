@@ -1,0 +1,402 @@
+/* ---------- BLUR-IN-LEFT ENTRANCE ---------- */
+@keyframes blurInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0);
+  }
+}
+
+.blur-text-part {
+  display: inline-block;
+  white-space: pre;
+  opacity: 0;
+  animation-name: blurInLeft;
+  animation-fill-mode: forwards;
+  animation-timing-function: var(--ease);
+  /* No will-change: this is a one-shot entrance (per character), so a permanent
+     promotion would pin dozens of filter layers on the GPU forever after it
+     plays. The browser auto-promotes for the brief animation on its own. */
+}
+/* Keep a word's animated characters glued together so the browser only wraps
+   at real whitespace, not between two adjacent inline-block chars. */
+.blur-text-word {
+  display: inline-flex;
+  white-space: nowrap;
+}
+.blur-text-space {
+  white-space: pre;
+}
+
+.blur-in {
+  opacity: 0;
+  animation: blurInLeft 0.55s var(--ease) forwards;
+  /* one-shot entrance; auto-promotes while playing, no permanent layer */
+}
+
+.modal::-webkit-scrollbar {
+  width: 0;
+}
+body.modal-open {
+  overflow: hidden;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1024px) {
+  .proj-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 1024px) {
+  .talk-grid,
+  .writing-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1000px) {
+  /* Once the name no longer fits, drop the WHOLE brand (avatar + name) rather
+     than leaving a lone avatar that overlaps the first tab; the Home tab stands
+     in for it. Reclaim the 200px brand gutter so the tabs lead from the left. */
+  .tabs-brand {
+    display: none;
+  }
+  .tabs {
+    padding-left: 64px;
+  }
+}
+/* tablet & below */
+@media (max-width: 880px) {
+  .container {
+    padding: 0 24px;
+  }
+  .tabs {
+    padding: 0 24px;
+    gap: 4px;
+  }
+  .tab {
+    padding: 12px 14px;
+    letter-spacing: 3px;
+    font-size: 15px;
+  }
+  .tabs-brand {
+    left: 24px;
+  }
+  /* On mobile the theme toggle joins the flex row of tabs (after the
+     last tab) instead of sitting absolute on the right where it would
+     overlap "Résumé". */
+  .theme-toggle {
+    position: static;
+    transform: none;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+  .page-bar-inner {
+    padding: 0 24px;
+  }
+
+  .hero {
+    aspect-ratio: auto;
+    min-height: 400px;
+    padding: 112px 0 48px;
+  }
+
+  .talk-grid,
+  .writing-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .resume-row {
+    grid-template-columns: 1fr;
+    padding: 32px 0;
+    row-gap: 8px;
+  }
+  .resume-role {
+    grid-column: 1;
+  }
+  .resume-meta {
+    grid-column: 1;
+    justify-self: start;
+    text-align: left;
+  }
+  .resume-note {
+    grid-column: 1;
+  }
+
+  .modal {
+    padding: 24px 16px;
+  }
+  .modal-bar {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+  .modal-body {
+    padding: 32px 28px 36px;
+  }
+  .modal-body--article {
+    padding-top: 48px;
+    padding-bottom: 64px;
+  }
+  .modal-body--article .modal-title {
+    font-size: 34px;
+  }
+  .modal-title {
+    font-size: 30px;
+  }
+  .modal-hero {
+    height: 240px;
+  }
+
+  .page-main {
+    padding: 24px 0 48px;
+  }
+  .page-article {
+    padding: 0 20px;
+  }
+  .page-article .modal-body {
+    padding: 28px 4px 32px;
+  }
+}
+
+/* phones */
+@media (max-width: 560px) {
+  .container {
+    padding: 0 22px;
+  }
+  .tabs {
+    /* brand avatar is hidden at this width; pull the row left so the first
+       tab's LABEL (12px inner padding) aligns with the 22px content edge */
+    padding: 0 22px 0 10px;
+    gap: 2px;
+  }
+  .tab {
+    padding: 12px 12px;
+    letter-spacing: 2px;
+    font-size: 14px;
+  }
+  .theme-toggle {
+    right: 22px;
+  }
+  .tab .count {
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  .page-bar-inner {
+    padding: 0 20px;
+  }
+
+  .hero {
+    min-height: 360px;
+    padding: 96px 0 48px;
+  }
+  .hero-bio {
+    margin-bottom: 32px;
+  }
+  .hero-meta {
+    margin-bottom: 32px;
+  }
+  .tabs-brand {
+    display: none;
+  }
+
+  .site-footer-inner {
+    gap: 12px;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+  .site-footer-location {
+    display: none;
+  }
+
+  .proj-grid {
+    grid-template-columns: 1fr;
+  }
+  .section {
+    padding-bottom: 60px;
+  }
+  .section-title {
+    font-size: 26px;
+  }
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+
+  .writing-card-body {
+    padding: 18px 18px 20px;
+  }
+
+  .modal {
+    padding: 16px 12px;
+  }
+  .modal-bar {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+  .sheet-content .modal-bar {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .modal-body {
+    padding: 28px 22px 32px;
+  }
+  .modal-body--article {
+    padding-top: 36px;
+    padding-bottom: 48px;
+  }
+  .modal-body--article .modal-title {
+    font-size: 30px;
+  }
+  .modal-body--article .modal-content {
+    font-size: 17px;
+  }
+  .modal-body--article .modal-content > p:first-child {
+    font-size: 20px;
+  }
+  /* Serif section heads: keep the accent bar inside the padded column. */
+  .modal-body--article .modal-content h2 {
+    font-size: 23px;
+    margin-top: 40px;
+    padding-top: 22px;
+  }
+  .modal-body--article .modal-content h3 {
+    font-size: 19px;
+  }
+  /* Framed cover fills the phone width. */
+  .article-cover {
+    max-width: 100%;
+    margin: 12px auto 8px;
+  }
+  .article-cover .img {
+    border-radius: 14px;
+  }
+  .article-endcard {
+    padding: 20px;
+  }
+  .modal-title {
+    font-size: 26px;
+  }
+  .modal-hero {
+    height: 200px;
+  }
+  .modal-meta {
+    margin-bottom: 24px;
+    gap: 6px;
+  }
+  .modal-content {
+    font-size: 16px;
+  }
+  .modal-content > p:first-child {
+    font-size: 18px;
+  }
+  .modal-content h3 {
+    font-size: 20px;
+    margin: 28px 0 12px;
+  }
+  .modal-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .sheet-content .modal-body {
+    padding: 24px 20px 28px;
+  }
+  .sheet-content .modal-hero {
+    height: 200px;
+  }
+  .sheet-content .modal-title {
+    font-size: 26px;
+  }
+
+  .page-main {
+    padding: 16px 0 40px;
+  }
+  .page-article {
+    padding: 0 16px;
+  }
+  .page-article .modal-body {
+    padding: 24px 0 28px;
+  }
+  .page-article .modal-hero {
+    border-radius: 18px;
+  }
+}
+
+/* tiny phones */
+@media (max-width: 380px) {
+  .container {
+    padding: 0 16px;
+  }
+  .tabs {
+    /* match the ≤560px rule: align the first tab label with the 16px edge */
+    padding: 0 16px 0 6px;
+    gap: 0;
+  }
+  .tab {
+    padding: 12px 10px;
+    letter-spacing: 1.5px;
+  }
+  .theme-toggle {
+    right: 16px;
+  }
+  .page-bar-inner {
+    padding: 0 16px;
+  }
+
+  .site-footer-inner {
+    padding-top: 20px;
+    padding-bottom: 24px;
+  }
+
+  .resume-row {
+    padding: 18px 0;
+  }
+  .resume-year {
+    font-size: 12px;
+  }
+
+  .talk-card-body {
+    padding: 12px 0 0;
+  }
+  .writing-card-body {
+    padding: 16px 16px 18px;
+  }
+
+  .modal {
+    padding: 12px 8px;
+  }
+  .modal-bar {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .sheet-content .modal-bar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .modal-body {
+    padding: 24px 18px 28px;
+  }
+  .sheet-content .modal-body {
+    padding: 22px 16px 24px;
+  }
+  .page-article {
+    padding: 0 12px;
+  }
+}
+
+/* micro phones */
+@media (max-width: 311px) {
+  .site-footer-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+  }
+}
+
