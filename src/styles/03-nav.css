@@ -8,21 +8,19 @@
   padding-top: 0;
   margin-top: 0;
 }
-/* Home only: the bar is hidden over the full-screen hero, then slides in on scroll. */
+/* Home: the bar floats over the full-screen hero and is visible from the first
+   paint, so navigation is never something you have to go hunting for. It is
+   fixed (not sticky) so the hero scrolls under it. */
 .home-next-page .tabs-wrap {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  transform: translateY(-100%);
-  opacity: 0;
+  transform: translateY(0);
+  opacity: 1;
   transition:
     transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.3s ease;
-}
-.home-next-page .tabs-wrap.is-revealed {
-  transform: translateY(0);
-  opacity: 1;
 }
 /* Tab pages (Talks/Articles/Projects/Résumé): no hero to hide behind, so the
    bar is simply there -- sticky at the top, pill-styled on desktop. */
@@ -84,11 +82,9 @@
       border-color 0.4s ease,
       box-shadow 0.4s ease;
   }
-  /* The pill applies when scrolled (any page) and ALWAYS on the home bar: on
-     the home it's only ever seen as the floating pill (revealed by scroll or
-     top-hover), and keying the pill off .is-revealed made the hide animation
-     re-expand to the full-width bar while sliding out. Styling the hidden
-     state as a pill too keeps the exit animation in pill form. */
+  /* The pill applies when scrolled (any page) and ALWAYS on the home bar: over
+     the hero it reads as a floating pill rather than a full-width bar, so it
+     sits on the artwork without cutting the hero in half. */
   .tabs-wrap.scrolled,
   .home-next-page .tabs-wrap {
     background: transparent;
@@ -448,17 +444,6 @@
   padding-top: 60px;
   background: var(--section-bg-a);
 }
-#home-resume.section {
-  padding-top: 60px;
-  background: var(--section-bg-a);
-}
-/* The Résumé tab is a section.container (not .collection-tab), so it had no
-   opaque background and the fixed dark WebGL canvas showed through it in light
-   mode. Give it the same surface as the home résumé block. */
-#resume.section {
-  padding-top: 60px;
-  background: var(--section-bg-a);
-}
 .section.collection-tab {
   padding-top: 60px;
   background: var(--bg-soft);
@@ -482,190 +467,5 @@
   font-size: 14px;
   color: var(--muted);
   margin: 0;
-}
-
-/* ---------- HORIZONTAL STRIPS ---------- */
-.hstrip-band {
-  padding: 60px 0;
-  background: var(--bg-soft);
-}
-.hstrip {
-  padding: 0;
-}
-.hstrip + .hstrip {
-  margin-top: 60px;
-}
-.hstrip-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.hstrip-all {
-  flex: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--muted);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: color 0.15s ease;
-}
-.hstrip-all:hover {
-  color: var(--ink);
-}
-.hstrip-title {
-  font-size: 32px;
-  line-height: 1.125;
-  font-weight: 700;
-  letter-spacing: 0.004em;
-  color: var(--ink);
-  margin: 0;
-}
-.hstrip-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.hstrip-nav {
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  border: 0;
-  background: var(--hairline-2);
-  color: var(--muted);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition:
-    background 0.15s var(--ease),
-    color 0.15s var(--ease);
-}
-.hstrip-nav svg {
-  width: 14px;
-  height: 14px;
-  display: block;
-}
-.hstrip-nav:hover:not(:disabled) {
-  background: var(--hairline);
-}
-.hstrip-nav:disabled {
-  background: #f0f0f3;
-  cursor: default;
-}
-
-.hstrip-scroller {
-  overflow-x: auto;
-  overflow-y: hidden;
-  /* keep horizontal swipes inside the strip, `none` is stronger than
-     `contain` and reliably blocks Safari's trackpad back-navigation. The
-     wheel handler in HStrip also preventDefault()s for extra safety. */
-  overscroll-behavior-x: none;
-  touch-action: pan-x pan-y pinch-zoom;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  -webkit-overflow-scrolling: touch;
-  /* deliberately NOT setting scroll-behavior: smooth here, it would
-     animate every wheel-driven scrollLeft change, creating jank during
-     trackpad swipes. Arrow-button scrolls pass `behavior: "smooth"`
-     explicitly to scrollTo/scrollBy. */
-}
-.hstrip-scroller::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-@media (hover: hover) and (pointer: fine) {
-  .hstrip-scroller {
-    cursor: grab;
-  }
-}
-/* Grabbing cursor while the pointer is held down. Driven by :active rather
-   than a JS-added class because WebKit latches the cursor at mousedown and
-   ignores cursor changes made afterward, :active is already in effect when
-   that latch happens. !important + the descendant selector beat each card's
-   own `cursor: pointer`. */
-.hstrip-scroller:active,
-.hstrip-scroller:active * {
-  cursor: grabbing !important;
-  user-select: none;
-}
-/* never let the strip's cards/images become a native drag-and-drop source:
-   a press-hold-drag should always scroll, not lift the link off the page */
-.hstrip-scroller a,
-.hstrip-scroller img {
-  -webkit-user-drag: none;
-  user-select: none;
-}
-
-.hstrip-rail {
-  display: flex;
-  justify-content: flex-start;
-  gap: 36px;
-  padding-left: max(56px, calc((100vw - var(--max)) / 2 + 56px));
-  padding-right: max(56px, calc((100vw - var(--max)) / 2 + 56px));
-  padding-top: 4px;
-  padding-bottom: 4px;
-  min-width: max-content;
-  box-sizing: border-box;
-}
-
-.hstrip-item {
-  flex: 0 0 auto;
-}
-.hstrip-item--talk {
-  width: clamp(288px, 32vw, 396px);
-}
-.hstrip-item--writing {
-  width: clamp(280px, 26vw, 380px);
-}
-.hstrip-item .talk-card,
-.hstrip-item .writing-card {
-  height: 100%;
-}
-
-@media (max-width: 880px) {
-  .hstrip-head {
-    margin-bottom: 18px;
-  }
-  .hstrip-scroller {
-    scroll-padding-left: 24px;
-  }
-  .hstrip-rail {
-    gap: 36px;
-    padding-left: 24px;
-    padding-right: 24px;
-  }
-  .hstrip-item--talk {
-    width: clamp(240px, 70vw, 320px);
-  }
-  .hstrip-item--writing {
-    width: 304px;
-  }
-}
-
-@media (max-width: 560px) {
-  .hstrip-scroller {
-    scroll-padding-left: 20px;
-  }
-  .hstrip-rail {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-  .hstrip-item--talk,
-  .hstrip-item--writing {
-    width: 78vw;
-  }
-}
-
-@media (max-width: 380px) {
-  .hstrip-scroller {
-    scroll-padding-left: 16px;
-  }
-  .hstrip-rail {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
 }
 

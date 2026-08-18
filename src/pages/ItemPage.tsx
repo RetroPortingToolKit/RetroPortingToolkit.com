@@ -4,6 +4,7 @@ import type { Kind } from "@/lib/types";
 import { findItem } from "@/lib/content";
 import { ItemDetail } from "@/components/ItemDetail";
 import { SITE } from "@/lib/site";
+import { titleForItem, useDocumentTitle } from "@/lib/pageTitle";
 
 interface Props {
   kind: Kind;
@@ -13,6 +14,10 @@ export function ItemPage({ kind }: Props) {
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const item = findItem(kind, slug);
+
+  // Matches the title scripts/vite-prerender.mjs serves for this URL, so
+  // hydration does not change it.
+  useDocumentTitle(item ? titleForItem(item) : "", !!item);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });

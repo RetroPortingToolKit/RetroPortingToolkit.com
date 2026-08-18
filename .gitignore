@@ -13,3 +13,7 @@ vite.config.ts.timestamp-*.mjs
 
 # Claude Code personal (per-user) settings
 .claude/
+
+# CMS passkey credential stores (never commit)
+.cms-passkey.json
+cms-passkeys.prod.json

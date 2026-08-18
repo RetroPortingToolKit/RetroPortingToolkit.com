@@ -1,5 +1,12 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/cms/(.*)", "destination": "/api/cms?__sub=$1" },
+    { "source": "/rss", "destination": "/rss.xml" },
+    { "source": "/feed", "destination": "/rss.xml" },
+    { "source": "/feed.xml", "destination": "/rss.xml" },
+    { "source": "/atom", "destination": "/atom.xml" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

@@ -172,73 +172,6 @@
   gap: 20px;
   flex-wrap: wrap;
 }
-.closing-cv {
-  appearance: none;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 17px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-  cursor: pointer;
-  border-bottom: 1px solid var(--hairline);
-  padding: 0 0 2px;
-  transition: border-color 0.15s var(--ease);
-}
-.closing-cv:hover {
-  border-color: var(--ink);
-}
-
-/* ---------- DOWNLOADABLE CV (screen button + print stylesheet) ---------- */
-/* The site is the source of truth, so the résumé must be forwardable as a
-   clean PDF. The button triggers the browser's print / Save as PDF; the print
-   stylesheet strips the site chrome down to a black-on-white CV. */
-.resume-actions {
-  display: flex;
-  margin: 0 0 8px;
-}
-/* Résumé heading + download button on one row; center the pill against the
-   large title rather than baseline-aligning it. */
-.resume-head {
-  align-items: center;
-  margin-bottom: 28px;
-}
-.resume-download {
-  appearance: none;
-  border: 1px solid var(--hairline);
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  padding: 9px 18px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    border-color 0.15s var(--ease),
-    background 0.15s var(--ease);
-}
-.resume-download:hover {
-  border-color: var(--ink);
-  background: var(--bg-soft);
-}
-
-/* Quiet framing line above the entries: founder and large-company operator. */
-.resume-summary {
-  margin: 4px 0 30px;
-  max-width: 720px;
-  font-size: clamp(16px, 1.2vw, 19px);
-  line-height: 1.5;
-  letter-spacing: -0.005em;
-  color: var(--muted);
-}
-
-/* Hidden on screen; only rendered in the printed CV. */
-.cv-print-header {
-  display: none;
-}
 
 @media print {
   /* The PDF must look exactly like the résumé on screen. Force the light
@@ -267,19 +200,16 @@
   /* Strip everything that is not the résumé (incl. the fixed WebGL canvas and
      the Recognition band, which would otherwise bleed into the PDF). */
   .tabs-wrap,
-  .hero,
-  .proof-section,
-  .recognition-section,
-  .philosophy-section,
-  #projects,
-  .hstrip-band,
-  .closing,
-  .site-footer,
-  .theme-toggle,
-  .resume-actions,
-  .hstrip-head,
-  .site-canvas,
-  canvas {
+.hero,
+.proof-section,
+.recognition-section,
+.philosophy-section,
+#projects,
+.closing,
+.site-footer,
+.theme-toggle,
+.site-canvas,
+canvas {
     display: none !important;
   }
 
@@ -297,16 +227,14 @@
 
   /* Flatten the SPA layout so the résumé flows naturally across pages. */
   html,
-  body,
-  .tab-strip,
-  .tab-track,
-  .tab-page,
-  .section,
-  #home-resume.section,
-  #resume.section,
-  .home-next-page,
-  .home-next-page .hn-section[aria-label="Résumé"],
-  .home-next-page .hn-container {
+body,
+.tab-strip,
+.tab-track,
+.tab-page,
+.section,
+.home-next-page,
+.home-next-page .hn-section[aria-label="Résumé"],
+.home-next-page .hn-container {
     transform: none !important;
     overflow: visible !important;
     position: static !important;
@@ -318,38 +246,6 @@
   }
   body {
     background: #ffffff !important;
-  }
-
-  /* Name and contact header: the PDF has no site nav, so it carries the
-     identity the nav provides on screen. Styled with the same tokens. */
-  .cv-print-header {
-    display: block !important;
-    margin: 0 0 28px;
-    padding: 0 0 18px;
-    border-bottom: 1px solid var(--hairline);
-  }
-  .cv-print-name {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-  }
-  .cv-print-role {
-    margin-top: 4px;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .cv-print-contact {
-    margin-top: 8px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-
-  .resume-row {
-    page-break-inside: avoid;
   }
   @page {
     margin: 1.5cm;

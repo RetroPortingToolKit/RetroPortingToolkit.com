@@ -315,10 +315,6 @@
   background: rgba(255, 255, 255, 0.26);
   border-color: rgba(255, 255, 255, 0.4);
 }
-
-#resume {
-  scroll-margin-top: 84px;
-}
 .hn-section {
   padding: clamp(30px, 4.5vh, 64px) 0;
 }
@@ -690,9 +686,11 @@
 @media (hover: hover) {
   
   .tvcard.is-hover {
-    scale: 1.12;
-    
-    translate: 0 -12px;
+    /* Half the original pop (was 1.12 / -12px), matching the halved tilt in
+       SpatialCard.tsx so the whole hover reads as one calmer gesture. */
+    scale: 1.06;
+
+    translate: 0 -6px;
     z-index: 1;
     
     transition:
@@ -962,23 +960,6 @@ html {
   overscroll-behavior-x: none;
 }
 
-.home-next-page .hstrip-title {
-  font-size: clamp(20px, 1.6vw, 24px);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.2;
-}
-.home-next-page .resume-head {
-  margin-bottom: 24px;
-}
-.home-next-page .resume-summary {
-  margin: 0 0 24px;
-}
-
-.resume-head--bare {
-  justify-content: flex-end;
-}
-
 .hn-hero {
   position: relative;
 }
@@ -1009,20 +990,6 @@ html {
 }
 .pager-incoming > div {
   min-height: 100vh;
-}
-
-
-
-.resume-co-link {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--ink) 28%, transparent);
-  text-underline-offset: 4px;
-  transition: text-decoration-color 0.18s ease;
-}
-.resume-co-link:hover {
-  text-decoration-color: var(--ink);
 }
 
 

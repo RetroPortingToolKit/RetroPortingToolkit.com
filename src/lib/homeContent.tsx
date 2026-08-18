@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { SmartLink } from "@/components/SmartLink";
+import { PreviewLink } from "@/components/PreviewLink";
 import { topicPath } from "@/lib/content";
 import homeData from "@data/home.json";
 
@@ -65,13 +65,13 @@ export function parseHome(home: { proof?: string[]; recognition?: RecognitionGro
 export function renderSegments(segments: ProofSegment[]) {
   return segments.map((seg, i) => {
     const content = seg.topicId ? (
-      <SmartLink href={topicPath(seg.topicId)} className="topic-link">
+      <PreviewLink href={topicPath(seg.topicId)} className="topic-link">
         {seg.text}
-      </SmartLink>
+      </PreviewLink>
     ) : seg.href ? (
-      <SmartLink href={seg.href} className="topic-link">
+      <PreviewLink href={seg.href} className="topic-link">
         {seg.text}
-      </SmartLink>
+      </PreviewLink>
     ) : (
       seg.text
     );

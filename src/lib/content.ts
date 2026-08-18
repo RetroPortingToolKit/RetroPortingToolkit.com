@@ -1,5 +1,5 @@
 import yaml from "js-yaml";
-import type { About, GalleryItem, Item, Kind, LinkRef, Resume, Topic } from "./types";
+import type { About, GalleryItem, Item, Kind, LinkRef, Topic } from "./types";
 import { LQIP } from "@/generated/lqip";
 
 const rawMd = import.meta.glob("/data/**/index.md", {
@@ -13,11 +13,6 @@ const aboutMd = import.meta.glob("/data/about.md", {
   import: "default",
   eager: true,
 }) as Record<string, string>;
-
-const resumeJson = import.meta.glob("/data/resume.json", {
-  eager: true,
-  import: "default",
-}) as Record<string, Resume>;
 
 const assetUrls = import.meta.glob(
   "/data/**/*.{jpg,jpeg,png,webp,gif,avif,mp4,webm,mov}",
@@ -372,22 +367,6 @@ function parseAbout(): About {
 }
 
 export const ABOUT: About = parseAbout();
-
-// Pure parser for a draft resume.json string, used by the live CMS preview.
-export function parseResumeRaw(raw: string): Resume {
-  try {
-    const parsed = JSON.parse(raw) as Resume;
-    return parsed && Array.isArray(parsed.items) ? parsed : { items: [] };
-  } catch {
-    return { items: [] };
-  }
-}
-
-export const RESUME: Resume = (() => {
-  const entry = Object.entries(resumeJson)[0];
-  if (!entry) return { items: [] };
-  return entry[1];
-})();
 
 // HMR: this module is imported by App.tsx (the root), so a content edit would
 // otherwise re-execute App and remount the whole app, dropping editor focus in

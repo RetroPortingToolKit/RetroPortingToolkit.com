@@ -145,8 +145,10 @@ export function SpatialCard({
     const px = (clientX - r.left) / r.width;
     const py = (clientY - r.top) / r.height;
     tiltTarget.current = {
-      rx: (0.5 - py) * 33,
-      ry: (px - 0.5) * 36,
+      // Half the original throw (was 33 / 36): enough parallax to read as 3D
+      // without the card swinging away from the cursor.
+      rx: (0.5 - py) * 16.5,
+      ry: (px - 0.5) * 18,
       mx: px * 100,
       my: py * 100,
     };

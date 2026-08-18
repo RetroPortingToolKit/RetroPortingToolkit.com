@@ -2,7 +2,6 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, type TabId } from "@/components/Tabs";
-import { ResumeRows } from "@/components/ResumeList";
 import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
 import { HeroReel } from "@/components/HeroReel";
@@ -18,7 +17,13 @@ import {
 import { PROJECTS, TALKS, WRITING, BLOGS, pathFor } from "@/lib/content";
 import { isMac } from "@/lib/platform";
 import { useAbout } from "@/lib/about";
-import { SITE } from "@/lib/site";
+import {
+  titleForCollection,
+  titleForHome,
+  titleForWork,
+  useDocumentTitle,
+} from "@/lib/pageTitle";
+import { useOverlayOpen } from "@/lib/overlay";
 import {
   PROOF_PRIMARY,
   RECOGNITION,
@@ -30,21 +35,21 @@ const TAB_PATH: Record<TabId, string> = {
   home: "/",
   work: "/work",
   blog: "/blog",
-  resume: "/resume",
 };
-const TAB_ORDER: TabId[] = ["home", "work", "blog", "resume"];
+const TAB_ORDER: TabId[] = ["home", "work", "blog"];
 const NAV_TABS = [
   { id: "home" as TabId, label: "Home", path: "/" },
   { id: "work" as TabId, label: "Work", path: "/work" },
   { id: "blog" as TabId, label: "Blog", path: "/blog" },
-  { id: "resume" as TabId, label: "Résumé", path: "/resume" },
 ];
 
+// Must equal what scripts/vite-prerender.mjs serves for each tab's route, so
+// hydration does not replace the served title with a different one. Built from
+// src/lib/pageTitle.ts, which is asserted against the prerender in its test.
 const TAB_TITLE: Record<TabId, string> = {
-  home: SITE.title,
-  work: `Work · ${SITE.title}`,
-  blog: `Blog · ${SITE.title}`,
-  resume: `About · ${SITE.title}`,
+  home: titleForHome(),
+  work: titleForWork(),
+  blog: titleForCollection("blog"),
 };
 
 // Apple-marquee orphan protection: glue the final word pair of a line with a
@@ -232,7 +237,6 @@ function TabContent({
   // Sections come straight from data/home.json. parseHome stays exported so a
   // CMS or preview layer can feed it a draft later without touching this page.
   const sections = { proof: PROOF_PRIMARY, recognition: RECOGNITION, philosophy: PHILOSOPHY };
-  const resumeDraft = undefined;
 
   // After a tab switch, whatever lands under the stationary cursor must NOT
   // light up: freeze card hover until the mouse genuinely moves (>3px).
@@ -286,22 +290,14 @@ function TabContent({
     return () => io.disconnect();
   }, [isHome, interactive]);
 
-  // Subtle hero parallax + fade on scroll (interactive home only). The nav
-  // reveals once scrolled past 25% of the viewport, OR (mouse only) when the
-  // cursor moves near the top of the screen.
+  // Subtle hero parallax + fade on scroll (interactive home only). The nav bar
+  // itself is always visible on the home page (see 03-nav.css), so nothing here
+  // reveals or hides it.
   useEffect(() => {
     if (!isHome || !interactive) return;
     const hero = heroRef.current;
     if (!hero) return;
     let raf = 0;
-    let mouseAtTop = false;
-
-    const updateReveal = () => {
-      const tabsEl = tabsRef?.current;
-      if (!tabsEl) return;
-      const scrolled = window.scrollY > window.innerHeight * 0.25;
-      tabsEl.classList.toggle("is-revealed", scrolled || mouseAtTop);
-    };
 
     const onScroll = () => {
       if (raf) return;
@@ -309,29 +305,18 @@ function TabContent({
         raf = 0;
         const y = window.scrollY;
         hero.style.setProperty("--hy", `${y * 0.25}px`);
-        // fully faded by ~22% of the viewport: gone BEFORE the bar reveals at 25%
+        // fully faded by ~22% of the viewport
         hero.style.setProperty(
           "--ho",
           String(Math.max(0, 1 - y / (window.innerHeight * 0.22))),
         );
-        updateReveal();
       });
     };
 
-    const onMouseMove = (e: MouseEvent) => {
-      const atTop = e.clientY <= 90;
-      if (atTop !== mouseAtTop) {
-        mouseAtTop = atTop;
-        updateReveal();
-      }
-    };
-
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("mousemove", onMouseMove, { passive: true });
     onScroll();
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("mousemove", onMouseMove);
       if (raf) cancelAnimationFrame(raf);
     };
   }, [isHome, interactive, tabsRef]);
@@ -355,16 +340,6 @@ function TabContent({
         </>
       )}
       {tab === "blog" && <BlogGrid onOpen={onOpen} still={!interactive} />}
-      {tab === "resume" && (
-        <section className="hn-section hn-subpage-section" aria-label="Résumé">
-          <div className="hn-container">
-            <header className="hn-tab-head">
-              <h1 className="hn-tab-title">Résumé</h1>
-            </header>
-            <ResumeRows headTitle={false} resume={resumeDraft} />
-          </div>
-        </section>
-      )}
 
       {isHome && (
         <>
@@ -414,30 +389,12 @@ function TabContent({
                 </div>
               )}
               <div className="hn-hero-actions">
-                {/* Primary: the thing they're here to do — read the record.
-                    Secondary: email (icon makes the mailto obvious so the very
-                    first click doesn't yank them into a mail client by surprise). */}
-                <a
-                  className="hn-hero-cta hn-hero-cta--primary"
-                  href="#resume"
-                  onClick={(e) => {
-                    const el = document.getElementById("resume");
-                    if (!el) return; // fall back to the hash jump
-                    e.preventDefault();
-                    const reduce = window.matchMedia(
-                      "(prefers-reduced-motion: reduce)",
-                    ).matches;
-                    el.scrollIntoView({
-                      behavior: reduce ? "auto" : "smooth",
-                      block: "start",
-                    });
-                  }}
-                >
-                  View my résumé
-                </a>
+                {/* Email leads (the icon makes the mailto obvious so the very
+                    first click doesn't yank them into a mail client by
+                    surprise). */}
                 {about.email && (
                   <a
-                    className="hn-hero-cta hn-hero-cta--ghost"
+                    className="hn-hero-cta hn-hero-cta--primary"
                     href={`mailto:${about.email}`}
                   >
                     <MailIcon />
@@ -588,16 +545,6 @@ function TabContent({
             </div>
           </section>
 
-          <section
-            className="hn-section"
-            id="resume"
-            aria-label="Résumé"
-          >
-            <div className="hn-container" data-reveal>
-              <ResumeRows resume={resumeDraft} />
-            </div>
-          </section>
-
           <section className="hn-section hn-closing">
             <div className="hn-container" data-reveal>
               <p className="hn-closing-line">
@@ -616,7 +563,7 @@ function TabContent({
                   className="hn-cta hn-cta--ghost"
                   onClick={() => window.print()}
                 >
-                  Download résumé
+                  Print this page
                 </button>
               </div>
             </div>
@@ -674,23 +621,10 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
     touchActive: false,
   });
 
-  useEffect(() => {
-    document.title = TAB_TITLE[tab];
-  }, [tab]);
-
-  // While a gesture is dragging a subpage in over the home, the bar (hidden
-  // over the hero) reveals so the destination's chrome is already in place;
-  // on cancel it re-hides unless the page is scrolled past the reveal point.
-  useEffect(() => {
-    if (!isHome) return;
-    const el = tabsRef.current;
-    if (!el) return;
-    if (pagerTarget && pagerTarget !== "home") {
-      el.classList.add("is-revealed");
-    } else if (window.scrollY <= window.innerHeight * 0.25) {
-      el.classList.remove("is-revealed");
-    }
-  }, [isHome, pagerTarget]);
+  // An item or collection layer renders OVER this tab page with both mounted,
+  // so the layer owns the title while it is open (it sets the item's own,
+  // matching what the server prerendered for that URL).
+  useDocumentTitle(TAB_TITLE[tab], !useOverlayOpen());
 
   // Open a card's detail as a modal over the current page.
   const onOpen = (m: LabMedia) =>
@@ -751,7 +685,7 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         const next = TAB_ORDER[i + (e.key === "ArrowRight" ? 1 : -1)];
         if (next) goTab(next);
       } else if (e.key >= "1" && e.key <= "9") {
-        // number row jumps straight to that tab (1 = Home ... 5 = Résumé),
+        // number row jumps straight to that tab (1 = Home ... 3 = Blog),
         // riding the same page-turn (direction follows tab order)
         const target = TAB_ORDER[Number(e.key) - 1];
         if (target) goTab(target);

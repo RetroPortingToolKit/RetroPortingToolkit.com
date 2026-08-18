@@ -3,7 +3,7 @@ headerName: "Retro Porting Toolkit"
 heroTitle: "Retro Porting Toolkit"
 role: "Placeholder role line"
 eyebrow: "Placeholder eyebrow."
-tagline: "Placeholder tagline — one line about what this site is for."
+tagline: "Placeholder tagline, one line about what this site is for."
 locations:
   - "Placeholder City"
 email: "hello@retroportingtoolkit.com"

@@ -7,7 +7,7 @@ import {
 import { useAbout } from "@/lib/about";
 import { ThemeToggle } from "./ThemeToggle";
 
-export type TabId = "home" | "work" | "blog" | "resume";
+export type TabId = "home" | "work" | "blog";
 
 interface TabDef {
   id: TabId;
@@ -116,7 +116,7 @@ export function Tabs({
   }, [active, tabs, swipeFraction]);
 
   // When the active tab changes, make sure it's visible inside the scrollable
-  // strip. On mobile the row overflows horizontally, so switching to Résumé
+  // strip. On mobile the row overflows horizontally, so switching to the last tab
   // would otherwise leave the active tab off-screen.
   useEffect(() => {
     const row = tabsRowRef.current;

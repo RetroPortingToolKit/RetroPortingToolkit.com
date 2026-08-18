@@ -8,7 +8,7 @@ This repo is a site template. Content lives in `data/`; brand strings live in
 ## Conventions
 
 - Styles are ordered partials under `src/styles/`. The cascade depends on the
-  import order in `src/main.tsx` — add a partial there, don't reorder existing
+  import order in `src/main.tsx`: add a partial there, don't reorder existing
   ones.
 - Every brand-facing string goes through `src/lib/site.ts`. Do not reintroduce
   a hardcoded site name, domain, or byline in a component.

@@ -2,7 +2,8 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath, URL } from "node:url";
 
 // Standalone test config: just the path aliases (so src modules resolve) + a
-// node environment, kept separate from the app's vite.config.
+// node environment. Deliberately NOT the app's vite.config (which pulls in the
+// dev-only CMS/feeds/prerender plugins we don't want under test).
 export default defineConfig({
   resolve: {
     alias: {
@@ -12,6 +13,6 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"],
   },
 });

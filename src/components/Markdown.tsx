@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { SmartLink } from "./SmartLink";
+import { PreviewLink } from "./PreviewLink";
 
 interface MarkdownProps {
   children: string;
@@ -16,11 +16,14 @@ export function Markdown({ children, className }: MarkdownProps) {
         // the custom "cite:" protocol survive sanitization.
         urlTransform={(url) => url}
         components={{
+          // PreviewLink wraps SmartLink: it adds a hover card describing the
+          // destination when the href resolves to real site content, and falls
+          // through to a plain SmartLink when it does not.
           a: ({ href, children, className }) => {
             return (
-              <SmartLink href={href ?? "#"} className={className}>
+              <PreviewLink href={href ?? "#"} className={className}>
                 {children}
-              </SmartLink>
+              </PreviewLink>
             );
           },
           // Inline article media: ![caption](./file) renders as a figure (the

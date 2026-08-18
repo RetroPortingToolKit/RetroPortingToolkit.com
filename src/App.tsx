@@ -13,7 +13,18 @@ import {
 import { useEffect, useRef } from "react";
 import Home from "./pages/Home";
 import { ItemPage } from "./pages/ItemPage";
+// Admin is a static import (NOT lazy): a React.lazy route remounts on every
+// Fast Refresh, which would drop editor focus mid-edit.
+import Admin from "./pages/Admin";
 import { ItemView } from "./components/ItemView";
+import {
+  COLLECTION_TITLE,
+  titleForCollection,
+  titleForItem,
+  titleForTopic,
+  useDocumentTitle,
+} from "./lib/pageTitle";
+import { OverlayOpenContext } from "./lib/overlay";
 import { CollectionView } from "./components/CollectionView";
 import { Footer } from "./components/Footer";
 import {
@@ -56,6 +67,10 @@ function ModalRoute({
 }) {
   const { slug = "" } = useParams<{ slug: string }>();
   const item = findItem(kind, slug);
+  // Called before the early return so the hook order stays stable. This layer
+  // is on top, so it owns the title: it restates what the server prerendered
+  // for this URL instead of letting the tab page underneath overwrite it.
+  useDocumentTitle(item ? titleForItem(item) : "", !!item);
   if (!item) {
     onClose();
     return null;
@@ -66,13 +81,6 @@ function ModalRoute({
 const MODALISH_RE =
   /^\/(projects|talks|writing|blog)\/[^/]+\/?$|^\/(all|topic)\/[^/]+\/?$/;
 
-const COLLECTION_TITLE: Record<Kind, string> = {
-  project: "All projects",
-  talk: "All talks",
-  writing: "All articles",
-  blog: "All blog posts",
-};
-
 function CollectionAllRoute({
   onClose,
   covered,
@@ -82,6 +90,7 @@ function CollectionAllRoute({
 }) {
   const { segment = "" } = useParams<{ segment: string }>();
   const kind = COLLECTION_KIND[segment];
+  useDocumentTitle(kind ? titleForCollection(kind) : "", !!kind);
   if (!kind) {
     onClose();
     return null;
@@ -105,6 +114,7 @@ function CollectionTopicRoute({
 }) {
   const { topicId = "" } = useParams<{ topicId: string }>();
   const topic = findTopic(topicId);
+  useDocumentTitle(topic ? titleForTopic(topic) : "", !!topic);
   if (!topic) {
     onClose();
     return null;
@@ -152,6 +162,15 @@ function ScrollManager() {
 const COLLECTION_PATH_RE = /^\/all\/[^/]+\/?$|^\/topic\/[^/]+\/?$/;
 const ITEM_PATH_RE = /^\/(projects|talks|writing|blog)\/[^/]+\/?$/;
 
+// The tab page rendered UNDER an item opened by deep link, keyed by the item's
+// URL segment. Talks, projects and articles all live in the merged Work tab.
+const ITEM_TAB_PATH: Record<string, string> = {
+  projects: "/work",
+  talks: "/work",
+  writing: "/work",
+  blog: "/blog",
+};
+
 function AppRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -181,9 +200,12 @@ function AppRoutes() {
       if (!bg) {
         // Deep link / reload straight onto an item: render its TAB page
         // underneath and the real modal on top, never the bare fallback page.
+        // Must resolve to a tab that RENDERS: /projects, /talks and /writing
+        // are <Navigate> aliases into /work, and putting one here would fire a
+        // redirect that replaces the URL and tears the item back down.
         if (itemMatch) {
           pageLocation = {
-            pathname: `/${itemMatch[1]}`,
+            pathname: ITEM_TAB_PATH[itemMatch[1]] ?? "/",
             search: "",
             hash: "",
             state: null,
@@ -212,7 +234,7 @@ function AppRoutes() {
   };
 
   return (
-    <>
+    <OverlayOpenContext.Provider value={showOverlay}>
       <ScrollManager />
       {/* When a modal is open the background page stays mounted. Mark it
           aria-hidden so reader modes target the modal's <article>. */}
@@ -228,7 +250,6 @@ function AppRoutes() {
             <Route path="/projects" element={<Navigate to="/work#projects" replace />} />
             <Route path="/blog" element={<Home tab="blog" />} />
             <Route path="/blog/:slug" element={<ItemPage kind="blog" />} />
-            <Route path="/resume" element={<Home tab="resume" />} />
             <Route path="/projects/:slug" element={<ItemPage kind="project" />} />
             <Route path="/talks/:slug" element={<ItemPage kind="talk" />} />
             <Route path="/writing/:slug" element={<ItemPage kind="writing" />} />
@@ -276,11 +297,18 @@ function AppRoutes() {
       })}
 
       <Footer />
-    </>
+    </OverlayOpenContext.Provider>
   );
 }
 
 export default function App() {
+  // /admin renders OUTSIDE the router (and away from the modal/Suspense tree):
+  // the editor owns the whole viewport, keeps its own history, and must not
+  // remount when the app's route state changes mid-edit. Only a direct URL
+  // reaches it: there is no in-app link to /admin.
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+    return <Admin />;
+  }
   return (
     <BrowserRouter>
       <AppRoutes />

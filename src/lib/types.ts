@@ -81,16 +81,3 @@ export interface About {
   videoBackgroundFallback?: string;
 }
 
-export interface ResumeItem {
-  range: string;
-  role: string;
-  company: string;
-  location?: string;
-  note?: string;
-  /** opens the company's project/topic modal from the CV row */
-  href?: string;
-}
-
-export interface Resume {
-  items: ResumeItem[];
-}

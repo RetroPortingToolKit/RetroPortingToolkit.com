@@ -11,6 +11,7 @@ import "./styles/06-responsive.css";
 import "./styles/07-collections-cv.css";
 import "./styles/08-home-cards.css";
 import "./styles/09-blog-demo.css";
+import "./styles/10-link-previews.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Missing #root element");
