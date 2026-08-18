@@ -38,7 +38,7 @@ const COPY_LABEL = new Map(COPY_FILES);
 const KIND_GROUP = [
   ["blog", "Articles"],
   ["hardware", "Hardware"],
-  ["software", "Software"],
+  ["games", "Games"],
 ];
 
 const FOLDER_RE = /^(\d+)_(.+)$/;
@@ -49,7 +49,7 @@ function isAllowed(id) {
   if (COPY_LABEL.has(id)) return true;
   if (id === "data/about.md") return true;
   if (/^data\/sources\/[^/]+\.md$/.test(id)) return true;
-  if (/^data\/(blog|hardware|software)\/[^/]+\/index\.md$/.test(id)) return true;
+  if (/^data\/(blog|hardware|games)\/[^/]+\/index\.md$/.test(id)) return true;
   return false;
 }
 function resolveSafe(id) {
@@ -188,6 +188,15 @@ function writeHome(payload) {
   const homeOut =
     JSON.stringify(
       {
+        // merge over the stored file so a save never drops sections the
+        // editor does not know about (videos, capabilities, pillars, ...)
+        ...(() => {
+          try {
+            return JSON.parse(fs.readFileSync(HOME_FILE, "utf8"));
+          } catch {
+            return {};
+          }
+        })(),
         proof: Array.isArray(home.proof) ? home.proof.map((p) => String(p)) : [],
         recognition: Array.isArray(home.recognition) ? home.recognition : [],
         philosophy: Array.isArray(home.philosophy) ? home.philosophy.map((p) => String(p)) : [],
@@ -318,10 +327,10 @@ export function writeEditable(id, payload) {
 // post means allocating a folder, not just writing a file. The slug becomes the
 // URL and is permanent in practice (renaming the folder changes the URL), so it
 // is derived from the title once, here, and never rewritten on later saves.
-const KIND_DIRS = new Set(["blog", "hardware", "software"]);
+const KIND_DIRS = new Set(["blog", "hardware", "games"]);
 
 // Reads naturally in the stub description: "this post", not "this blog".
-const KIND_NOUN = { blog: "article", hardware: "platform", software: "project" };
+const KIND_NOUN = { blog: "article", hardware: "platform", games: "game" };
 
 export function slugify(title) {
   return String(title)
@@ -409,14 +418,14 @@ export function createEditable(payload) {
 const UPLOAD_EXT = /\.(jpe?g|png|webp|gif|avif|mp4|mov|m4v|webm)$/i;
 
 function contentFolder(id) {
-  if (!/^data\/(blog|hardware|software)\/[^/]+\/index\.md$/.test(id)) return null;
+  if (!/^data\/(blog|hardware|games)\/[^/]+\/index\.md$/.test(id)) return null;
   const abs = resolveSafe(id);
   return abs ? path.dirname(abs) : null;
 }
 
 async function doUpload({ id, filename, contentBase64 }) {
   const folder = contentFolder(id);
-  if (!folder) return { ok: false, error: "Uploads are only for article / hardware / software items." };
+  if (!folder) return { ok: false, error: "Uploads are only for article / hardware / game items." };
   const clean = path.basename(String(filename || "")).replace(/[^\w.-]/g, "_");
   if (!clean || clean.startsWith(".") || !UPLOAD_EXT.test(clean)) {
     return { ok: false, error: "Unsupported file type (use jpg/png/webp/gif/mp4/mov)." };

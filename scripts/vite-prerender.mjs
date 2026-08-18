@@ -23,13 +23,13 @@ const DEFAULT_OG = fs.existsSync(path.join(PUBLIC_DIR, "og", "default.jpg"))
 
 const KIND_SEGMENT = {
   hardware: "hardware",
-  software: "software",
+  game: "games",
   blog: "blog",
 };
 
 const COLLECTION_TITLE = {
   hardware: "Hardware",
-  software: "Software",
+  games: "Games",
   blog: "Articles",
 };
 
@@ -54,7 +54,7 @@ function walk(dir) {
 
 function kindFromPath(rel) {
   if (rel.startsWith("hardware/") || rel.startsWith("hardware\\")) return "hardware";
-  if (rel.startsWith("software/") || rel.startsWith("software\\")) return "software";
+  if (rel.startsWith("games/") || rel.startsWith("games\\")) return "game";
   if (rel.startsWith("blog/") || rel.startsWith("blog\\")) return "blog";
   return null;
 }
@@ -163,7 +163,7 @@ function escapeAttr(s) {
 // ---- og assets: everything resolves to PUBLIC paths, so the exact same
 // URLs work on prod, on the dev tunnel, and in the dev middleware below. The
 // audit guarantees every item has a public poster (previews/ or lab-media/).
-const LAB_DIR = { hardware: "hardware", software: "software", blog: "blog" };
+const LAB_DIR = { hardware: "hardware", game: "game", blog: "blog" };
 
 function itemImagePath(item) {
   const prev = path.join(PUBLIC_DIR, "previews", `${item.slug}.webp`);
@@ -260,9 +260,9 @@ function itemJsonLd(item, url, image) {
       author: AUTHOR,
     };
   }
-  // hardware ecosystems and software projects
+  // hardware ecosystems and game projects
   return {
-    "@type": "SoftwareSourceCode",
+    "@type": "GamesSourceCode",
     name: item.title,
     description: item.desc || item.title,
     url,
@@ -330,7 +330,7 @@ function mdToHtml(md) {
 const NAV_HTML = [
   ["/", "Home"],
   ["/hardware", "Hardware"],
-  ["/software", "Software"],
+  ["/games", "Games"],
   ["/blog", "Articles"],
 ]
   .map(([href, label]) => `<a href="${href}">${label}</a>`)
@@ -377,7 +377,7 @@ function itemListHtml(items, kind) {
 // shell, mirroring the runtime parse in src/lib/homeContent.tsx.
 function readHomeProse() {
   const file = path.join(ROOT, "data", "home.json");
-  const out = { proof: [], recognition: [], philosophy: [] };
+  const out = { proof: [], recognition: [], philosophy: [], videos: [], capabilities: [], pillars: [], transforms: [], thesis: [] };
   if (!fs.existsSync(file)) return out;
   let data;
   try {
@@ -396,6 +396,17 @@ function readHomeProse() {
     items: (g.items || []).map((it) => it.text),
   }));
   out.philosophy = data.philosophy || [];
+  out.videos = (data.videos || []).map((v) => ({
+    title: String(v.title || ""),
+    channel: String(v.channel || ""),
+    href: String(v.href || ""),
+  }));
+  const titled = (list) =>
+    (list || []).map((e) => ({ title: String(e.title || ""), body: String(e.body || "") }));
+  out.capabilities = titled(data.capabilities);
+  out.pillars = titled(data.pillars);
+  out.transforms = titled(data.transforms);
+  out.thesis = (data.thesis || []).map(String);
   return out;
 }
 
@@ -407,26 +418,49 @@ function homeStaticHtml(items) {
     `<p>${escapeHtml(about.role || "")}</p>`,
     `<p>${escapeHtml(about.tagline || "")}</p>`,
     ...(about.bio ? [mdToHtml(about.bio)] : []),
-    "<h2>What it is</h2>",
-    ...prose.proof.map((t) => `<p>${escapeHtml(t)}</p>`),
   ];
+  const titledList = (title, list) => {
+    if (!list.length) return;
+    parts.push(
+      `<h2>${title}</h2><ul>` +
+        list
+          .map((e) => `<li><strong>${escapeHtml(e.title)}.</strong> ${escapeHtml(e.body)}</li>`)
+          .join("") +
+        "</ul>",
+    );
+  };
+  titledList("The games you remember. Without the old limits.", prose.capabilities);
+  parts.push("<h2>More than emulation.</h2>");
+  parts.push(...prose.proof.map((t) => `<p>${escapeHtml(t)}</p>`));
+  parts.push("<p><strong>Preserve the game. Replace the constraints.</strong></p>");
+  titledList("Recompile. Understand. Augment.", prose.pillars);
+  if (prose.thesis.length) {
+    parts.push("<h2>One improvement. Many games.</h2>");
+    parts.push(...prose.thesis.map((t) => `<p>${escapeHtml(t)}</p>`));
+  }
+  titledList("From console feature to modern capability.", prose.transforms);
   if (prose.recognition.length) {
-    parts.push("<h2>Coverage</h2><ul>");
+    parts.push("<h2>In the wild</h2><ul>");
     for (const g of prose.recognition)
       parts.push(
         `<li>${escapeHtml(g.label)}: ${escapeHtml(g.items.join(", "))}</li>`,
       );
     parts.push("</ul>");
   }
-  if (prose.philosophy.length) {
+  if (prose.videos.length) {
     parts.push(
-      "<h2>What recompilation makes possible</h2><ul>" +
-        prose.philosophy.map((t) => `<li>${escapeHtml(t)}</li>`).join("") +
+      "<h2>Videos</h2><ul>" +
+        prose.videos
+          .map(
+            (v) =>
+              `<li><a href="${escapeAttr(v.href)}">${escapeHtml(v.title)}</a> (${escapeHtml(v.channel)})</li>`,
+          )
+          .join("") +
         "</ul>",
     );
   }
   parts.push("<h2>Hardware</h2>", itemListHtml(items, "hardware"));
-  parts.push("<h2>Software</h2>", itemListHtml(items, "software"));
+  parts.push("<h2>Games</h2>", itemListHtml(items, "game"));
   parts.push("<h2>Articles</h2>", itemListHtml(items, "blog"));
   return wrapStatic(parts.join("\n"));
 }
@@ -627,17 +661,17 @@ export function buildRouteMeta(origin) {
     static: homeStaticHtml(items),
   });
 
-  const counts = { hardware: 0, software: 0, blog: 0 };
+  const counts = { hardware: 0, game: 0, blog: 0 };
   for (const it of items) counts[it.kind] = (counts[it.kind] ?? 0) + 1;
   // Derived from the real content counts so the descriptions never drift from
   // what the pages actually list.
   const TAB_DESC = {
     hardware: `${counts.hardware} platform recompilation ${counts.hardware === 1 ? "ecosystem" : "ecosystems"} from ${SITE_NAME}: decoders and runtimes for original console hardware.`,
-    software: `${counts.software} ${counts.software === 1 ? "project" : "projects"} built on ${SITE_NAME}: game recompilations and shared runtime libraries.`,
+    games: `${counts.game} ${counts.game === 1 ? "game" : "games"} built on ${SITE_NAME}: recompilations and shared runtime libraries.`,
     blog: `${counts.blog} ${counts.blog === 1 ? "article" : "articles"}: technical writing from the team, press coverage, and videos.`,
   };
-  const SEG_KIND = { hardware: "hardware", software: "software", blog: "blog" };
-  for (const seg of ["hardware", "software", "blog"]) {
+  const SEG_KIND = { hardware: "hardware", games: "game", blog: "blog" };
+  for (const seg of ["hardware", "games", "blog"]) {
     const listHtml = wrapStatic(
       `<h1>${escapeHtml(COLLECTION_TITLE[seg])}</h1>\n` +
         `<p>${escapeHtml(TAB_DESC[seg])}</p>\n` +
@@ -774,7 +808,7 @@ function truncate(s, n) {
 // unrenderable pages.
 function sitemapPriority(route) {
   if (route === "/") return "1.0";
-  if (["/hardware", "/software", "/blog"].includes(route)) {
+  if (["/hardware", "/games", "/blog"].includes(route)) {
     return "0.9";
   }
   if (route.startsWith("/source/")) return "0.5";

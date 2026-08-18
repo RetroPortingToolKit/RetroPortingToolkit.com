@@ -1,38 +1,165 @@
 {
   "proof": [
-    "Retro Porting Toolkit is a collection of platform-specific recompilation ecosystems. Each one pairs a decoder, which statically translates a game's original machine code into C, with a runtime that stands in for the original hardware. The output compiles as a native program for modern platforms: no emulator core underneath, and no game data ever distributed. Every project builds from your own legally dumped ROM or disc image.",
-    "The most established ecosystem is [PSXRecomp](/hardware/playstation), which recompiles the real PlayStation BIOS and runs seven playable first-party titles alongside community ports like [OpenPete's Spyro the Dragon](/software/openpete-spyro). [NESRecomp](/hardware/nes) covers ten commercial titles across four mapper families. Newer targets run from [SNES](/hardware/super-nintendo) and [Game Boy Advance](/hardware/game-boy-advance) down to research experiments on [CD-i](/hardware/cd-i) and the [GameCube](/hardware/gamecube). The [Hardware](/hardware) section reports each one's real maturity, in the projects' own words.",
-    "Because the result is code rather than a ROM inside an emulator, games can grow past their original constraints: [adaptive widescreen](/topic/widescreen), 60 FPS rendering, [mods and runtime text translation](/topic/translation), gyro and solar-sensor hardware substitution, and shared [netplay and rollback](/topic/netplay) infrastructure. The [Software](/software) section documents every public game project, what works today, and what is still rough."
+    "Emulation asks: how do we reproduce this old machine? Retro Porting Toolkit asks a different question: what could its games do if they were not limited by that machine anymore?",
+    "Traditional emulators recreate the original hardware extremely well, and this project builds on decades of that accumulated knowledge. But by recompiling games back into real code and recovering how they actually work, the toolkit operates above the hardware abstraction. Changes become possible at the level of the game itself.",
+    "A remaster is a new commercial production. A source port needs source code or a heroic reverse-engineering effort for one title. An emulator reproduces the machine. Retro Porting Toolkit occupies another space entirely: preserve the game, replace the constraints. The goal is not to make old games unrecognizable. It is to make the boundaries around them programmable."
   ],
   "recognition": [
     {
       "label": "Press",
       "items": [
-        { "text": "Time Extension on OpenPete + PSXRecomp", "href": "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp" },
-        { "text": "Notebookcheck on Pepsiman in the browser", "href": "https://www.notebookcheck.net/A-recompiled-version-of-Pepsiman-lets-you-play-the-PS1-cult-classic-natively-in-your-browser-at-60-FPS.1354060.0.html" },
-        { "text": "retro-gamer.jp on Twisted Metal 4", "href": "https://retro-gamer.jp/?p=45562" }
+        {
+          "text": "Time Extension on OpenPete + PSXRecomp",
+          "href": "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp"
+        },
+        {
+          "text": "Notebookcheck on Pepsiman in the browser",
+          "href": "https://www.notebookcheck.net/A-recompiled-version-of-Pepsiman-lets-you-play-the-PS1-cult-classic-natively-in-your-browser-at-60-FPS.1354060.0.html"
+        },
+        {
+          "text": "retro-gamer.jp on Twisted Metal 4",
+          "href": "https://retro-gamer.jp/?p=45562"
+        }
       ]
     },
     {
       "label": "Video",
       "items": [
-        { "text": "Video Game Esoterica", "href": "https://www.youtube.com/watch?v=sbqPnJhb3uk" },
-        { "text": "Save states & rewind showcase", "href": "https://www.youtube.com/watch?v=L36ppNkuJG0" }
+        {
+          "text": "Video Game Esoterica",
+          "href": "https://www.youtube.com/watch?v=sbqPnJhb3uk"
+        },
+        {
+          "text": "Save states & rewind showcase",
+          "href": "https://www.youtube.com/watch?v=L36ppNkuJG0"
+        }
       ]
     },
     {
       "label": "Writing",
       "items": [
-        { "text": "1379.tech, the team's technical blog", "href": "https://1379.tech" }
+        {
+          "text": "1379.tech, the team's technical blog",
+          "href": "https://1379.tech"
+        }
       ]
     }
   ],
   "philosophy": [
-    "Native builds for modern platforms: Windows, Linux, macOS, Android, and even the browser, with no emulator core underneath.",
-    "Adaptive widescreen that genuinely widens the logical view, demonstrated up to 21:9 on titles like Tomba! 2 and Mega Man Zero.",
-    "Enhancements the original hardware could not do: 60 FPS patches, MSU-1 CD-quality audio, HD voxel renderers, and mod loaders that never modify the original ROM.",
-    "Hardware substitution: WarioWare: Twisted! gyro on a phone or DualSense controller, and Boktai's solar sensor driven by real local weather.",
-    "Runtime text replacement, powering Tsumu Light's first English fan translation and NES text overrides.",
-    "Shared netplay, rollback, and save-state infrastructure (recomp-net and retcomm-rbengine) that every ecosystem can adopt."
+    "Go native. Windows, Linux, macOS, Android, even the browser. No emulator core in sight.",
+    "See more of the world. Adaptive widescreen up to 21:9 in games like Tomba! 2 and Mega Man Zero.",
+    "Break the old limits. 60 FPS patches, CD-quality MSU-1 soundtracks, voxel 3D remixes, and mod loaders that never touch your original ROM.",
+    "Swap the hardware. Spin WarioWare: Twisted! with your phone or a DualSense, and let real local weather drive Boktai's solar sensor.",
+    "Change the words. Runtime text replacement powers Tsumu Light's English fan translation and NES text overrides.",
+    "Play together. Shared netplay, rollback, save states, and rewind (recomp-net and retcomm-rbengine) that every ecosystem can pick up."
+  ],
+  "videos": [
+    {
+      "title": "Metroid Prime Hunters Recomp Out NOW! Metroid PC Port is Here",
+      "channel": "Video Game Esoterica",
+      "href": "https://www.youtube.com/watch?v=FFUglxqa_eI"
+    },
+    {
+      "title": "PSXRecomp Tomba 1 Save States & Rewind Showcase",
+      "channel": "Gamemaster1379",
+      "href": "https://www.youtube.com/watch?v=L36ppNkuJG0"
+    },
+    {
+      "title": "Metroid Prime Hunters 21:9 + Mouse & Keyboard First Look",
+      "channel": "Gamemaster1379",
+      "href": "https://www.youtube.com/watch?v=tvqnW6J6KU0"
+    },
+    {
+      "title": "Mega Man X4 Recomp is Out Now! The BEST Mega Man on PS1",
+      "channel": "Video Game Esoterica",
+      "href": "https://www.youtube.com/watch?v=Rbh5wKb112A"
+    },
+    {
+      "title": "Tomba Recomp is Out Now! A PS1 Recomp Updated",
+      "channel": "Video Game Esoterica",
+      "href": "https://www.youtube.com/watch?v=sbqPnJhb3uk"
+    },
+    {
+      "title": "Mega Man X6 Recomp is Out Now! ANOTHER PS1 Recomp",
+      "channel": "Video Game Esoterica",
+      "href": "https://www.youtube.com/watch?v=IXMHXC2BLSc"
+    },
+    {
+      "title": "Mega Man X Recomp is Out Now! A SNES Recomp",
+      "channel": "Video Game Esoterica",
+      "href": "https://www.youtube.com/watch?v=XRwKZ0_8u-c"
+    },
+    {
+      "title": "PSXRecomp Static Decompiler Test | Tomba! (USA)",
+      "channel": "Gamemaster1379",
+      "href": "https://www.youtube.com/watch?v=CID9oVhgCyY"
+    }
+  ],
+  "capabilities": [
+    {
+      "title": "Higher frame rates",
+      "body": "Run games smoothly beyond their original frame-rate limits."
+    },
+    {
+      "title": "Modern displays",
+      "body": "Widescreen, ultrawide, high-resolution output, and flexible viewports."
+    },
+    {
+      "title": "Modern multiplayer",
+      "body": "Turn local multiplayer and console link modes into LAN and online play."
+    },
+    {
+      "title": "Modern controllers",
+      "body": "Remapping, contemporary gamepads, keyboard and mouse, and new input devices."
+    },
+    {
+      "title": "Modding",
+      "body": "Expose game data and behavior for characters, assets, rules, levels, and entirely new experiences."
+    },
+    {
+      "title": "Quality of life",
+      "body": "Save states, rewind, faster loading, debugging, and accessibility improvements."
+    }
+  ],
+  "pillars": [
+    {
+      "title": "Recompile",
+      "body": "Translate original game code into code that runs efficiently on modern hardware, without manually rewriting the game."
+    },
+    {
+      "title": "Understand",
+      "body": "Recover higher-level knowledge about the game's code, data, assets, and systems, so the toolkit knows what the running game actually means."
+    },
+    {
+      "title": "Augment",
+      "body": "Use that knowledge to replace or extend individual systems with modern implementations: rendering, input, networking, audio, storage, UI."
+    }
+  ],
+  "thesis": [
+    "A traditional port improves one game. Retro Porting Toolkit is designed to improve the platform underneath many games.",
+    "Teach the toolkit how a PlayStation game establishes a display, and a whole class of games can inherit modern display modes. Implement modern handling for a common input path, and many games pick up modern controllers at once. Understand a console's link protocol, and games designed around two physical consoles can meet over a network instead.",
+    "Every game teaches the toolkit more about its platform. Every platform improvement makes the next game easier. The toolkit gets better; the library gets bigger."
+  ],
+  "transforms": [
+    {
+      "title": "Split screen becomes multiple displays",
+      "body": "A game already knows how to render two players. Give each player their own viewport, window, or monitor."
+    },
+    {
+      "title": "Link cable becomes network play",
+      "body": "Some PlayStation games connected two consoles with a serial cable. Reimplement the transport, and the same game logic can travel over LAN or the internet while the game still believes it is talking to another PlayStation."
+    },
+    {
+      "title": "Memory card becomes modern storage",
+      "body": "Keep the game's expectations intact while saves gain management, backups, and sync."
+    },
+    {
+      "title": "Controller port becomes modern input",
+      "body": "Map the original input model onto contemporary controllers, keyboard and mouse, or accessibility hardware."
+    },
+    {
+      "title": "Fixed viewport becomes widescreen",
+      "body": "Understand how the game builds its camera and projection instead of stretching the final image."
+    }
   ]
 }

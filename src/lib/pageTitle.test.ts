@@ -8,7 +8,7 @@ import {
   titleForItem,
   titleForTopic,
 } from "./pageTitle";
-import { BLOGS, HARDWARE, SOFTWARE } from "./content";
+import { BLOGS, HARDWARE, GAMES } from "./content";
 import { TOPICS } from "./topics";
 import type { Item } from "./types";
 
@@ -35,7 +35,7 @@ describe("client titles match the prerendered titles", () => {
 
   it.each([
     ["/hardware", "hardware"],
-    ["/software", "software"],
+    ["/games", "game"],
     ["/blog", "blog"],
   ] as const)("collection %s", (route, kind) => {
     expect(served(route)).toBe(titleForCollection(kind));
@@ -47,7 +47,7 @@ describe("client titles match the prerendered titles", () => {
 
   const items: Array<[string, Item]> = [
     ...HARDWARE.map((i) => [`/hardware/${i.slug}`, i] as [string, Item]),
-    ...SOFTWARE.map((i) => [`/software/${i.slug}`, i] as [string, Item]),
+    ...GAMES.map((i) => [`/games/${i.slug}`, i] as [string, Item]),
     ...BLOGS.map((i) => [`/blog/${i.slug}`, i] as [string, Item]),
   ];
 

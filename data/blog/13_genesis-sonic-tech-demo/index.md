@@ -3,7 +3,7 @@ title: "segagenesisrecomp + Sonic the Hedgehog tech demo"
 kicker: "1379.tech"
 tags: []
 featured: false
-desc: "The Genesis recompiler's debut: dual-execution validation, 68k jump-table pain, and Sonic booting to Green Hill Zone."
+desc: "Sonic boots to Green Hill Zone as native code, with 133 functions verified in a single day of dual execution."
 date: "2026-03-24"
 venue: "1379.tech"
 group: "From the team"
@@ -18,4 +18,4 @@ The pace of the bring-up is the headline number: 133 functions verified in a sin
 
 As the tech-demo label says, this was a proof of concept rather than a release. But the dual-execution methodology it established, validating recompiled output frame by frame against a reference, became a fixture of how the later ecosystems verify their work.
 
-Related: [Sonic the Hedgehog](/software/sonic-the-hedgehog) on [Sega Genesis](/hardware/sega-genesis).
+Related: [Sonic the Hedgehog](/games/sonic-the-hedgehog) on [Sega Genesis](/hardware/sega-genesis).

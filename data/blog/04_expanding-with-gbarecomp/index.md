@@ -3,7 +3,7 @@ title: "Expanding the *recomp ecosystem with GBARecomp"
 kicker: "1379.tech"
 tags: []
 featured: true
-desc: "The first 32-bit target: ARM/THUMB interworking, the GBA BIOS as the first bootable binary, and five games booting to playable states."
+desc: "The GBA joins the family, and the first binary GBARecomp ever booted was not a game but the console's own BIOS."
 date: "2026-06-24"
 venue: "1379.tech"
 group: "From the team"
@@ -16,6 +16,6 @@ This post announces GBARecomp, the project's first 32-bit target. The ARM7TDMI b
 
 The bring-up path is telling. The first binary GBARecomp ever booted was the GBA BIOS itself, and by the time of this announcement five games were booting to playable states. The framework backs its static output with a fallback interpreter plus a JIT that emits native shards, so code the static pass cannot resolve still runs while coverage improves.
 
-The post is also explicit about provenance from day one: the framework requires the user's own legally obtained BIOS and ROMs, and distributes neither. As the fourth-plus ecosystem built on the same playbook, GBARecomp is the strongest evidence to that point that the approach generalizes across architectures rather than being a MIPS or 6502 trick.
+The post is also explicit about provenance from day one: the framework requires the user's own legally obtained BIOS and ROMs, and distributes neither. As the fourth-plus ecosystem built on the same playbook, GBARecomp makes a solid case that the approach generalizes across architectures rather than being a MIPS or 6502 trick.
 
-Related: [Game Boy Advance](/hardware/game-boy-advance), including [The Minish Cap](/software/minish-cap) and [Mega Man Zero](/software/mega-man-zero).
+Related: [Game Boy Advance](/hardware/game-boy-advance), including [The Minish Cap](/games/minish-cap) and [Mega Man Zero](/games/mega-man-zero).

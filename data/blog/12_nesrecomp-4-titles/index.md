@@ -3,7 +3,7 @@ title: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles"
 kicker: "1379.tech"
 tags: []
 featured: false
-desc: "The NES ecosystem's first milestone post: four commercial titles and the analysis techniques that got them there."
+desc: "Four NES games and counting: how the recompiler learned to find functions in binaries that never carried a symbol."
 date: "2026-03-28"
 venue: "1379.tech"
 group: "From the team"
@@ -18,4 +18,4 @@ The technical core is how the recompiler finds the code in the first place: walk
 
 The post is straightforward about rough edges at this stage: Dr. Mario had a minor audio timing issue and Faxanadu a minor transparency issue, both documented rather than glossed over. Read against the 10-title announcement two months later, this is the moment the NES work stopped being a single-game experiment and became an ecosystem.
 
-Related: [Faxanadu](/software/faxanadu), [Super Mario Bros.](/software/super-mario-bros), [The Legend of Zelda](/software/legend-of-zelda), and [Dr. Mario](/software/dr-mario) on [NES](/hardware/nes).
+Related: [Faxanadu](/games/faxanadu), [Super Mario Bros.](/games/super-mario-bros), [The Legend of Zelda](/games/legend-of-zelda), and [Dr. Mario](/games/dr-mario) on [NES](/hardware/nes).

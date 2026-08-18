@@ -137,7 +137,7 @@ function ArticleEndCard({ item }: { item: Item }) {
 // Singular noun per kind for the "Previous / Next …" labels.
 const ADJ_NOUN: Record<string, string> = {
   hardware: "platform",
-  software: "project",
+  game: "project",
   blog: "article",
 };
 

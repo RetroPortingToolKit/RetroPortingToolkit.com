@@ -7,7 +7,7 @@ import {
 import { useAbout } from "@/lib/about";
 import { ThemeToggle } from "./ThemeToggle";
 
-export type TabId = "home" | "hardware" | "software" | "blog";
+export type TabId = "home" | "hardware" | "game" | "blog";
 
 interface TabDef {
   id: TabId;

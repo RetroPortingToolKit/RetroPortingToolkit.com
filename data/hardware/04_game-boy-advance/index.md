@@ -3,7 +3,7 @@ title: "Game Boy Advance"
 kicker: "ARM7"
 tags: ["Adaptive widescreen", "Android", "Mods", "Save states"]
 featured: true
-desc: "GBARecomp, the first 32-bit target: ARM7TDMI to C++, about 10 game repos, adaptive widescreen, and an Android build."
+desc: "The toolkit's first 32-bit target: ARM7TDMI to C++, about ten game repos, adaptive widescreen that genuinely widens, and an Android APK."
 year: "2026"
 status: "Experimental previews"
 provenance: "core"
@@ -16,7 +16,7 @@ links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 ---
 
-GBARecomp statically recompiles Game Boy Advance games from ARM7TDMI machine code, with ARM and Thumb interworking, into C++. It was the toolkit's first 32-bit target, and the GBA BIOS was the first binary it booted. The README describes the game projects in its own words: "These projects are experimental previews and byproducts of developing the framework".
+GBARecomp recompiles Game Boy Advance games from ARM7TDMI machine code, ARM and Thumb interworking included, into C++. It was the toolkit's first 32-bit target, and the GBA BIOS was the first binary it booted. The README is upfront about the game projects: "These projects are experimental previews and byproducts of developing the framework".
 
 ## What works today
 
@@ -26,19 +26,19 @@ About ten game repos exist, including The Minish Cap, Mega Man Zero, Super Mario
 
 Opt-in adaptive widescreen that gives a genuinely wider logical view, not a stretch. A .gbamod mod format, color profiles, save states, RTC support, and substitution for gyro, solar, and rumble cartridge hardware. An Android arm64 APK exists.
 
-## Software
+## Games
 
-- [The Minish Cap](/software/minish-cap)
-- [Mega Man Zero](/software/mega-man-zero)
-- [WarioWare Twisted!](/software/warioware-twisted)
-- [Mario Kart Super Circuit](/software/mario-kart-super-circuit)
-- [Dragon Ball Z: Buu's Fury](/software/dbz-buus-fury)
-- [Pokemon Ruby/Sapphire](/software/pokemon-ruby-sapphire)
-- [Pokemon FireRed/LeafGreen](/software/pokemon-firered-leafgreen)
-- [Pokemon Emerald](/software/pokemon-emerald)
-- [Super Mario Advance 2](/software/super-mario-advance-2)
-- [Super Mario Advance 4](/software/super-mario-advance-4)
-- Community: [Boktai](/software/boktai)
+- [The Minish Cap](/games/minish-cap)
+- [Mega Man Zero](/games/mega-man-zero)
+- [WarioWare Twisted!](/games/warioware-twisted)
+- [Mario Kart Super Circuit](/games/mario-kart-super-circuit)
+- [Dragon Ball Z: Buu's Fury](/games/dbz-buus-fury)
+- [Pokemon Ruby/Sapphire](/games/pokemon-ruby-sapphire)
+- [Pokemon FireRed/LeafGreen](/games/pokemon-firered-leafgreen)
+- [Pokemon Emerald](/games/pokemon-emerald)
+- [Super Mario Advance 2](/games/super-mario-advance-2)
+- [Super Mario Advance 4](/games/super-mario-advance-4)
+- Community: [Boktai](/games/boktai)
 
 ## Reading
 

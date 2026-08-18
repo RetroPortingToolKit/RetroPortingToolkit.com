@@ -3,7 +3,7 @@ title: "I Built a PS1 Static Recompiler With No Prior Experience (and Claude Cod
 kicker: "1379.tech"
 tags: []
 featured: true
-desc: "The origin story: three weeks with Claude Code and Ghidra, ending with Tomba! booting and starting a new game."
+desc: "Three weeks, no prior experience, Claude Code and Ghidra: the post where Tomba! first booted and everything else began."
 date: "2026-03-11"
 venue: "1379.tech"
 group: "From the team"
@@ -14,8 +14,8 @@ links:
 
 This is the post that started everything: an account of building a PlayStation static recompiler with no prior experience in the field, over roughly three weeks of iteration with Claude Code and Ghidra.
 
-The result at that point was Tomba! booting, playing its FMV intro, reaching the menu, and starting a new game. Modest next to what the ecosystems became, but the post's lasting contribution is a discipline rather than a demo: every fix goes into the compiler's inputs, never into hand-edits of the generated code. That rule keeps the entire output reproducible from the pipeline, and it is the reason later projects could regenerate their code freely as the tooling improved instead of accumulating unreviewable patches.
+The result at that point was Tomba! booting, playing its FMV intro, reaching the menu, and starting a new game. Modest next to what the ecosystems became, but the post's lasting contribution is a discipline rather than a demo: every fix goes into the compiler's inputs, never into hand-edits of the generated code. That rule keeps the entire output reproducible from the pipeline. It is the reason later projects could regenerate their code freely as the tooling improved instead of accumulating unreviewable patches.
 
 Read today, the post doubles as the toolkit's founding document. The Tomba! project it describes grew into PSXRecomp, and the workflow it sketches, a human directing an AI agent against ground-truth hardware behavior, became the method behind every ecosystem that followed.
 
-Related: [Tomba!](/software/tomba) on [PlayStation](/hardware/playstation).
+Related: [Tomba!](/games/tomba) on [PlayStation](/hardware/playstation).

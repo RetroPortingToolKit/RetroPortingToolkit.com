@@ -3,7 +3,7 @@ title: "SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2"
 kicker: "1379.tech"
 tags: []
 featured: false
-desc: "The Genesis framework's second title, and the de-hardcoding work that made a second game possible at all."
+desc: "Sonic the Hedgehog 2 goes native, and the real work was teaching the Genesis framework to stop assuming every game is Sonic 1."
 date: "2026-05-21"
 venue: "1379.tech"
 group: "From the team"
@@ -18,4 +18,4 @@ The engineering story is about what a second game forces on a young framework. T
 
 The post points ahead to Sonic 3 & Knuckles as the next target, keeping the roadmap inside the same family, where the games' shared engine lineage lets each title build on the previous one's fixes.
 
-Related: [Sonic the Hedgehog 2](/software/sonic-the-hedgehog-2) on [Sega Genesis](/hardware/sega-genesis).
+Related: [Sonic the Hedgehog 2](/games/sonic-the-hedgehog-2) on [Sega Genesis](/hardware/sega-genesis).

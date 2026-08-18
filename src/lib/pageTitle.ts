@@ -13,7 +13,7 @@ import type { Item, Kind, Topic } from "./types";
 
 export const COLLECTION_TITLE: Record<Kind, string> = {
   hardware: "Hardware",
-  software: "Software",
+  game: "Games",
   blog: "Articles",
 };
 

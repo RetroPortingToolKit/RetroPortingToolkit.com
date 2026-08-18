@@ -1,4 +1,4 @@
-export type Kind = "hardware" | "software" | "blog";
+export type Kind = "hardware" | "game" | "blog";
 
 export interface TopicItemRef {
   kind: Kind;
@@ -60,7 +60,7 @@ export interface Item {
   status?: string;
   /** Who maintains it: the core team or a community project built on the toolkit. */
   provenance?: "core" | "community";
-  /** Software items: slug of the hardware ecosystem page this project runs on. */
+  /** Games items: slug of the hardware ecosystem page this project runs on. */
   platform?: string;
   /** Hardware items: the original processor architecture (e.g. "MIPS R3000A"). */
   arch?: string;

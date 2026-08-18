@@ -3,7 +3,7 @@ title: "NES, SNES, Genesis, VirtualBoy, and PSX | A journey with AI and Recompil
 kicker: "1379.tech"
 tags: []
 featured: true
-desc: "The big-picture recap: five static recompilers in four months, each with at least one commercial game running."
+desc: "Five consoles, five recompilers, four months: the recap that carries the whole story from 8-bit Mario to the PlayStation BIOS."
 date: "2026-05-21"
 venue: "1379.tech"
 group: "From the team"

@@ -40,6 +40,12 @@ interface BgState {
   background?: Location;
 }
 
+// The Games section briefly shipped as /software; keep those URLs alive.
+function SoftwareRedirect() {
+  const { slug = "" } = useParams<{ slug: string }>();
+  return <Navigate to={`/games/${slug}`} replace />;
+}
+
 function NotFound() {
   return (
     <div className="page page-fade">
@@ -79,7 +85,7 @@ function ModalRoute({
 }
 
 const MODALISH_RE =
-  /^\/(hardware|software|blog)\/[^/]+\/?$|^\/(all|topic)\/[^/]+\/?$/;
+  /^\/(hardware|games|blog)\/[^/]+\/?$|^\/(all|topic)\/[^/]+\/?$/;
 
 function CollectionAllRoute({
   onClose,
@@ -160,13 +166,13 @@ function ScrollManager() {
 }
 
 const COLLECTION_PATH_RE = /^\/all\/[^/]+\/?$|^\/topic\/[^/]+\/?$/;
-const ITEM_PATH_RE = /^\/(hardware|software|blog)\/[^/]+\/?$/;
+const ITEM_PATH_RE = /^\/(hardware|games|blog)\/[^/]+\/?$/;
 
 // The tab page rendered UNDER an item opened by deep link, keyed by the item's
 // URL segment.
 const ITEM_TAB_PATH: Record<string, string> = {
   hardware: "/hardware",
-  software: "/software",
+  games: "/games",
   blog: "/blog",
 };
 
@@ -242,16 +248,18 @@ function AppRoutes() {
           <Routes location={pageLocation ?? location}>
             <Route path="/" element={<Home />} />
             <Route path="/hardware" element={<Home tab="hardware" />} />
-            <Route path="/software" element={<Home tab="software" />} />
+            <Route path="/games" element={<Home tab="game" />} />
             <Route path="/blog" element={<Home tab="blog" />} />
             {/* legacy routes from the pre-launch structure */}
-            <Route path="/work" element={<Navigate to="/software" replace />} />
-            <Route path="/projects" element={<Navigate to="/software" replace />} />
+            <Route path="/work" element={<Navigate to="/games" replace />} />
+            <Route path="/projects" element={<Navigate to="/games" replace />} />
             <Route path="/talks" element={<Navigate to="/" replace />} />
             <Route path="/writing" element={<Navigate to="/blog" replace />} />
+            <Route path="/software" element={<Navigate to="/games" replace />} />
+            <Route path="/software/:slug" element={<SoftwareRedirect />} />
             <Route path="/blog/:slug" element={<ItemPage kind="blog" />} />
             <Route path="/hardware/:slug" element={<ItemPage kind="hardware" />} />
-            <Route path="/software/:slug" element={<ItemPage kind="software" />} />
+            <Route path="/games/:slug" element={<ItemPage kind="game" />} />
             <Route path="/all/:segment" element={<Home />} />
             <Route path="/topic/:topicId" element={<Home />} />
             <Route path="*" element={<NotFound />} />
@@ -272,8 +280,8 @@ function AppRoutes() {
               element={<ModalRoute kind="hardware" onClose={closeModal} covered={covered} />}
             />
             <Route
-              path="/software/:slug"
-              element={<ModalRoute kind="software" onClose={closeModal} covered={covered} />}
+              path="/games/:slug"
+              element={<ModalRoute kind="game" onClose={closeModal} covered={covered} />}
             />
             <Route
               path="/blog/:slug"

@@ -3,7 +3,7 @@ title: "Virtual Boy"
 kicker: "V810"
 tags: ["Cross-platform"]
 featured: false
-desc: "vbrecomp, a V810-to-C static recompiler with one commercial title, Mario's Tennis, as a tech demo."
+desc: "Mario's Tennis running as native code, a tech demo from a recompiler whose stated ambition is life beyond red-and-black."
 year: "2026"
 status: "Tech demo"
 provenance: "core"
@@ -15,11 +15,11 @@ links:
   - { label: "VirtualBoy Recomp Gets Its First Title: Mario Tennis (1379.tech)", href: "https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/" }
 ---
 
-vbrecomp statically recompiles Virtual Boy games from NEC V810 machine code into C. It is MIT licensed and targets Windows, macOS, and Linux. The system was chosen despite having no public disassemblies because it is simpler than most, and the author's stated ambition is to "visually enrich" titles beyond the console's red-and-black display.
+vbrecomp turns Virtual Boy games from NEC V810 machine code into C, MIT licensed, on Windows, macOS, and Linux. The console was chosen despite having no public disassemblies because it is simpler than most. The author's stated ambition is to "visually enrich" titles beyond the console's red-and-black display.
 
 ## What works today
 
-One commercial title runs via a per-game repo: [Mario's Tennis](/software/mario-tennis). The runtime uses a step-budget cooperative yield model, and the Beetle VB libretro core serves as the validation oracle. The repo is explicit about content: "It does NOT contain any game ROM or game-specific generated C".
+One commercial title runs via a per-game repo: [Mario's Tennis](/games/mario-tennis). The runtime uses a step-budget cooperative yield model, and the Beetle VB libretro core serves as the validation oracle. The repo is explicit about content: "It does NOT contain any game ROM or game-specific generated C".
 
 ## Enhancements
 
@@ -29,9 +29,9 @@ None yet. Visual enrichment beyond red-and-black is the stated goal, not a shipp
 
 The single title is a tech demo, and there is no enhancement layer yet.
 
-## Software
+## Games
 
-- [Mario's Tennis](/software/mario-tennis)
+- [Mario's Tennis](/games/mario-tennis)
 
 ## Reading
 

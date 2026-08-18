@@ -3,7 +3,7 @@ title: "NES"
 kicker: "6502"
 tags: ["Voxel 3D", "Text override", "Save states", "Mouse Zapper"]
 featured: true
-desc: "NESRecomp, a 6502-to-C static recompiler ecosystem with 10 commercial titles across four mappers."
+desc: "Ten commercial titles rebuilt as native C from raw 6502 machine code, across four mappers, with no BIOS required at all."
 year: "2026"
 status: "Active"
 provenance: "core"
@@ -16,7 +16,7 @@ links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 ---
 
-NESRecomp statically recompiles NES games from 6502 machine code into C and builds them as native programs. The README is direct about what it is: "This is NOT an emulator". By title count it is the second most established ecosystem in the toolkit after PlayStation, with ten commercial game repos and no BIOS requirement at all.
+NESRecomp reads a cartridge's 6502 machine code and rebuilds it as a native C program. The README says it plainly: "This is NOT an emulator". With ten commercial game repos and no BIOS requirement at all, it is second only to PlayStation by title count.
 
 ## What works today
 
@@ -26,18 +26,18 @@ Ten commercial titles have game repos: Super Mario Bros., Duck Hunt, Dr. Mario, 
 
 A JSON-driven Text Override System with hot reload, showcased in Faxanadu. An opt-in Voxel 3D renderer. Save-state slots on Shift+F1 through F12. Mouse-as-Zapper substitution for light-gun titles.
 
-## Software
+## Games
 
-- [Super Mario Bros.](/software/super-mario-bros)
-- [The Legend of Zelda](/software/legend-of-zelda)
-- [Metroid](/software/metroid)
-- [Mega Man 3](/software/mega-man-3)
-- [Dr. Mario](/software/dr-mario)
-- [Faxanadu](/software/faxanadu)
-- [Duck Hunt](/software/duck-hunt)
-- [Yoshi](/software/yoshi)
-- [Yoshi's Cookie](/software/yoshis-cookie)
-- [Gumshoe](/software/gumshoe)
+- [Super Mario Bros.](/games/super-mario-bros)
+- [The Legend of Zelda](/games/legend-of-zelda)
+- [Metroid](/games/metroid)
+- [Mega Man 3](/games/mega-man-3)
+- [Dr. Mario](/games/dr-mario)
+- [Faxanadu](/games/faxanadu)
+- [Duck Hunt](/games/duck-hunt)
+- [Yoshi](/games/yoshi)
+- [Yoshi's Cookie](/games/yoshis-cookie)
+- [Gumshoe](/games/gumshoe)
 
 ## Reading
 

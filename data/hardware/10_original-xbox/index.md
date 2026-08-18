@@ -3,7 +3,7 @@ title: "Original Xbox"
 kicker: "x86"
 tags: ["LLE", "Hardware probe"]
 featured: false
-desc: "Xbox low-level emulation research validated against a real console; the main artifact is not yet public."
+desc: "The odd one out: the Xbox already speaks x86, so the work here is low-level emulation, validated against a real console and not yet public."
 year: "2026"
 status: "Research (not yet public)"
 provenance: "core"
@@ -15,7 +15,7 @@ links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 ---
 
-The original Xbox work differs from every other ecosystem here: because the console's CPU is x86, the approach is low-level emulation (LLE) rather than recompilation to a different architecture. The main artifact of that work is not yet public. The one public repo is xboxlle-probe, described as a "DANGEROUS low-level hardware probe agent for a real original Xbox, built with nxdk".
+The original Xbox breaks the pattern: its CPU is already x86, so the approach is low-level emulation (LLE) rather than recompilation to a different architecture. The main artifact of that work is not yet public. What you can see is xboxlle-probe, described as a "DANGEROUS low-level hardware probe agent for a real original Xbox, built with nxdk".
 
 ## What works today
 
@@ -29,9 +29,9 @@ None. There is no public runtime to enhance.
 
 The LLE project itself has no public repository or releases. Only the hardware probe is visible, and it is a research tool, not something to run games with.
 
-## Software
+## Games
 
-- Community: [Mega Man X for Original Xbox](/software/mega-man-x-xbox), a Team-Resurgent port of the SNES recomp build to real Xbox hardware, unrelated to the LLE research.
+- Community: [Mega Man X for Original Xbox](/games/mega-man-x-xbox), a Team-Resurgent port of the SNES recomp build to real Xbox hardware, unrelated to the LLE research.
 
 ## Reading
 

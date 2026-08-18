@@ -3,7 +3,7 @@ title: "GameCube"
 kicker: "PowerPC"
 tags: ["LLE-first", "IPL boot"]
 featured: false
-desc: "gcnlle, experimental LLE-first GameCube IPL static recompiler research that boots the native firmware menu."
+desc: "The GameCube's own firmware menu, booting as recompiled native code: LLE-first research on the PowerPC Gekko, honestly labeled as such."
 year: "2026"
 status: "Research"
 provenance: "core"
@@ -15,7 +15,7 @@ links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 ---
 
-gcnlle, formerly gcnrecompiled (the old URL redirects), is an experimental LLE-first static recompiler for the GameCube's PowerPC Gekko CPU, licensed GPL-3.0. It is built on a pinned snapshot of the mstan/DolRecomp fork of ExpansionPak/DolRecomp. In the project's own words, it is "research software, not a general GameCube emulator and not ready for ordinary game use".
+gcnlle, formerly gcnrecompiled (the old URL redirects), is an experimental LLE-first static recompiler for the GameCube's PowerPC Gekko CPU, licensed GPL-3.0. It is built on a pinned snapshot of the mstan/DolRecomp fork of ExpansionPak/DolRecomp, and it starts where the console does: the firmware itself. In the project's own words, it is "research software, not a general GameCube emulator and not ready for ordinary game use".
 
 ## What works today
 
@@ -29,7 +29,7 @@ None. This is boot-path research, not a game platform.
 
 Not usable for ordinary games. The Wind Waker path is an acceptance test of the boot chain, and nothing here is a playable release.
 
-## Software
+## Games
 
 No game pages exist for this platform yet.
 

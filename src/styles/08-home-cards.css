@@ -75,7 +75,26 @@
   transition: opacity 0.25s ease;
 }
 .hn-reel-canvas {
-  z-index: 1; 
+  z-index: 1;
+}
+
+/* External video cards are anchors wearing the tvcard skin. */
+a.tvcard--video {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* YouTube gameplay reel: a 16:9 frame sized by JS to cover the hero box,
+   centered, chrome ignored via overscan. Never interactive. */
+.hn-reel-embed {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 0;
+  pointer-events: none;
+  z-index: 1;
 }
 @keyframes hnReelCapIn {
   from {
@@ -1076,3 +1095,12 @@ html {
   --ai-self: #6e6e73;
 }
 
+
+/* Closing block: the one-line manifesto plus a quieter invitation under it. */
+.hn-closing-sub {
+  margin: 14px auto 0;
+  max-width: 560px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-2, rgba(140, 140, 155, 1));
+}

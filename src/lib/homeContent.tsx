@@ -44,9 +44,33 @@ function parseProof(md: string): ProofSegment[] {
   return segs;
 }
 
+export interface HomeVideo {
+  title: string;
+  channel: string;
+  href: string;
+}
+
+export interface TitledEntry {
+  title: string;
+  body: string;
+}
+
+const extra = homeData as {
+  videos?: HomeVideo[];
+  capabilities?: TitledEntry[];
+  pillars?: TitledEntry[];
+  transforms?: TitledEntry[];
+  thesis?: string[];
+};
+
 export const PROOF_PRIMARY: ProofSegment[][] = homeData.proof.map(parseProof);
 export const RECOGNITION: RecognitionGroup[] = homeData.recognition;
 export const PHILOSOPHY: string[] = homeData.philosophy;
+export const VIDEOS: HomeVideo[] = extra.videos ?? [];
+export const CAPABILITIES: TitledEntry[] = extra.capabilities ?? [];
+export const PILLARS: TitledEntry[] = extra.pillars ?? [];
+export const TRANSFORMS: TitledEntry[] = extra.transforms ?? [];
+export const THESIS: string[] = extra.thesis ?? [];
 
 // Pure parser for a draft home.json (proof/recognition/philosophy), used by the
 // live CMS preview to render edits without touching the static import.

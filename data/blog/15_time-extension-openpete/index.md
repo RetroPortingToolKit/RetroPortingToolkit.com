@@ -2,8 +2,8 @@
 title: "PS1 Classic Spyro: The Dragon Comes To PC, With The Help Of AI-Assisted Tool PSXRecomp"
 kicker: "Press"
 tags: []
-featured: false
-desc: "Time Extension covers OpenPete, the community Spyro PC port built partly on PSXRecomp."
+featured: true
+desc: "Time Extension reports on OpenPete, the community project bringing Spyro the Dragon to PC with PSXRecomp in the mix."
 year: "2026"
 venue: "Time Extension"
 group: "Coverage"
@@ -16,6 +16,6 @@ Independent coverage from Time Extension, written by Jack Yarwood in August 2026
 
 The article describes OpenPete's v0.1.3 release for Windows, with Linux and macOS versions planned, and its enhancements: widescreen, higher frame rates, and extended draw distances. It also lays out the project's hybrid construction, combining altro50's unfinished Spyro decompilation with PSXRecomp covering the functions the decompilation has not reached, plus the Psycross platform layer. Matthew Stanley is named as the author of PSXRecomp.
 
-Coverage like this marks a shift in the toolkit's story: the press attention here is for a third-party project that chose PSXRecomp as one of its building blocks, which is exactly the kind of downstream adoption an open toolkit is built for.
+Coverage like this marks a shift in the toolkit's story. The press attention here is for a third-party project that chose PSXRecomp as one of its building blocks, which is exactly the kind of downstream adoption an open toolkit is built for.
 
-Related: [OpenPete](/software/openpete-spyro) on [PlayStation](/hardware/playstation).
+Related: [OpenPete](/games/openpete-spyro) on [PlayStation](/hardware/playstation).

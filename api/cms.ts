@@ -164,13 +164,13 @@ async function ghListTree(): Promise<{ path: string }[]> {
 }
 
 // ---------------------------------------------------------------- content model
-const KINDS = ["blog", "hardware", "software"] as const;
+const KINDS = ["blog", "hardware", "games"] as const;
 function isAllowed(id: string): boolean {
   if (typeof id !== "string" || id.includes("..") || id.includes("\0")) return false;
   if (id === "page:home") return true;
   if (id === "data/about.md" || id === "data/home.json") return true;
   if (/^data\/sources\/[^/]+\.md$/.test(id)) return true;
-  if (/^data\/(blog|hardware|software)\/[^/]+\/index\.md$/.test(id)) return true;
+  if (/^data\/(blog|hardware|games)\/[^/]+\/index\.md$/.test(id)) return true;
   return false;
 }
 function typeOf(id: string): "md" | "json" | "home" {
@@ -254,9 +254,17 @@ async function writeHome(payload: Record<string, unknown>) {
   }
   const aboutOut = `---\n${fm.trim()}\n---\n\n${String(about.body ?? "").replace(/\s+$/, "")}\n`;
   const home = (payload.home || {}) as Record<string, unknown>;
+  // Merge over the stored file: the editor only knows about proof/recognition/
+  // philosophy, and a save must not drop the other authored sections
+  // (videos, capabilities, pillars, transforms, thesis, ...).
+  let existing: Record<string, unknown> = {};
+  try {
+    existing = JSON.parse((await ghReadFile("data/home.json"))?.content || "{}");
+  } catch {}
   const homeOut =
     JSON.stringify(
       {
+        ...existing,
         proof: Array.isArray(home.proof) ? (home.proof as unknown[]).map((p) => String(p)) : [],
         recognition: Array.isArray(home.recognition) ? home.recognition : [],
         philosophy: Array.isArray(home.philosophy) ? (home.philosophy as unknown[]).map((p) => String(p)) : [],
@@ -300,7 +308,7 @@ async function writeEditable(id: string, payload: Record<string, unknown>) {
 // against the repo tree instead of the local filesystem. Keep the two in step:
 // the same editor UI calls whichever backend is serving.
 // Reads naturally in the stub description: "this post", not "this blog".
-const KIND_NOUN: Record<string, string> = { blog: "article", hardware: "platform", software: "project" };
+const KIND_NOUN: Record<string, string> = { blog: "article", hardware: "platform", games: "game" };
 
 function slugify(title: string): string {
   return String(title)

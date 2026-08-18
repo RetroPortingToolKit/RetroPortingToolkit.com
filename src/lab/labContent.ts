@@ -1,4 +1,4 @@
-import { HARDWARE, SOFTWARE, BLOGS } from "@/lib/content";
+import { HARDWARE, GAMES, BLOGS } from "@/lib/content";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { LQIP } from "@/generated/lqip";
 import type { Item } from "@/lib/types";
@@ -9,7 +9,7 @@ import type { Item } from "@/lib/types";
 // image, self-hosted under /lab-media so textures never hit a CORS wall or
 // depend on an external host (see scripts/gen-lab-media.sh).
 
-export type LabKind = "hardware" | "software" | "blog";
+export type LabKind = "hardware" | "game" | "blog";
 
 export interface LabMedia {
   src: string;
@@ -39,13 +39,43 @@ export interface LabMedia {
 const colorFor = (p: Item, i: number): string =>
   p.kickerColor ?? chipColorFor(p.kicker) ?? CHIP_PALETTE[i % CHIP_PALETTE.length];
 
+// Generated cover art: a vibrant diagonal gradient with oversized initials and
+// a scanline sheen, built as an inline SVG data URI. Every card gets real cover
+// art this way even before a screenshot or capture exists; an authored `cover:`
+// in frontmatter always wins.
+function svgCover(title: string, kicker: string, color: string): string {
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  // Big mark: initials of up to three words ("Super Mario World" -> SMW),
+  // falling back to the first two characters for one-word titles.
+  const words = title.replace(/[^\w\s]/g, "").split(/\s+/).filter(Boolean);
+  const mark =
+    words.length >= 2
+      ? words.slice(0, 3).map((w) => w[0]).join("").toUpperCase()
+      : title.slice(0, 2).toUpperCase();
+  const scan = Array.from({ length: 12 }, (_, r) => `<rect x="0" y="${r * 30}" width="640" height="15" fill="#000" opacity="0.06"/>`).join("");
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360">` +
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="${esc(color)}"/><stop offset="1" stop-color="#0d0f17"/></linearGradient>` +
+    `<radialGradient id="h" cx="0.25" cy="0.2" r="0.9">` +
+    `<stop offset="0" stop-color="#fff" stop-opacity="0.28"/><stop offset="0.6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>` +
+    `<rect width="640" height="360" fill="url(#g)"/>` +
+    scan +
+    `<rect width="640" height="360" fill="url(#h)"/>` +
+    `<text x="596" y="332" text-anchor="end" font-family="ui-rounded,system-ui,-apple-system,sans-serif" font-size="200" font-weight="800" fill="#fff" opacity="0.9" letter-spacing="-8">${esc(mark)}</text>` +
+    `<text x="44" y="66" font-family="ui-rounded,system-ui,-apple-system,sans-serif" font-size="26" font-weight="700" fill="#fff" opacity="0.75" letter-spacing="3">${esc(kicker.toUpperCase())}</text>` +
+    `</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 // Cards use the item's own cover when one exists (authored in frontmatter and
-// resolved by the content loader); items without one fall back to the
-// /lab-media convention so generated covers can be dropped in later without a
-// content change. Cards with neither render their chip + title over the card
-// color, which is the intended look until real capture media lands.
+// resolved by the content loader, e.g. a real gameplay still), then a dropped-in
+// /lab-media capture, then the generated cover art above.
 function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
-  const src = p.cover ?? `/lab-media/${dir}/${p.slug}.webp`;
+  const labSrc = `/lab-media/${dir}/${p.slug}.webp`;
+  const color = colorFor(p, i);
+  const src = p.cover ?? (LQIP[labSrc] ? labSrc : svgCover(p.title, p.kicker, color));
   return {
     src,
     lqip: p.coverLqip ?? LQIP[src],
@@ -54,7 +84,7 @@ function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
     kicker: p.kicker,
     desc: p.desc,
     tags: p.tags,
-    color: colorFor(p, i),
+    color,
     kind,
     video: false,
     group: p.group,
@@ -93,8 +123,8 @@ const featuredOf = <T extends { featured?: boolean }>(list: T[]): T[] => {
 export const labHardware: LabMedia[] = featuredOf(HARDWARE).map((p, i) =>
   staticMedia(p, i, "hardware", "hardware"),
 );
-export const labSoftware: LabMedia[] = featuredOf(SOFTWARE).map((p, i) =>
-  staticMedia(p, i, "software", "software"),
+export const labGames: LabMedia[] = featuredOf(GAMES).map((p, i) =>
+  staticMedia(p, i, "game", "game"),
 );
 export const labBlog: LabMedia[] = featuredOf(BLOGS).map(blogMedia);
 
@@ -102,6 +132,6 @@ export const labBlog: LabMedia[] = featuredOf(BLOGS).map(blogMedia);
 // group headings the tab grids build from `group` stay in the authored order.
 export const labAll: Record<LabKind, LabMedia[]> = {
   hardware: HARDWARE.map((p, i) => staticMedia(p, i, "hardware", "hardware")),
-  software: SOFTWARE.map((p, i) => staticMedia(p, i, "software", "software")),
+  game: GAMES.map((p, i) => staticMedia(p, i, "game", "game")),
   blog: BLOGS.map(blogMedia),
 };

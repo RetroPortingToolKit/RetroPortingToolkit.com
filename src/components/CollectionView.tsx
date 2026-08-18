@@ -47,14 +47,14 @@ function CloseButton({ onClose }: { onClose: () => void }) {
 
 const KIND_LABEL: Record<Kind, string> = {
   hardware: "Hardware",
-  software: "Software",
+  game: "Games",
   blog: "Articles",
 };
 
 // Item -> the SAME LabMedia the home/tab cards render, so every surface that
 // shows items (home grids, tab pages, these collection overlays) uses one card.
 const MEDIA_BY_KEY = new Map<string, LabMedia>();
-for (const k of ["hardware", "software", "blog"] as const) {
+for (const k of ["hardware", "game", "blog"] as const) {
   for (const m of labAll[k]) MEDIA_BY_KEY.set(`${m.kind}-${m.slug}`, m);
 }
 
@@ -84,11 +84,11 @@ function KindGrid({ items }: { kind: Kind; items: Item[] }) {
 export function CollectionBody({ items }: { items: Item[] }) {
   const buckets: Record<Kind, Item[]> = {
     hardware: [],
-    software: [],
+    game: [],
     blog: [],
   };
   for (const item of items) buckets[item.kind].push(item);
-  const order: Kind[] = ["hardware", "software", "blog"];
+  const order: Kind[] = ["hardware", "game", "blog"];
   const present = order.filter((k) => buckets[k].length > 0);
 
   if (items.length === 0) {

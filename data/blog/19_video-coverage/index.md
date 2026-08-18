@@ -2,8 +2,8 @@
 title: "Video coverage: recomps on YouTube"
 kicker: "Video"
 tags: []
-featured: false
-desc: "Confirmed video coverage of the toolkit's projects."
+featured: true
+desc: "Creators covering the recomps in their own voice, from the first Tomba! test footage to release-day showcases."
 date: "2026-08-16"
 group: "Coverage"
 layout: "article"
@@ -11,6 +11,8 @@ links:
   - { label: "VGE: Metroid Prime Hunters Recomp Out NOW!", href: "https://www.youtube.com/watch?v=FFUglxqa_eI" }
   - { label: "VGE: Mega Man X Recomp is Out Now! A SNES Recomp", href: "https://www.youtube.com/watch?v=XRwKZ0_8u-c" }
   - { label: "Gamemaster1379: Tomba! save states and rewind showcase", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
+cover: "https://i.ytimg.com/vi/FFUglxqa_eI/hqdefault.jpg"
+videoUrl: "https://www.youtube.com/watch?v=FFUglxqa_eI"
 ---
 
 Independent video coverage of the toolkit's projects, collected in one place. These are creators covering the releases in their own voice, not material produced by the team.
@@ -29,4 +31,4 @@ Gamemaster1379 has followed the PSX and DS work from its earliest days:
 - [Metroid Prime Hunters 21:9 first look](https://www.youtube.com/watch?v=tvqnW6J6KU0) (2026-08-09)
 - [Tomba! save states and rewind showcase](https://www.youtube.com/watch?v=L36ppNkuJG0) (2026-08-12)
 
-Related: [Tomba!](/software/tomba) and [Mega Man X6](/software/mega-man-x6) on [PlayStation](/hardware/playstation), [Mega Man X](/software/mega-man-x) on [Super Nintendo](/hardware/super-nintendo), and [Metroid Prime Hunters](/software/metroid-prime-hunters) on [Nintendo DS](/hardware/nintendo-ds).
+Related: [Tomba!](/games/tomba) and [Mega Man X6](/games/mega-man-x6) on [PlayStation](/hardware/playstation), [Mega Man X](/games/mega-man-x) on [Super Nintendo](/hardware/super-nintendo), and [Metroid Prime Hunters](/games/metroid-prime-hunters) on [Nintendo DS](/hardware/nintendo-ds).

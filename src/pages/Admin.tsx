@@ -86,19 +86,19 @@ const FOLDER_KIND: Record<string, string> = {
   Blog: "blog",
   Articles: "blog",
   Hardware: "hardware",
-  Software: "software",
+  Games: "game",
 };
 
 const NEW_LABEL: Record<string, string> = {
   blog: "article",
   hardware: "platform",
-  software: "project",
+  game: "project",
 };
 
 function previewFor(id: string): string {
   let m: RegExpMatchArray | null;
   if (id === "page:home") return "/";
-  if ((m = id.match(/^data\/(blog|hardware|software)\/\d*_?([^/]+)\/index\.md$/)))
+  if ((m = id.match(/^data\/(blog|hardware|games)\/\d*_?([^/]+)\/index\.md$/)))
     return `/${m[1]}/${m[2]}`;
   if ((m = id.match(/^data\/sources\/(.+)\.md$/))) return `/source/${m[1]}`;
   return "/"; // home copy files render on the home page
@@ -1154,7 +1154,7 @@ export default function Admin() {
                       <Field label="Tags (comma-separated)">
                         <input style={styles.input} value={tagsInput} onChange={(e) => patchTags(e.target.value)} />
                       </Field>
-                      {!prod && selected && /^data\/(blog|hardware|software)\//.test(selected.id) && (
+                      {!prod && selected && /^data\/(blog|hardware|games)\//.test(selected.id) && (
                         <Field label="Cover image / video">
                           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                             <input

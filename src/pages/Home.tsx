@@ -7,13 +7,13 @@ import { SpatialCard } from "@/components/SpatialCard";
 import { HeroReel } from "@/components/HeroReel";
 import {
   labHardware,
-  labSoftware,
+  labGames,
   labBlog,
   labAll,
   type LabKind,
   type LabMedia,
 } from "@/lab/labContent";
-import { HARDWARE, SOFTWARE, BLOGS, pathFor } from "@/lib/content";
+import { HARDWARE, GAMES, BLOGS, pathFor, youtubeThumb } from "@/lib/content";
 import { isMac } from "@/lib/platform";
 import { useAbout } from "@/lib/about";
 import {
@@ -26,20 +26,25 @@ import {
   PROOF_PRIMARY,
   RECOGNITION,
   PHILOSOPHY,
+  VIDEOS,
+  CAPABILITIES,
+  PILLARS,
+  TRANSFORMS,
+  THESIS,
   renderSegments,
 } from "@/lib/homeContent";
 
 const TAB_PATH: Record<TabId, string> = {
   home: "/",
   hardware: "/hardware",
-  software: "/software",
+  game: "/games",
   blog: "/blog",
 };
-const TAB_ORDER: TabId[] = ["home", "hardware", "software", "blog"];
+const TAB_ORDER: TabId[] = ["home", "hardware", "game", "blog"];
 const NAV_TABS = [
   { id: "home" as TabId, label: "Home", path: "/" },
   { id: "hardware" as TabId, label: "Hardware", path: "/hardware" },
-  { id: "software" as TabId, label: "Software", path: "/software" },
+  { id: "game" as TabId, label: "Games", path: "/games" },
   { id: "blog" as TabId, label: "Articles", path: "/blog" },
 ];
 
@@ -49,7 +54,7 @@ const NAV_TABS = [
 const TAB_TITLE: Record<TabId, string> = {
   home: titleForHome(),
   hardware: titleForCollection("hardware"),
-  software: titleForCollection("software"),
+  game: titleForCollection("game"),
   blog: titleForCollection("blog"),
 };
 
@@ -99,6 +104,47 @@ function MailIcon() {
   );
 }
 
+// A play triangle for external video cards.
+function PlayGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)" />
+      <path d="M9.8 7.5v9l7-4.5z" fill="#fff" />
+    </svg>
+  );
+}
+
+// External YouTube coverage rendered with the same card skin as everything
+// else; clicking opens the video on YouTube in a new tab.
+function VideoCard({ title, channel, href }: { title: string; channel: string; href: string }) {
+  const still = youtubeThumb(href);
+  return (
+    <a
+      className="tvcard tvcard--video"
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`${title} (YouTube)`}
+    >
+      <span className="tvcard-inner">
+        <span className="tvcard-tilt">
+          <span className="tvcard-media">
+            {still && <img className="tvcard-cover" src={still} alt="" loading="lazy" decoding="async" />}
+            <span className="tvcard-play" aria-hidden="true">
+              <PlayGlyph />
+            </span>
+            <span className="tvcard-sheen" aria-hidden="true" />
+          </span>
+          <span className="tvcard-body">
+            <span className="tvcard-chip" style={{ background: "#b21f57" }}>{channel}</span>
+            <span className="tvcard-title">{title}</span>
+          </span>
+        </span>
+      </span>
+    </a>
+  );
+}
+
 function SectionHead({
   title,
   to,
@@ -135,16 +181,16 @@ function SectionHead({
 
 const GRID_TITLES: Record<LabKind, string> = {
   hardware: "Hardware",
-  software: "Software",
+  game: "Games",
   blog: "Articles",
 };
 
 const GRID_SUBS: Record<LabKind, string> = {
   hardware:
-    "Platform-specific recompilation ecosystems: each one is a decoder and runtime for one original machine. Grouped by how far along they are, in the projects' own words.",
-  software:
-    "Game recompilations and shared runtime libraries built on the toolkit, from the core team and from the community. Every project builds from your own legally dumped ROM or disc; none distribute game data.",
-  blog: "Technical writing from the team on 1379.tech, plus independent press coverage and videos.",
+    "One ecosystem per machine: a decoder that turns its games back into code, and a runtime that plays the part of the old silicon. Grouped by how far along each one really is.",
+  game:
+    "Every playable recompilation and the shared tech behind them, from the core team and the community. You bring your own legally dumped ROM or disc; nothing here ships game data.",
+  blog: "The build log from 1379.tech, plus what the press and YouTube are saying.",
 };
 
 // A full-catalog tab page. Items carry an optional `group` (from frontmatter):
@@ -310,7 +356,7 @@ function TabContent({
   return (
     <div ref={rootRef}>
       {tab === "hardware" && <TabGrid kind="hardware" onOpen={onOpen} still={!interactive} />}
-      {tab === "software" && <TabGrid kind="software" onOpen={onOpen} still={!interactive} />}
+      {tab === "game" && <TabGrid kind="game" onOpen={onOpen} still={!interactive} />}
       {tab === "blog" && <TabGrid kind="blog" onOpen={onOpen} still={!interactive} />}
 
       {isHome && (
@@ -361,50 +407,127 @@ function TabContent({
                 </div>
               )}
               <div className="hn-hero-actions">
-                {/* Email leads (the icon makes the mailto obvious so the very
-                    first click doesn't yank them into a mail client by
-                    surprise). */}
-                {about.email && (
-                  <a
-                    className="hn-hero-cta hn-hero-cta--primary"
-                    href={`mailto:${about.email}`}
-                  >
-                    <MailIcon />
-                    Email me
-                  </a>
-                )}
+                <a
+                  className="hn-hero-cta hn-hero-cta--primary"
+                  href="https://github.com/mstan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Explore on GitHub
+                </a>
+                <a
+                  className="hn-hero-cta hn-hero-cta--ghost"
+                  href="#action"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById("action")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  See it in action
+                </a>
               </div>
             </div>
           </header>
 
-          <section className="hn-section" aria-label="What it is">
+          <section className="hn-section" aria-label="Without the old limits">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                What it is
+                The games you remember. Without the old limits.
+              </h2>
+              <ol className="hn-philosophy">
+                {CAPABILITIES.map((c, i) => (
+                  <li className="hn-phil-row" key={i} data-reveal>
+                    <span className="hn-phil-num">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="hn-phil-text">
+                      <strong>{c.title}.</strong> {c.body}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="More than emulation">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                More than emulation.
               </h2>
               <div className="hn-proof" data-reveal>
                 {sections.proof.map((line, i) => (
                   <p key={i}>{renderSegments(line)}</p>
                 ))}
               </div>
+              <p className="hn-closing-line" data-reveal>
+                Preserve the game. Replace the constraints.
+              </p>
             </div>
           </section>
 
-          <section className="hn-section" aria-label="What recompilation makes possible">
+          <section className="hn-section" aria-label="Recompile, understand, augment">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                What recompilation makes possible
+                Recompile. Understand. Augment.
               </h2>
               <ol className="hn-philosophy">
-                {sections.philosophy.map((p, i) => (
+                {PILLARS.map((c, i) => (
                   <li className="hn-phil-row" key={i} data-reveal>
                     <span className="hn-phil-num">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <span className="hn-phil-text">{p}</span>
+                    <span className="hn-phil-text">
+                      <strong>{c.title}.</strong> {c.body}
+                    </span>
                   </li>
                 ))}
               </ol>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="One improvement, many games">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                One improvement. Many games.
+              </h2>
+              <div className="hn-proof" data-reveal>
+                {THESIS.map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="From console feature to modern capability">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                From console feature to modern capability.
+              </h2>
+              <ol className="hn-philosophy">
+                {TRANSFORMS.map((c, i) => (
+                  <li className="hn-phil-row" key={i} data-reveal>
+                    <span className="hn-phil-num">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="hn-phil-text">
+                      <strong>{c.title}.</strong> {c.body}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="See it in action" id="action">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                See it in action.
+              </h2>
+              <div className="tv-grid tv-strip">
+                {VIDEOS.map((v) => (
+                  <VideoCard key={v.href} title={v.title} channel={v.channel} href={v.href} />
+                ))}
+              </div>
             </div>
           </section>
 
@@ -429,16 +552,16 @@ function TabContent({
             </div>
           </section>
 
-          <section className="hn-section" aria-label="Software">
+          <section className="hn-section" aria-label="Games">
             <div className="hn-container">
               <SectionHead
-                title="Software"
-                to="/software"
-                count={SOFTWARE.length}
+                title="Games"
+                to="/games"
+                count={GAMES.length}
                 onNav={onNav}
               />
               <div className="tv-grid tv-strip">
-                {labSoftware.map((m) => (
+                {labGames.map((m) => (
                   <SpatialCard
                     key={`${m.kind}-${m.slug}`}
                     media={m}
@@ -453,7 +576,7 @@ function TabContent({
           <section className="hn-section" aria-label="Coverage">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                Coverage
+                In the wild
               </h2>
               <dl className="hn-recognition" data-reveal>
                 {sections.recognition.map((group) => (
@@ -499,12 +622,25 @@ function TabContent({
           <section className="hn-section hn-closing">
             <div className="hn-container" data-reveal>
               <p className="hn-closing-line">
-                Every ecosystem is open source. Bring a game you care about,
-                or build on the toolkit.
+                Old games. New possibilities.
+              </p>
+              <p className="hn-closing-sub" data-reveal>
+                Retro Porting Toolkit is open source and experimental. If you
+                care about emulation, reverse engineering, compilers, graphics,
+                netcode, modding, or just one classic game, there is a place to
+                start.
               </p>
               <div className="hn-cta-row">
+                <a
+                  className="hn-cta"
+                  href="https://github.com/mstan"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Explore the project on GitHub
+                </a>
                 {about.email && (
-                  <a className="hn-cta" href={`mailto:${about.email}`}>
+                  <a className="hn-cta hn-cta--ghost" href={`mailto:${about.email}`}>
                     <MailIcon />
                     Get in touch
                   </a>

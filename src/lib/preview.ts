@@ -28,13 +28,13 @@ export interface LinkPreview {
 
 const SEG_TO_KIND: Record<string, Kind> = {
   hardware: "hardware",
-  software: "software",
+  games: "game",
   blog: "blog",
 };
 
 const KIND_LABEL: Record<Kind, string> = {
   hardware: "Hardware",
-  software: "Software",
+  game: "Games",
   blog: "Article",
 };
 
@@ -82,12 +82,12 @@ function topicPreview(id: string): LinkPreview | null {
   if (!topic) return null;
   const items = itemsForTopic(topic);
   // A count summary kicker ("6 talks · 3 projects"), strongest grouping first.
-  const counts: Record<Kind, number> = { hardware: 0, software: 0, blog: 0 };
+  const counts: Record<Kind, number> = { hardware: 0, game: 0, blog: 0 };
   for (const it of items) counts[it.kind]++;
-  const order: Kind[] = ["hardware", "software", "blog"];
+  const order: Kind[] = ["hardware", "game", "blog"];
   const plural: Record<Kind, [string, string]> = {
     hardware: ["platform", "platforms"],
-    software: ["project", "projects"],
+    game: ["project", "projects"],
     blog: ["article", "articles"],
   };
   const countBits = order

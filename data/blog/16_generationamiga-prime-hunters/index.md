@@ -3,7 +3,7 @@ title: "Metroid Prime Hunters recomp brings the Nintendo DS classic to PC"
 kicker: "Press"
 tags: []
 featured: false
-desc: "GenerationAmiga reports on the Metroid Prime Hunters recomp alpha for PC."
+desc: "GenerationAmiga introduces the Metroid Prime Hunters recomp alpha to readers beyond the recompilation scene: WASD and mouse on a DS classic, native on PC."
 date: "2026-08-16"
 venue: "GenerationAmiga"
 group: "Coverage"
@@ -18,4 +18,4 @@ The article covers the essentials of the release: a native Windows and Linux pro
 
 The piece is notable as the first press coverage of the Nintendo DS ecosystem, whose underlying framework is still very early pre-alpha even as its one public game consumer reached a playable public alpha.
 
-Related: [Metroid Prime Hunters](/software/metroid-prime-hunters) on [Nintendo DS](/hardware/nintendo-ds).
+Related: [Metroid Prime Hunters](/games/metroid-prime-hunters) on [Nintendo DS](/hardware/nintendo-ds).

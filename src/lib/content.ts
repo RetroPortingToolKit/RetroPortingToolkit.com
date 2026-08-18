@@ -181,7 +181,7 @@ function asLinks(v: unknown): LinkRef[] {
 
 function kindFromPath(path: string): Kind | null {
   if (path.startsWith("/data/hardware/")) return "hardware";
-  if (path.startsWith("/data/software/")) return "software";
+  if (path.startsWith("/data/games/")) return "game";
   if (path.startsWith("/data/blog/")) return "blog";
   return null;
 }
@@ -256,7 +256,7 @@ const allItems: Item[] = Object.entries(rawMd)
   .sort((a, b) => a.order - b.order);
 
 export const HARDWARE = allItems.filter((i) => i.kind === "hardware");
-export const SOFTWARE = allItems.filter((i) => i.kind === "software");
+export const GAMES = allItems.filter((i) => i.kind === "game");
 export const BLOGS = allItems.filter((i) => i.kind === "blog");
 
 export function findItem(kind: Kind, slug: string): Item | undefined {
@@ -265,7 +265,7 @@ export function findItem(kind: Kind, slug: string): Item | undefined {
 
 const PATH_SEGMENT: Record<Kind, string> = {
   hardware: "hardware",
-  software: "software",
+  game: "games",
   blog: "blog",
 };
 
@@ -283,12 +283,12 @@ export function topicPath(topicId: string): string {
 
 export const COLLECTION_KIND: Record<string, Kind> = {
   hardware: "hardware",
-  software: "software",
+  games: "game",
   blog: "blog",
 };
 
 export function itemsForKind(kind: Kind): Item[] {
-  return kind === "hardware" ? HARDWARE : kind === "software" ? SOFTWARE : BLOGS;
+  return kind === "hardware" ? HARDWARE : kind === "game" ? GAMES : BLOGS;
 }
 
 function itemMatchesTopic(item: Item, topic: Topic): boolean {

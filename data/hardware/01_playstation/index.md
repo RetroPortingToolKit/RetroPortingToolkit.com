@@ -3,7 +3,7 @@ title: "PlayStation"
 kicker: "MIPS"
 tags: ["Widescreen", "Netplay", "Mods", "Save states"]
 featured: true
-desc: "PSXRecomp, the most established ecosystem: recompiles the real PS1 BIOS and runs seven playable first-party titles."
+desc: "Seven playable first-party titles, the real PS1 BIOS recompiled and running as the kernel, and the decoder behind community ports of Spyro and Pepsiman."
 year: "2026"
 status: "Established"
 provenance: "core"
@@ -17,20 +17,20 @@ links:
   - { label: "Save states & rewind showcase (video)", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
 ---
 
-PSXRecomp statically recompiles PlayStation games from MIPS R3000A machine code into C, then builds them as native programs. It is the most established ecosystem in the toolkit: it recompiles the real console BIOS and runs it as the kernel, and it is the decoder behind community projects like [OpenPete's Spyro the Dragon](/software/openpete-spyro) and the browser port of [Pepsiman](/software/pepsiman).
+PSXRecomp takes a PlayStation game's MIPS R3000A machine code, turns it into C, and builds it as a native program. It is the most established ecosystem in the toolkit, deep enough to recompile the real console BIOS and run it as the kernel. It is also the decoder behind community projects like [OpenPete's Spyro the Dragon](/games/openpete-spyro) and the browser port of [Pepsiman](/games/pepsiman).
 
 ## What works today
 
-Seven first-party titles are playable: [Tomba!](/software/tomba), [Tomba! 2](/software/tomba-2), [Ape Escape](/software/ape-escape), [Mega Man X4](/software/mega-man-x4), [X5](/software/mega-man-x5), [X6](/software/mega-man-x6), and [Tsumu Light](/software/tsumu-light). The runtime is LLE-first: it boots the redistributable OpenBIOS image by default, or a user-supplied retail BIOS, with an opt-out high-level tier. A small MIPS interpreter remains as a transient safety net for code that is not yet statically resolved, meant to be compiled away over time. The project is careful to note that playable titles are not a promise that every game works without game-specific fixes.
+Seven first-party titles are playable: [Tomba!](/games/tomba), [Tomba! 2](/games/tomba-2), [Ape Escape](/games/ape-escape), [Mega Man X4](/games/mega-man-x4), [X5](/games/mega-man-x5), [X6](/games/mega-man-x6), and [Tsumu Light](/games/tsumu-light). The runtime is LLE-first: it boots the redistributable OpenBIOS image by default, or a user-supplied retail BIOS, with an opt-out high-level tier. A small MIPS interpreter remains as a transient safety net for code that is not yet statically resolved, meant to be compiled away over time. The project is careful to note that playable titles are not a promise that every game works without game-specific fixes.
 
 ## Enhancements
 
-Widescreen up to 21:9 including adaptive widescreen, supersampling, a mod loader that never modifies the original disc image, live language switching, save states with rewind, and an opt-in netplay build backed by the shared [recomp-net](/software/recomp-net) library. The Vulkan renderer is experimental.
+Widescreen up to 21:9 including adaptive widescreen, supersampling, a mod loader that never modifies the original disc image, live language switching, save states with rewind, and an opt-in netplay build backed by the shared [recomp-net](/games/recomp-net) library. The Vulkan renderer is experimental.
 
-## Software
+## Games
 
-- Core: [Tomba!](/software/tomba), [Tomba! 2](/software/tomba-2), [Ape Escape](/software/ape-escape), [Mega Man X4](/software/mega-man-x4), [Mega Man X5](/software/mega-man-x5), [Mega Man X6](/software/mega-man-x6), [Tsumu Light](/software/tsumu-light)
-- Community: [OpenPete (Spyro the Dragon)](/software/openpete-spyro), [Xenogears](/software/xenogears), [Pepsiman](/software/pepsiman), [Twisted Metal 4](/software/twisted-metal-4)
+- Core: [Tomba!](/games/tomba), [Tomba! 2](/games/tomba-2), [Ape Escape](/games/ape-escape), [Mega Man X4](/games/mega-man-x4), [Mega Man X5](/games/mega-man-x5), [Mega Man X6](/games/mega-man-x6), [Tsumu Light](/games/tsumu-light)
+- Community: [OpenPete (Spyro the Dragon)](/games/openpete-spyro), [Xenogears](/games/xenogears), [Pepsiman](/games/pepsiman), [Twisted Metal 4](/games/twisted-metal-4)
 
 ## Reading
 
