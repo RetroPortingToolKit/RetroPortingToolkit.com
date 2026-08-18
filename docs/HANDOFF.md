@@ -11,13 +11,14 @@ Articles. New home.json keys: videos, capabilities, pillars, transforms, thesis
 Hero background: YouTube gameplay reel (HeroReel.tsx), 3s crossfade cycle over the
 verified coverage videos; no video files hosted.
 
-Owner outline items that still need assets or sources before they can ship:
-- Street Fighter Alpha 3 "five minutes from disc" demo block: needs footage AND a
-  public source (SFA3 is Cobalt's work, no public repo verified).
-- Super Mario World character-replacement looping video: the feature is real and
-  documented on the SMW page (v0.11.0 Smash 64 catalog), but no video capture exists.
-- PS1 link-cable over LAN and one-game-four-screens demos: currently prose in the
-  transforms section; awaiting real demonstrations.
+Demo blocks shipped 2026-08-18 with owner-supplied videos (verified via oEmbed):
+- SFA3 "Five minutes from disc" demo: youtube aITjH0LoEeA (Video Game Esoterica,
+  "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD"); SFA3 also has a community
+  game page (coverage-backed, still no public repo identified).
+- SMW "Change the game." demo: youtube Owuku0zj4As (Gamemaster1379 SMW test).
+Still prose-only, owner confirmed fine for now:
+- PS1 link-cable over LAN and one-game-four-screens demos: in the transforms
+  section as text until real demonstrations exist.
 - Flywheel graphic ("more games -> more knowledge -> less work per game"): textual
   in the thesis section for now.
 - Audience sections (for emulator devs / reverse engineers / modders / preservation)
