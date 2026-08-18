@@ -55,12 +55,23 @@ export interface TitledEntry {
   body: string;
 }
 
+export interface HomeDemo {
+  title: string;
+  lead: string;
+  videoId: string;
+  videoTitle: string;
+  channel: string;
+  steps: string[];
+  caption: string;
+}
+
 const extra = homeData as {
   videos?: HomeVideo[];
   capabilities?: TitledEntry[];
   pillars?: TitledEntry[];
   transforms?: TitledEntry[];
   thesis?: string[];
+  demos?: HomeDemo[];
 };
 
 export const PROOF_PRIMARY: ProofSegment[][] = homeData.proof.map(parseProof);
@@ -71,6 +82,7 @@ export const CAPABILITIES: TitledEntry[] = extra.capabilities ?? [];
 export const PILLARS: TitledEntry[] = extra.pillars ?? [];
 export const TRANSFORMS: TitledEntry[] = extra.transforms ?? [];
 export const THESIS: string[] = extra.thesis ?? [];
+export const DEMOS: HomeDemo[] = extra.demos ?? [];
 
 // Pure parser for a draft home.json (proof/recognition/philosophy), used by the
 // live CMS preview to render edits without touching the static import.

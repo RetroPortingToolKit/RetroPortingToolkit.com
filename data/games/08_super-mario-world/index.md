@@ -11,9 +11,12 @@ platform: "super-nintendo"
 repo: "https://github.com/mstan/SuperMarioWorldRecomp"
 group: "Super Nintendo"
 links:
+  - { label: "SMW character replacement test (Gamemaster1379)", href: "https://www.youtube.com/watch?v=Owuku0zj4As" }
   - { label: "SuperMarioWorldRecomp on GitHub", href: "https://github.com/mstan/SuperMarioWorldRecomp" }
   - { label: "snesrecomp's First Title: Super Mario World (1379.tech)", href: "https://1379.tech/snesrecomps-first-title-super-mario-world/" }
   - { label: "The Future of Game Preservation is Decomp-Annotated-Recomps (1379.tech)", href: "https://1379.tech/recomp-vs-decomp-wrong-question/" }
+cover: "https://i.ytimg.com/vi/Owuku0zj4As/hqdefault.jpg"
+videoUrl: "https://www.youtube.com/watch?v=Owuku0zj4As"
 ---
 
 Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever recompiled, and it is still the flagship. Built on the SMWDisX disassembly, 1,937 of the game's 2,074 functions carry real names in the recompiled source, which makes it the leading example of a disassembly-annotated recomp. The current release is v0.11.0 (2026-08-12).

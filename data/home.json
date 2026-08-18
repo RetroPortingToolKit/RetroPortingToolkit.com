@@ -55,6 +55,16 @@
   ],
   "videos": [
     {
+      "title": "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD",
+      "channel": "Video Game Esoterica",
+      "href": "https://www.youtube.com/watch?v=aITjH0LoEeA"
+    },
+    {
+      "title": "SMW character replacement test",
+      "channel": "Gamemaster1379",
+      "href": "https://www.youtube.com/watch?v=Owuku0zj4As"
+    },
+    {
       "title": "Metroid Prime Hunters Recomp Out NOW! Metroid PC Port is Here",
       "channel": "Video Game Esoterica",
       "href": "https://www.youtube.com/watch?v=FFUglxqa_eI"
@@ -160,6 +170,31 @@
     {
       "title": "Fixed viewport becomes widescreen",
       "body": "Understand how the game builds its camera and projection instead of stretching the final image."
+    }
+  ],
+  "demos": [
+    {
+      "title": "Five minutes from disc to modern hardware.",
+      "lead": "Original PlayStation game. Modern runtime. Street Fighter Alpha 3, analyzed, recompiled, and running.",
+      "videoId": "aITjH0LoEeA",
+      "videoTitle": "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD",
+      "channel": "Video Game Esoterica",
+      "steps": [
+        "Original game",
+        "Analyze",
+        "Recompile",
+        "Run"
+      ],
+      "caption": "Street Fighter Alpha 3 running through Retro Porting Toolkit after approximately five minutes of game-specific work. Independent coverage by Video Game Esoterica."
+    },
+    {
+      "title": "Change the game.",
+      "lead": "Replace Mario with another character. Not a sprite swap: different movement, abilities, animation, and sound, integrated into the original Super Mario World.",
+      "videoId": "Owuku0zj4As",
+      "videoTitle": "SMW character replacement test",
+      "channel": "Gamemaster1379",
+      "steps": [],
+      "caption": "Super Mario World's experimental character catalog (from the v0.11.0 release) running through SNESRecomp. Same game. New possibilities."
     }
   ]
 }

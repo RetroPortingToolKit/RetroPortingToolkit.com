@@ -30,7 +30,7 @@ Widescreen up to 21:9 including adaptive widescreen, supersampling, a mod loader
 ## Games
 
 - Core: [Tomba!](/games/tomba), [Tomba! 2](/games/tomba-2), [Ape Escape](/games/ape-escape), [Mega Man X4](/games/mega-man-x4), [Mega Man X5](/games/mega-man-x5), [Mega Man X6](/games/mega-man-x6), [Tsumu Light](/games/tsumu-light)
-- Community: [OpenPete (Spyro the Dragon)](/games/openpete-spyro), [Xenogears](/games/xenogears), [Pepsiman](/games/pepsiman), [Twisted Metal 4](/games/twisted-metal-4)
+- Community: [OpenPete (Spyro the Dragon)](/games/openpete-spyro), [Xenogears](/games/xenogears), [Pepsiman](/games/pepsiman), [Twisted Metal 4](/games/twisted-metal-4), [Street Fighter Alpha 3](/games/street-fighter-alpha-3)
 
 ## Reading
 

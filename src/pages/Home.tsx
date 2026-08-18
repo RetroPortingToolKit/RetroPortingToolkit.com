@@ -27,6 +27,8 @@ import {
   RECOGNITION,
   PHILOSOPHY,
   VIDEOS,
+  DEMOS,
+  type HomeDemo,
   CAPABILITIES,
   PILLARS,
   TRANSFORMS,
@@ -142,6 +144,64 @@ function VideoCard({ title, channel, href }: { title: string; channel: string; h
         </span>
       </span>
     </a>
+  );
+}
+
+// A big click-to-play demo: poster frame first, the YouTube player only after
+// an explicit tap, so the homepage never boots extra players uninvited.
+function DemoBlock({ demo }: { demo: HomeDemo }) {
+  const [playing, setPlaying] = useState(false);
+  const embed = `https://www.youtube.com/embed/${demo.videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+  return (
+    <section className="hn-section" aria-label={demo.title}>
+      <div className="hn-container">
+        <h2 className="hn-h2" data-reveal>
+          {demo.title}
+        </h2>
+        <div className="hn-proof" data-reveal>
+          <p>{demo.lead}</p>
+        </div>
+        {demo.steps.length > 0 && (
+          <p className="hn-demo-steps" data-reveal aria-label="Pipeline">
+            {demo.steps.join("  →  ")}
+          </p>
+        )}
+        <div className="hn-demo-stage" data-reveal>
+          {playing ? (
+            <iframe
+              className="hn-demo-frame"
+              src={embed}
+              title={demo.videoTitle}
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <button
+              type="button"
+              className="hn-demo-poster"
+              onClick={() => setPlaying(true)}
+              aria-label={`Play: ${demo.videoTitle}`}
+            >
+              <img
+                src={`https://i.ytimg.com/vi/${demo.videoId}/maxresdefault.jpg`}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${demo.videoId}/hqdefault.jpg`;
+                }}
+              />
+              <span className="hn-demo-play">
+                <PlayGlyph />
+              </span>
+            </button>
+          )}
+        </div>
+        <p className="hn-demo-caption" data-reveal>
+          {demo.caption}
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -517,6 +577,10 @@ function TabContent({
               </ol>
             </div>
           </section>
+
+          {DEMOS.map((d) => (
+            <DemoBlock key={d.videoId} demo={d} />
+          ))}
 
           <section className="hn-section" aria-label="See it in action" id="action">
             <div className="hn-container">

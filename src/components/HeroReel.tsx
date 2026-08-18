@@ -17,7 +17,9 @@ interface Clip {
 
 // Verified coverage videos (Video Game Esoterica + Gamemaster1379).
 const CLIPS: Clip[] = [
+  { id: "aITjH0LoEeA", start: 90 }, // Street Fighter Alpha 3
   { id: "sbqPnJhb3uk", start: 120 }, // Tomba!
+  { id: "Owuku0zj4As", start: 20 }, // SMW character replacement
   { id: "XRwKZ0_8u-c", start: 150 }, // Mega Man X (SNES)
   { id: "FFUglxqa_eI", start: 95 }, // Metroid Prime Hunters
   { id: "IXMHXC2BLSc", start: 180 }, // Mega Man X6

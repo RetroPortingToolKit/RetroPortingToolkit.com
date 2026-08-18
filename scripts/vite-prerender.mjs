@@ -377,7 +377,7 @@ function itemListHtml(items, kind) {
 // shell, mirroring the runtime parse in src/lib/homeContent.tsx.
 function readHomeProse() {
   const file = path.join(ROOT, "data", "home.json");
-  const out = { proof: [], recognition: [], philosophy: [], videos: [], capabilities: [], pillars: [], transforms: [], thesis: [] };
+  const out = { proof: [], recognition: [], philosophy: [], videos: [], capabilities: [], pillars: [], transforms: [], thesis: [], demos: [] };
   if (!fs.existsSync(file)) return out;
   let data;
   try {
@@ -407,6 +407,14 @@ function readHomeProse() {
   out.pillars = titled(data.pillars);
   out.transforms = titled(data.transforms);
   out.thesis = (data.thesis || []).map(String);
+  out.demos = (data.demos || []).map((d) => ({
+    title: String(d.title || ""),
+    lead: String(d.lead || ""),
+    videoId: String(d.videoId || ""),
+    videoTitle: String(d.videoTitle || ""),
+    channel: String(d.channel || ""),
+    caption: String(d.caption || ""),
+  }));
   return out;
 }
 
@@ -439,6 +447,14 @@ function homeStaticHtml(items) {
     parts.push(...prose.thesis.map((t) => `<p>${escapeHtml(t)}</p>`));
   }
   titledList("From console feature to modern capability.", prose.transforms);
+  for (const d of prose.demos) {
+    parts.push(`<h2>${escapeHtml(d.title)}</h2>`);
+    parts.push(`<p>${escapeHtml(d.lead)}</p>`);
+    parts.push(
+      `<p><a href="https://www.youtube.com/watch?v=${escapeAttr(d.videoId)}">${escapeHtml(d.videoTitle)}</a> (${escapeHtml(d.channel)})</p>`,
+    );
+    parts.push(`<p>${escapeHtml(d.caption)}</p>`);
+  }
   if (prose.recognition.length) {
     parts.push("<h2>In the wild</h2><ul>");
     for (const g of prose.recognition)
