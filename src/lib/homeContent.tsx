@@ -55,34 +55,49 @@ export interface TitledEntry {
   body: string;
 }
 
-export interface HomeDemo {
+export interface HomeStory {
   title: string;
-  lead: string;
-  videoId: string;
+  body: string;
+  image: string;
+  alt: string;
+  credit: string;
+}
+
+export interface HomeFeatured {
+  slug: string;
+  capability: string;
+  cover: string;
+  alt: string;
+  credit: string;
+}
+
+export interface HomeActionCard {
   videoTitle: string;
-  channel: string;
-  steps: string[];
-  caption: string;
+  project: string;
+  creator: string;
+  href: string;
+  poster: string;
+  alt: string;
+  blurb: string;
 }
 
 const extra = homeData as {
-  videos?: HomeVideo[];
-  capabilities?: TitledEntry[];
-  pillars?: TitledEntry[];
-  transforms?: TitledEntry[];
-  thesis?: string[];
-  demos?: HomeDemo[];
+  constraintsIntro?: string;
+  stories?: HomeStory[];
+  platformNote?: { title: string; body: string };
+  featured?: HomeFeatured[];
+  action?: HomeActionCard[];
 };
 
 export const PROOF_PRIMARY: ProofSegment[][] = homeData.proof.map(parseProof);
-export const RECOGNITION: RecognitionGroup[] = homeData.recognition;
+export const RECOGNITION: RecognitionGroup[] =
+  (homeData as { recognition?: RecognitionGroup[] }).recognition ?? [];
 export const PHILOSOPHY: string[] = homeData.philosophy;
-export const VIDEOS: HomeVideo[] = extra.videos ?? [];
-export const CAPABILITIES: TitledEntry[] = extra.capabilities ?? [];
-export const PILLARS: TitledEntry[] = extra.pillars ?? [];
-export const TRANSFORMS: TitledEntry[] = extra.transforms ?? [];
-export const THESIS: string[] = extra.thesis ?? [];
-export const DEMOS: HomeDemo[] = extra.demos ?? [];
+export const CONSTRAINTS_INTRO: string = extra.constraintsIntro ?? "";
+export const STORIES: HomeStory[] = extra.stories ?? [];
+export const PLATFORM_NOTE = extra.platformNote ?? { title: "", body: "" };
+export const FEATURED: HomeFeatured[] = extra.featured ?? [];
+export const ACTION: HomeActionCard[] = extra.action ?? [];
 
 // Pure parser for a draft home.json (proof/recognition/philosophy), used by the
 // live CMS preview to render edits without touching the static import.

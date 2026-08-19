@@ -6,12 +6,11 @@ import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
 import { HeroReel } from "@/components/HeroReel";
 import {
-  labGames,
   labAll,
   type LabKind,
   type LabMedia,
 } from "@/lab/labContent";
-import { HARDWARE, GAMES, pathFor, youtubeThumb } from "@/lib/content";
+import { HARDWARE, GAMES, findItem, pathFor } from "@/lib/content";
 import { isMac } from "@/lib/platform";
 import { useAbout } from "@/lib/about";
 import {
@@ -22,13 +21,12 @@ import {
 import { useOverlayOpen } from "@/lib/overlay";
 import {
   PROOF_PRIMARY,
-  RECOGNITION,
-  PHILOSOPHY,
-  VIDEOS,
-  DEMOS,
-  type HomeDemo,
-  PILLARS,
-  TRANSFORMS,
+  CONSTRAINTS_INTRO,
+  STORIES,
+  PLATFORM_NOTE,
+  FEATURED,
+  ACTION,
+  type HomeActionCard,
   renderSegments,
 } from "@/lib/homeContent";
 
@@ -77,31 +75,6 @@ function HeadArrow() {
   );
 }
 
-// Envelope glyph for the "Email me" CTA, so it reads as an email action (not a
-// page link). Sized via CSS (1em), inherits currentColor.
-function MailIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <rect
-        x="3"
-        y="5"
-        width="18"
-        height="14"
-        rx="2.5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M4 7.5 12 13l8-5.5"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
 // A play triangle for external video cards.
 function PlayGlyph() {
   return (
@@ -112,92 +85,74 @@ function PlayGlyph() {
   );
 }
 
-// External YouTube coverage rendered with the same card skin as everything
-// else; clicking opens the video on YouTube in a new tab.
-function VideoCard({ title, channel, href }: { title: string; channel: string; href: string }) {
-  const still = youtubeThumb(href);
+// One shared media card for See it in action: static 16:9 poster, play badge,
+// creator attribution, one-line blurb. Never autoplays; the whole card is a
+// link (keyboard-activatable by nature).
+function MediaCard({ card }: { card: HomeActionCard }) {
   return (
     <a
-      className="tvcard tvcard--video"
-      href={href}
+      className="media-card"
+      href={card.href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`${title} (YouTube)`}
+      aria-label={`Play: ${card.videoTitle} (${card.creator})`}
     >
-      <span className="tvcard-inner">
-        <span className="tvcard-tilt">
-          <span className="tvcard-media">
-            {still && <img className="tvcard-cover" src={still} alt="" loading="lazy" decoding="async" />}
-            <span className="tvcard-play" aria-hidden="true">
-              <PlayGlyph />
-            </span>
-            <span className="tvcard-sheen" aria-hidden="true" />
-          </span>
-          <span className="tvcard-body">
-            <span className="tvcard-chip" style={{ background: "#b21f57" }}>{channel}</span>
-            <span className="tvcard-title">{title}</span>
-          </span>
+      <span className="media-card-frame">
+        <img src={card.poster} alt={card.alt} width={1280} height={720} loading="lazy" decoding="async" />
+        <span className="media-card-play" aria-hidden="true">
+          <PlayGlyph />
         </span>
+      </span>
+      <span className="media-card-meta">
+        <span className="media-card-project">{card.project}</span>
+        <span className="media-card-title">{card.videoTitle}</span>
+        <span className="media-card-blurb">{card.blurb}</span>
+        <span className="media-card-credit">{card.creator}</span>
       </span>
     </a>
   );
 }
 
-// A big click-to-play demo: poster frame first, the YouTube player only after
-// an explicit tap, so the homepage never boots extra players uninvited.
-function DemoBlock({ demo }: { demo: HomeDemo }) {
-  const [playing, setPlaying] = useState(false);
-  const embed = `https://www.youtube.com/embed/${demo.videoId}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+// Featured project card: cover, title, platform, status metadata, one
+// capability line; opens the project page as a modal like every other card.
+function FeaturedCard({
+  slug,
+  capability,
+  cover,
+  alt,
+  onActivate,
+}: {
+  slug: string;
+  capability: string;
+  cover: string;
+  alt: string;
+  onActivate: () => void;
+}) {
+  const item = findItem("game", slug);
+  if (!item) return null;
+  const path = pathFor("game", slug);
   return (
-    <section className="hn-section" aria-label={demo.title}>
-      <div className="hn-container">
-        <h2 className="hn-h2" data-reveal>
-          {demo.title}
-        </h2>
-        <div className="hn-proof" data-reveal>
-          <p>{demo.lead}</p>
-        </div>
-        {demo.steps.length > 0 && (
-          <p className="hn-demo-steps" data-reveal aria-label="Pipeline">
-            {demo.steps.join("  →  ")}
-          </p>
-        )}
-        <div className="hn-demo-stage" data-reveal>
-          {playing ? (
-            <iframe
-              className="hn-demo-frame"
-              src={embed}
-              title={demo.videoTitle}
-              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <button
-              type="button"
-              className="hn-demo-poster"
-              onClick={() => setPlaying(true)}
-              aria-label={`Play: ${demo.videoTitle}`}
-            >
-              <img
-                src={`https://i.ytimg.com/vi/${demo.videoId}/maxresdefault.jpg`}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://i.ytimg.com/vi/${demo.videoId}/hqdefault.jpg`;
-                }}
-              />
-              <span className="hn-demo-play">
-                <PlayGlyph />
-              </span>
-            </button>
-          )}
-        </div>
-        <p className="hn-demo-caption" data-reveal>
-          {demo.caption}
-        </p>
-      </div>
-    </section>
+    <a
+      className="feature-card"
+      href={path}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        onActivate();
+      }}
+    >
+      <span className="media-card-frame">
+        <img src={cover} alt={alt} width={1280} height={720} loading="lazy" decoding="async" />
+      </span>
+      <span className="media-card-meta">
+        <span className="media-card-project">{item.kicker}</span>
+        <span className="media-card-title">{item.title}</span>
+        <span className="media-card-blurb">{capability}</span>
+        <span className="media-card-credit">
+          {[item.status, item.availability].filter(Boolean).join(" · ")}
+        </span>
+      </span>
+    </a>
   );
 }
 
@@ -324,7 +279,7 @@ function TabContent({
   const about = useAbout();
   // Sections come straight from data/home.json. parseHome stays exported so a
   // CMS or preview layer can feed it a draft later without touching this page.
-  const sections = { proof: PROOF_PRIMARY, recognition: RECOGNITION, philosophy: PHILOSOPHY };
+  const sections = { proof: PROOF_PRIMARY };
 
   // After a tab switch, whatever lands under the stationary cursor must NOT
   // light up: freeze card hover until the mouse genuinely moves (>3px).
@@ -503,83 +458,34 @@ function TabContent({
                   <p key={i}>{renderSegments(line)}</p>
                 ))}
               </div>
-              <p className="hn-closing-line" data-reveal>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Preserve the game, replace the constraints">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
                 Preserve the game. Replace the constraints.
-              </p>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="Recompile, run, extend">
-            <div className="hn-container">
-              <h2 className="hn-h2" data-reveal>
-                Recompile. Run. Extend.
               </h2>
-              <ol className="hn-philosophy">
-                {PILLARS.map((c, i) => (
-                  <li className="hn-phil-row" key={i} data-reveal>
-                    <span className="hn-phil-num">
-                      {String(i + 1).padStart(2, "0")}
+              <div className="hn-proof" data-reveal>
+                <p>{CONSTRAINTS_INTRO}</p>
+              </div>
+              <div className="story-grid">
+                {STORIES.map((st) => (
+                  <figure className="story-card" data-reveal key={st.title}>
+                    <span className="media-card-frame">
+                      <img src={st.image} alt={st.alt} width={1280} height={720} loading="lazy" decoding="async" />
                     </span>
-                    <span className="hn-phil-text">
-                      <strong>{c.title}.</strong> {c.body}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="From console feature to modern capability">
-            <div className="hn-container">
-              <h2 className="hn-h2" data-reveal>
-                From console feature to modern capability.
-              </h2>
-              <ol className="hn-philosophy">
-                {TRANSFORMS.map((c, i) => (
-                  <li className="hn-phil-row" key={i} data-reveal>
-                    <span className="hn-phil-num">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="hn-phil-text">
-                      <strong>{c.title}.</strong> {c.body}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </section>
-
-          {DEMOS.map((d) => (
-            <DemoBlock key={d.videoId} demo={d} />
-          ))}
-
-          <section className="hn-section" aria-label="See it in action" id="action">
-            <div className="hn-container">
-              <h2 className="hn-h2" data-reveal>
-                See it in action
-              </h2>
-              <div className="tv-grid tv-strip">
-                {VIDEOS.slice(0, 4).map((v) => (
-                  <VideoCard key={v.href} title={v.title} channel={v.channel} href={v.href} />
+                    <figcaption>
+                      <span className="media-card-title">{st.title}</span>
+                      <span className="media-card-blurb">{st.body}</span>
+                      <span className="media-card-credit">{st.credit}</span>
+                    </figcaption>
+                  </figure>
                 ))}
               </div>
-              <dl className="hn-recognition" data-reveal>
-                {RECOGNITION.map((group) => (
-                  <div className="hn-rec-row" key={group.label}>
-                    <dt className="hn-rec-label">{group.label}</dt>
-                    <dd className="hn-rec-items">
-                      {group.items.map((it, i) => (
-                        <Fragment key={it.text}>
-                          {i > 0 && <span className="hn-rec-sep">·</span>}
-                          <SmartLink href={it.href} className="hn-rec-link">
-                            {it.text}
-                          </SmartLink>
-                        </Fragment>
-                      ))}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+              <p className="hn-note" data-reveal>
+                <strong>{PLATFORM_NOTE.title}</strong> {PLATFORM_NOTE.body}
+              </p>
             </div>
           </section>
 
@@ -591,17 +497,42 @@ function TabContent({
                 count={GAMES.length}
                 onNav={onNav}
               />
-              <div className="tv-grid tv-strip">
-                {labGames.slice(0, 6).map((m) => (
-                  <SpatialCard
-                    key={`${m.kind}-${m.slug}`}
-                    media={m}
-                    onOpen={onOpen}
-                    still={!interactive}
+              <div className="story-grid story-grid--four">
+                {FEATURED.map((fp) => (
+                  <FeaturedCard
+                    key={fp.slug}
+                    slug={fp.slug}
+                    capability={fp.capability}
+                    cover={fp.cover}
+                    alt={fp.alt}
+                    onActivate={() => onOpen({ kind: "game", slug: fp.slug } as LabMedia)}
                   />
                 ))}
               </div>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="See it in action" id="action">
+            <div className="hn-container">
+              <h2 className="hn-h2" data-reveal>
+                See it in action
+              </h2>
+              <div className="story-grid story-grid--four">
+                {ACTION.map((card) => (
+                  <MediaCard key={card.href} card={card} />
+                ))}
+              </div>
               <p className="hn-index-links" data-reveal>
+                <SmartLink href="/blog" className="hn-rec-link">
+                  See all news and coverage
+                </SmartLink>
+              </p>
+            </div>
+          </section>
+
+          <section className="hn-section" aria-label="Browse the catalogs">
+            <div className="hn-container" data-reveal>
+              <p className="hn-index-links">
                 Browse the full catalogs:{" "}
                 <SmartLink href="/games" className="hn-rec-link">
                   all {GAMES.length} projects
@@ -611,40 +542,14 @@ function TabContent({
                   all {HARDWARE.length} platforms
                 </SmartLink>{" "}
                 ·{" "}
-                <SmartLink href="/blog" className="hn-rec-link">
-                  news and coverage
+                <SmartLink href="https://github.com/mstan" className="hn-rec-link">
+                  the source on GitHub
                 </SmartLink>
               </p>
-            </div>
-          </section>
-
-          <section className="hn-section hn-closing">
-            <div className="hn-container" data-reveal>
-              <p className="hn-closing-line">
-                Old games. New possibilities.
+              <p className="hn-note">
+                You provide your own game files. No copyrighted game data is
+                included.
               </p>
-              <p className="hn-closing-sub" data-reveal>
-                Retro Porting Toolkit is open source and experimental. If you
-                care about emulation, reverse engineering, compilers, graphics,
-                netcode, modding, or just one classic game, there is a place to
-                start.
-              </p>
-              <div className="hn-cta-row">
-                <a
-                  className="hn-cta"
-                  href="https://github.com/mstan"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Explore the project on GitHub
-                </a>
-                {about.email && (
-                  <a className="hn-cta hn-cta--ghost" href={`mailto:${about.email}`}>
-                    <MailIcon />
-                    Get in touch
-                  </a>
-                )}
-              </div>
             </div>
           </section>
         </>

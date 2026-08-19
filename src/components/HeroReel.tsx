@@ -59,6 +59,7 @@ export function HeroReel({ still = false }: { still?: boolean }) {
   // it does not suppress the video itself.
   const live = !still;
   const [playing, setPlaying] = useState(false);
+  const [userPaused, setUserPaused] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Autoplay can be denied (Low Power Mode, data saver, hidden tab). Retry on
@@ -91,8 +92,8 @@ export function HeroReel({ still = false }: { still?: boolean }) {
   }, [live, playing]);
 
   return (
-    <div className="hn-hero-reel" aria-hidden="true">
-      <div className="hn-collage">
+    <div className="hn-hero-reel">
+      <div className="hn-collage" aria-hidden="true">
         {Array.from({ length: TILES }, (_, i) => {
           // tile i updates on ticks where tick % TILES === i
           const updates = Math.floor((tick + (TILES - 1 - i)) / TILES);
@@ -103,7 +104,7 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           coverage footage (used with the channel's permission), self-hosted in
           /public/previews. It fades in over the collage once it actually
           plays, so a slow network or blocked autoplay still shows gameplay. */}
-      {live && (
+      {live && !userPaused && (
         <video
           ref={videoRef}
           className={"hn-reel-canvas" + (playing ? " is-playing" : "")}
@@ -123,6 +124,29 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           <source src="/previews/hero-montage.webm" type="video/webm" />
           <source src="/previews/hero-montage.mp4" type="video/mp4" />
         </video>
+      )}
+      {live && (
+        <button
+          type="button"
+          className="hn-reel-pause"
+          aria-label={userPaused ? "Play background video" : "Pause background video"}
+          aria-pressed={userPaused}
+          onClick={() => {
+            setUserPaused((p) => !p);
+            setPlaying(false);
+          }}
+        >
+          {userPaused ? (
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <path d="M4.5 2.8v10.4L13 8z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+              <rect x="3.5" y="2.8" width="3.2" height="10.4" rx="1" />
+              <rect x="9.3" y="2.8" width="3.2" height="10.4" rx="1" />
+            </svg>
+          )}
+        </button>
       )}
     </div>
   );

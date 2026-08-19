@@ -378,7 +378,7 @@ function itemListHtml(items, kind) {
 // shell, mirroring the runtime parse in src/lib/homeContent.tsx.
 function readHomeProse() {
   const file = path.join(ROOT, "data", "home.json");
-  const out = { proof: [], recognition: [], philosophy: [], videos: [], capabilities: [], pillars: [], transforms: [], thesis: [], demos: [] };
+  const out = { proof: [], recognition: [], philosophy: [], constraintsIntro: "", stories: [], platformNote: null, featured: [], action: [] };
   if (!fs.existsSync(file)) return out;
   let data;
   try {
@@ -397,24 +397,32 @@ function readHomeProse() {
     items: (g.items || []).map((it) => it.text),
   }));
   out.philosophy = data.philosophy || [];
-  out.videos = (data.videos || []).map((v) => ({
-    title: String(v.title || ""),
-    channel: String(v.channel || ""),
-    href: String(v.href || ""),
+  out.constraintsIntro = String(data.constraintsIntro || "");
+  out.stories = (data.stories || []).map((e) => ({
+    title: String(e.title || ""),
+    body: String(e.body || ""),
+    image: String(e.image || ""),
+    alt: String(e.alt || ""),
+    credit: String(e.credit || ""),
   }));
-  const titled = (list) =>
-    (list || []).map((e) => ({ title: String(e.title || ""), body: String(e.body || "") }));
-  out.capabilities = titled(data.capabilities);
-  out.pillars = titled(data.pillars);
-  out.transforms = titled(data.transforms);
-  out.thesis = (data.thesis || []).map(String);
-  out.demos = (data.demos || []).map((d) => ({
-    title: String(d.title || ""),
-    lead: String(d.lead || ""),
-    videoId: String(d.videoId || ""),
-    videoTitle: String(d.videoTitle || ""),
-    channel: String(d.channel || ""),
-    caption: String(d.caption || ""),
+  out.platformNote = data.platformNote
+    ? { title: String(data.platformNote.title || ""), body: String(data.platformNote.body || "") }
+    : null;
+  out.featured = (data.featured || []).map((e) => ({
+    slug: String(e.slug || ""),
+    capability: String(e.capability || ""),
+    cover: String(e.cover || ""),
+    alt: String(e.alt || ""),
+    credit: String(e.credit || ""),
+  }));
+  out.action = (data.action || []).map((e) => ({
+    videoTitle: String(e.videoTitle || ""),
+    project: String(e.project || ""),
+    creator: String(e.creator || ""),
+    href: String(e.href || ""),
+    poster: String(e.poster || ""),
+    alt: String(e.alt || ""),
+    blurb: String(e.blurb || ""),
   }));
   return out;
 }
@@ -428,65 +436,93 @@ function homeStaticHtml(items) {
     `<p>${escapeHtml(about.tagline || "")}</p>`,
     ...(about.bio ? [mdToHtml(about.bio)] : []),
   ];
-  const titledList = (title, list) => {
-    if (!list.length) return;
-    parts.push(
-      `<h2>${title}</h2><ul>` +
-        list
-          .map((e) => `<li><strong>${escapeHtml(e.title)}.</strong> ${escapeHtml(e.body)}</li>`)
-          .join("") +
-        "</ul>",
-    );
-  };
-  
   parts.push("<h2>A different path from emulation.</h2>");
   parts.push(...prose.proof.map((t) => `<p>${escapeHtml(t)}</p>`));
-  parts.push("<p><strong>Preserve the game. Replace the constraints.</strong></p>");
-  titledList("Recompile. Run. Extend.", prose.pillars);
-  if (prose.thesis.length) {
-    parts.push("<h2>One improvement can help many games.</h2>");
-    parts.push(...prose.thesis.map((t) => `<p>${escapeHtml(t)}</p>`));
-  }
-  titledList("From console feature to modern capability.", prose.transforms);
-  for (const d of prose.demos) {
-    parts.push(`<h2>${escapeHtml(d.title)}</h2>`);
-    parts.push(`<p>${escapeHtml(d.lead)}</p>`);
+  parts.push("<h2>Preserve the game. Replace the constraints.</h2>");
+  if (prose.constraintsIntro) parts.push(`<p>${escapeHtml(prose.constraintsIntro)}</p>`);
+  if (prose.stories.length) {
     parts.push(
-      `<p><a href="https://www.youtube.com/watch?v=${escapeAttr(d.videoId)}">${escapeHtml(d.videoTitle)}</a> (${escapeHtml(d.channel)})</p>`,
-    );
-    parts.push(`<p>${escapeHtml(d.caption)}</p>`);
-  }
-  if (prose.recognition.length) {
-    parts.push("<h2>See it in action</h2><ul>");
-    for (const g of prose.recognition)
-      parts.push(
-        `<li>${escapeHtml(g.label)}: ${escapeHtml(g.items.join(", "))}</li>`,
-      );
-    parts.push("</ul>");
-  }
-  if (prose.videos.length) {
-    parts.push(
-      "<h2>Videos</h2><ul>" +
-        prose.videos
-          .map(
-            (v) =>
-              `<li><a href="${escapeAttr(v.href)}">${escapeHtml(v.title)}</a> (${escapeHtml(v.channel)})</li>`,
-          )
+      "<ul>" +
+        prose.stories
+          .map((st) => `<li><strong>${escapeHtml(st.title)}</strong> ${escapeHtml(st.body)}</li>`)
           .join("") +
         "</ul>",
     );
   }
-  const featured = items.filter((i) => i.kind === "game" && i.featured).slice(0, 6);
+  if (prose.platformNote) {
+    parts.push(
+      `<p><strong>${escapeHtml(prose.platformNote.title)}</strong> ${escapeHtml(prose.platformNote.body)}</p>`,
+    );
+  }
+  if (prose.featured.length) {
+    parts.push("<h2>Featured projects</h2><ul>");
+    for (const fp of prose.featured) {
+      const item = items.find((i) => i.kind === "game" && i.slug === fp.slug);
+      parts.push(
+        `<li><a href="/games/${escapeAttr(fp.slug)}">${escapeHtml(item ? item.title : fp.slug)}</a>: ${escapeHtml(fp.capability)}</li>`,
+      );
+    }
+    parts.push("</ul>");
+  }
+  if (prose.action.length) {
+    parts.push("<h2>See it in action</h2><ul>");
+    for (const c of prose.action) {
+      parts.push(
+        `<li><a href="${escapeAttr(c.href)}">${escapeHtml(c.videoTitle)}</a> (${escapeHtml(c.creator)}): ${escapeHtml(c.blurb)}</li>`,
+      );
+    }
+    parts.push("</ul>");
+    parts.push(`<p><a href="/blog">See all news and coverage</a></p>`);
+  }
   parts.push(
-    "<h2>Featured projects</h2><ul>" +
-      featured
-        .map((i) => `<li><a href="/games/${i.slug}">${escapeHtml(i.title)}</a>${i.desc ? `: ${escapeHtml(i.desc)}` : ""}</li>`)
-        .join("") +
-      "</ul>",
-    `<p><a href="/games">All game projects</a> · <a href="/hardware">All platforms</a> · <a href="/blog">News and coverage</a></p>`,
+    `<p><a href="/games">All game projects</a> · <a href="/hardware">All platforms</a></p>`,
     `<p>You provide your own game files. No copyrighted game data is included.</p>`,
   );
   return wrapStatic(parts.join("\n"));
+}
+
+// Build-time validation for the homepage media system: a missing or duplicate
+// cover is a build failure, never a silently empty card.
+function validateHomeMedia(items) {
+  const prose = readHomeProse();
+  const problems = [];
+  const seen = new Map();
+  const need = (cond, msg) => {
+    if (!cond) problems.push(msg);
+  };
+  const checkAsset = (p, what) => {
+    need(p, `${what}: missing image path`);
+    if (!p) return;
+    if (p.startsWith("/")) {
+      need(fs.existsSync(path.join(PUBLIC_DIR, p.slice(1))), `${what}: asset not found in public${p}`);
+    }
+    const prior = seen.get(p);
+    if (prior) problems.push(`duplicate cover ${p} used by both ${prior} and ${what}`);
+    seen.set(p, what);
+  };
+  for (const st of prose.stories) {
+    checkAsset(st.image, `story "${st.title}"`);
+    need(st.alt, `story "${st.title}": missing alt`);
+    need(st.credit, `story "${st.title}": missing credit`);
+  }
+  need(prose.featured.length === 4, `featured: expected 4 entries, found ${prose.featured.length}`);
+  for (const fp of prose.featured) {
+    const item = items.find((i) => i.kind === "game" && i.slug === fp.slug);
+    need(item, `featured "${fp.slug}": no such game page`);
+    checkAsset(fp.cover, `featured "${fp.slug}"`);
+    need(fp.alt, `featured "${fp.slug}": missing alt`);
+    need(fp.capability, `featured "${fp.slug}": missing capability line`);
+  }
+  need(prose.action.length > 0 && prose.action.length <= 4, `action: expected 1-4 cards, found ${prose.action.length}`);
+  for (const c of prose.action) {
+    checkAsset(c.poster, `action "${c.videoTitle}"`);
+    need(/^https:\/\//.test(c.href), `action "${c.videoTitle}": href must be https`);
+    need(c.creator, `action "${c.videoTitle}": missing creator attribution`);
+    need(c.alt, `action "${c.videoTitle}": missing alt`);
+  }
+  if (problems.length) {
+    throw new Error("Homepage media validation failed:\n  - " + problems.join("\n  - "));
+  }
 }
 
 function itemStaticHtml(item) {
@@ -666,6 +702,7 @@ function collectTopics() {
 // the tunnel host in dev), so shared links embed correctly everywhere.
 export function buildRouteMeta(origin) {
   const items = collectItems();
+  validateHomeMedia(items);
   const out = new Map();
   const defaultImage = DEFAULT_OG ? `${origin}${DEFAULT_OG}` : undefined;
   const add = (route, meta) =>

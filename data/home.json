@@ -1,48 +1,6 @@
 {
   "proof": [
-    "Emulators recreate a console so they can run its library. Static recompilation, the approach behind this toolkit, rebuilds one game at a time: the game's original CPU code is translated ahead of time into code compiled for modern systems, producing a native app. It trades broad compatibility for deeper control over rendering, input, networking, and game behavior. The two approaches complement each other, and this project builds on decades of knowledge from the emulation community.",
-    "A remaster is a new production. A source port needs source code or a long reverse-engineering effort for one title. An emulator reproduces the machine. Recompilation sits in its own spot: keep the original game logic, and swap the constraints around it."
-  ],
-  "recognition": [
-    {
-      "label": "Press",
-      "items": [
-        {
-          "text": "Time Extension on OpenPete + PSXRecomp",
-          "href": "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp"
-        },
-        {
-          "text": "Notebookcheck on Pepsiman in the browser",
-          "href": "https://www.notebookcheck.net/A-recompiled-version-of-Pepsiman-lets-you-play-the-PS1-cult-classic-natively-in-your-browser-at-60-FPS.1354060.0.html"
-        },
-        {
-          "text": "retro-gamer.jp on Twisted Metal 4",
-          "href": "https://retro-gamer.jp/?p=45562"
-        }
-      ]
-    },
-    {
-      "label": "Video",
-      "items": [
-        {
-          "text": "Video Game Esoterica",
-          "href": "https://www.youtube.com/watch?v=sbqPnJhb3uk"
-        },
-        {
-          "text": "Save states & rewind showcase",
-          "href": "https://www.youtube.com/watch?v=L36ppNkuJG0"
-        }
-      ]
-    },
-    {
-      "label": "Writing",
-      "items": [
-        {
-          "text": "1379.tech, the team's technical blog",
-          "href": "https://1379.tech"
-        }
-      ]
-    }
+    "Emulators recreate a console so they can run its library. Retro Porting Toolkit takes a different route: it recompiles one game at a time, preserving the original game logic while replacing the hardware constraints around it. That trades broad compatibility for deeper control over rendering, input, networking, and behavior, and it builds directly on decades of knowledge from the emulation community."
   ],
   "philosophy": [
     "Go native. Windows, Linux, macOS, Android, even the browser. No emulator core in sight.",
@@ -52,119 +10,100 @@
     "Change the words. Runtime text replacement powers Tsumu Light's English fan translation and NES text overrides.",
     "Play together. Shared netplay, rollback, save states, and rewind (recomp-net and retcomm-rbengine) that every ecosystem can pick up."
   ],
-  "videos": [
+  "constraintsIntro": "The goal is not simply to make old games run. It is to reconnect their original logic to modern systems in ways the original hardware could never support.",
+  "stories": [
     {
-      "title": "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD",
-      "channel": "Video Game Esoterica",
-      "href": "https://www.youtube.com/watch?v=aITjH0LoEeA"
+      "title": "Cartridges become modern sensors.",
+      "body": "The tilt sensor in WarioWare: Twisted! can map to a phone gyroscope. Boktai's solar sensor can use real local weather.",
+      "image": "/covers/warioware-sensors.jpg",
+      "alt": "WarioWare: Twisted! running through GBARecomp",
+      "credit": "Screenshot: gbarecomp project"
     },
     {
-      "title": "SMW character replacement test",
-      "channel": "Gamemaster1379",
-      "href": "https://www.youtube.com/watch?v=Owuku0zj4As"
+      "title": "Link cables become online play.",
+      "body": "Games designed around a console-to-console link can keep their original multiplayer logic while the runtime carries the connection over a LAN or the internet.",
+      "image": "/covers/mph-online.jpg",
+      "alt": "Metroid Prime Hunters running through the DS recompiler with experimental online play",
+      "credit": "Capture: Gamemaster1379"
     },
     {
-      "title": "Metroid Prime Hunters Recomp Out NOW! Metroid PC Port is Here",
-      "channel": "Video Game Esoterica",
-      "href": "https://www.youtube.com/watch?v=FFUglxqa_eI"
-    },
-    {
-      "title": "PSXRecomp Tomba 1 Save States & Rewind Showcase",
-      "channel": "Gamemaster1379",
-      "href": "https://www.youtube.com/watch?v=L36ppNkuJG0"
-    },
-    {
-      "title": "Metroid Prime Hunters 21:9 + Mouse & Keyboard First Look",
-      "channel": "Gamemaster1379",
-      "href": "https://www.youtube.com/watch?v=tvqnW6J6KU0"
-    },
-    {
-      "title": "Mega Man X4 Recomp is Out Now! The BEST Mega Man on PS1",
-      "channel": "Video Game Esoterica",
-      "href": "https://www.youtube.com/watch?v=Rbh5wKb112A"
-    },
-    {
-      "title": "Tomba Recomp is Out Now! A PS1 Recomp Updated",
-      "channel": "Video Game Esoterica",
-      "href": "https://www.youtube.com/watch?v=sbqPnJhb3uk"
-    },
-    {
-      "title": "Mega Man X6 Recomp is Out Now! ANOTHER PS1 Recomp",
-      "channel": "Video Game Esoterica",
-      "href": "https://www.youtube.com/watch?v=IXMHXC2BLSc"
-    },
-    {
-      "title": "Mega Man X Recomp is Out Now! A SNES Recomp",
-      "channel": "Video Game Esoterica",
-      "href": "https://www.youtube.com/watch?v=XRwKZ0_8u-c"
-    },
-    {
-      "title": "PSXRecomp Static Decompiler Test | Tomba! (USA)",
-      "channel": "Gamemaster1379",
-      "href": "https://www.youtube.com/watch?v=CID9oVhgCyY"
+      "title": "The game becomes extensible.",
+      "body": "Runtime translation, opt-in mod loaders, and behavior-level character replacement can change what a game does without altering the original game file.",
+      "image": "/covers/smw-extensible.jpg",
+      "alt": "Super Mario World running with a replacement character",
+      "credit": "Capture: Gamemaster1379"
     }
   ],
-  "capabilities": [],
-  "pillars": [
+  "platformNote": {
+    "title": "One improvement can help many games.",
+    "body": "These are not isolated one-off patches. Because capabilities live in shared platform runtimes, work done for one game can often make the next game easier."
+  },
+  "featured": [
     {
-      "title": "Recompile",
-      "body": "Translate the game's original CPU code ahead of time for modern systems."
+      "slug": "super-mario-bros",
+      "capability": "First-person voxel 3D, an opt-in remix of the original engine",
+      "cover": "/covers/smb-voxel.jpg",
+      "alt": "Super Mario Bros. rendered in first-person voxel 3D",
+      "credit": "Capture: 1379.tech"
     },
     {
-      "title": "Run",
-      "body": "Provide the graphics, audio, input, storage, and other console services the game expects."
+      "slug": "minish-cap",
+      "capability": "Adaptive widescreen that genuinely widens the view",
+      "cover": "/covers/minish-cap.jpg",
+      "alt": "The Minish Cap in adaptive widescreen",
+      "credit": "Screenshot: gbarecomp project"
     },
     {
-      "title": "Extend",
-      "body": "Add optional widescreen, modern controls, multiplayer, mods, translations, and other capabilities, where a project supports them."
+      "slug": "mega-man-x6",
+      "capability": "203 configurable mod items from an authorized adaptation",
+      "cover": "/covers/mmx6-mods.jpg",
+      "alt": "Mega Man X6 gameplay through PSXRecomp",
+      "credit": "Footage: Video Game Esoterica, with permission"
+    },
+    {
+      "slug": "tomba",
+      "capability": "Save states and rewind on the game that started PSXRecomp",
+      "cover": "/covers/tomba-gameplay.jpg",
+      "alt": "Tomba! gameplay through PSXRecomp",
+      "credit": "Capture: Gamemaster1379"
     }
   ],
-  "thesis": [],
-  "transforms": [
+  "action": [
     {
-      "title": "Link cable becomes network play",
-      "body": "Some PlayStation games connected two consoles with a serial cable. Reimplement that transport, and the same game logic can travel over a LAN or the internet while the game still believes it is talking to another console."
-    },
-    {
-      "title": "Fixed viewport becomes true widescreen",
-      "body": "Understand how a game builds its camera and projection instead of stretching the final image. Demonstrated up to 21:9 in several projects."
-    },
-    {
-      "title": "Cartridge sensors become modern data",
-      "body": "WarioWare: Twisted! reads a phone's gyroscope instead of its tilt cartridge. Boktai's solar sensor can be driven by real local weather."
-    },
-    {
-      "title": "Text becomes translatable, games become moddable",
-      "body": "Runtime text replacement powers an English fan translation of Tsumu Light without patching the original image, and opt-in mod loaders never modify your dump."
-    },
-    {
-      "title": "One improvement can help many games",
-      "body": "These transformations are built into the platform tooling, not into a single title. Once a display, input, or networking path exists for a platform, compatible games can often reuse it: every new game strengthens the tooling, and every platform improvement makes the next game easier."
-    }
-  ],
-  "demos": [
-    {
-      "title": "Five minutes from disc to modern hardware.",
-      "lead": "Street Fighter Alpha 3, analyzed and recompiled with PSXRecomp. Approximately five minutes of game-specific setup reached a running native build; the polish that follows is the usual per-game work.",
-      "videoId": "aITjH0LoEeA",
       "videoTitle": "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD",
-      "channel": "Video Game Esoterica",
-      "steps": [
-        "Original game",
-        "Analyze",
-        "Recompile",
-        "Run"
-      ],
-      "caption": "Street Fighter Alpha 3 through Retro Porting Toolkit: about five minutes of game-specific setup to a running native build, not five minutes to a finished port. Independent coverage by Video Game Esoterica."
+      "project": "Street Fighter Alpha 3",
+      "creator": "Video Game Esoterica",
+      "href": "https://www.youtube.com/watch?v=aITjH0LoEeA",
+      "poster": "/covers/sfa3-setup.jpg",
+      "alt": "Street Fighter Alpha 3 recompilation coverage",
+      "blurb": "About five minutes of game-specific setup reached a running native build. The polish that follows is the usual per-game work."
     },
     {
-      "title": "Change the game.",
-      "lead": "Replace Mario with another character. Not a sprite swap: different movement, abilities, animation, and sound, integrated into the original Super Mario World.",
-      "videoId": "Owuku0zj4As",
-      "videoTitle": "SMW character replacement test",
-      "channel": "Gamemaster1379",
-      "steps": [],
-      "caption": "Super Mario World's experimental character catalog (from the v0.11.0 release) running through SNESRecomp. Same game. New possibilities."
+      "videoTitle": "2026 08 10 SMW Test",
+      "project": "Super Mario World",
+      "creator": "Gamemaster1379",
+      "href": "https://www.youtube.com/watch?v=Owuku0zj4As",
+      "poster": "/covers/smw-character.jpg",
+      "alt": "Super Mario World with a behavior-level replacement character",
+      "blurb": "Behavior-level character replacement: movement, abilities, animation, and sound change, not just the sprite."
+    },
+    {
+      "videoTitle": "2026 08 09 Metroid Prime Hunters NDS recompiled, 21:9 M&KB first look",
+      "project": "Metroid Prime Hunters",
+      "creator": "Gamemaster1379",
+      "href": "https://www.youtube.com/watch?v=tvqnW6J6KU0",
+      "poster": "/covers/mph-2119.jpg",
+      "alt": "Metroid Prime Hunters at 21:9 with mouse and keyboard",
+      "blurb": "21:9 output and mouse and keyboard controls on the DS shooter."
+    },
+    {
+      "videoTitle": "PSXRecomp Tomba 1 Save States & Rewind Showcase",
+      "project": "Tomba!",
+      "creator": "Gamemaster1379",
+      "href": "https://www.youtube.com/watch?v=L36ppNkuJG0",
+      "poster": "/covers/tomba-rewind.jpg",
+      "alt": "Tomba! with the rewind timeline open",
+      "blurb": "Save states and rewind, driven by the shared rollback machinery."
     }
   ]
 }

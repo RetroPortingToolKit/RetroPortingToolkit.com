@@ -1,5 +1,31 @@
 # Working notes
 
+## Homepage pass 2 (2026-08-18, owner-directed simplification)
+
+Section order: hero (reel + pause control) > A different path from emulation
+(ONE paragraph) > Preserve the game. Replace the constraints. (intro + three
+image-backed capability stories + shared-platform prose note) > Featured
+projects (4 covered cards from home.json `featured`, metadata from the game
+items) > See it in action (4 MediaCards from home.json `action`) > catalog
+links + ownership notice. Removed from home: Recompile. Run. Extend.; the
+remaster/source-port comparison paragraph (parked here below, destined for a
+future About/how-it-compares page); the transforms list; standalone SFA3/SMW
+demo sections; the separate Videos list; the press-links block; the closing
+manifesto block.
+
+Retired paragraph (for a future About/glossary page):
+"A remaster is a new production. A source port needs source code or a long
+reverse-engineering effort for one title. An emulator reproduces the machine.
+Recompilation sits in its own spot: keep the original game logic, and swap the
+constraints around it."
+
+Cover system: /public/covers/* (16:9, 1280x720). Sources: gbarecomp repo
+screenshots (WarioWare, Minish Cap), team capture frames (SMW, SMB voxel,
+Tomba, Prime Hunters, Mega Man X6 from permitted VGE footage), and the SFA3
+video's published maxres thumbnail. validateHomeMedia() in
+scripts/vite-prerender.mjs fails the build on missing/duplicate covers, missing
+alts/credits, non-https video links, or a featured slug without a page.
+
 ## Homepage thesis rework (2026-08-18, owner-directed)
 
 Home now sells "Preserve the game. Replace the constraints." (owner's outline):
