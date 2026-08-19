@@ -129,10 +129,6 @@
       "body": "Some PlayStation games connected two consoles with a serial cable. Reimplement that transport, and the same game logic can travel over a LAN or the internet while the game still believes it is talking to another console."
     },
     {
-      "title": "Original controllers become modern input",
-      "body": "Map a game's original input model onto today's gamepads, keyboard and mouse, or accessibility hardware, with remapping."
-    },
-    {
       "title": "Fixed viewport becomes true widescreen",
       "body": "Understand how a game builds its camera and projection instead of stretching the final image. Demonstrated up to 21:9 in several projects."
     },
