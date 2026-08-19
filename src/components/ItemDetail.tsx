@@ -70,7 +70,96 @@ function VideoHero({ item }: { item: Item }) {
   );
 }
 
+// News video pages use the ramine.net talk layout: a viewport-capped stage
+// with the title, channel and date, and the description all visible below it
+// without scrolling. Click-to-play; videos are embedded, never re-hosted.
+function VideoDetail({ item }: { item: Item }) {
+  const [playing, setPlaying] = useState(false);
+  const id = item.videoUrl?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+  if (!id) return null;
+  const fallbackPoster = item.cover || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const meta = [item.venue, formatArticleDate(item.date || item.year)]
+    .filter(Boolean)
+    .join(" · ");
+  return (
+    <div className="modal-body modal-body--blog">
+      <div className="talk-detail">
+        <div className="talk-detail-stage">
+          {playing ? (
+            <iframe
+              className="talk-detail-iframe"
+              src={`https://www.youtube.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1`}
+              title={item.title}
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <button
+              type="button"
+              className="video-hero-poster"
+              onClick={() => setPlaying(true)}
+              aria-label={`Play video: ${item.title}`}
+            >
+              <img
+                className="talk-detail-cover"
+                src={`https://i.ytimg.com/vi/${id}/maxresdefault.jpg`}
+                onError={(e) => {
+                  if (e.currentTarget.src !== fallbackPoster) {
+                    e.currentTarget.src = fallbackPoster;
+                  }
+                }}
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <span className="media-card-play" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="52" height="52" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)" />
+                  <path d="M9.8 7.5v9l7-4.5z" fill="#fff" />
+                </svg>
+              </span>
+            </button>
+          )}
+        </div>
+        <div className="talk-detail-meta">
+          <h1 className="talk-detail-title">{item.title}</h1>
+          {(meta || item.videoUrl) && (
+            <div className="talk-detail-date">
+              {meta}
+              {item.videoUrl && (
+                <>
+                  {meta ? " · " : ""}
+                  <a
+                    href={item.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Watch on YouTube <span className="ext">↗</span>
+                  </a>
+                </>
+              )}
+            </div>
+          )}
+          {item.body && (
+            <Markdown className="talk-detail-desc">{item.body}</Markdown>
+          )}
+        </div>
+        <AdjacentItems item={item} />
+      </div>
+    </div>
+  );
+}
+
 export function ItemDetail({ item }: Props) {
+  // News videos read like ramine.net talks: player on top, title and
+  // description right below.
+  if (
+    item.kind === "blog" &&
+    item.kicker === "Video" &&
+    isYouTubeSrc(item.videoUrl)
+  ) {
+    return <VideoDetail item={item} />;
+  }
   // Blog: split entries render two-pane in BOTH modal and page (a live demo
   // deserves the full page). Everything else reads as an article.
   if (item.kind === "blog" && blogIsSplit(item)) {
