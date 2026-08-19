@@ -121,10 +121,6 @@
     {
       "title": "Modding",
       "body": "Expose game data and behavior for characters, assets, rules, levels, and entirely new experiences."
-    },
-    {
-      "title": "Quality of life",
-      "body": "Save states, rewind, faster loading, debugging, and accessibility improvements."
     }
   ],
   "pillars": [
