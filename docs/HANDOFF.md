@@ -95,5 +95,28 @@ exist publicly (only xboxlle-probe).
 - Withheld as non-public by request: Mario Kart DS, SM64DS, Pokemon Black (NDS),
   Rocket Knight Adventures (Genesis). Super Metroid repo is public but early; mentioned
   on the SNES page without its own page.
-- No screenshots/video captures exist in-repo; all pages are text-only until the team
-  supplies media (drop into item folders and reference via `cover:`/`gallery:`).
+- 2026-08-19: screenshots harvested from the project repos (mstan/psxrecomp,
+  snesrecomp, gbarecomp, per-game repos) now live in the item folders and are
+  referenced via `cover:`/`gallery:`. Platforms without authentic media (Genesis,
+  GameCube, Xbox) still use generated cover art. The ndsrecomp showcase images for
+  non-public projects (MKDS, SM64DS) were deliberately NOT used.
+
+
+## News model (2026-08-19)
+
+- News is one blended chronological list (folder NN = date-desc rank), no groups.
+  Filter chips All / News / Videos in the blog TabGrid; "Videos" = kicker "Video".
+- Each video is its own internal page (kicker "Video", venue = channel,
+  cover = ytimg thumb, videoUrl) with a click-to-play YouTube embed; videos are
+  embedded, never re-hosted. Original upload titles are kept as a provenance line
+  in the body; page titles are editorial.
+- Bylines: press and video entries credit their venue, not the site author; the
+  team sign-off end card renders only on 1379.tech articles.
+- All in-body and frontmatter YouTube watch links on game/platform pages point to
+  the internal video pages; external attribution lives on those pages.
+
+## Known wart
+
+- `scripts/optimize-media.mjs` is referenced by the CMS upload path
+  (scripts/cms-dev.mjs doUpload) but does not exist in the repo, so CMS media
+  uploads will fail at the processing step. Not touched this session.
