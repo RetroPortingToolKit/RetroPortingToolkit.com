@@ -3,7 +3,7 @@ title: "Street Fighter Alpha 3"
 kicker: "PlayStation"
 tags: ["Community"]
 featured: true
-desc: "One of PlayStation's great fighters, recompiled and running as a native app, with about five minutes of game-specific work behind it."
+desc: "One of PlayStation's great fighters running as a native app, with about five minutes of game-specific work behind it."
 year: "2026"
 status: "Released"
 availability: "No public release"
@@ -19,11 +19,11 @@ gallery:
   - { src: "/covers/sfa3-setup.jpg", caption: "From a fresh Windows install to first boot" }
 ---
 
-An independent recompilation of Street Fighter Alpha 3 built with [PSXRecomp](/hardware/playstation) as the decoder. It is the toolkit's headline example of how little game-specific work a mature ecosystem needs: the team cites roughly five minutes from disc to a running native build.
+An independent recompilation of Street Fighter Alpha 3 built on [PSXRecomp](/hardware/playstation). It matters less for what it changes than for what it proves: the team cites roughly five minutes of game-specific work from disc to a running native build. That is what a mature recompilation ecosystem looks like, when bringing over a new game stops being a project and starts being an afternoon.
 
 ## Can I play it?
 
-The release exists per coverage: Video Game Esoterica's video "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD" (2026) shows it running as a native app. A public repository has not been identified yet, so this site links the video rather than a download; the video is the reference for what is shown running.
+Not yet from anywhere this site can point to. The release exists: Video Game Esoterica's coverage, [Street Fighter Alpha 3 Recomp is out now](/blog/video-sfa3-recomp-out-now), shows it running as a native app. But no public repository or download has been identified, so the video stands as the reference for what is shown running.
 
 ## Sources
 

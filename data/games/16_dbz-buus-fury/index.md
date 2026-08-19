@@ -11,22 +11,26 @@ provenance: "core"
 platform: "game-boy-advance"
 repo: "https://github.com/mstan/DragonBallZBuusFuryRecomp"
 group: "Game Boy Advance"
-links:
-  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/DragonBallZBuusFuryRecomp" }
 verified: "2026-08-18"
 cover: "./buus-fury-adaptive.webp"
 ---
 
-Dragon Ball Z: Buu's Fury is one of the Dragon Ball Z titles in the [GBARecomp](/hardware/game-boy-advance) lineup, maintained as a core project.
+Dragon Ball Z: Buu's Fury is one of the Dragon Ball Z titles in the [GBARecomp](/hardware/game-boy-advance) lineup, maintained as a core project. Its widescreen mode does the honest version of the trick: instead of stretching the picture, it streams in more of the authored world at the sides as you widen the window.
 
 ## Can I play it?
 
-Runs as an early experimental preview, currently at v0.0.2 (2026-08-03). You build from your own dumps.
+Yes, as an experimental preview. Windows builds are on the GitHub Releases page, currently v0.0.2 (August 2026). The game runs from dumps you provide: select your own USA ROM and a retail GBA BIOS in the launcher on first run, and it remembers them afterward. The game boots through its attract sequence into gameplay, but the full game has not been exhaustively tested, so back up saves you care about.
 
-## Enhancements
+## What the recomp adds
 
-An optional adaptive widescreen mod, off by default, widens the logical view and keeps the HUD anchored to the screen edges so the interface stays where you expect it.
+The Adaptive Widescreen mod, optional and off by default, expands the HUD and overworld as the window is resized, up to a 480x160 logical view. It streams authored field chunks and widens actor visibility rather than stretching the image, and camera and world coordinates are untouched; the HUD stays anchored to the screen edges so the interface sits where you expect it. The faithful 240x160 image remains available unchanged, and the mod is enabled from the launcher's Mods page.
 
-## Requirements
+Around that: keyboard and modern controller support, cartridge saves and save states (Shift+F1 through F9 to save, F1 through F9 to load), windowed and fullscreen play with sharp scaling and optional affine filtering, and an in-game settings menu.
 
-Your own legally dumped ROM and GBA BIOS.
+## Technical details
+
+The game is statically recompiled to a native Windows x64 application on the gbarecomp framework, with ROM and BIOS setup through the shared recomp-ui launcher. Strict-static validation of the USA release covers attract mode, gameplay, and traversal fuzzing with no interpreted instructions or missing dispatches. The project's original code is licensed under the PolyForm Noncommercial License 1.0.0, and no ROM, BIOS, or extracted game data is distributed.
+
+## Sources
+
+- [DragonBallZBuusFuryRecomp README (GitHub)](https://github.com/mstan/DragonBallZBuusFuryRecomp)

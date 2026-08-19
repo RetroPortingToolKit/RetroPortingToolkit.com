@@ -3,26 +3,35 @@ title: "Duck Hunt"
 kicker: "NES"
 tags: ["Mouse Zapper"]
 featured: false
-desc: "The Zapper is gone; your mouse fills in. Duck Hunt, playable through NESRecomp's mouse-as-Zapper substitution."
+desc: "Duck Hunt without the light gun: your mouse aims and fires in a native PC build."
 year: "2026"
 status: "Playable alpha"
-availability: "Source only"
+availability: "Public build"
 provenance: "core"
 platform: "nes"
 repo: "https://github.com/mstan/DuckHuntNESRecomp"
 group: "NES"
 links:
-  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/DuckHuntNESRecomp" }
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
 ---
 
-Duck Hunt is one of the ten commercial titles supported by [NESRecomp](/hardware/nes), maintained by the core team. A light-gun game needs input hardware no modern computer has, so the framework substitutes the mouse for the Zapper.
+Duck Hunt needs a piece of hardware no modern setup has: the Zapper light gun, pointed at a CRT television. This [NESRecomp](/hardware/nes) build, maintained by the core team, hands that job to your mouse: move to aim, click to shoot.
 
 ## Can I play it?
 
-Playable with mouse-as-Zapper aiming. Builds from your own ROM dump through the shared NESRecomp runner, with save-state slots. Windows is the primary host platform; macOS support is experimental.
+Yes. A v1.1.0 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/DuckHuntNESRecomp/releases); it is built from a dump you provide (World version). The title screen and all three game modes work, along with duck flight, hit detection, scoring, the dog's laughing and retrieving animations, and round progression. Audio is still basic while full sound mixing lands in the framework.
+
+## What the recomp adds
+
+The mouse stands in for the Zapper: moving aims, left click pulls the trigger, and a crosshair marks your aim point, white normally and red when firing, with the system cursor hidden over the game window. Under the hood the light-gun detection is fully simulated, including the original two-phase sequence with its anti-cheat black-screen check, so the game responds the way it did on real hardware.
+
+## Technical details
+
+A Mapper 0 (NROM) cartridge, the same simple family as Super Mario Bros. The 6502 code is translated to C at build time and compiled to native x64; the console's video and audio hardware are simulated by the shared runner, and the Zapper hooks live in the game's small integration layer.
 
 ## Sources
 
+- [DuckHuntNESRecomp README and releases (GitHub)](https://github.com/mstan/DuckHuntNESRecomp)
+- [NESRecomp framework README (GitHub)](https://github.com/mstan/nesrecomp)
 - [nesrecomp Achieves 10 Commercial Titles (1379.tech)](https://1379.tech/nesrecomp-achieves-10-commercial-titles/)

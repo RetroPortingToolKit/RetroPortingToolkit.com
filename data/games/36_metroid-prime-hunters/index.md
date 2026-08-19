@@ -3,7 +3,7 @@ title: "Metroid Prime Hunters"
 kicker: "Nintendo DS"
 tags: ["Adaptive 21:9", "Wiimmfi"]
 featured: true
-desc: "The DS goes native: campaign entry, adaptive 21:9 widescreen, Prime-style mouse controls, and experimental Wiimmfi online, all in public alpha."
+desc: "The DS goes native: campaign play, adaptive 21:9 widescreen, mouse aiming, and experimental Wiimmfi online, in public alpha for Windows and Linux."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -12,7 +12,6 @@ platform: "nintendo-ds"
 repo: "https://github.com/mstan/MetroidPrimeHuntersRecomp"
 group: "Nintendo DS"
 links:
-  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MetroidPrimeHuntersRecomp" }
   - { label: "Metroid Prime Hunters recomp brings the Nintendo DS classic to PC (GenerationAmiga)", href: "https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/" }
   - { label: "Watch: Metroid Prime Hunters Recomp is out now", href: "/blog/video-metroid-prime-hunters-out-now" }
   - { label: "Watch: Metroid Prime Hunters in 21:9", href: "/blog/video-mph-219-first-look" }
@@ -24,34 +23,25 @@ gallery:
   - { src: "/covers/mph-2119.jpg", caption: "21:9 widescreen" }
 ---
 
-Metroid Prime Hunters is the one public game consumer of [ndsrecomp](/hardware/nintendo-ds), the very early Nintendo DS static recompiler maintained by the core team. The framework itself is pre-alpha research; this title runs ahead of it as a public alpha.
+Metroid Prime Hunters is the one public game built on [ndsrecomp](/hardware/nintendo-ds), the core team's very early Nintendo DS recompiler. The framework itself is pre-alpha research, but this title runs ahead of it as a public alpha: a DS shooter with mouse aiming, a genuinely wider field of view, and experimental online play.
 
 ## Can I play it?
 
-Public alpha with campaign entry working. The current release is v0.3.0-alpha (2026-08-15); you build from your own ROM dump.
+Public alpha, and the project is blunt that bugs, crashes, and rough edges are expected. Windows and Linux (AppImage) builds are on the Releases page; the newest published release is v0.3.0-alpha (2026-08-15), and the README already documents a v0.4.0 line. The game is built from a ROM dump you provide, and only the USA revision 0 ROM is supported: the launcher hash-checks it and rejects anything else. DS BIOS and firmware dumps are no longer required for the default startup path, which uses a built-in free BIOS replacement and generated firmware; your own dumps remain optional and are hash-verified if you use them.
 
-## What works
+## What the recomp adds
 
-Campaign entry, remappable gamepads, and an experimental Wiimmfi integration for online play.
+Adaptive 21:9 widescreen on the upper screen: a wider view rendered by the 3D engine, not a stretched image. Prime-style controls are on by default, WASD movement and mouse aiming in place of the original stylus scheme, with mouse-driven touchscreen input and fully remappable keyboard, mouse, and gamepad bindings in the launcher. The v0.4.0 line adds an opt-in HD Rendering mod that raises the 3D engine's internal resolution up to 4x and filters decoded textures, while the 2D layers stay exactly as the hardware draws them. Online play through Wiimmfi is experimental: the game can authenticate and reach a Friends and Rivals lobby in validated flows, but in-game online play is untested and may fail to connect or desync.
 
-## Enhancements
+Known issues: the widescreen is still being audited, so some scenes, HUD placement, and fades can be wrong; the campaign is not validated start to finish; and save behavior is still in early testing, so keep backups.
 
-Adaptive 21:9 widescreen on the upper screen, and a Prime-style WASD plus mouse control scheme in place of the original stylus aiming.
+## Technical details
 
-## Requirements
-
-Your own legally dumped ROM, plus user-supplied BIOS and firmware that the framework hash-verifies.
-
-## Known issues
-
-The adaptive widescreen has known visual bugs at this stage.
-
-## Technical notes
-
-The game's dual-CPU ARM code runs natively, with a bounded interpreter tier handling code the guest copies into RAM.
+The DS is a two-CPU machine, and the recomp treats it that way: the game's ARM9 and ARM7 code is lifted to C ahead of time and runs natively, with a bounded interpreter tier handling code the game copies into RAM. The Wi-Fi path is built on melonDS's Wi-Fi work, which the project credits in full: its DS Wi-Fi controller model, emulated access point, and network backend are what let the recompiled game reach Wiimmfi as a real client. The launcher persists a console firmware profile per install, so Wi-Fi settings and console pairing survive restarts.
 
 ## Sources
 
 - [Metroid Prime Hunters recomp brings the Nintendo DS classic to PC (GenerationAmiga)](https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/)
-- [Metroid Prime Hunters Recomp Out NOW! (Video Game Esoterica)](/blog/video-metroid-prime-hunters-out-now)
-- [21:9 first look (Gamemaster1379)](/blog/video-mph-219-first-look)
+- [Metroid Prime Hunters Recomp is out now (Video Game Esoterica)](/blog/video-metroid-prime-hunters-out-now)
+- [Metroid Prime Hunters in 21:9 (Gamemaster1379)](/blog/video-mph-219-first-look)
+- [Project README and release notes (GitHub)](https://github.com/mstan/MetroidPrimeHuntersRecomp)

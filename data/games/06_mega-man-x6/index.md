@@ -12,7 +12,6 @@ platform: "playstation"
 repo: "https://github.com/mstan/MegaManX6Recomp"
 group: "PlayStation"
 links:
-  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MegaManX6Recomp" }
   - { label: "Watch: Mega Man X6 Recomp is out now", href: "/blog/video-mega-man-x6-out-now" }
 cover: "https://i.ytimg.com/vi/IXMHXC2BLSc/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=IXMHXC2BLSc"
@@ -24,20 +23,25 @@ gallery:
   - { src: "/covers/mmx6-mods.jpg", caption: "Community mods in action" }
 ---
 
-Mega Man X6 is one of the most complete titles in the [PSXRecomp](/hardware/playstation) ecosystem. What sets it apart is the mod layer, an adaptation of the well-known Mega Man X6 Tweaks mod by acediez, carried over with the author's explicit permission.
+Mega Man X6 is one of the most complete titles in the [PSXRecomp](/hardware/playstation) ecosystem. What sets it apart is the mod layer: an adaptation of the well-known Mega Man X6 Tweaks project by acediez, carried over with the author's explicit permission, and configurable down to the individual feature instead of taken as one big patch.
 
 ## Can I play it?
 
-Released and playable, currently at v1.0.9 (2026-08-15), with regular version updates. You build from your own disc dump.
+Yes, released and playable. The current version is v1.0.9 (2026-08-15), on a steady cadence of updates, with a Windows package on the GitHub releases page. The game is built from a dump you provide, and this one is picky about the disc: it wants the USA v1.1 revision of Mega Man X6. A bundled open-source BIOS boots it out of the box, and the launcher warns if the disc does not match before trying to run it anyway.
 
-## Enhancements
+## What the recomp adds
 
-The Tweaks adaptation ships as 15 package families containing 203 independently configurable mod items, so players can tune the game piece by piece rather than taking an all-or-nothing patch. An attribution ledger in the repository records where each item came from. Experimental 16:9 widescreen is also available.
+- The Tweaks adaptation ships as 15 package families containing 203 independently configurable mod items, from animation timing to status adjustments, all off by default. You tune the game piece by piece rather than taking an all-or-nothing patch.
+- An English retranslation by DuoDynamo, included with his direct redistribution approval, also opt-in and off by default.
+- An attribution ledger in the repository records where each item came from and the permission behind it.
+- Experimental 16:9 widescreen that draws more of the scene on both sides rather than stretching the 4:3 picture.
+- Opt-in FMV skips, fast loading that accelerates disc loads without touching game timing, and DualShock support with rumble.
 
-## Requirements
+## Technical details
 
-Your own legally dumped disc image of Mega Man X6.
+The game's MIPS code is translated ahead of time into C and compiled into a native Windows program that runs on a faithful simulation of the PS1 hardware (GPU, SPU, GTE, memory cards) plus a recompiled BIOS. Tweaks apply as launcher-selected enhancement packages at runtime, so your disc image is never permanently patched. Software and OpenGL renderers are both available, along with supersampling at up to 4x internal resolution. Saves are standard .mcd memory-card files that emulators can also read. Use a .cue plus .bin dump rather than a cooked .iso, which would discard the disc sectors the game streams video and audio from.
 
 ## Sources
 
-- [Mega Man X6 Recomp is Out Now! ANOTHER PS1 Recomp (Video Game Esoterica)](/blog/video-mega-man-x6-out-now), covered on YouTube in July 2026.
+- [Project README and releases (GitHub)](https://github.com/mstan/MegaManX6Recomp)
+- [Mega Man X6 Recomp is Out Now! ANOTHER PS1 Recomp (Video Game Esoterica)](/blog/video-mega-man-x6-out-now)

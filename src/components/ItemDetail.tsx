@@ -419,6 +419,17 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
                 )}
               </div>
             )}
+          {item.kind !== "blog" && item.repo && (
+            <a
+              className="project-cta blur-in"
+              style={delayed(280)}
+              href={item.repo}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Get the project on GitHub <span className="ext">↗</span>
+            </a>
+          )}
           {item.body && (
             <div className="blur-in" style={delayed(320)}>
               <Markdown className="modal-content">{item.body}</Markdown>
@@ -606,6 +617,17 @@ function DefaultDetail({ item }: { item: Item }) {
                   <span className="pill">Last verified {formatArticleDate(item.verified)}</span>
                 )}
               </div>
+            )}
+            {item.repo && (
+              <a
+                className="project-cta blur-in"
+                style={delayed(280)}
+                href={item.repo}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get the project on GitHub <span className="ext">↗</span>
+              </a>
             )}
           </>
         )}

@@ -3,26 +3,34 @@ title: "Yoshi's Cookie"
 kicker: "NES"
 tags: []
 featured: false
-desc: "Cookie matching on native code: one of NESRecomp's ten supported commercial games."
+desc: "The cookie-matching puzzler as a native PC build, tested through solo and versus play with no divergence from the original."
 year: "2026"
 status: "Playable alpha"
-availability: "Source only"
+availability: "Public build"
 provenance: "core"
 platform: "nes"
 repo: "https://github.com/mstan/YoshisCookieRecomp"
 group: "NES"
 links:
-  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/YoshisCookieRecomp" }
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
 ---
 
-A core project: Yoshi's Cookie is one of the ten commercial titles supported by [NESRecomp](/hardware/nes).
+A core project: Yoshi's Cookie is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes), and one of its cleanest results: believed 100 percent playable, and tested through full games with zero divergence from an emulator reference running alongside.
 
 ## Can I play it?
 
-Builds from your own ROM dump through the shared NESRecomp runner, with save-state slots. Windows is the primary host platform; macOS support is experimental.
+Yes. A v1.0.0 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/YoshisCookieRecomp/releases); it is built from a dump you provide (USA version), verified by checksum. Single-player mode works across all rounds, speeds, and music types, the versus mode plays two on one keyboard, and the options screen covers round, speed, handicap, and music selection. Audio is still basic while full sound mixing lands in the framework.
+
+## What the recomp adds
+
+Two players on one keyboard for versus matches, plus the runner's conveniences: F6 saves a state, F7 restores it, and F5 toggles fast-forward.
+
+## Technical details
+
+An MMC3 (Mapper 4) cartridge with 128 KB of program ROM and 64 KB of graphics ROM in switchable banks, one of the two games that brought that mapper family into the framework. Both single-player and versus modes were tested with zero oracle divergence against Nestopia: the recompiled game and the emulator, fed the same inputs, stayed in perfect agreement through full gameplay.
 
 ## Sources
 
+- [YoshisCookieRecomp README and releases (GitHub)](https://github.com/mstan/YoshisCookieRecomp)
 - [nesrecomp Achieves 10 Commercial Titles (1379.tech)](https://1379.tech/nesrecomp-achieves-10-commercial-titles/)

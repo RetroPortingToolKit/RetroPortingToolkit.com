@@ -1628,3 +1628,22 @@ button {
   align-items: center;
   justify-content: center;
 }
+
+/* Primary project action: the one link to the project itself. */
+.project-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  width: fit-content;
+}
+.project-cta:hover {
+  opacity: 0.85;
+}

@@ -120,3 +120,23 @@ exist publicly (only xboxlle-probe).
 - `scripts/optimize-media.mjs` is referenced by the CMS upload path
   (scripts/cms-dev.mjs doUpload) but does not exist in the repo, so CMS media
   uploads will fail at the processing step. Not touched this session.
+
+## Content repopulation (2026-08-19, split-layout pass)
+
+- All 45 game pages and 10 platform pages rewritten against re-fetched repo
+  READMEs and release data, in the homepage voice, structured lead / Can I
+  play it? / What the recomp adds / Technical details / Sources.
+- `repo:` now renders as a "Get the project on GitHub" button on project
+  pages; links entries duplicating the repo were removed.
+- Corrections found during verification: 13 stale `availability: "Source
+  only"` pills flipped to "Public build" (releases exist); Pepsiman's covered
+  play URL returns HTTP 410 so its availability is now "No public release";
+  Mario's Tennis upgraded to "Playable alpha" (README: full CPU match
+  completes); Twisted Metal 4 repo found via press coverage and added
+  (TechnicallyComputers/TwistedMetal4Recomp); MPH page notes v0.4.0-alpha in
+  README is not a published release, and BIOS dumps are no longer required
+  (FreeBIOS default).
+- Removed as unverifiable: speedrunner-tester claim (Tomba), "crowd favorite"
+  (Ape Escape), randomizer fork (X5), family split-screen (Sonic), Super
+  Metroid public-repo claim (SNES page), and similar. Sonic 1 README says "no
+  prebuilt binaries" but its Releases page ships them; pages follow releases.

@@ -3,7 +3,7 @@ title: "Nintendo DS"
 kicker: "ARM9+ARM7"
 tags: ["Dual CPU", "Adaptive 21:9"]
 featured: false
-desc: "Very early research on recompiling both DS CPUs; one public game consumer, Metroid Prime Hunters, is in public alpha."
+desc: "Very early research on rebuilding both DS processors; one public game, Metroid Prime Hunters, is in public alpha."
 year: "2026"
 status: "Research"
 availability: "Source only"
@@ -12,44 +12,25 @@ arch: "ARM946E-S + ARM7TDMI"
 repo: "https://github.com/mstan/ndsrecomp"
 group: "Early platform work"
 links:
-  - { label: "View source (GitHub)", href: "https://github.com/mstan/ndsrecomp" }
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
   - { label: "GenerationAmiga on Metroid Prime Hunters", href: "https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/" }
 verified: "2026-08-18"
 cover: "./prime-hunters-preview.jpg"
 ---
 
-Research only. ndsrecomp is a source-only developer snapshot that recompiles both of the DS's CPUs; in the project's own words it is "very early pre-alpha (v0.0.1)" and "an experimental developer snapshot, not a ready-to-use emulator or a stable framework". One public game consumer exists: [Metroid Prime Hunters](/games/metroid-prime-hunters), in public alpha.
+Research only. ndsrecomp recompiles both of the DS's processors; in the project's own words it is "very early pre-alpha (v0.0.1)" and an experimental developer snapshot with no compatibility promise. One public game consumer exists: [Metroid Prime Hunters](/games/metroid-prime-hunters), in public alpha.
 
-## What can be used today
+## What runs today
 
-The firmware-menu boot works. The one public game consumer is [Metroid Prime Hunters](/games/metroid-prime-hunters), which is in public alpha.
+The original DS firmware menu is the baseline target: the runtime boots through both BIOSes, passes the Health & Safety screen, and reaches a menu you can drive with mouse touch input. [Metroid Prime Hunters](/games/metroid-prime-hunters) is the one public game, with adaptive 21:9 widescreen bring-up for its top screen. The framework has also demonstrated early bring-up across further titles, experimental online play through Wiimmfi, and experimental same-machine local wireless multiplayer, all as narrow developer results rather than releases.
 
-## Supported games
-
-- [Metroid Prime Hunters](/games/metroid-prime-hunters)
-
-## Enhancements
-
-Adaptive 21:9 widescreen exists in the Metroid Prime Hunters consumer. The framework itself is too early for a general enhancement layer.
-
-## Requirements
-
-BIOS and firmware are user-supplied and hash-verified, with an opt-in FreeBIOS path. ndsrecomp distributes no BIOS, firmware, or game data.
-
-## Known limitations
-
-This is research, not a product: it is a developer snapshot with no compatibility promise, and it is not usable as a general DS emulator or framework.
+This is a developer snapshot, not a product: there are no turnkey game builds from a clean clone, whole-machine save states are not implemented yet, and it is not usable as a general DS emulator or framework.
 
 ## Technical details
 
-ndsrecomp recompiles both of the DS's CPUs, the ARM946E-S and the ARM7TDMI, to C. A bounded interpreter tier handles code the guest copies into RAM. melonDS is used as a validation oracle.
+ndsrecomp recompiles both CPUs to C: the ARM946E-S main processor and the ARM7TDMI, which shares its core family with the GBA and started as a port of gbarecomp's ARM implementation. A dual-CPU, event-aligned scheduler interleaves them over shared memory, and a bounded interpreter tier handles code the guest copies into RAM. BIOS and firmware dumps are user-supplied and hash-verified, with an opt-in FreeBIOS path for a no-dump boot; the online-play plumbing builds on melonDS's Wi-Fi work, and melonDS also serves as the accuracy oracle with DeSmuME as a secondary cross-check. The top and bottom screens can render as one stacked window or two independent ones. The project's own source is MIT licensed.
 
-## Get started
-
-- [View source (GitHub)](https://github.com/mstan/ndsrecomp)
-
-## Sources and coverage
+## Sources
 
 - [Building & Enhancing Recomps: Ecosystem Updates (1379.tech)](https://1379.tech/building-enhancing-recomps-ecosystem-updates/)
 - [GenerationAmiga on Metroid Prime Hunters](https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/)

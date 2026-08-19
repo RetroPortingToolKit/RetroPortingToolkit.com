@@ -3,10 +3,10 @@ title: "Pepsiman"
 kicker: "PlayStation"
 tags: ["WebAssembly", "60 FPS"]
 featured: false
-desc: "A PS1 cult classic that never came West, now running natively in a browser tab as WebAssembly at 60 FPS."
+desc: "The PS1 cult classic that never came West, recompiled to run in a browser tab at 60 FPS."
 year: "2026"
 status: "Released"
-availability: "Web"
+availability: "No public release"
 provenance: "community"
 platform: "playstation"
 group: "Community"
@@ -15,19 +15,19 @@ links:
 verified: "2026-08-18"
 ---
 
-Pepsiman (1999) never released in the West, which makes it a fitting pick for a community recompilation with an unusual target: the browser.
+Pepsiman (1999) never released outside Japan, which makes it a fitting pick for a community recompilation with an unusual target: instead of a Windows or Linux binary, this one compiles the game to WebAssembly and runs it in a browser tab.
 
 ## Can I play it?
 
-Yes, in a browser tab. The project uses [PSXRecomp](/hardware/playstation) to produce WebAssembly, so the game runs in the browser as compiled code rather than inside a general-purpose console emulator. See the coverage for how the browser release is delivered.
+Not at the covered address right now. The project, started by kem0X as RepsiMan and released publicly as Pepsiman Recompiled, was playable in the browser when Notebookcheck covered it in July 2026, built from BIOS, disc, and memory card data you provide. As of this page's last check, the play URL from that coverage has been taken down ("This content is no longer available"), and no public repository for the project has been identified, so there is currently no verified place to play or build it. The press link stays as the record of the release.
 
-## What works
+## What the recomp added
 
-Per Notebookcheck's coverage (2026-07-28), the game runs at 60 FPS with widescreen, browser-based saves, offline play as a PWA, and leaderboards.
+As covered: 60 FPS instead of the original framerate, widescreen or the original 4:3, texture and geometry corrections, saves kept in the browser, offline play as an installable web app, and a competitive leaderboard. It ran best on Chromium-based browsers, with known bugs on other browsers and on mobile.
 
-## Known issues
+## Technical details
 
-It works best on Chromium browsers, with known issues elsewhere.
+The pipeline is [PSXRecomp](/hardware/playstation) with WebAssembly as the output target: the PlayStation code is translated ahead of time, so the browser runs compiled code rather than a general-purpose console emulator interpreting the disc. Browser features do the rest, with local storage holding saves and PWA installation covering offline play.
 
 ## Sources
 

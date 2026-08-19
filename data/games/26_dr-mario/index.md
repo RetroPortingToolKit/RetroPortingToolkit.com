@@ -3,34 +3,34 @@ title: "Dr. Mario"
 kicker: "NES"
 tags: []
 featured: false
-desc: "Among the first four games NESRecomp ever brought up, on an MMC1 cartridge that exercises CHR bank switching."
+desc: "One of the first four games the NES project ever ran, now a playable native PC puzzle game with remappable controls."
 year: "2026"
 status: "Playable alpha"
-availability: "Source only"
+availability: "Public build"
 provenance: "core"
 platform: "nes"
 repo: "https://github.com/mstan/DrMarioNesRecomp"
 group: "NES"
 links:
-  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/DrMarioNesRecomp" }
   - { label: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
 verified: "2026-08-18"
 ---
 
-A core project: Dr. Mario is one of the ten commercial titles supported by [NESRecomp](/hardware/nes), and was among the first four the framework brought up.
+A core project: Dr. Mario was among the [first four commercial titles](/blog/nesrecomp-4-titles) [NESRecomp](/hardware/nes) ever supported, and it remains a quick proof that the whole idea works: a puzzle game you can download, point at your own dump, and play.
 
 ## Can I play it?
 
-Builds from your own ROM dump through the shared NESRecomp runner, with save-state slots. Windows is the primary host platform; macOS support is experimental.
+Yes, in single player. A v1.1.0 Windows x64 build (2026-04-07) is on [GitHub Releases](https://github.com/mstan/DrMarioNesRecomp/releases), with an experimental Linux AppImage alongside; it is built from a dump you provide (USA version), verified by checksum. One-player mode is tested through virus clearing, the options menu works (level, speed, and music selection), and all three music settings play. Two-player controls are mapped but unverified, ending sequences are untested, and audio may run slightly fast in some configurations.
 
-## Known issues
+## What the recomp adds
 
-A minor audio timing issue was noted in the team's 2026-03-28 write-up.
+Controls are fully remappable through a plain settings file generated next to the executable on first run, with keyboard layouts for both players. The shared runner adds save states and a fast-forward toggle.
 
-## Technical notes
+## Technical details
 
-An MMC1 cartridge that exercises CHR ROM bank switching.
+An MMC1 cartridge that exercises graphics bank switching across all four of its character ROM banks. Function coverage and game logic analysis leaned on the public dr-mario-disassembly by Nostaljipi. The 6502 code is translated to C at build time and compiled to native x64, with the console's video and audio hardware simulated by the shared runner.
 
 ## Sources
 
+- [DrMarioNesRecomp README and releases (GitHub)](https://github.com/mstan/DrMarioNesRecomp)
 - [NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)](https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/)

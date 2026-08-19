@@ -3,7 +3,7 @@ title: "Super Mario World"
 kicker: "Super Nintendo"
 tags: ["Adaptive widescreen", "MSU-1", "Mods"]
 featured: true
-desc: "The flagship of SNESRecomp, believed playable end to end, with adaptive widescreen, MSU-1 audio, and a growing mod catalog."
+desc: "The flagship SNES recompilation: believed playable end to end, with adaptive widescreen, CD-quality music, and a two-player co-op build with netplay."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -13,7 +13,6 @@ repo: "https://github.com/mstan/SuperMarioWorldRecomp"
 group: "Super Nintendo"
 links:
   - { label: "Watch: character replacement in Super Mario World", href: "/blog/video-smw-character-test" }
-  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/SuperMarioWorldRecomp" }
   - { label: "snesrecomp's First Title: Super Mario World (1379.tech)", href: "https://1379.tech/snesrecomps-first-title-super-mario-world/" }
   - { label: "The Future of Game Preservation is Decomp-Annotated-Recomps (1379.tech)", href: "https://1379.tech/recomp-vs-decomp-wrong-question/" }
 cover: "https://i.ytimg.com/vi/Owuku0zj4As/hq2.jpg"
@@ -25,26 +24,28 @@ gallery:
   - { src: "/covers/smw-extensible.jpg", caption: "An extensible engine" }
 ---
 
-Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever recompiled, and it is still the flagship of the core project.
+Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever recompiled, and it is still the flagship of the core project. The whole game runs as a native program on your PC, and a separate co-op build puts Mario and Luigi in the same level at the same time, on one machine or over the internet.
 
 ## Can I play it?
 
-Believed playable end to end, per the SNESRecomp README. The current release is v0.11.0 (2026-08-12), and a co-op build also exists. You build from your own ROM dump.
+Yes, as an in-development preview. The project calls it believed fully playable: the first two worlds are hand-verified end to end, verification of Vanilla Dome is in progress, and the later worlds are expected to play the same. The current release is v0.11.0 (2026-08-12), packaged for Windows with a Linux AppImage alongside. It is built from a dump you provide: on first launch the game asks for your Super Mario World (USA) ROM.
 
-## Enhancements
+## What the recomp adds
 
-Three widescreen modes: Standard 4:3, Fixed 16:9, and Adaptive. MSU-1 support brings CD-quality audio. v0.11.0 added an experimental Smash Bros 64 mod catalog, with Captain Falcon as the first character option; it is off by default.
+- Three view modes: Standard 4:3, Fixed 16:9, and Adaptive. Adaptive follows your window, so resizing wider reveals more of the level instead of stretching it.
+- Simultaneous co-op: a separate build where both players are active in levels at once. It applies the 2 Player Simultaneous Co-op Hack by Noobish Noobsicle, Bloony Fox, and NesDraug to your own ROM on first launch. Widescreen and MSU-1 are disabled in this build for now.
+- Netplay: the co-op build supports two-player online or LAN play. The host plays Mario, the guest plays Luigi, and the launcher handles lobbies.
+- MSU-1 audio: CD-quality streaming music with a music pack you supply; without one you get the authentic soundtrack.
+- A mod catalog: v0.11.0 added an experimental Smash Bros 64 catalog with Captain Falcon as the first playable character option. It is off by default and needs your own Super Smash Bros. 64 ROM for the donor content.
+- Save states, turbo, and auto-detected controllers with a position-true default mapping.
 
-## Requirements
+## Technical details
 
-Your own legally dumped ROM. The Smash Bros 64 mod catalog requires your own ROMs for the donor content.
-
-## Technical notes
-
-Built on the SMWDisX disassembly, 1,937 of the game's 2,074 functions carry real names in the recompiled source, which makes this the leading example of a disassembly-annotated recompilation.
+The 65816 CPU code is statically translated to C, so every function the game runs on the SNES's main CPU is a generated C function. The rest of the console, the PPU, the SPC700 audio coprocessor, DMA, and register I/O, runs through a LakeSnes-derived hardware core: recompile the CPU, emulate the silicon. The port is built on the SMWDisX disassembly, and 1,937 of the game's 2,074 functions carry their actual names in the recompiled source, which makes this the leading example of a disassembly-annotated recompilation. Widescreen caps at a 446-pixel logical width because wider views cannot represent every sprite safely in the SNES's 9-bit sprite coordinate space.
 
 ## Sources
 
+- [SuperMarioWorldRecomp README (GitHub)](https://github.com/mstan/SuperMarioWorldRecomp)
 - [SMW character replacement test (Gamemaster1379)](/blog/video-smw-character-test)
 - [snesrecomp's First Title: Super Mario World (1379.tech)](https://1379.tech/snesrecomps-first-title-super-mario-world/)
 - [The Future of Game Preservation is Decomp-Annotated-Recomps (1379.tech)](https://1379.tech/recomp-vs-decomp-wrong-question/)
