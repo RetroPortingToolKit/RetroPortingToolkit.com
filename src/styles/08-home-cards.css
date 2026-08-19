@@ -236,12 +236,7 @@ a.tvcard--video {
     0 2px 28px rgba(0, 0, 0, 0.55);
 }
 
-@media (min-width: 761px) {
-  .hn-title {
-    white-space: nowrap;
-  }
-
-}
+/* Long headlines wrap (balanced); nowrap clipped them off-viewport. */
 .hn-bio {
   margin-top: 20px;
   font-size: clamp(18px, 2.05vw, 29px);
