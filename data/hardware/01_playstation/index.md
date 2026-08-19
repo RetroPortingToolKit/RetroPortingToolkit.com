@@ -16,7 +16,7 @@ links:
   - { label: "psxrecomp Overhauled. Now BIOS + Tomba (1379.tech)", href: "https://1379.tech/psxrecomp-overhauled-now-bios-tomba/" }
   - { label: "Watch: save states and rewind in Tomba", href: "/blog/video-tomba-save-states-rewind" }
 verified: "2026-08-18"
-cover: "./mod-launcher.png"
+cover: "/consoles/playstation.jpg"
 ---
 
 Seven core-team PlayStation games are playable today, and the same framework powers community projects like [OpenPete's Spyro the Dragon](/games/openpete-spyro) and the browser build of [Pepsiman](/games/pepsiman). PSXRecomp is the toolkit's most established ecosystem: it takes a game's original program off the disc, rebuilds it as a native app for modern systems, and leaves the game logic untouched. Every game builds from a disc dump you provide.

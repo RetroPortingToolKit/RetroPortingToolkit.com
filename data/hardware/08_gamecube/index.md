@@ -14,6 +14,7 @@ group: "Research"
 links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"
+cover: "/consoles/gamecube.png"
 ---
 
 Research only. gcnlle recompiles the GameCube's boot firmware and runs its native system menu, the rolling cube logo, calendar, settings, and memory-card manager included, from a firmware dump you provide. It does not provide playable game builds; in the project's own words it is "research software, not a general GameCube emulator and not ready for ordinary game use".

@@ -12,6 +12,7 @@ platform: "super-nintendo"
 repo: "https://github.com/mstan/DKC2Recomp"
 group: "Super Nintendo"
 verified: "2026-08-18"
+cover: "/data/blog/10_building-enhancing-recomps/dkc2-wide.webp"
 ---
 
 Donkey Kong Country 2 is the newest [SNESRecomp](/hardware/super-nintendo) title, and the first that is community work hosted by the core team: contributor Nicktendonick does the game work in a core-hosted repository.

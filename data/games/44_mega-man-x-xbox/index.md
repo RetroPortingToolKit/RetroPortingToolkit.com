@@ -10,6 +10,7 @@ provenance: "community"
 repo: "https://github.com/Team-Resurgent/MegaManX-X"
 group: "Community"
 verified: "2026-08-18"
+cover: "./gameplay.png"
 ---
 
 MegaManX-X is a community project by Team Resurgent that ports the [Mega Man X](/games/mega-man-x) SNES recompilation to original Xbox hardware. It is the clearest demonstration yet that recompiled code travels: because the game exists as portable C rather than a ROM inside an emulator, a homebrew team can point it at a 2001 console the same way the core project points it at Windows or Linux.

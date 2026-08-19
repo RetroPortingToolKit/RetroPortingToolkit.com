@@ -14,6 +14,7 @@ group: "Research"
 links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"
+cover: "/consoles/original-xbox.jpg"
 ---
 
 Research only, and not a recompilation ecosystem. The main Xbox project is not yet public, and nothing on this page runs games. The only visible piece is xboxlle-probe, a tool for measuring what a real console actually does.

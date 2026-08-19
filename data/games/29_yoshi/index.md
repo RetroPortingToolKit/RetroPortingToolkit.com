@@ -14,6 +14,7 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "/data/blog/20_nesrecomp-10-titles/YoshiRecomp_IiG8QxDtHO.png"
 ---
 
 A core project: Yoshi is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes). Its simple game loop is exactly why it is here: it was one of the games the framework used to prove it could support titles with no public disassembly to lean on.

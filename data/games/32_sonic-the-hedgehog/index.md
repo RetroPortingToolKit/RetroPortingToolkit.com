@@ -14,6 +14,7 @@ group: "Sega Genesis"
 links:
   - { label: "segagenesisrecomp + Sonic the Hedgehog tech demo (1379.tech)", href: "https://1379.tech/segagenesisrecomp-sonic-the-hedgehog-tech-demo/" }
 verified: "2026-08-18"
+cover: "/data/blog/19_journey-with-ai-and-recompilation/SonicTheHedgehogRecomp_cJeXxJybYL.png"
 ---
 
 Sonic the Hedgehog was the first game brought up on [SegaGenesisRecomp](/hardware/sega-genesis), the core team's Sega Genesis recompilation project, and it is the title that proved the approach: Green Hill Zone is playable start to finish, all three acts and the Robotnik boss, as native PC code built from the original game's logic.

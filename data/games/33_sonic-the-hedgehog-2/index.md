@@ -14,6 +14,7 @@ group: "Sega Genesis"
 links:
   - { label: "SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2 (1379.tech)", href: "https://1379.tech/segagenesisrecomp-gets-game-2-sonic-the-hedgehog-2/" }
 verified: "2026-08-18"
+cover: "/data/blog/19_journey-with-ai-and-recompilation/SonicTheHedgehog2Recomp_5jt992tJom.png"
 ---
 
 Sonic the Hedgehog 2 is the second game recompiled by [SegaGenesisRecomp](/hardware/sega-genesis), announced in the 2026-05-21 write-up. It earned its place by forcing the framework to grow up: hardcoded Sonic 1 assumptions became shared, configurable Genesis behavior, and the game brought the first native two player versus mode with it.

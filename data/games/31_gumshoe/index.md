@@ -14,6 +14,7 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "/data/blog/20_nesrecomp-10-titles/GumshoeRecomp_AjIBeqmNFw.png"
 ---
 
 A core project: Gumshoe is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes). It is a side-scrolling light-gun game: detective Mr. Stevenson walks on his own while you shoot obstacles and enemies out of his path and collect diamonds. Beyond the novelty, its unusual cartridge brought the framework its fourth supported mapper family.

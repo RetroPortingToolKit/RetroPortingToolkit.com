@@ -14,6 +14,7 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "/data/blog/20_nesrecomp-10-titles/MetroidNESRecomp_Csz3Tj0DhO.png"
 ---
 
 A core project: Metroid is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes), and the most openly work-in-progress of the family. The starting area plays, the password loop works, and the rest of Zebes is still being wired up.

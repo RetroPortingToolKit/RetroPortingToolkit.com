@@ -12,6 +12,7 @@ platform: "game-boy-advance"
 repo: "https://github.com/Shy/BoktaiRecomp"
 group: "Community"
 verified: "2026-08-18"
+cover: "/data/blog/10_building-enhancing-recomps/boktai.webp"
 ---
 
 Boktai's cartridge carried a real light sensor: the Gun del Sol charged from actual sunlight, and the undead could only be sealed while you had light. This community project by Shy, built on the same framework as the [Game Boy Advance lineup](/hardware/game-boy-advance), keeps that idea alive without the hardware. The sensor is driven by the actual weather where you are: a clear afternoon fills the gauge, a rainy night leaves you fighting in the dark.

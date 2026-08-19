@@ -14,7 +14,7 @@ group: "Early platform work"
 links:
   - { label: "VirtualBoy Recomp Gets Its First Title: Mario Tennis (1379.tech)", href: "https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/" }
 verified: "2026-08-18"
-cover: "./mario-tennis-title.png"
+cover: "/consoles/virtual-boy.jpg"
 ---
 
 Tech demo. One commercial title, [Mario's Tennis](/games/mario-tennis), runs as a native app on Windows, macOS, and Linux, built from a cartridge dump you provide. vbrecomp rebuilds Virtual Boy games as code compiled for modern systems, and it exists partly because the console is so obscure: a short library, no public disassemblies, and a simpler design than most of its contemporaries.

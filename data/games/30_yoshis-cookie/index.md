@@ -14,6 +14,7 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "/data/blog/20_nesrecomp-10-titles/YoshisCookieRecomp_L6PeM5RcYX.png"
 ---
 
 A core project: Yoshi's Cookie is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes), and one of its cleanest results: believed 100 percent playable, and tested through full games with zero divergence from an emulator reference running alongside.

@@ -14,6 +14,7 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "/data/blog/20_nesrecomp-10-titles/MegaMan3Recomp_aYrwCUu1Ju.png"
 ---
 
 A core project: Mega Man 3 is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes), and one of the most demanding, on the most complex cartridge hardware the framework currently handles. It is a work in progress: the front of the game runs, the deep end is untested.

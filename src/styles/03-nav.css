@@ -22,12 +22,21 @@
     transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.3s ease;
 }
-/* Tab pages (Talks/Articles/Projects/Résumé): no hero to hide behind, so the
-   bar is simply there -- sticky at the top, pill-styled on desktop. */
+/* Tab pages: no hero to hide behind, so the bar is simply there at the top.
+   It must be FIXED, not sticky: the page wrapper sets overflow-x: hidden,
+   which promotes it to a scroll container and silently kills position:
+   sticky, so the bar scrolled away on every subpage. */
 .home-next-page.is-subpage .tabs-wrap {
-  position: sticky;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   transform: none;
   opacity: 1;
+}
+/* Clear the fixed bar so the tab title is not underneath it. */
+.home-next-page.is-subpage .hn-subpage-section {
+  padding-top: calc(64px + clamp(8px, 2vh, 24px));
 }
 /* Tab-page header: big Apple-style title with a quiet count. */
 .hn-subpage-section {

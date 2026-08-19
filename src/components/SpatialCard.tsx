@@ -314,9 +314,13 @@ export function SpatialCard({
             <span className="tvcard-sheen" aria-hidden="true" />
           </span>
           <span className="tvcard-body">
-            <span className="tvcard-chip" style={{ background: media.color }}>
-              {media.kicker}
-            </span>
+            {/* Only news cards carry the kicker chip: on game and platform
+                cards the platform is already the section heading. */}
+            {media.kind === "blog" && (
+              <span className="tvcard-chip" style={{ background: media.color }}>
+                {media.kicker}
+              </span>
+            )}
             <span className="tvcard-title">{media.title}</span>
             <span className="tvcard-desc">{media.desc}</span>
           </span>

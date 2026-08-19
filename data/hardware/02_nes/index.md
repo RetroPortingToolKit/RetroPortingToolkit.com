@@ -15,7 +15,7 @@ links:
   - { label: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
-cover: "./smb-pikachu.png"
+cover: "/consoles/nes.jpg"
 ---
 
 Ten commercial NES games run as native apps built from your own cartridge dump, with no BIOS required at all. NESRecomp translates each cartridge's original program into C at build time and compiles it for modern systems, while a runner library stands in for the console's picture and sound hardware.

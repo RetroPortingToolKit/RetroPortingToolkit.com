@@ -14,6 +14,7 @@ group: "NES"
 links:
   - { label: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
 verified: "2026-08-18"
+cover: "/data/blog/20_nesrecomp-10-titles/DrMarioRecomp_eoeWPp44eP.png"
 ---
 
 A core project: Dr. Mario was among the [first four commercial titles](/blog/nesrecomp-4-titles) [NESRecomp](/hardware/nes) ever supported, and it remains a quick proof that the whole idea works: a puzzle game you can download, point at your own dump, and play.

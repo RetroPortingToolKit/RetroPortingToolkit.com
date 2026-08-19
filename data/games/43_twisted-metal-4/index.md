@@ -14,6 +14,7 @@ group: "Community"
 links:
   - { label: "PS1 Twisted Metal 4 comes to PC/Mac/Linux (retro-gamer.jp)", href: "https://retro-gamer.jp/?p=45562" }
 verified: "2026-08-18"
+cover: "./boxart.png"
 ---
 
 TwistedMetal4 Recompiled is an independent community project by TechnicallyComputers that brings 989 Studios' 1999 car-combat game to Windows, macOS, and Linux, with the original 4-player multitap multiplayer intact. It is built on [PSXRecomp](/hardware/playstation) and updated at a fast clip, with releases landing days apart.

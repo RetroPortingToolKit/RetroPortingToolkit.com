@@ -15,6 +15,7 @@ links:
   - { label: "segagenesisrecomp + Sonic the Hedgehog tech demo (1379.tech)", href: "https://1379.tech/segagenesisrecomp-sonic-the-hedgehog-tech-demo/" }
   - { label: "SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2 (1379.tech)", href: "https://1379.tech/segagenesisrecomp-gets-game-2-sonic-the-hedgehog-2/" }
 verified: "2026-08-18"
+cover: "/consoles/sega-genesis.jpg"
 ---
 
 Three Sonic games run as native apps, each with its own released source repo: [Sonic the Hedgehog](/games/sonic-the-hedgehog), [Sonic the Hedgehog 2](/games/sonic-the-hedgehog-2), and [Sonic 3 & Knuckles](/games/sonic-3-and-knuckles). SegaGenesisRecomp translates a Genesis game's original program into C and runs it against a clean-room runtime, built from a cartridge dump you provide.

@@ -14,6 +14,7 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "/data/blog/20_nesrecomp-10-titles/DuckHuntRecomp_ALvjc1KEbx.png"
 ---
 
 Duck Hunt needs a piece of hardware no modern setup has: the Zapper light gun, pointed at a CRT television. This [NESRecomp](/hardware/nes) build, maintained by the core team, hands that job to your mouse: move to aim, click to shoot.

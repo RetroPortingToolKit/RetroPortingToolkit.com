@@ -16,7 +16,7 @@ links:
   - { label: "Megaman X: Recompiled Release (1379.tech)", href: "https://1379.tech/megaman-x-recompiled-v1-0-0-release/" }
   - { label: "Watch: Mega Man X Recomp is out now", href: "/blog/video-mega-man-x-out-now" }
 verified: "2026-08-18"
-cover: "./smw-wide.png"
+cover: "/consoles/super-nintendo.jpg"
 ---
 
 Three Super Nintendo games have public releases, and in the README's own words: [Mega Man X](/games/mega-man-x) is "Fully playable", [Super Mario World](/games/super-mario-world) is "Believed playable end to end", and [A Link to the Past](/games/a-link-to-the-past) is "Playable through the early dungeon". SNESRecomp rebuilds each game's original code as a native app, built from a cartridge dump you provide.

@@ -155,3 +155,24 @@ exist publicly (only xboxlle-probe).
 - GitHub warns that psxrecomp.mp4 (61 MB) exceeds its 50 MB recommendation
   (hard limit is 100 MB; push succeeded). If more large videos land, consider
   compressing to ~720p crf 26 before committing.
+
+## Card system + nav (2026-08-19)
+
+- Platform cards use console photography from Wikimedia Commons in
+  public/consoles/ (Evan-Amos). PlayStation, NES, SNES, GBA, DS, GameCube,
+  CD-i, Xbox are public domain; sega-genesis.jpg and virtual-boy.jpg are
+  CC BY-SA 3.0 and need visible credit if the design ever surfaces captions.
+  Photos are `object-fit: contain` on a light plate, not cropped.
+- Kicker chips render on news cards only; game and platform cards carry the
+  platform in their section heading already.
+- `.tvcard--game` / `.tvcard--hardware` had NO body or media styles at all
+  (the variants were never written), which is why covers collapsed and text
+  sat unpadded. Both now mirror the news-card treatment.
+- Subpage nav bar must be `position: fixed`: `.home-next-page` sets
+  overflow-x: hidden, which promotes it to a scroll container and silently
+  breaks `position: sticky` on descendants.
+- Remaining generated-art covers (no authentic capture exists): Tsumu Light,
+  Mario Kart Super Circuit, Super Mario Advance 2 and 4, recomp-net,
+  OpenPete/Spyro, Xenogears, Pepsiman; plus the Spyro and Pepsiman press
+  pages. Super Mario Kart imagery is SNES and must NOT be used for the GBA
+  Mario Kart page.

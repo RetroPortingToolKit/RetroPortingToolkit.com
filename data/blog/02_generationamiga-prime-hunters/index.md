@@ -9,6 +9,7 @@ venue: "GenerationAmiga"
 layout: "article"
 links:
   - { label: "Read on GenerationAmiga", href: "https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/" }
+cover: "/covers/mph-2119.jpg"
 ---
 
 Independent coverage from GenerationAmiga, published the day after the v0.3.0-alpha release. This is outside reporting rather than a team post, and it introduces the Metroid Prime Hunters recomp, a static recompilation of the DS game, to an audience beyond the recompilation scene.

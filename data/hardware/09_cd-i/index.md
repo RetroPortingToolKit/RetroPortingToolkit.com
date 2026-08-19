@@ -14,7 +14,7 @@ group: "Research"
 links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"
-cover: "./hotel-mario-title.png"
+cover: "/consoles/cd-i.jpg"
 ---
 
 Research only. cdirecomp boots the real Philips CD-i player software as native code and can perform a very basic boot of a CD-i title: Hotel Mario reaches its title card, and gameplay is not yet reachable. The project calls itself "a research project shared in the open, not a finished product".
