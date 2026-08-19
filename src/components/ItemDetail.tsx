@@ -10,6 +10,8 @@ import {
   readingTimeMin,
 } from "@/lib/content";
 import { useItemNavigate } from "@/lib/useItemNavigate";
+import { svgCover } from "@/lab/labContent";
+import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { Markdown } from "./Markdown";
 import { BlurText } from "./BlurText";
 import { ProjectCarousel, type Slide } from "./ProjectCarousel";
@@ -314,19 +316,20 @@ function GameTile({ game }: { game: Item }) {
   const link = useItemNavigate(game);
   return (
     <a className="game-tile" href={link.href} onClick={link.onClick}>
-      {game.cover ? (
-        <img
-          className="game-tile-cover"
-          src={game.cover}
-          alt=""
-          loading="lazy"
-          decoding="async"
-        />
-      ) : (
-        <span className="game-tile-cover game-tile-cover--blank" aria-hidden="true">
-          {game.title.charAt(0)}
-        </span>
-      )}
+      <img
+        className="game-tile-cover"
+        src={
+          game.cover ??
+          svgCover(
+            game.title,
+            game.kicker,
+            chipColorFor(game.kicker) ?? CHIP_PALETTE[game.title.length % CHIP_PALETTE.length],
+          )
+        }
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
       <span className="game-tile-text">
         <span className="game-tile-title">{game.title}</span>
         {game.status && <span className="game-tile-status">{game.status}</span>}
@@ -362,7 +365,12 @@ function RelatedGames({ item }: { item: Item }) {
   return (
     <div className="related-games">
       <h2 className="platform-games-title">
-        More on {hw ? hw.title : "this platform"}
+        <SmartLink
+          className="platform-games-title-link"
+          href={`/hardware/${item.platform}`}
+        >
+          More on {hw ? hw.title : "this platform"} →
+        </SmartLink>
       </h2>
       <div className="game-tile-grid">
         {sibs.slice(0, 6).map((g) => (
@@ -455,22 +463,31 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
       <aside className="project-split-left" ref={leftRef}>
         <div className="project-split-inner">
           <BlurText as="h1" className="modal-title" text={item.title} stagger={12} duration={360} delay={40} />
-          {(item.kicker || item.tags.length > 0) && (
+          {item.kicker && (
             <div className="modal-tags blur-in" style={delayed(160)}>
-              {item.kicker &&
-                (item.kind === "game" && item.platform ? (
-                  <SmartLink
-                    className="proj-tag proj-tag--kicker proj-tag--link"
-                    href={`/hardware/${item.platform}`}
+              {/* One chip, styled exactly like the card chips. Feature tags
+                  were noise; the body covers the features. Game chips link to
+                  the platform page. */}
+              {item.kind === "game" && item.platform ? (
+                <SmartLink
+                  className="tvcard-chip tvcard-chip--link"
+                  href={`/hardware/${item.platform}`}
+                >
+                  <span
+                    className="tvcard-chip-bg"
+                    style={{ background: chipColorFor(item.kicker) ?? CHIP_PALETTE[0] }}
                   >
                     {item.kicker}
-                  </SmartLink>
-                ) : (
-                  <span className="proj-tag proj-tag--kicker">{item.kicker}</span>
-                ))}
-              {item.tags.map((t) => (
-                <span key={t} className="proj-tag">{t}</span>
-              ))}
+                  </span>
+                </SmartLink>
+              ) : (
+                <span
+                  className="tvcard-chip"
+                  style={{ background: chipColorFor(item.kicker) ?? CHIP_PALETTE[0] }}
+                >
+                  {item.kicker}
+                </span>
+              )}
             </div>
           )}
           {item.kind === "blog" && <ArticleByline item={item} delay={240} />}
@@ -650,15 +667,27 @@ function DefaultDetail({ item }: { item: Item }) {
           </header>
         ) : (
           <>
-            {item.kicker && (
-              <BlurText
-                as="div"
-                className="modal-kicker"
-                text={item.kicker}
-                stagger={8}
-                duration={320}
-              />
-            )}
+            {item.kicker &&
+              (item.kind === "game" && item.platform ? (
+                <SmartLink
+                  className="tvcard-chip tvcard-chip--link"
+                  href={`/hardware/${item.platform}`}
+                >
+                  <span
+                    className="tvcard-chip-bg"
+                    style={{ background: chipColorFor(item.kicker) ?? CHIP_PALETTE[0] }}
+                  >
+                    {item.kicker}
+                  </span>
+                </SmartLink>
+              ) : (
+                <span
+                  className="tvcard-chip"
+                  style={{ background: chipColorFor(item.kicker) ?? CHIP_PALETTE[0] }}
+                >
+                  {item.kicker}
+                </span>
+              ))}
             <BlurText
               as="h1"
               className="modal-title"
@@ -667,15 +696,6 @@ function DefaultDetail({ item }: { item: Item }) {
               duration={360}
               delay={40}
             />
-            {item.tags.length > 0 && (
-              <div className="modal-tags blur-in" style={delayed(160)}>
-                {item.tags.map((t) => (
-                  <span key={t} className="proj-tag">
-                    {t}
-                  </span>
-                ))}
-              </div>
-            )}
             {(item.venue ||
               item.status ||
               item.availability ||

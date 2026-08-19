@@ -193,3 +193,20 @@ exist publicly (only xboxlle-probe).
   `platform:` frontmatter matching the hardware slug.
 - Hardware groups merged: "Research" folded into "Early platform work", with
   a muted explainer under the heading on the Platforms tab.
+
+## Platform-page polish (2026-08-19, second pass)
+
+- Carousel YouTube slides are poster-first click-to-play (CarouselYouTube in
+  ProjectCarousel): auto-embedding an iframe rendered a blank card when
+  YouTube declined to play. Poster = slide.poster (the item cover), else the
+  yt thumb.
+- Console stage on platform pages capped at min(44vh, 400px) so the games
+  grid shows without scrolling; game tiles at 210px min with generated
+  catalog art (svgCover, now exported from labContent) when no cover exists.
+- Project pages: one kicker chip styled identically to card chips
+  (chipColorFor), linking to the platform on game pages; the feature-tag
+  chips (WIDESCREEN, DEBUG MENU...) are gone; "More on {platform}" heading
+  links to the platform page.
+- Modal chrome gains a Back button when react-router history has an in-app
+  entry behind it (location.key !== "default").
+- Game/platform cards clamp desc at 3 lines (was 2).

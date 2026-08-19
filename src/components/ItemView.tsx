@@ -107,6 +107,13 @@ interface NavControlsProps {
 function NavControls({ item, onClose, enableKeyboard = true }: NavControlsProps) {
   const { canNav, go } = useSiblingNav(item);
   const navVisible = canNav;
+  const navigate = useNavigate();
+  const location = useLocation();
+  // A real in-app history entry exists behind this one (react-router keys the
+  // first entry "default"), so Back returns to the page the user came from,
+  // e.g. platform page -> game page -> back.
+  const canGoBack = location.key !== "default";
+  const onBack = () => navigate(-1);
 
   useEffect(() => {
     if (!enableKeyboard || !canNav) return;
@@ -144,6 +151,26 @@ function NavControls({ item, onClose, enableKeyboard = true }: NavControlsProps)
 
   return (
     <div className="modal-controls">
+      {canGoBack && (
+        <button
+          type="button"
+          className="modal-nav modal-back"
+          onClick={onBack}
+          aria-label="Back"
+        >
+          <span className="modal-close-icon">
+            <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path
+                d="M13.5 8H3M7 3.5 2.5 8 7 12.5"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </button>
+      )}
       {navVisible && (
         <>
           <button

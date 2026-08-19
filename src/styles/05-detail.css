@@ -1684,8 +1684,8 @@ button {
 }
 .game-tile-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 18px;
 }
 .game-tile {
   display: flex;
@@ -1729,4 +1729,70 @@ button {
 }
 .proj-tag--link:hover {
   text-decoration: underline;
+}
+
+/* Platform pages: the console photo is context, not the show. Cap the stage
+   so the games grid is visible without scrolling. */
+.project-split--hardware .proj-carousel {
+  height: min(44vh, 400px);
+}
+
+/* Project-page kicker chip: identical to the card chips; the link variant
+   wraps the colored pill in a plain anchor. */
+.modal-tags .tvcard-chip,
+.modal-body .tvcard-chip {
+  margin-bottom: 4px;
+}
+.tvcard-chip--link {
+  display: inline-flex;
+  padding: 0;
+  background: none;
+  text-decoration: none;
+}
+.tvcard-chip--link .tvcard-chip-bg {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: #fff;
+}
+.tvcard-chip--link:hover .tvcard-chip-bg {
+  filter: brightness(1.12);
+}
+.platform-games-title-link {
+  color: inherit;
+  text-decoration: none;
+}
+.platform-games-title-link:hover {
+  text-decoration: underline;
+}
+
+/* Carousel YouTube poster: fills the stage like the iframe it replaces. */
+.proj-carousel-ytposter {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  background: #05070d;
+  display: block;
+}
+.proj-carousel-ytposter img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.proj-carousel-ytposter .media-card-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

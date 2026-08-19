@@ -43,7 +43,7 @@ const colorFor = (p: Item, i: number): string =>
 // a scanline sheen, built as an inline SVG data URI. Every card gets real cover
 // art this way even before a screenshot or capture exists; an authored `cover:`
 // in frontmatter always wins.
-function svgCover(title: string, kicker: string, color: string): string {
+export function svgCover(title: string, kicker: string, color: string): string {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   // Big mark: initials of up to three words ("Super Mario World" -> SMW),

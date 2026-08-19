@@ -7,7 +7,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import useEmblaCarousel from "embla-carousel-react";
-import { isVideoSrc, isYouTubeSrc, youtubeEmbedUrl } from "@/lib/content";
+import { isVideoSrc, isYouTubeSrc, youtubeThumb } from "@/lib/content";
 import { useAutoplayVideo } from "@/lib/useAutoplayVideo";
 import { VideoSources } from "./mediaLoad";
 
@@ -156,6 +156,63 @@ interface Props {
   slides: Slide[];
   showThumbs?: boolean;
   autoplayDelay?: number;
+}
+
+// YouTube slides never auto-embed: an iframe that YouTube declines to render
+// leaves a blank card. Poster first (the item's cover, else the yt thumb),
+// then a real embed only on an explicit click.
+function CarouselYouTube({
+  src,
+  poster,
+  title,
+  onReady,
+  onUserInteract,
+}: {
+  src: string;
+  poster?: string;
+  title?: string;
+  onReady: () => void;
+  onUserInteract: () => void;
+}) {
+  const [playing, setPlaying] = useState(false);
+  const id = src.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+  if (!id) return null;
+  if (playing) {
+    return (
+      <iframe
+        className="proj-carousel-iframe"
+        src={`https://www.youtube.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1`}
+        title={title ?? "Video"}
+        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="proj-carousel-ytposter"
+      onClick={() => {
+        onUserInteract();
+        setPlaying(true);
+      }}
+      aria-label={`Play video: ${title ?? "video"}`}
+    >
+      <img
+        src={poster ?? youtubeThumb(src)}
+        alt=""
+        draggable={false}
+        onLoad={onReady}
+        decoding="async"
+      />
+      <span className="media-card-play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="52" height="52" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)" />
+          <path d="M9.8 7.5v9l7-4.5z" fill="#fff" />
+        </svg>
+      </span>
+    </button>
+  );
 }
 
 function Chevron({ direction }: { direction: "left" | "right" }) {
@@ -516,13 +573,12 @@ export function ProjectCarousel({
                         }
                       >
                         {isYouTubeSrc(s.src) ? (
-                          <iframe
-                            className="proj-carousel-iframe"
-                            src={youtubeEmbedUrl(s.src)}
-                            title="YouTube video"
-                            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-                            allowFullScreen
-                            onLoad={() => markLoaded(i)}
+                          <CarouselYouTube
+                            src={s.src}
+                            poster={s.poster}
+                            title={s.caption}
+                            onReady={() => markLoaded(i)}
+                            onUserInteract={stopAutoplay}
                           />
                         ) : isVideoSrc(s.src) ? (
                           <CarouselVideo
