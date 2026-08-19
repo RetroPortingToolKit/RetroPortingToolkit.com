@@ -1578,3 +1578,37 @@ button {
   font-size: 13.5px;
   color: var(--text-2, rgba(140, 140, 155, 1));
 }
+
+
+/* Click-to-play video hero on project pages: poster first, embed on demand. */
+.video-hero {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #05070d;
+}
+.video-hero-frame,
+.video-hero-poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  display: block;
+  cursor: pointer;
+  background: #05070d;
+}
+.video-hero-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.video-hero .media-card-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

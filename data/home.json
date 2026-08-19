@@ -17,21 +17,21 @@
       "body": "The tilt sensor in WarioWare: Twisted! can map to a phone gyroscope. Boktai's solar sensor can use real local weather.",
       "image": "/covers/warioware-sensors.jpg",
       "alt": "WarioWare: Twisted! running through GBARecomp",
-      "credit": "Screenshot: gbarecomp project"
+      "href": "/games/warioware-twisted"
     },
     {
       "title": "Lost multiplayer comes back online.",
       "body": "Games built for console-to-console play can keep their original multiplayer logic while the runtime carries the connection over the modern internet. Metroid Prime Hunters' online mode runs experimentally through Wiimmfi.",
       "image": "/covers/mph-online.jpg",
       "alt": "Metroid Prime Hunters running through the DS recompiler with experimental Wiimmfi online play",
-      "credit": "Capture: Gamemaster1379"
+      "href": "/games/metroid-prime-hunters"
     },
     {
       "title": "The game becomes extensible.",
       "body": "Runtime translation, opt-in mod loaders, and behavior-level character replacement can change what a game does without altering the original game file.",
       "image": "/covers/smw-extensible.jpg",
       "alt": "Super Mario World running with a replacement character",
-      "credit": "Capture: Gamemaster1379"
+      "href": "/games/super-mario-world"
     }
   ],
   "platformNote": {
@@ -43,67 +43,59 @@
       "slug": "super-mario-bros",
       "capability": "First-person voxel 3D, an opt-in remix of the original engine",
       "cover": "/covers/smb-voxel.jpg",
-      "alt": "Super Mario Bros. rendered in first-person voxel 3D",
-      "credit": "Capture: 1379.tech"
+      "alt": "Super Mario Bros. rendered in first-person voxel 3D"
     },
     {
       "slug": "minish-cap",
       "capability": "Adaptive widescreen that genuinely widens the view",
       "cover": "/covers/minish-cap.jpg",
-      "alt": "The Minish Cap in adaptive widescreen",
-      "credit": "Screenshot: gbarecomp project"
+      "alt": "The Minish Cap in adaptive widescreen"
     },
     {
       "slug": "mega-man-x6",
       "capability": "203 configurable mod items from an authorized adaptation",
       "cover": "/covers/mmx6-mods.jpg",
-      "alt": "Mega Man X6 gameplay through PSXRecomp",
-      "credit": "Footage: Video Game Esoterica, with permission"
+      "alt": "Mega Man X6 gameplay through PSXRecomp"
     },
     {
       "slug": "tomba",
       "capability": "Save states and rewind on the game that started PSXRecomp",
       "cover": "/covers/tomba-gameplay.jpg",
-      "alt": "Tomba! gameplay through PSXRecomp",
-      "credit": "Capture: Gamemaster1379"
+      "alt": "Tomba! gameplay through PSXRecomp"
     }
   ],
   "action": [
     {
       "videoTitle": "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD",
       "project": "Street Fighter Alpha 3",
-      "creator": "Video Game Esoterica",
-      "href": "https://www.youtube.com/watch?v=aITjH0LoEeA",
       "poster": "/covers/sfa3-setup.jpg",
       "alt": "Street Fighter Alpha 3 recompilation coverage",
-      "blurb": "About five minutes of game-specific setup reached a running native build. The polish that follows is the usual per-game work."
+      "blurb": "About five minutes of game-specific setup reached a running native build. The polish that follows is the usual per-game work.",
+      "page": "/games/street-fighter-alpha-3"
     },
     {
       "videoTitle": "2026 08 10 SMW Test",
       "project": "Super Mario World",
-      "creator": "Gamemaster1379",
-      "href": "https://www.youtube.com/watch?v=Owuku0zj4As",
       "poster": "/covers/smw-character.jpg",
       "alt": "Super Mario World with a behavior-level replacement character",
-      "blurb": "Behavior-level character replacement: movement, abilities, animation, and sound change, not just the sprite."
+      "blurb": "Behavior-level character replacement: movement, abilities, animation, and sound change, not just the sprite.",
+      "page": "/games/super-mario-world"
     },
     {
       "videoTitle": "2026 08 09 Metroid Prime Hunters NDS recompiled, 21:9 M&KB first look",
       "project": "Metroid Prime Hunters",
-      "creator": "Gamemaster1379",
-      "href": "https://www.youtube.com/watch?v=tvqnW6J6KU0",
       "poster": "/covers/mph-2119.jpg",
       "alt": "Metroid Prime Hunters at 21:9 with mouse and keyboard",
-      "blurb": "21:9 output and mouse and keyboard controls on the DS shooter."
+      "blurb": "21:9 output and mouse and keyboard controls on the DS shooter.",
+      "page": "/games/metroid-prime-hunters"
     },
     {
       "videoTitle": "PSXRecomp Tomba 1 Save States & Rewind Showcase",
       "project": "Tomba!",
-      "creator": "Gamemaster1379",
-      "href": "https://www.youtube.com/watch?v=L36ppNkuJG0",
       "poster": "/covers/tomba-rewind.jpg",
       "alt": "Tomba! with the rewind timeline open",
-      "blurb": "Save states and rewind, driven by the shared rollback machinery."
+      "blurb": "Save states and rewind, driven by the shared rollback machinery.",
+      "page": "/games/tomba"
     }
   ]
 }

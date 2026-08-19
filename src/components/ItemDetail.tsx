@@ -32,6 +32,44 @@ export function blogIsSplit(item: Item): boolean {
   return !!item.demo || item.gallery.length > 0;
 }
 
+// Click-to-play YouTube embed for a page's primary video: the cover is the
+// poster, the player loads only on activation, and attribution stays in the
+// page's links. Videos are embedded, never re-hosted.
+function VideoHero({ item }: { item: Item }) {
+  const [playing, setPlaying] = useState(false);
+  const id = item.videoUrl?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1];
+  if (!id) return null;
+  const poster = item.cover || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  return (
+    <div className="modal-hero video-hero">
+      {playing ? (
+        <iframe
+          className="video-hero-frame"
+          src={`https://www.youtube.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1`}
+          title={item.title}
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allowFullScreen
+        />
+      ) : (
+        <button
+          type="button"
+          className="video-hero-poster"
+          onClick={() => setPlaying(true)}
+          aria-label={`Play video: ${item.title}`}
+        >
+          <img src={poster} alt="" loading="lazy" decoding="async" />
+          <span className="media-card-play" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="52" height="52" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)" />
+              <path d="M9.8 7.5v9l7-4.5z" fill="#fff" />
+            </svg>
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function ItemDetail({ item }: Props) {
   // Blog: split entries render two-pane in BOTH modal and page (a live demo
   // deserves the full page). Everything else reads as an article.
@@ -284,9 +322,11 @@ function DefaultDetail({ item }: { item: Item }) {
     )
   ) : null;
 
+  const hasVideoHero = item.kind !== "blog" && isYouTubeSrc(item.videoUrl);
   return (
     <>
-      {!isArticle && item.cover && (
+      {hasVideoHero && <VideoHero item={item} />}
+      {!isArticle && !hasVideoHero && item.cover && (
         <div className="modal-hero">{coverMedia}</div>
       )}
 

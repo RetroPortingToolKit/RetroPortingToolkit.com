@@ -60,7 +60,7 @@ export interface HomeStory {
   body: string;
   image: string;
   alt: string;
-  credit: string;
+  href: string;
 }
 
 export interface HomeFeatured {
@@ -68,14 +68,12 @@ export interface HomeFeatured {
   capability: string;
   cover: string;
   alt: string;
-  credit: string;
 }
 
 export interface HomeActionCard {
   videoTitle: string;
   project: string;
-  creator: string;
-  href: string;
+  page: string;
   poster: string;
   alt: string;
   blurb: string;

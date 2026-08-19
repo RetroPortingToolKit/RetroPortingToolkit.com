@@ -1234,6 +1234,11 @@ html {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+.story-card:hover .media-card-frame img {
+  transform: scale(1.03);
 }
 .media-card,
 .feature-card {

@@ -403,7 +403,7 @@ function readHomeProse() {
     body: String(e.body || ""),
     image: String(e.image || ""),
     alt: String(e.alt || ""),
-    credit: String(e.credit || ""),
+    href: String(e.href || ""),
   }));
   out.platformNote = data.platformNote
     ? { title: String(data.platformNote.title || ""), body: String(data.platformNote.body || "") }
@@ -413,13 +413,11 @@ function readHomeProse() {
     capability: String(e.capability || ""),
     cover: String(e.cover || ""),
     alt: String(e.alt || ""),
-    credit: String(e.credit || ""),
   }));
   out.action = (data.action || []).map((e) => ({
     videoTitle: String(e.videoTitle || ""),
     project: String(e.project || ""),
-    creator: String(e.creator || ""),
-    href: String(e.href || ""),
+    page: String(e.page || ""),
     poster: String(e.poster || ""),
     alt: String(e.alt || ""),
     blurb: String(e.blurb || ""),
@@ -444,7 +442,7 @@ function homeStaticHtml(items) {
     parts.push(
       "<ul>" +
         prose.stories
-          .map((st) => `<li><strong>${escapeHtml(st.title)}</strong> ${escapeHtml(st.body)}</li>`)
+          .map((st) => `<li><a href="${escapeAttr(st.href)}"><strong>${escapeHtml(st.title)}</strong></a> ${escapeHtml(st.body)}</li>`)
           .join("") +
         "</ul>",
     );
@@ -468,7 +466,7 @@ function homeStaticHtml(items) {
     parts.push("<h2>See it in action</h2><ul>");
     for (const c of prose.action) {
       parts.push(
-        `<li><a href="${escapeAttr(c.href)}">${escapeHtml(c.videoTitle)}</a> (${escapeHtml(c.creator)}): ${escapeHtml(c.blurb)}</li>`,
+        `<li><a href="${escapeAttr(c.page)}">${escapeHtml(c.videoTitle)}</a>: ${escapeHtml(c.blurb)}</li>`,
       );
     }
     parts.push("</ul>");
@@ -500,10 +498,20 @@ function validateHomeMedia(items) {
     if (prior) problems.push(`duplicate cover ${p} used by both ${prior} and ${what}`);
     seen.set(p, what);
   };
+  const gamePageExists = (p, what) => {
+    need(/^\/games\/[a-z0-9-]+$/.test(p), `${what}: link "${p}" must be an internal /games/ page`);
+    if (/^\/games\//.test(p)) {
+      const slug = p.split("/").pop();
+      need(
+        items.some((i) => i.kind === "game" && i.slug === slug),
+        `${what}: no game page for "${slug}"`,
+      );
+    }
+  };
   for (const st of prose.stories) {
     checkAsset(st.image, `story "${st.title}"`);
     need(st.alt, `story "${st.title}": missing alt`);
-    need(st.credit, `story "${st.title}": missing credit`);
+    gamePageExists(st.href, `story "${st.title}"`);
   }
   need(prose.featured.length === 4, `featured: expected 4 entries, found ${prose.featured.length}`);
   for (const fp of prose.featured) {
@@ -516,9 +524,12 @@ function validateHomeMedia(items) {
   need(prose.action.length > 0 && prose.action.length <= 4, `action: expected 1-4 cards, found ${prose.action.length}`);
   for (const c of prose.action) {
     checkAsset(c.poster, `action "${c.videoTitle}"`);
-    need(/^https:\/\//.test(c.href), `action "${c.videoTitle}": href must be https`);
-    need(c.creator, `action "${c.videoTitle}": missing creator attribution`);
+    gamePageExists(c.page, `action "${c.videoTitle}"`);
     need(c.alt, `action "${c.videoTitle}": missing alt`);
+    // the internal page must carry the video so the embed and attribution live there
+    const slug = c.page.split("/").pop();
+    const item = items.find((i) => i.kind === "game" && i.slug === slug);
+    need(item && item.videoUrl, `action "${c.videoTitle}": ${c.page} has no videoUrl to embed`);
   }
   if (problems.length) {
     throw new Error("Homepage media validation failed:\n  - " + problems.join("\n  - "));

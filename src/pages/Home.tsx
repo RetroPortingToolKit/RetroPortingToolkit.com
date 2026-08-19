@@ -88,14 +88,17 @@ function PlayGlyph() {
 // One shared media card for See it in action: static 16:9 poster, play badge,
 // creator attribution, one-line blurb. Never autoplays; the whole card is a
 // link (keyboard-activatable by nature).
-function MediaCard({ card }: { card: HomeActionCard }) {
+function MediaCard({ card, onActivate }: { card: HomeActionCard; onActivate: () => void }) {
   return (
     <a
       className="media-card"
-      href={card.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`Play: ${card.videoTitle} (${card.creator})`}
+      href={card.page}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        onActivate();
+      }}
+      aria-label={`Watch on the project page: ${card.videoTitle}`}
     >
       <span className="media-card-frame">
         <img src={card.poster} alt={card.alt} width={1280} height={720} loading="lazy" decoding="async" />
@@ -107,7 +110,6 @@ function MediaCard({ card }: { card: HomeActionCard }) {
         <span className="media-card-project">{card.project}</span>
         <span className="media-card-title">{card.videoTitle}</span>
         <span className="media-card-blurb">{card.blurb}</span>
-        <span className="media-card-credit">{card.creator}</span>
       </span>
     </a>
   );
@@ -471,16 +473,26 @@ function TabContent({
               </div>
               <div className="story-grid">
                 {STORIES.map((st) => (
-                  <figure className="story-card" data-reveal key={st.title}>
+                  <a
+                    className="story-card"
+                    data-reveal
+                    key={st.title}
+                    href={st.href}
+                    onClick={(e) => {
+                      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                      e.preventDefault();
+                      const slug = st.href.split("/").pop() ?? "";
+                      onOpen({ kind: "game", slug } as LabMedia);
+                    }}
+                  >
                     <span className="media-card-frame">
                       <img src={st.image} alt={st.alt} width={1280} height={720} loading="lazy" decoding="async" />
                     </span>
-                    <figcaption>
+                    <span className="media-card-meta">
                       <span className="media-card-title">{st.title}</span>
                       <span className="media-card-blurb">{st.body}</span>
-                      <span className="media-card-credit">{st.credit}</span>
-                    </figcaption>
-                  </figure>
+                    </span>
+                  </a>
                 ))}
               </div>
               <p className="hn-note" data-reveal>
@@ -519,7 +531,14 @@ function TabContent({
               </h2>
               <div className="story-grid story-grid--four">
                 {ACTION.map((card) => (
-                  <MediaCard key={card.href} card={card} />
+                  <MediaCard
+                    key={card.page}
+                    card={card}
+                    onActivate={() => {
+                      const slug = card.page.split("/").pop() ?? "";
+                      onOpen({ kind: "game", slug } as LabMedia);
+                    }}
+                  />
                 ))}
               </div>
               <p className="hn-index-links" data-reveal>
