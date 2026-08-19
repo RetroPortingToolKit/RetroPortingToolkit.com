@@ -1,6 +1,7 @@
 {
   "proof": [
-    "Emulators recreate a console so they can run its library. Retro Porting Toolkit takes a different route: it recompiles one game at a time, preserving the original game logic while replacing the hardware constraints around it. That trades broad compatibility for deeper control over rendering, input, networking, and behavior, and it builds directly on decades of knowledge from the emulation community."
+    "Emulators recreate a console so they can run its library. Retro Porting Toolkit takes a different route: it recompiles one game at a time, preserving the original game logic while replacing the hardware constraints around it. That trades broad compatibility for deeper control over rendering, input, networking, and behavior, and it builds directly on decades of knowledge from the emulation community.",
+    "Getting a game to boot correctly is the floor, not the finish line. On its own, a correct recomp mostly buys faster loading. The point is what comes next: performance headroom and extensibility the original hardware could never offer."
   ],
   "philosophy": [
     "Go native. Windows, Linux, macOS, Android, even the browser. No emulator core in sight.",
@@ -10,33 +11,33 @@
     "Change the words. Runtime text replacement powers Tsumu Light's English fan translation and NES text overrides.",
     "Play together. Shared netplay, rollback, save states, and rewind (recomp-net and retcomm-rbengine) that every ecosystem can pick up."
   ],
-  "constraintsIntro": "The goal is not simply to make old games run. It is to reconnect their original logic to modern systems in ways the original hardware could never support.",
+  "constraintsIntro": "The team's rule of thumb: the games are the byproduct, the ecosystem is the product. And every enhancement follows one hard rule: the original game file is never modified. Features layer over a verified, untouched copy at runtime, and turning them off returns the authentic game, byte for byte.",
   "stories": [
     {
+      "title": "The screen was the limit. Not anymore.",
+      "body": "Many GBA games keep whole maps in memory; the screen was the only thing hiding them. Adaptive widescreen widens the real view up to 21:9: The Minish Cap shows more of the world, and Mega Man Zero finally gives you room to react.",
+      "image": "/covers/minish-widescreen.webp",
+      "alt": "The Minish Cap running in adaptive 21:9 widescreen",
+      "href": "/games/minish-cap"
+    },
+    {
+      "title": "One mod loader. Four consoles. Zero patched ROMs.",
+      "body": "PlayStation, SNES, GBA, and Genesis now share an opt-in mod loader. Mega Man X6 ships an authorized adaptation of the Mega Man X6 Tweaks patch, and Tomba! re-enables a debug menu the developers left in the game, no disc patching involved.",
+      "image": "/covers/x6-tweaks.png",
+      "alt": "The mod list in Mega Man X6 Recompiled",
+      "href": "/games/mega-man-x6"
+    },
+    {
       "title": "Cartridges become modern sensors.",
-      "body": "The tilt sensor in WarioWare: Twisted! can map to a phone gyroscope. Boktai's solar sensor can use real local weather.",
-      "image": "/covers/warioware-sensors.jpg",
-      "alt": "WarioWare: Twisted! running through GBARecomp",
+      "body": "WarioWare: Twisted! reads its twist from a controller gyroscope on PC, or from your phone in the Android build. Boktai's solar sensor is on the same path through a community contribution.",
+      "image": "/covers/warioware-gyro.webp",
+      "alt": "WarioWare: Twisted! taking gyro input from a controller and a phone",
       "href": "/games/warioware-twisted"
-    },
-    {
-      "title": "Lost multiplayer comes back online.",
-      "body": "Games built for console-to-console play can keep their original multiplayer logic while the runtime carries the connection over the modern internet. Metroid Prime Hunters' online mode runs experimentally through Wiimmfi.",
-      "image": "/covers/mph-online.jpg",
-      "alt": "Metroid Prime Hunters running through the DS recompiler with experimental Wiimmfi online play",
-      "href": "/games/metroid-prime-hunters"
-    },
-    {
-      "title": "The game becomes extensible.",
-      "body": "Runtime translation, opt-in mod loaders, and behavior-level character replacement can change what a game does without altering the original game file.",
-      "image": "/covers/smw-extensible.jpg",
-      "alt": "Super Mario World running with a replacement character",
-      "href": "/games/super-mario-world"
     }
   ],
   "platformNote": {
     "title": "One improvement can help many games.",
-    "body": "These are not isolated one-off patches. Because capabilities live in shared platform runtimes, work done for one game can often make the next game easier."
+    "body": "Capabilities live in shared platform runtimes, so work done for one game carries to the next. The mod loader that proved out on Mega Man X6 now serves four consoles, and the same approach is reaching new frontiers: the original Xbox rendered its first recompiled frame, the GameCube boot menu runs in full, and the CD-i BIOS boots into Hotel Mario."
   },
   "featured": [
     {
@@ -97,5 +98,13 @@
       "blurb": "Save states and rewind, driven by the shared rollback machinery.",
       "page": "/games/tomba"
     }
-  ]
+  ],
+  "featuredPost": {
+    "slug": "building-enhancing-recomps",
+    "eyebrow": "From the build log",
+    "title": "Building & Enhancing Recomps: Ecosystem Updates",
+    "blurb": "The full tour of where every ecosystem stands: the shared mod loader, adaptive widescreen across GBA and SNES, gyro and light sensors reborn, a voxel NES experiment, and first light on Xbox, GameCube, and CD-i.",
+    "cover": "/covers/build-log-ecosystem.jpg",
+    "alt": "Building and Enhancing Recomps article cover"
+  }
 }

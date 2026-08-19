@@ -26,9 +26,16 @@ import {
   PLATFORM_NOTE,
   FEATURED,
   ACTION,
+  FEATURED_POST,
   type HomeActionCard,
   renderSegments,
 } from "@/lib/homeContent";
+
+// Muted one-liner under a group heading, for groups that need context.
+const GROUP_NOTES: Record<string, string> = {
+  "Early platform work":
+    "Everything here is genuinely early: first boots, BIOS bring-up, and research probes. Each page says exactly how far it goes.",
+};
 
 const TAB_PATH: Record<TabId, string> = {
   home: "/",
@@ -277,6 +284,9 @@ function TabGrid({
         {kind !== "blog" && groups.map((g) => (
           <Fragment key={g.label}>
             <h2 className="hn-h2 hn-side-title">{g.label}</h2>
+            {GROUP_NOTES[g.label] && (
+              <p className="blog-tab-sub group-note">{GROUP_NOTES[g.label]}</p>
+            )}
             <div className="tv-grid">
               {g.items.map((m) => (
                 <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
@@ -314,6 +324,7 @@ function TabContent({
   // Sections come straight from data/home.json. parseHome stays exported so a
   // CMS or preview layer can feed it a draft later without touching this page.
   const sections = { proof: PROOF_PRIMARY };
+  const featuredPost = FEATURED_POST;
 
   // After a tab switch, whatever lands under the stationary cursor must NOT
   // light up: freeze card hover until the mouse genuinely moves (>3px).
@@ -532,6 +543,40 @@ function TabContent({
               </p>
             </div>
           </section>
+
+          {featuredPost && (
+            <section className="hn-section" aria-label="From the build log">
+              <div className="hn-container">
+                <a
+                  className="buildlog-banner"
+                  data-reveal
+                  href={`/blog/${featuredPost.slug}`}
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                    e.preventDefault();
+                    onOpen({ kind: "blog", slug: featuredPost.slug } as LabMedia);
+                  }}
+                >
+                  <span className="buildlog-banner-media">
+                    <img
+                      src={featuredPost.cover}
+                      alt={featuredPost.alt}
+                      width={1280}
+                      height={720}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                  <span className="buildlog-banner-text">
+                    <span className="buildlog-banner-eyebrow">{featuredPost.eyebrow}</span>
+                    <span className="buildlog-banner-title">{featuredPost.title}</span>
+                    <span className="buildlog-banner-blurb">{featuredPost.blurb}</span>
+                    <span className="buildlog-banner-cta">Read the update <HeadArrow /></span>
+                  </span>
+                </a>
+              </div>
+            </section>
+          )}
 
           <section className="hn-section" aria-label="Featured projects">
             <div className="hn-container">

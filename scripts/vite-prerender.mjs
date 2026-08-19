@@ -414,6 +414,16 @@ function readHomeProse() {
     cover: String(e.cover || ""),
     alt: String(e.alt || ""),
   }));
+  out.featuredPost = data.featuredPost
+    ? {
+        slug: String(data.featuredPost.slug || ""),
+        eyebrow: String(data.featuredPost.eyebrow || ""),
+        title: String(data.featuredPost.title || ""),
+        blurb: String(data.featuredPost.blurb || ""),
+        cover: String(data.featuredPost.cover || ""),
+        alt: String(data.featuredPost.alt || ""),
+      }
+    : null;
   out.action = (data.action || []).map((e) => ({
     videoTitle: String(e.videoTitle || ""),
     project: String(e.project || ""),
@@ -450,6 +460,12 @@ function homeStaticHtml(items) {
   if (prose.platformNote) {
     parts.push(
       `<p><strong>${escapeHtml(prose.platformNote.title)}</strong> ${escapeHtml(prose.platformNote.body)}</p>`,
+    );
+  }
+  if (prose.featuredPost) {
+    parts.push(
+      `<h2>${escapeHtml(prose.featuredPost.eyebrow || "From the build log")}</h2>` +
+        `<p><a href="/blog/${escapeAttr(prose.featuredPost.slug)}">${escapeHtml(prose.featuredPost.title)}</a>: ${escapeHtml(prose.featuredPost.blurb)}</p>`,
     );
   }
   if (prose.featured.length) {
@@ -530,6 +546,15 @@ function validateHomeMedia(items) {
     const slug = c.page.split("/").pop();
     const item = items.find((i) => i.kind === "game" && i.slug === slug);
     need(item && item.videoUrl, `action "${c.videoTitle}": ${c.page} has no videoUrl to embed`);
+  }
+  if (prose.featuredPost) {
+    const fp = prose.featuredPost;
+    checkAsset(fp.cover, `featuredPost "${fp.slug}"`);
+    need(fp.alt, `featuredPost "${fp.slug}": missing alt`);
+    need(
+      items.some((i) => i.kind === "blog" && i.slug === fp.slug),
+      `featuredPost: no blog page for "${fp.slug}"`,
+    );
   }
   if (problems.length) {
     throw new Error("Homepage media validation failed:\n  - " + problems.join("\n  - "));

@@ -10,7 +10,7 @@ availability: "No public release"
 provenance: "core"
 arch: "Intel Pentium III (x86)"
 repo: "https://github.com/mstan/xboxlle-probe"
-group: "Research"
+group: "Early platform work"
 links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"

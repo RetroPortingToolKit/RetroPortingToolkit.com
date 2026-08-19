@@ -308,6 +308,71 @@ function ArticleEndCard({ item }: { item: Item }) {
   );
 }
 
+// A small linked tile for a game: cover, title, status. Used by the platform
+// pages' games showcase and the related-games strip on game pages.
+function GameTile({ game }: { game: Item }) {
+  const link = useItemNavigate(game);
+  return (
+    <a className="game-tile" href={link.href} onClick={link.onClick}>
+      {game.cover ? (
+        <img
+          className="game-tile-cover"
+          src={game.cover}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+      ) : (
+        <span className="game-tile-cover game-tile-cover--blank" aria-hidden="true">
+          {game.title.charAt(0)}
+        </span>
+      )}
+      <span className="game-tile-text">
+        <span className="game-tile-title">{game.title}</span>
+        {game.status && <span className="game-tile-status">{game.status}</span>}
+      </span>
+    </a>
+  );
+}
+
+// Platform pages showcase the games that run on them, linked to their pages.
+function PlatformGames({ item }: { item: Item }) {
+  const games = itemsForKind("game").filter((g) => g.platform === item.slug);
+  if (games.length === 0) return null;
+  return (
+    <div className="platform-games">
+      <h2 className="platform-games-title">Games on {item.title}</h2>
+      <div className="game-tile-grid">
+        {games.map((g) => (
+          <GameTile key={g.slug} game={g} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Game pages end with the other games on the same platform.
+function RelatedGames({ item }: { item: Item }) {
+  if (item.kind !== "game" || !item.platform) return null;
+  const sibs = itemsForKind("game").filter(
+    (g) => g.slug !== item.slug && g.platform === item.platform,
+  );
+  if (sibs.length === 0) return null;
+  const hw = itemsForKind("hardware").find((h) => h.slug === item.platform);
+  return (
+    <div className="related-games">
+      <h2 className="platform-games-title">
+        More on {hw ? hw.title : "this platform"}
+      </h2>
+      <div className="game-tile-grid">
+        {sibs.slice(0, 6).map((g) => (
+          <GameTile key={g.slug} game={g} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Singular noun per kind for the "Previous / Next …" labels.
 const ADJ_NOUN: Record<string, string> = {
   hardware: "platform",
@@ -371,6 +436,7 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
     const left = leftRef.current;
     const right = rightRef.current;
     if (!left || !right) return;
+    if (item.kind === "hardware") return;
     const onWheel = (e: WheelEvent) => {
       if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
       e.preventDefault();
@@ -380,13 +446,28 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
     return () => right.removeEventListener("wheel", onWheel);
   }, []);
   return (
-    <div className="project-split lab-split">
+    <div
+      className={
+        "project-split lab-split" +
+        (item.kind === "hardware" ? " project-split--hardware" : "")
+      }
+    >
       <aside className="project-split-left" ref={leftRef}>
         <div className="project-split-inner">
           <BlurText as="h1" className="modal-title" text={item.title} stagger={12} duration={360} delay={40} />
           {(item.kicker || item.tags.length > 0) && (
             <div className="modal-tags blur-in" style={delayed(160)}>
-              {item.kicker && <span className="proj-tag proj-tag--kicker">{item.kicker}</span>}
+              {item.kicker &&
+                (item.kind === "game" && item.platform ? (
+                  <SmartLink
+                    className="proj-tag proj-tag--kicker proj-tag--link"
+                    href={`/hardware/${item.platform}`}
+                  >
+                    {item.kicker}
+                  </SmartLink>
+                ) : (
+                  <span className="proj-tag proj-tag--kicker">{item.kicker}</span>
+                ))}
               {item.tags.map((t) => (
                 <span key={t} className="proj-tag">{t}</span>
               ))}
@@ -445,6 +526,7 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
         {item.kind === "blog" && articleAuthor(item) === SITE.author && (
           <ArticleEndCard item={item} />
         )}
+          {item.kind === "game" && <RelatedGames item={item} />}
           <AdjacentItems item={item} />
         </div>
       </aside>
@@ -466,7 +548,10 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
             />
           </>
         ) : (
-          <ProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
+          <>
+            <ProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
+            {item.kind === "hardware" && <PlatformGames item={item} />}
+          </>
         )}
       </div>
     </div>
@@ -697,6 +782,7 @@ function DefaultDetail({ item }: { item: Item }) {
         {item.kind === "blog" && articleAuthor(item) === SITE.author && (
           <ArticleEndCard item={item} />
         )}
+        {item.kind === "game" && <RelatedGames item={item} />}
         {/* Previous / next cards, like the project modal. Articles get article
             siblings; project pages get project siblings. */}
         <AdjacentItems item={item} />

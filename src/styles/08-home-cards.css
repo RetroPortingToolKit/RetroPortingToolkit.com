@@ -1409,3 +1409,76 @@ html {
   object-fit: contain;
   padding: 14px;
 }
+
+/* From the build log: one wide banner linking the featured article. */
+.buildlog-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+  gap: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--hairline, rgba(128, 128, 140, 0.2));
+  text-decoration: none;
+  color: inherit;
+}
+.buildlog-banner-media {
+  display: block;
+  min-height: 260px;
+}
+.buildlog-banner-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.buildlog-banner-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 34px 36px;
+}
+.buildlog-banner-eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.buildlog-banner-title {
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.buildlog-banner-blurb {
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.buildlog-banner-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.group-note {
+  margin: -14px 0 18px;
+}
+@media (max-width: 820px) {
+  .buildlog-banner {
+    grid-template-columns: 1fr;
+  }
+  .buildlog-banner-media {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+  .buildlog-banner-text {
+    padding: 22px 20px 26px;
+  }
+}

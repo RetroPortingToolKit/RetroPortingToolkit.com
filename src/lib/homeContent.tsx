@@ -79,12 +79,22 @@ export interface HomeActionCard {
   blurb: string;
 }
 
+export interface HomeFeaturedPost {
+  slug: string;
+  eyebrow: string;
+  title: string;
+  blurb: string;
+  cover: string;
+  alt: string;
+}
+
 const extra = homeData as {
   constraintsIntro?: string;
   stories?: HomeStory[];
   platformNote?: { title: string; body: string };
   featured?: HomeFeatured[];
   action?: HomeActionCard[];
+  featuredPost?: HomeFeaturedPost;
 };
 
 export const PROOF_PRIMARY: ProofSegment[][] = homeData.proof.map(parseProof);
@@ -96,6 +106,7 @@ export const STORIES: HomeStory[] = extra.stories ?? [];
 export const PLATFORM_NOTE = extra.platformNote ?? { title: "", body: "" };
 export const FEATURED: HomeFeatured[] = extra.featured ?? [];
 export const ACTION: HomeActionCard[] = extra.action ?? [];
+export const FEATURED_POST: HomeFeaturedPost | null = extra.featuredPost ?? null;
 
 // Pure parser for a draft home.json (proof/recognition/philosophy), used by the
 // live CMS preview to render edits without touching the static import.

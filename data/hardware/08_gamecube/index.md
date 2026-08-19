@@ -10,7 +10,7 @@ availability: "Source only"
 provenance: "core"
 arch: "PowerPC (Gekko)"
 repo: "https://github.com/mstan/gcnlle"
-group: "Research"
+group: "Early platform work"
 links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"

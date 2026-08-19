@@ -1662,3 +1662,71 @@ button {
     --bg: #000;
   }
 }
+
+/* Platform pages: games showcase in the media pane; game pages: related
+   games at the foot. Shared tile grid. */
+.project-split--hardware .project-split-right {
+  overflow-y: auto;
+}
+.platform-games {
+  padding: 24px 28px 40px;
+}
+.related-games {
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline, rgba(128, 128, 140, 0.25));
+}
+.platform-games-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+.game-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+.game-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+.game-tile-cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+  background: var(--bg-soft, #16161a);
+  display: block;
+}
+.game-tile-cover--blank {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.game-tile-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  display: block;
+}
+.game-tile-status {
+  font-size: 12px;
+  color: var(--muted);
+  display: block;
+  margin-top: 2px;
+}
+.proj-tag--link {
+  text-decoration: none;
+  cursor: pointer;
+}
+.proj-tag--link:hover {
+  text-decoration: underline;
+}

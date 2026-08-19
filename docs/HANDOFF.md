@@ -176,3 +176,20 @@ exist publicly (only xboxlle-probe).
   OpenPete/Spyro, Xenogears, Pepsiman; plus the Spyro and Pepsiman press
   pages. Super Mario Kart imagery is SNES and must NOT be used for the GBA
   Mario Kart page.
+
+## Homepage rejig + cross-linking (2026-08-19)
+
+- Homepage copy is rebuilt around the "Building & Enhancing Recomps" article:
+  correctness-is-the-floor added to the proof, constraints intro carries the
+  "games are the byproduct, the ecosystem is the product" thesis and the
+  never-modify-the-ROM rule, stories are widescreen / shared mod loader /
+  sensors (images copied from the article into public/covers/), platformNote
+  names the Xbox first frame, GameCube boot menu, and CD-i BIOS.
+- New home.json key `featuredPost` renders a "From the build log" banner
+  (validated: cover asset + blog page must exist).
+- Platform pages list their games ("Games on {platform}") in the media pane,
+  linked; game pages link their platform via the kicker tag and end with a
+  "More on {platform}" strip (up to 6 siblings). Linkage is the games'
+  `platform:` frontmatter matching the hardware slug.
+- Hardware groups merged: "Research" folded into "Early platform work", with
+  a muted explainer under the heading on the Platforms tab.
