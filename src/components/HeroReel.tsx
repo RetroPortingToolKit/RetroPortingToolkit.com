@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { playMp4ToCanvas, WEBCODECS_OK, type CanvasVideoHandle } from "@/lib/canvasVideo";
 
 // The hero is a living collage of real gameplay captures: frames published by
 // YouTube for the project's verified coverage videos (every frame below was
@@ -60,16 +61,44 @@ export function HeroReel({ still = false }: { still?: boolean }) {
   const live = !still;
   const [playing, setPlaying] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
+  // Safari (and some power modes) can freeze a <video> mid-play and never
+  // recover. When that happens we hand the reel to the WebCodecs canvas
+  // player, which decodes the mp4 frame-by-frame with no <video> element and
+  // loops internally. Same approach as the original template's hero.
+  const [cvFallback, setCvFallback] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cvHandle = useRef<CanvasVideoHandle | null>(null);
+
+  // Pick the source the engine actually commits to: only engines that answer
+  // "probably" for VP9 webm get it (Chrome); Safari answers "maybe" and then
+  // stalls, so it gets the H.264 mp4.
+  const [srcUrl] = useState(() => {
+    if (typeof document === "undefined") return "/previews/hero-montage.mp4";
+    const probe = document.createElement("video");
+    return probe.canPlayType('video/webm; codecs="vp9"') === "probably"
+      ? "/previews/hero-montage.webm"
+      : "/previews/hero-montage.mp4";
+  });
 
   // Autoplay can be denied (Low Power Mode, data saver, hidden tab). Retry on
   // the first gesture and whenever the tab becomes visible; until then the
-  // collage carries the hero.
+  // collage carries the hero. A NotAllowedError means autoplay policy will
+  // never let the <video> start, so go straight to the canvas player.
   useEffect(() => {
-    if (!live) return;
+    if (!live || cvFallback) return;
     const tryPlay = () => {
       const v = videoRef.current;
-      if (v && v.paused) v.play().catch(() => {});
+      if (v && v.paused)
+        v.play().catch((err: unknown) => {
+          if (
+            WEBCODECS_OK &&
+            err instanceof DOMException &&
+            err.name === "NotAllowedError"
+          ) {
+            setCvFallback(true);
+          }
+        });
     };
     window.addEventListener("pointerdown", tryPlay, { passive: true });
     document.addEventListener("visibilitychange", tryPlay);
@@ -77,7 +106,48 @@ export function HeroReel({ still = false }: { still?: boolean }) {
       window.removeEventListener("pointerdown", tryPlay);
       document.removeEventListener("visibilitychange", tryPlay);
     };
-  }, [live]);
+  }, [live, cvFallback]);
+
+  // Freeze watchdog: if currentTime stops advancing while the video claims to
+  // be playing (Safari's silent mid-play stall), switch to the canvas player.
+  useEffect(() => {
+    if (!live || cvFallback || userPaused) return;
+    let lastT = -1;
+    let strikes = 0;
+    const t = window.setInterval(() => {
+      const v = videoRef.current;
+      if (!v || document.hidden) return;
+      if (!v.paused && !v.ended) {
+        if (v.currentTime === lastT) {
+          strikes += 1;
+          if (strikes === 1) {
+            // one free nudge before giving up on the element
+            v.play().catch(() => {});
+          } else if (strikes >= 2 && WEBCODECS_OK) {
+            setCvFallback(true);
+          }
+        } else {
+          strikes = 0;
+        }
+        lastT = v.currentTime;
+      }
+    }, 2000);
+    return () => window.clearInterval(t);
+  }, [live, cvFallback, userPaused]);
+
+  // The canvas player: decodes the no-B-frame mp4 via WebCodecs and loops
+  // internally; no <video>, so no autoplay policy and no Safari stalls.
+  useEffect(() => {
+    if (!live || !cvFallback || userPaused) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    cvHandle.current = playMp4ToCanvas(canvas, "/previews/hero-montage.mp4");
+    setPlaying(true);
+    return () => {
+      cvHandle.current?.stop();
+      cvHandle.current = null;
+    };
+  }, [live, cvFallback, userPaused]);
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -104,10 +174,11 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           coverage footage (used with the channel's permission), self-hosted in
           /public/previews. It fades in over the collage once it actually
           plays, so a slow network or blocked autoplay still shows gameplay. */}
-      {live && !userPaused && (
+      {live && !userPaused && !cvFallback && (
         <video
           ref={videoRef}
           className={"hn-reel-canvas" + (playing ? " is-playing" : "")}
+          src={srcUrl}
           autoPlay
           muted
           loop
@@ -120,10 +191,14 @@ export function HeroReel({ still = false }: { still?: boolean }) {
             v.currentTime = 0;
             v.play().catch(() => {});
           }}
-        >
-          <source src="/previews/hero-montage.webm" type="video/webm" />
-          <source src="/previews/hero-montage.mp4" type="video/mp4" />
-        </video>
+        />
+      )}
+      {live && !userPaused && cvFallback && (
+        <canvas
+          ref={canvasRef}
+          className="hn-reel-canvas is-playing"
+          aria-hidden="true"
+        />
       )}
       {live && (
         <button
