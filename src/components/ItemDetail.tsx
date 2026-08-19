@@ -225,7 +225,13 @@ function LabSplit({ item }: { item: Item }) {
             </div>
           )}
           <LinksBlock links={item.links} delay={520} />
-          {item.kind === "blog" && <ArticleEndCard item={item} />}
+          {item.kind !== "blog" && (
+          <p className="game-data-notice blur-in" style={delayed(480)}>
+            Game files not included. This project requires a dump you provide
+            yourself.
+          </p>
+        )}
+        {item.kind === "blog" && <ArticleEndCard item={item} />}
           <AdjacentItems item={item} />
         </div>
       </aside>
@@ -370,26 +376,30 @@ function DefaultDetail({ item }: { item: Item }) {
               </div>
             )}
             {(item.venue ||
-              item.year ||
               item.status ||
+              item.availability ||
               item.arch ||
               item.provenance ||
+              item.verified ||
               item.meta.length > 0) && (
               <div className="modal-meta blur-in" style={delayed(220)}>
                 {item.status && <span className="pill">{item.status}</span>}
+                {item.availability && <span className="pill">{item.availability}</span>}
                 {item.provenance && (
                   <span className="pill">
-                    {item.provenance === "core" ? "Core team" : "Community"}
+                    {item.provenance === "core" ? "Core project" : "Community project"}
                   </span>
                 )}
                 {item.arch && <span className="pill">{item.arch}</span>}
                 {item.venue && <span className="pill">{item.venue}</span>}
-                {item.year && <span className="pill">{item.year}</span>}
                 {item.meta.map((m, i) => (
                   <span key={i} className="pill">
                     {m}
                   </span>
                 ))}
+                {item.verified && (
+                  <span className="pill">Last verified {formatArticleDate(item.verified)}</span>
+                )}
               </div>
             )}
           </>
@@ -451,6 +461,12 @@ function DefaultDetail({ item }: { item: Item }) {
             item.kind === "blog" && item.venue && item.links[0] ? 1 : 0;
           return <LinksBlock links={item.links.slice(startAt)} delay={520} />;
         })()}
+        {item.kind !== "blog" && (
+          <p className="game-data-notice blur-in" style={delayed(480)}>
+            Game files not included. This project requires a dump you provide
+            yourself.
+          </p>
+        )}
         {item.kind === "blog" && <ArticleEndCard item={item} />}
         {/* Previous / next cards, like the project modal. Articles get article
             siblings; project pages get project siblings. */}

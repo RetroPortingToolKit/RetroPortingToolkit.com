@@ -6,7 +6,7 @@ featured: false
 desc: "No public disassemblies, no scaffolding: Mario's Tennis brings the Virtual Boy into the fold on the recompiler's own strength."
 date: "2026-05-21"
 venue: "1379.tech"
-group: "From the team"
+group: "Project updates"
 layout: "article"
 links:
   - { label: "Read on 1379.tech", href: "https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/" }

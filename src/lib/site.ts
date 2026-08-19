@@ -11,12 +11,12 @@ export const SITE = {
   url: "https://retroportingtoolkit.com",
   /** One-line description for <meta name="description"> and feed subtitles. */
   description:
-    "Classic games, rebuilt as native code that runs anywhere: decoders and runtimes that free legacy titles from their original hardware, adding widescreen, 60 FPS, mods, translations, and netplay along the way.",
+    "An open ecosystem for turning code from original console games into modern apps: static recompilers, runtimes, game projects, community ports, and shared libraries. You provide your own game files.",
   /**
    * Short positioning line. Used in the prerendered page title
    * ("<title> · <tagline>") and the static shell header crawlers read.
    */
-  tagline: "The classics, rebuilt to run anywhere",
+  tagline: "Bring classic console games to modern hardware",
   /** Shown in the footer next to the copyright year. */
   owner: "Retro Porting Toolkit",
   /** Byline on articles and blog posts. */

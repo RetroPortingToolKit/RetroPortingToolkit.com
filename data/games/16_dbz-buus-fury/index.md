@@ -5,23 +5,27 @@ tags: ["Adaptive widescreen"]
 featured: false
 desc: "Buu's Fury goes wide: an optional adaptive widescreen mod with an edge-anchored HUD, in an early GBA recomp."
 year: "2026"
-status: "Alpha"
+status: "Playable alpha"
+availability: "Public build"
 provenance: "core"
 platform: "game-boy-advance"
 repo: "https://github.com/mstan/DragonBallZBuusFuryRecomp"
 group: "Game Boy Advance"
 links:
-  - { label: "DragonBallZBuusFuryRecomp on GitHub", href: "https://github.com/mstan/DragonBallZBuusFuryRecomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/DragonBallZBuusFuryRecomp" }
+verified: "2026-08-18"
 ---
 
-Dragon Ball Z: Buu's Fury is one of the Dragon Ball Z titles in the [GBARecomp](/hardware/game-boy-advance) lineup, currently at v0.0.2 (2026-08-03). Early release, experimental preview, and honest about both, like the rest of the framework's games.
+Dragon Ball Z: Buu's Fury is one of the Dragon Ball Z titles in the [GBARecomp](/hardware/game-boy-advance) lineup, maintained as a core project.
 
-## What works today
+## Can I play it?
 
-The game runs through the recompiled runtime.
+Runs as an early experimental preview, currently at v0.0.2 (2026-08-03). You build from your own dumps.
 
 ## Enhancements
 
 An optional adaptive widescreen mod, off by default, widens the logical view and keeps the HUD anchored to the screen edges so the interface stays where you expect it.
 
-No game data is distributed; the project builds from your own legally dumped ROM and GBA BIOS.
+## Requirements
+
+Your own legally dumped ROM and GBA BIOS.

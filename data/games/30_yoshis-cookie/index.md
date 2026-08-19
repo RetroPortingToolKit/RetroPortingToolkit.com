@@ -5,20 +5,24 @@ tags: []
 featured: false
 desc: "Cookie matching on native code: one of NESRecomp's ten supported commercial games."
 year: "2026"
-status: "Alpha"
+status: "Playable alpha"
+availability: "Source only"
 provenance: "core"
 platform: "nes"
 repo: "https://github.com/mstan/YoshisCookieRecomp"
 group: "NES"
 links:
-  - { label: "YoshisCookieRecomp on GitHub", href: "https://github.com/mstan/YoshisCookieRecomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/YoshisCookieRecomp" }
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
+verified: "2026-08-18"
 ---
 
-Yoshi's Cookie earns its place among the ten commercial titles supported by [NESRecomp](/hardware/nes), maintained by the core team as part of the framework's broad NES coverage.
+A core project: Yoshi's Cookie is one of the ten commercial titles supported by [NESRecomp](/hardware/nes).
 
-## What works today
+## Can I play it?
 
-The game runs as statically recompiled native code through the shared NESRecomp runner, with save-state slots available. Windows x64 is the primary and most mature platform; macOS support is experimental and newly added.
+Builds from your own ROM dump through the shared NESRecomp runner, with save-state slots. Windows is the primary host platform; macOS support is experimental.
 
-No game data is distributed; the project builds from your own legally dumped ROM.
+## Sources
+
+- [nesrecomp Achieves 10 Commercial Titles (1379.tech)](https://1379.tech/nesrecomp-achieves-10-commercial-titles/)

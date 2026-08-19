@@ -5,23 +5,27 @@ tags: ["Solar sensor"]
 featured: false
 desc: "The cartridge had a solar sensor. This community GBA recomp feeds it real local weather instead: sun outside, sun in the game."
 year: "2026"
-status: "Alpha"
+status: "Playable alpha"
+availability: "Public build"
 provenance: "community"
 platform: "game-boy-advance"
 repo: "https://github.com/Shy/BoktaiRecomp"
 group: "Community"
 links:
-  - { label: "BoktaiRecomp on GitHub", href: "https://github.com/Shy/BoktaiRecomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/Shy/BoktaiRecomp" }
+verified: "2026-08-18"
 ---
 
 BoktaiRecomp is a community project by Shy that brings Boktai: The Sun Is in Your Hand to [gbarecomp](/hardware/game-boy-advance). The original cartridge carried a real solar sensor that gameplay depends on; here, real local weather stands in for it.
 
-## What works today
+## Can I play it?
 
-The v0.1.0 "Boktai builder" release (2026-08-03) ships BoktaiBuilder, which compiles the game locally on your machine. The release includes a Steam Deck flatpak plus Linux and macOS builds.
+Yes, by building locally. The v0.1.0 "Boktai builder" release (2026-08-03) ships BoktaiBuilder, which compiles the game on your machine, with a Steam Deck flatpak plus Linux and macOS builds.
 
 ## Enhancements
 
 The weather-driven solar sensor is the headline: sunlight in your area becomes sunlight in the game, no cartridge hardware required.
 
-The release explicitly contains no game data; BoktaiBuilder builds from your own legally dumped ROM and GBA BIOS.
+## Requirements
+
+Your own legally dumped ROM and GBA BIOS; BoktaiBuilder builds the game from them.

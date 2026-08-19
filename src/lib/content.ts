@@ -242,6 +242,8 @@ export function parseItem(path: string, raw: string): Item | null {
     layout: fm.layout === "split" || fm.layout === "article" ? fm.layout : undefined,
     preview: fm.preview === true || undefined,
     status: asString(fm.status) || undefined,
+    availability: asString(fm.availability) || undefined,
+    verified: asString(fm.verified) || undefined,
     provenance:
       fm.provenance === "core" || fm.provenance === "community" ? fm.provenance : undefined,
     platform: asString(fm.platform) || undefined,

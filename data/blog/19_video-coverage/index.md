@@ -5,12 +5,9 @@ tags: []
 featured: true
 desc: "Creators covering the recomps in their own voice, from the first Tomba! test footage to release-day showcases."
 date: "2026-08-16"
-group: "Coverage"
+group: "Videos"
 layout: "article"
-links:
-  - { label: "VGE: Metroid Prime Hunters Recomp Out NOW!", href: "https://www.youtube.com/watch?v=FFUglxqa_eI" }
-  - { label: "VGE: Mega Man X Recomp is Out Now! A SNES Recomp", href: "https://www.youtube.com/watch?v=XRwKZ0_8u-c" }
-  - { label: "Gamemaster1379: Tomba! save states and rewind showcase", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
+links: []
 cover: "https://i.ytimg.com/vi/FFUglxqa_eI/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=FFUglxqa_eI"
 ---

@@ -1,8 +1,7 @@
 {
   "proof": [
-    "Emulation asks: how do we reproduce this old machine? Retro Porting Toolkit asks a different question: what could its games do if they were not limited by that machine anymore?",
-    "Traditional emulators recreate the original hardware extremely well, and this project builds on decades of that accumulated knowledge. But by recompiling games back into real code and recovering how they actually work, the toolkit operates above the hardware abstraction. Changes become possible at the level of the game itself.",
-    "A remaster is a new commercial production. A source port needs source code or a heroic reverse-engineering effort for one title. An emulator reproduces the machine. Retro Porting Toolkit occupies another space entirely: preserve the game, replace the constraints. The goal is not to make old games unrecognizable. It is to make the boundaries around them programmable."
+    "Emulators recreate a console so they can run its library. Static recompilation, the approach behind this toolkit, rebuilds one game at a time: the game's original CPU code is translated ahead of time into code compiled for modern systems, producing a native app. It trades broad compatibility for deeper control over rendering, input, networking, and game behavior. The two approaches complement each other, and this project builds on decades of knowledge from the emulation community.",
+    "A remaster is a new production. A source port needs source code or a long reverse-engineering effort for one title. An emulator reproduces the machine. Recompilation sits in its own spot: keep the original game logic, and swap the constraints around it."
   ],
   "recognition": [
     {
@@ -105,65 +104,51 @@
       "href": "https://www.youtube.com/watch?v=CID9oVhgCyY"
     }
   ],
-  "capabilities": [
-    {
-      "title": "Higher frame rates",
-      "body": "Run games smoothly beyond their original frame-rate limits."
-    },
-    {
-      "title": "Modern displays",
-      "body": "Widescreen, ultrawide, high-resolution output, and flexible viewports."
-    },
-    {
-      "title": "Modern multiplayer",
-      "body": "Turn local multiplayer and console link modes into LAN and online play."
-    },
-    {
-      "title": "Modding",
-      "body": "Expose game data and behavior for characters, assets, rules, levels, and entirely new experiences."
-    }
-  ],
+  "capabilities": [],
   "pillars": [
     {
       "title": "Recompile",
-      "body": "Translate original game code into code that runs efficiently on modern hardware, without manually rewriting the game."
+      "body": "Translate the game's original CPU code ahead of time for modern systems."
     },
     {
-      "title": "Understand",
-      "body": "Recover higher-level knowledge about the game's code, data, assets, and systems, so the toolkit knows what the running game actually means."
+      "title": "Run",
+      "body": "Provide the graphics, audio, input, storage, and other console services the game expects."
     },
     {
-      "title": "Augment",
-      "body": "Use that knowledge to replace or extend individual systems with modern implementations: rendering, input, networking, audio, storage, UI."
+      "title": "Extend",
+      "body": "Add optional widescreen, modern controls, multiplayer, mods, translations, and other capabilities, where a project supports them."
     }
   ],
   "thesis": [
-    "A traditional port improves one game. Retro Porting Toolkit is designed to improve the platform underneath many games.",
-    "Teach the toolkit how a PlayStation game establishes a display, and a whole class of games can inherit modern display modes. Implement modern handling for a common input path, and many games pick up modern controllers at once. Understand a console's link protocol, and games designed around two physical consoles can meet over a network instead.",
-    "Every game teaches the toolkit more about its platform. Every platform improvement makes the next game easier. The toolkit gets better; the library gets bigger."
+    "A traditional port improves one game. Retro Porting Toolkit is built to improve the platform tooling underneath many games.",
+    "Once a display, input, audio, or networking path has been implemented for a platform, compatible games can often reuse it. Every new game strengthens the platform tooling, and every platform improvement makes the next game easier."
   ],
   "transforms": [
     {
-      "title": "Split screen becomes multiple displays",
-      "body": "A game already knows how to render two players. Give each player their own viewport, window, or monitor."
-    },
-    {
       "title": "Link cable becomes network play",
-      "body": "Some PlayStation games connected two consoles with a serial cable. Reimplement the transport, and the same game logic can travel over LAN or the internet while the game still believes it is talking to another PlayStation."
+      "body": "Some PlayStation games connected two consoles with a serial cable. Reimplement that transport, and the same game logic can travel over a LAN or the internet while the game still believes it is talking to another console."
     },
     {
-      "title": "Controller port becomes modern input",
-      "body": "Map the original input model onto contemporary controllers, keyboard and mouse, or accessibility hardware."
+      "title": "Original controllers become modern input",
+      "body": "Map a game's original input model onto today's gamepads, keyboard and mouse, or accessibility hardware, with remapping."
     },
     {
-      "title": "Fixed viewport becomes widescreen",
-      "body": "Understand how the game builds its camera and projection instead of stretching the final image."
+      "title": "Fixed viewport becomes true widescreen",
+      "body": "Understand how a game builds its camera and projection instead of stretching the final image. Demonstrated up to 21:9 in several projects."
+    },
+    {
+      "title": "Cartridge sensors become modern data",
+      "body": "WarioWare: Twisted! reads a phone's gyroscope instead of its tilt cartridge. Boktai's solar sensor can be driven by real local weather."
+    },
+    {
+      "title": "Text becomes translatable, games become moddable",
+      "body": "Runtime text replacement powers an English fan translation of Tsumu Light without patching the original image, and opt-in mod loaders never modify your dump."
     }
   ],
   "demos": [
     {
       "title": "Five minutes from disc to modern hardware.",
-      "lead": "Original PlayStation game. Modern runtime. Street Fighter Alpha 3, analyzed, recompiled, and running.",
+      "lead": "Street Fighter Alpha 3, analyzed and recompiled with PSXRecomp. Approximately five minutes of game-specific setup reached a running native build; the polish that follows is the usual per-game work.",
       "videoId": "aITjH0LoEeA",
       "videoTitle": "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD",
       "channel": "Video Game Esoterica",
@@ -173,7 +158,7 @@
         "Recompile",
         "Run"
       ],
-      "caption": "Street Fighter Alpha 3 running through Retro Porting Toolkit after approximately five minutes of game-specific work. Independent coverage by Video Game Esoterica."
+      "caption": "Street Fighter Alpha 3 through Retro Porting Toolkit: about five minutes of game-specific setup to a running native build, not five minutes to a finished port. Independent coverage by Video Game Esoterica."
     },
     {
       "title": "Change the game.",

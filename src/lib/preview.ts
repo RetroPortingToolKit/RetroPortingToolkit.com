@@ -33,8 +33,8 @@ const SEG_TO_KIND: Record<string, Kind> = {
 };
 
 const KIND_LABEL: Record<Kind, string> = {
-  hardware: "Hardware",
-  game: "Games",
+  hardware: "Platform",
+  game: "Game",
   blog: "Article",
 };
 

@@ -5,23 +5,27 @@ tags: ["Widescreen"]
 featured: false
 desc: "Community-led, core-hosted, and barely out of the gate: DKC2 brings experimental widescreen and an automated route auditor."
 year: "2026"
-status: "Early alpha"
+status: "Playable alpha"
+availability: "Public build"
 provenance: "community"
 platform: "super-nintendo"
 repo: "https://github.com/mstan/DKC2Recomp"
 group: "Super Nintendo"
 links:
-  - { label: "DKC2Recomp on GitHub", href: "https://github.com/mstan/DKC2Recomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/DKC2Recomp" }
+verified: "2026-08-18"
 ---
 
-Donkey Kong Country 2 is the newest [SNESRecomp](/hardware/super-nintendo) title, and the first that is community work hosted by the core team: contributor Nicktendonick does the game work in a core-hosted repository. The first release is v0.0.1 (2026-07-20). Very early alpha, and it says so on the label.
+Donkey Kong Country 2 is the newest [SNESRecomp](/hardware/super-nintendo) title, and the first that is community work hosted by the core team: contributor Nicktendonick does the game work in a core-hosted repository.
 
-## What works today
+## Can I play it?
 
-The initial release exists and the bring-up is underway. Expectations should match the v0.0.1 version number.
+Very early alpha: the first release, v0.0.1 (2026-07-20), is public, and the bring-up is underway. Expectations should match the version number. You build from your own ROM dump.
 
 ## Enhancements
 
 Experimental 16:9 widescreen, backed by an automated route auditor that checks the game's paths for widescreen-related breakage.
 
-No game data is distributed; the project builds from your own legally dumped ROM.
+## Requirements
+
+Your own legally dumped ROM.

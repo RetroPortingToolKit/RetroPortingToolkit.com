@@ -1,12 +1,12 @@
 ---
 headerName: "Retro Porting Toolkit"
-heroTitle: "Bring classic games forward."
+heroTitle: "Bring classic console games to modern hardware."
 role: "Retro Porting Toolkit"
-eyebrow: "An open-source toolkit"
-tagline: "Recompile and augment games from original consoles with modern rendering, controls, multiplayer, and modding, while preserving the games themselves."
+eyebrow: "An open ecosystem"
+tagline: "Retro Porting Toolkit is an open ecosystem for turning code from original console games into modern apps."
 locations:
   - "Open source"
 email: "hello@retroportingtoolkit.com"
 ---
 
-Classic games were built around 240p displays, fixed frame rates, four controller ports, serial cables, and CPUs measured in megahertz. Those constraints do not need to follow the games forever.
+Depending on the project, that can unlock true widescreen, higher frame rates, modern controls, online play, save states, translations, and deep modding.

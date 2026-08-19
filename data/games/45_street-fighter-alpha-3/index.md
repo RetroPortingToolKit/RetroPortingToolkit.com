@@ -6,19 +6,23 @@ featured: true
 desc: "One of PlayStation's great fighters, recompiled and running as a native app, with about five minutes of game-specific work behind it."
 year: "2026"
 status: "Released"
+availability: "No public release"
 provenance: "community"
 platform: "playstation"
 group: "Community"
 cover: "https://i.ytimg.com/vi/aITjH0LoEeA/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=aITjH0LoEeA"
 links:
-  - { label: "Street Fighter Alpha 3 Recomp Out NOW! (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=aITjH0LoEeA" }
+  - { label: "Watch demo: Street Fighter Alpha 3 Recomp Out NOW! (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=aITjH0LoEeA" }
+verified: "2026-08-18"
 ---
 
 An independent recompilation of Street Fighter Alpha 3 built with [PSXRecomp](/hardware/playstation) as the decoder. It is the toolkit's headline example of how little game-specific work a mature ecosystem needs: the team cites roughly five minutes from disc to a running native build.
 
-## Coverage
+## Can I play it?
 
-Video Game Esoterica covered the release in "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD" (2026). A public repository has not been identified yet; the video is the reference for what is shown running.
+The release exists per coverage: Video Game Esoterica's video "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD" (2026) shows it running as a native app. A public repository has not been identified yet, so this site links the video rather than a download; the video is the reference for what is shown running.
 
-The project does not distribute any game data; recompiled games build from your own legally dumped disc image.
+## Sources
+
+- [Street Fighter Alpha 3 Recomp Out NOW! It's GOOD (Video Game Esoterica)](https://www.youtube.com/watch?v=aITjH0LoEeA)

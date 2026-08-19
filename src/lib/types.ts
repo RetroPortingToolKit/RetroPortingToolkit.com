@@ -56,8 +56,14 @@ export interface Item {
   year?: string;
   duration?: string;
   date?: string;
-  /** Normalized maturity label (e.g. "Mature", "Alpha", "Tech demo", "Research"). */
+  /** Maturity label from a small controlled vocabulary
+      (Released | Playable alpha | Partial | Tech demo | Research). */
   status?: string;
+  /** Availability, separate from maturity
+      (Public build | Source only | No public release | Web). */
+  availability?: string;
+  /** ISO date the page's claims were last checked against the sources. */
+  verified?: string;
   /** Who maintains it: the core team or a community project built on the toolkit. */
   provenance?: "core" | "community";
   /** Games items: slug of the hardware ecosystem page this project runs on. */

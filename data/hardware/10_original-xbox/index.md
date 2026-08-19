@@ -3,38 +3,46 @@ title: "Original Xbox"
 kicker: "x86"
 tags: ["LLE", "Hardware probe"]
 featured: false
-desc: "The odd one out: the Xbox already speaks x86, so the work here is low-level emulation, validated against a real console and not yet public."
+desc: "Research with no public release: the Xbox work is low-level emulation validated against a real console, and only a hardware probe tool is visible."
 year: "2026"
-status: "Research (not yet public)"
+status: "Research"
+availability: "No public release"
 provenance: "core"
 arch: "Intel Pentium III (x86)"
 repo: "https://github.com/mstan/xboxlle-probe"
 group: "Research"
 links:
-  - { label: "xboxlle-probe on GitHub", href: "https://github.com/mstan/xboxlle-probe" }
+  - { label: "View probe source (GitHub)", href: "https://github.com/mstan/xboxlle-probe" }
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
+verified: "2026-08-18"
 ---
 
-The original Xbox breaks the pattern: its CPU is already x86, so the approach is low-level emulation (LLE) rather than recompilation to a different architecture. The main artifact of that work is not yet public. What you can see is xboxlle-probe, described as a "DANGEROUS low-level hardware probe agent for a real original Xbox, built with nxdk".
+Research only, and not a recompilation ecosystem. The main Xbox project is not yet public, and nothing on this page runs games. The only visible piece is xboxlle-probe, a tool for probing a real console.
 
-## What works today
+## What can be used today
 
-The probe agent exists to validate behavior against a real softmodded console rather than against emulators alone. The team's 2026-08-03 ecosystem update on 1379.tech discusses the LLE work and notes probing real hardware over network and USB. No boot or performance claims are made here because none are verified in public.
+Only the probe agent is public. It exists to validate behavior against a real softmodded console rather than against emulators alone; the team's 2026-08-03 ecosystem update on 1379.tech discusses the work and notes probing real hardware over network and USB. No boot or performance claims are made here because none are verified in public.
 
-## Enhancements
+## Supported games
 
-None. There is no public runtime to enhance.
+- Community: [Mega Man X for Original Xbox](/games/mega-man-x-xbox), a Team-Resurgent port of the SNES recomp build to real Xbox hardware, unrelated to this research.
+
+## Requirements
+
+The probe targets a console and software the user already owns. Nothing here distributes BIOS images or game data.
 
 ## Known limitations
 
-The LLE project itself has no public repository or releases. Only the hardware probe is visible, and it is a research tool, not something to run games with.
+The main project has no public repository or releases. Only the hardware probe is visible, and it is a research tool, not something to run games with.
 
-## Games
+## Technical details
 
-- Community: [Mega Man X for Original Xbox](/games/mega-man-x-xbox), a Team-Resurgent port of the SNES recomp build to real Xbox hardware, unrelated to the LLE research.
+The original Xbox breaks the toolkit's pattern: its CPU is already x86, so the approach is low-level emulation (LLE) rather than static recompilation to a different architecture. The visible artifact is xboxlle-probe, described as a "DANGEROUS low-level hardware probe agent for a real original Xbox, built with nxdk".
 
-## Reading
+## Get started
+
+- [View probe source (GitHub)](https://github.com/mstan/xboxlle-probe)
+
+## Sources and coverage
 
 - [Building & Enhancing Recomps: Ecosystem Updates (1379.tech)](https://1379.tech/building-enhancing-recomps-ecosystem-updates/)
-
-Nothing here distributes BIOS images or game data; the probe targets a console and software the user already owns.

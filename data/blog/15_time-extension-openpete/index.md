@@ -3,16 +3,16 @@ title: "PS1 Classic Spyro: The Dragon Comes To PC, With The Help Of AI-Assisted 
 kicker: "Press"
 tags: []
 featured: true
-desc: "Time Extension reports on OpenPete, the community project bringing Spyro the Dragon to PC with PSXRecomp in the mix."
+desc: "Time Extension reports on OpenPete, the community project bringing Spyro the Dragon to Windows with PSXRecomp in the mix."
 year: "2026"
 venue: "Time Extension"
-group: "Coverage"
+group: "Press"
 layout: "article"
 links:
   - { label: "Read on Time Extension", href: "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp" }
 ---
 
-Independent coverage from Time Extension, written by Jack Yarwood in August 2026. This is outside reporting on the ecosystem, not a post from the team, and it focuses on OpenPete, the community-built native PC port of Spyro the Dragon.
+Independent coverage from Time Extension, written by Jack Yarwood in August 2026. This is outside reporting on the ecosystem, not a post from the team, and it focuses on OpenPete, the community-built native Windows port of Spyro the Dragon.
 
 The article describes OpenPete's v0.1.3 release for Windows, with Linux and macOS versions planned, and its enhancements: widescreen, higher frame rates, and extended draw distances. It also lays out the project's hybrid construction, combining altro50's unfinished Spyro decompilation with PSXRecomp covering the functions the decompilation has not reached, plus the Psycross platform layer. Matthew Stanley is named as the author of PSXRecomp.
 

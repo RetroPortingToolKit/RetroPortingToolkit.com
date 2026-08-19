@@ -5,24 +5,32 @@ tags: []
 featured: false
 desc: "Among the first four games NESRecomp ever brought up, on an MMC1 cartridge that exercises CHR bank switching."
 year: "2026"
-status: "Alpha"
+status: "Playable alpha"
+availability: "Source only"
 provenance: "core"
 platform: "nes"
 repo: "https://github.com/mstan/DrMarioNesRecomp"
 group: "NES"
 links:
-  - { label: "DrMarioNesRecomp on GitHub", href: "https://github.com/mstan/DrMarioNesRecomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/DrMarioNesRecomp" }
   - { label: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
+verified: "2026-08-18"
 ---
 
-Dr. Mario is one of the ten commercial titles supported by [NESRecomp](/hardware/nes), maintained by the core team, and it was among the first four the framework brought up. Its MMC1 cartridge exercises CHR ROM bank switching.
+A core project: Dr. Mario is one of the ten commercial titles supported by [NESRecomp](/hardware/nes), and was among the first four the framework brought up.
 
-## What works today
+## Can I play it?
 
-The game runs as statically recompiled native code through the shared NESRecomp runner, with save-state slots available. Windows x64 is the primary platform; macOS support is experimental.
+Builds from your own ROM dump through the shared NESRecomp runner, with save-state slots. Windows is the primary host platform; macOS support is experimental.
 
-## Known limitations
+## Known issues
 
 A minor audio timing issue was noted in the team's 2026-03-28 write-up.
 
-No game data is distributed; the project builds from your own legally dumped ROM.
+## Technical notes
+
+An MMC1 cartridge that exercises CHR ROM bank switching.
+
+## Sources
+
+- [NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)](https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/)

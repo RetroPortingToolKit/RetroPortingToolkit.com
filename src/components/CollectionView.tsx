@@ -46,9 +46,9 @@ function CloseButton({ onClose }: { onClose: () => void }) {
 }
 
 const KIND_LABEL: Record<Kind, string> = {
-  hardware: "Hardware",
+  hardware: "Platforms",
   game: "Games",
-  blog: "Articles",
+  blog: "News and coverage",
 };
 
 // Item -> the SAME LabMedia the home/tab cards render, so every surface that

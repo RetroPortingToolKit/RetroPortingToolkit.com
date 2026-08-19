@@ -6,7 +6,7 @@ featured: true
 desc: "One mod loader across four consoles, GBARecomp past 6 games, and 21:9 that widens the world instead of stretching it."
 date: "2026-08-03"
 venue: "1379.tech"
-group: "From the team"
+group: "Project updates"
 layout: "article"
 links:
   - { label: "Read on 1379.tech", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }

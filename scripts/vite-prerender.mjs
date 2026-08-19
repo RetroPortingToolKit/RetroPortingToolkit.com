@@ -28,9 +28,9 @@ const KIND_SEGMENT = {
 };
 
 const COLLECTION_TITLE = {
-  hardware: "Hardware",
+  hardware: "Platforms",
   games: "Games",
-  blog: "Articles",
+  blog: "News and coverage",
 };
 
 const IMG_EXT = /\.(jpe?g|png|webp|gif|avif)$/i;
@@ -95,6 +95,7 @@ function collectItems() {
       venue: typeof fm.venue === "string" ? fm.venue : "",
       year: typeof fm.year === "string" ? fm.year : "",
       videoUrl: typeof fm.videoUrl === "string" ? fm.videoUrl : "",
+      group: typeof fm.group === "string" ? fm.group : "",
       duration: typeof fm.duration === "string" ? fm.duration : "",
       date: typeof fm.date === "string" ? fm.date : "",
       tags: Array.isArray(fm.tags)
@@ -329,9 +330,9 @@ function mdToHtml(md) {
 
 const NAV_HTML = [
   ["/", "Home"],
-  ["/hardware", "Hardware"],
+  ["/hardware", "Platforms"],
   ["/games", "Games"],
-  ["/blog", "Articles"],
+  ["/blog", "News and coverage"],
 ]
   .map(([href, label]) => `<a href="${href}">${label}</a>`)
   .join(" \u00b7 ");
@@ -437,13 +438,13 @@ function homeStaticHtml(items) {
         "</ul>",
     );
   };
-  titledList("The games you remember. Without the old limits.", prose.capabilities);
-  parts.push("<h2>More than emulation.</h2>");
+  
+  parts.push("<h2>A different path from emulation.</h2>");
   parts.push(...prose.proof.map((t) => `<p>${escapeHtml(t)}</p>`));
   parts.push("<p><strong>Preserve the game. Replace the constraints.</strong></p>");
-  titledList("Recompile. Understand. Augment.", prose.pillars);
+  titledList("Recompile. Run. Extend.", prose.pillars);
   if (prose.thesis.length) {
-    parts.push("<h2>One improvement. Many games.</h2>");
+    parts.push("<h2>One improvement can help many games.</h2>");
     parts.push(...prose.thesis.map((t) => `<p>${escapeHtml(t)}</p>`));
   }
   titledList("From console feature to modern capability.", prose.transforms);
@@ -456,7 +457,7 @@ function homeStaticHtml(items) {
     parts.push(`<p>${escapeHtml(d.caption)}</p>`);
   }
   if (prose.recognition.length) {
-    parts.push("<h2>In the wild</h2><ul>");
+    parts.push("<h2>See it in action</h2><ul>");
     for (const g of prose.recognition)
       parts.push(
         `<li>${escapeHtml(g.label)}: ${escapeHtml(g.items.join(", "))}</li>`,
@@ -475,9 +476,16 @@ function homeStaticHtml(items) {
         "</ul>",
     );
   }
-  parts.push("<h2>Hardware</h2>", itemListHtml(items, "hardware"));
-  parts.push("<h2>Games</h2>", itemListHtml(items, "game"));
-  parts.push("<h2>Articles</h2>", itemListHtml(items, "blog"));
+  const featured = items.filter((i) => i.kind === "game" && i.featured).slice(0, 6);
+  parts.push(
+    "<h2>Featured projects</h2><ul>" +
+      featured
+        .map((i) => `<li><a href="/games/${i.slug}">${escapeHtml(i.title)}</a>${i.desc ? `: ${escapeHtml(i.desc)}` : ""}</li>`)
+        .join("") +
+      "</ul>",
+    `<p><a href="/games">All game projects</a> · <a href="/hardware">All platforms</a> · <a href="/blog">News and coverage</a></p>`,
+    `<p>You provide your own game files. No copyrighted game data is included.</p>`,
+  );
   return wrapStatic(parts.join("\n"));
 }
 
@@ -683,7 +691,11 @@ export function buildRouteMeta(origin) {
   // what the pages actually list.
   const TAB_DESC = {
     hardware: `${counts.hardware} platform recompilation ${counts.hardware === 1 ? "ecosystem" : "ecosystems"} from ${SITE_NAME}: decoders and runtimes for original console hardware.`,
-    games: `${counts.game} ${counts.game === 1 ? "game" : "games"} built on ${SITE_NAME}: recompilations and shared runtime libraries.`,
+    games: (() => {
+      const libs = items.filter((i) => i.kind === "game" && i.group === "Shared libraries").length;
+      const gamesOnly = counts.game - libs;
+      return `${counts.game} projects built on ${SITE_NAME}: ${gamesOnly} game recompilations and ${libs} shared ${libs === 1 ? "library" : "libraries"}.`;
+    })(),
     blog: `${counts.blog} ${counts.blog === 1 ? "article" : "articles"}: technical writing from the team, press coverage, and videos.`,
   };
   const SEG_KIND = { hardware: "hardware", games: "game", blog: "blog" };

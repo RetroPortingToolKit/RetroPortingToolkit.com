@@ -3,30 +3,47 @@ title: "Tomba!"
 kicker: "PlayStation"
 tags: ["Widescreen", "Debug menu", "FMV skip"]
 featured: true
-desc: "This is where PSXRecomp began, and it shows: reasonably playable, with a warp debug menu, FMV skipping, and experimental widescreen."
+desc: "PSXRecomp's first game and its most lived-in: reasonably playable, with save states, rewind, and experimental widescreen."
 year: "2026"
-status: "Alpha"
+status: "Playable alpha"
+availability: "Public build"
 provenance: "core"
 platform: "playstation"
 repo: "https://github.com/mstan/TombaRecomp"
 group: "PlayStation"
 links:
-  - { label: "TombaRecomp on GitHub", href: "https://github.com/mstan/TombaRecomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/TombaRecomp" }
   - { label: "psxrecomp Overhauled. Now BIOS + Tomba (1379.tech)", href: "https://1379.tech/psxrecomp-overhauled-now-bios-tomba/" }
-  - { label: "Tomba Recomp is Out Now! (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=sbqPnJhb3uk" }
-  - { label: "Save states & rewind showcase (video)", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
+  - { label: "Watch demo: Tomba Recomp is Out Now! (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=sbqPnJhb3uk" }
+  - { label: "Watch: save states & rewind showcase", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
 cover: "https://i.ytimg.com/vi/sbqPnJhb3uk/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=sbqPnJhb3uk"
+verified: "2026-08-18"
 ---
 
-Every framework has a first game. For [PSXRecomp](/hardware/playstation), it was Tomba!, and the two have grown up together: three weeks to reach the main menu, and now a reasonably playable recompilation at v0.12.0-alpha. Among its testers is a world-record-holding speedrunner.
+Every framework has a first game. For [PSXRecomp](/hardware/playstation), it was Tomba!, and the two have grown up together: three weeks to reach the main menu, and now a reasonably playable recompilation. Among its testers is a world-record-holding speedrunner.
 
-## What works today
+## Can I play it?
+
+Reasonably playable at v0.12.0-alpha. Releases are published on GitHub; you build from your own disc dump.
+
+## What works
 
 BIOS boot, disc detection, FMV playback, memory-card save and load, controller input, and gameplay. The save states and rewind architecture was first shown publicly on this title.
 
 ## Enhancements
 
-A warp debug menu, FMV skipping with auto-skip for the intro, and experimental 16:9 widescreen with a genuinely wider field of view. The project notes 21:9 is not ready.
+A warp debug menu, FMV skipping with auto-skip for the intro, and experimental 16:9 widescreen with a genuinely wider field of view.
 
-The project does not distribute any game data; it builds from your own legally dumped disc image.
+## Requirements
+
+Your own legally dumped disc image of Tomba! (USA).
+
+## Known issues
+
+Widescreen is experimental, and the project notes 21:9 is not ready.
+
+## Sources
+
+- [psxrecomp Overhauled. Now BIOS + Tomba (1379.tech)](https://1379.tech/psxrecomp-overhauled-now-bios-tomba/)
+- [Tomba Recomp is Out Now! A PS1 Recomp Updated (Video Game Esoterica)](https://www.youtube.com/watch?v=sbqPnJhb3uk)

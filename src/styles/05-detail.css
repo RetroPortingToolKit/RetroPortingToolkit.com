@@ -1569,3 +1569,12 @@ button {
 .page-article .modal-body {
   padding: 36px 12px 40px;
 }
+
+/* Centralized ownership notice at the foot of game and platform pages. */
+.game-data-notice {
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line, rgba(128, 128, 140, 0.25));
+  font-size: 13.5px;
+  color: var(--text-2, rgba(140, 140, 155, 1));
+}

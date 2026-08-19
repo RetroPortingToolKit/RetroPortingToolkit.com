@@ -6,7 +6,7 @@ featured: true
 desc: "Three weeks, no prior experience, Claude Code and Ghidra: the post where Tomba! first booted and everything else began."
 date: "2026-03-11"
 venue: "1379.tech"
-group: "From the team"
+group: "Project updates"
 layout: "article"
 links:
   - { label: "Read on 1379.tech", href: "https://1379.tech/i-built-a-ps1-static-recompiler-with-no-prior-experience-and-claude-code/" }

@@ -6,13 +6,13 @@ featured: false
 desc: "Sonic the Hedgehog 2 goes native, and the real work was teaching the Genesis framework to stop assuming every game is Sonic 1."
 date: "2026-05-21"
 venue: "1379.tech"
-group: "From the team"
+group: "Project updates"
 layout: "article"
 links:
   - { label: "Read on 1379.tech", href: "https://1379.tech/segagenesisrecomp-gets-game-2-sonic-the-hedgehog-2/" }
 ---
 
-Two months after the Sonic the Hedgehog tech demo, the Genesis ecosystem gains its second playable title. This post announces Sonic the Hedgehog 2 running natively, and is frank that at this stage the milestone is playability rather than polish.
+Two months after the Sonic the Hedgehog tech demo, the Genesis ecosystem gains its second playable title. This post announces Sonic the Hedgehog 2 running natively, and notes that at this stage the milestone is playability rather than polish.
 
 The engineering story is about what a second game forces on a young framework. The original bring-up had let Sonic 1 assumptions leak into shared code, and supporting Sonic 2 meant de-hardcoding that behavior so the runner served both games from common machinery. That cleanup is the less glamorous half of the ecosystem model: the first title proves the concept, the second proves the framework.
 

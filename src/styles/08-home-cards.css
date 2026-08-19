@@ -1198,3 +1198,16 @@ html {
   line-height: 1.5;
   color: var(--text-2, rgba(140, 140, 155, 1));
 }
+
+/* Hero ownership notice + catalog index links under the featured strip. */
+.hn-hero-note {
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--hero-fg-muted, rgba(255, 255, 255, 0.72));
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+.hn-index-links {
+  margin-top: 18px;
+  font-size: 15px;
+  color: var(--text-2, rgba(140, 140, 155, 1));
+}

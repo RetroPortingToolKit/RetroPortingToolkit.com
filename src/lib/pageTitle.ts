@@ -12,9 +12,9 @@ import type { Item, Kind, Topic } from "./types";
 // title for the same route, so the two cannot drift.
 
 export const COLLECTION_TITLE: Record<Kind, string> = {
-  hardware: "Hardware",
+  hardware: "Platforms",
   game: "Games",
-  blog: "Articles",
+  blog: "News and coverage",
 };
 
 export function titleForHome(): string {

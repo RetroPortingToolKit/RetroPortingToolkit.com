@@ -3,25 +3,29 @@ title: "WarioWare: Twisted!"
 kicker: "Game Boy Advance"
 tags: ["Android", "Gyro"]
 featured: true
-desc: "The cartridge had a tilt sensor. Now your phone does the tilting: gyro play on Android, controller motion on PC."
+desc: "The cartridge had a tilt sensor. Now your phone does the tilting: gyro play on Android, controller motion on Windows."
 year: "2026"
-status: "Alpha"
+status: "Playable alpha"
+availability: "Public build"
 provenance: "core"
 platform: "game-boy-advance"
 repo: "https://github.com/mstan/WarioWareTwistedRecomp"
 group: "Game Boy Advance"
 links:
-  - { label: "WarioWareTwistedRecomp on GitHub", href: "https://github.com/mstan/WarioWareTwistedRecomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/WarioWareTwistedRecomp" }
+verified: "2026-08-18"
 ---
 
-WarioWare: Twisted! shipped with a tilt sensor built into the cartridge, exactly the kind of hardware a straight port cannot ignore. This [GBARecomp](/hardware/game-boy-advance) project stands in for that hardware so the game plays on modern devices: Windows v0.0.1 arrived 2026-07-29, and the Android android-v0.0.1 build followed on 2026-08-02.
+WarioWare: Twisted! shipped with a tilt sensor built into the cartridge, exactly the kind of hardware a straight port cannot ignore. This core [GBARecomp](/hardware/game-boy-advance) project stands in for that hardware so the game plays on modern devices.
 
-## What works today
+## Can I play it?
 
-The game runs on Windows and Android, with the tilt input mapped to whatever motion source your device has.
+Playable on Windows and Android, with the tilt input mapped to whatever motion source your device has. Windows v0.0.1 arrived 2026-07-29, and the Android android-v0.0.1 build followed on 2026-08-02.
 
 ## Enhancements
 
-On Android, the phone's own gyroscope drives the game, which is arguably the most natural way to play it today. On PC, DualSense and compatible SDL controllers supply motion sensing, and Windows has a mouse-drag fallback for setups with no motion hardware at all.
+On Android, the phone's own gyroscope drives the game, which is arguably the most natural way to play it today. On Windows, DualSense and compatible SDL controllers supply motion sensing, with a mouse-drag fallback for setups with no motion hardware at all.
 
-No game data is distributed; the project builds from your own legally dumped ROM and GBA BIOS.
+## Requirements
+
+Your own legally dumped ROM and GBA BIOS.

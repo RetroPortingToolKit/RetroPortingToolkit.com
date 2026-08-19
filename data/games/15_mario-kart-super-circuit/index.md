@@ -5,23 +5,27 @@ tags: ["60 FPS", "Adaptive widescreen"]
 featured: false
 desc: "Super Circuit, smoothed out: a 60 FPS track rendering mod and adaptive widescreen for the GBA racer."
 year: "2026"
-status: "Alpha"
+status: "Playable alpha"
+availability: "Public build"
 provenance: "core"
 platform: "game-boy-advance"
 repo: "https://github.com/mstan/MarioKartSuperCircuitRecomp"
 group: "Game Boy Advance"
 links:
-  - { label: "MarioKartSuperCircuitRecomp on GitHub", href: "https://github.com/mstan/MarioKartSuperCircuitRecomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MarioKartSuperCircuitRecomp" }
+verified: "2026-08-18"
 ---
 
-Mario Kart: Super Circuit joins the [GBARecomp](/hardware/game-boy-advance) grid at v0.0.2 (2026-08-03). Like the rest of the framework's titles, it is an early experimental preview.
+Mario Kart: Super Circuit joins the [GBARecomp](/hardware/game-boy-advance) grid as a core project.
 
-## What works today
+## Can I play it?
 
-The game runs through the recompiled runtime with the framework's mod system layered on top.
+Runs as an early experimental preview, currently at v0.0.2 (2026-08-03), with the framework's mod system layered on top. You build from your own dumps.
 
 ## Enhancements
 
 A 60 FPS Track Rendering mod, adapted from a community-discovered patch into the framework's mod system, smooths out the racing. An Adaptive Widescreen mod widens the logical view to follow the window shape.
 
-No game data is distributed; the project builds from your own legally dumped ROM and GBA BIOS.
+## Requirements
+
+Your own legally dumped ROM and GBA BIOS.

@@ -409,16 +409,21 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
               <h1 className="modal-title">{item.title}</h1>
               {item.kind === "blog" && <ArticleByline item={item} delay={0} />}
               {item.kind !== "blog" &&
-                (item.year || item.status || item.arch || item.provenance || item.meta.length > 0) && (
+                (item.status ||
+                  item.availability ||
+                  item.arch ||
+                  item.provenance ||
+                  item.verified ||
+                  item.meta.length > 0) && (
                   <div className="modal-meta">
                     {item.status && <span className="pill">{item.status}</span>}
+                    {item.availability && <span className="pill">{item.availability}</span>}
                     {item.provenance && (
                       <span className="pill">
-                        {item.provenance === "core" ? "Core team" : "Community"}
+                        {item.provenance === "core" ? "Core project" : "Community project"}
                       </span>
                     )}
                     {item.arch && <span className="pill">{item.arch}</span>}
-                    {item.year && <span className="pill">{item.year}</span>}
                     {item.meta.map((m, i) => (
                       <span key={i} className="pill">
                         {m}

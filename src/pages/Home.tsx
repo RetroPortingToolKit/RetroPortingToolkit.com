@@ -6,14 +6,12 @@ import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
 import { HeroReel } from "@/components/HeroReel";
 import {
-  labHardware,
   labGames,
-  labBlog,
   labAll,
   type LabKind,
   type LabMedia,
 } from "@/lab/labContent";
-import { HARDWARE, GAMES, BLOGS, pathFor, youtubeThumb } from "@/lib/content";
+import { HARDWARE, GAMES, pathFor, youtubeThumb } from "@/lib/content";
 import { isMac } from "@/lib/platform";
 import { useAbout } from "@/lib/about";
 import {
@@ -29,7 +27,6 @@ import {
   VIDEOS,
   DEMOS,
   type HomeDemo,
-  CAPABILITIES,
   PILLARS,
   TRANSFORMS,
   THESIS,
@@ -45,9 +42,9 @@ const TAB_PATH: Record<TabId, string> = {
 const TAB_ORDER: TabId[] = ["home", "hardware", "game", "blog"];
 const NAV_TABS = [
   { id: "home" as TabId, label: "Home", path: "/" },
-  { id: "hardware" as TabId, label: "Hardware", path: "/hardware" },
+  { id: "hardware" as TabId, label: "Platforms", path: "/hardware" },
   { id: "game" as TabId, label: "Games", path: "/games" },
-  { id: "blog" as TabId, label: "Articles", path: "/blog" },
+  { id: "blog" as TabId, label: "News", path: "/blog" },
 ];
 
 // Must equal what scripts/vite-prerender.mjs serves for each tab's route, so
@@ -240,17 +237,17 @@ function SectionHead({
 }
 
 const GRID_TITLES: Record<LabKind, string> = {
-  hardware: "Hardware",
+  hardware: "Platforms",
   game: "Games",
-  blog: "Articles",
+  blog: "News and coverage",
 };
 
 const GRID_SUBS: Record<LabKind, string> = {
   hardware:
-    "One ecosystem per machine: a decoder that turns its games back into code, and a runtime that plays the part of the old silicon. Grouped by how far along each one really is.",
+    "One toolset per console: a static recompiler that translates its games ahead of time, plus a runtime that provides the services those games expect. Grouped by how far along each ecosystem is.",
   game:
-    "Every playable recompilation and the shared tech behind them, from the core team and the community. You bring your own legally dumped ROM or disc; nothing here ships game data.",
-  blog: "The build log from 1379.tech, plus what the press and YouTube are saying.",
+    "Game projects, community ports, and the shared libraries behind them, from the core team and the community. You provide your own legally dumped game files; nothing here includes game data.",
+  blog: "Project updates from the team, plus press and videos from the wider community.",
 };
 
 // A full-catalog tab page. Items carry an optional `group` (from frontmatter):
@@ -469,50 +466,38 @@ function TabContent({
               <div className="hn-hero-actions">
                 <a
                   className="hn-hero-cta hn-hero-cta--primary"
-                  href="https://github.com/mstan"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href="/games"
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                    e.preventDefault();
+                    onNav("/games");
+                  }}
                 >
-                  Explore on GitHub
+                  Explore games
                 </a>
                 <a
                   className="hn-hero-cta hn-hero-cta--ghost"
-                  href="#action"
+                  href="/hardware"
                   onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
                     e.preventDefault();
-                    document.getElementById("action")?.scrollIntoView({ behavior: "smooth" });
+                    onNav("/hardware");
                   }}
                 >
-                  See it in action
+                  Explore platforms
                 </a>
               </div>
+              <p className="hn-hero-note">
+                You provide your own game files. No copyrighted game data is
+                included.
+              </p>
             </div>
           </header>
 
-          <section className="hn-section" aria-label="Without the old limits">
+          <section className="hn-section" aria-label="A different path from emulation">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                The games you remember. Without the old limits.
-              </h2>
-              <ol className="hn-philosophy">
-                {CAPABILITIES.map((c, i) => (
-                  <li className="hn-phil-row" key={i} data-reveal>
-                    <span className="hn-phil-num">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span className="hn-phil-text">
-                      <strong>{c.title}.</strong> {c.body}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="More than emulation">
-            <div className="hn-container">
-              <h2 className="hn-h2" data-reveal>
-                More than emulation.
+                A different path from emulation.
               </h2>
               <div className="hn-proof" data-reveal>
                 {sections.proof.map((line, i) => (
@@ -525,10 +510,10 @@ function TabContent({
             </div>
           </section>
 
-          <section className="hn-section" aria-label="Recompile, understand, augment">
+          <section className="hn-section" aria-label="Recompile, run, extend">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                Recompile. Understand. Augment.
+                Recompile. Run. Extend.
               </h2>
               <ol className="hn-philosophy">
                 {PILLARS.map((c, i) => (
@@ -548,7 +533,7 @@ function TabContent({
           <section className="hn-section" aria-label="One improvement, many games">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                One improvement. Many games.
+                One improvement can help many games.
               </h2>
               <div className="hn-proof" data-reveal>
                 {THESIS.map((p, i) => (
@@ -585,65 +570,15 @@ function TabContent({
           <section className="hn-section" aria-label="See it in action" id="action">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                See it in action.
+                See it in action
               </h2>
               <div className="tv-grid tv-strip">
-                {VIDEOS.map((v) => (
+                {VIDEOS.slice(0, 4).map((v) => (
                   <VideoCard key={v.href} title={v.title} channel={v.channel} href={v.href} />
                 ))}
               </div>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="Hardware">
-            <div className="hn-container">
-              <SectionHead
-                title="Hardware"
-                to="/hardware"
-                count={HARDWARE.length}
-                onNav={onNav}
-              />
-              <div className="tv-grid tv-strip">
-                {labHardware.map((m) => (
-                  <SpatialCard
-                    key={`${m.kind}-${m.slug}`}
-                    media={m}
-                    onOpen={onOpen}
-                    still={!interactive}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="Games">
-            <div className="hn-container">
-              <SectionHead
-                title="Games"
-                to="/games"
-                count={GAMES.length}
-                onNav={onNav}
-              />
-              <div className="tv-grid tv-strip">
-                {labGames.map((m) => (
-                  <SpatialCard
-                    key={`${m.kind}-${m.slug}`}
-                    media={m}
-                    onOpen={onOpen}
-                    still={!interactive}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="Coverage">
-            <div className="hn-container">
-              <h2 className="hn-h2" data-reveal>
-                In the wild
-              </h2>
               <dl className="hn-recognition" data-reveal>
-                {sections.recognition.map((group) => (
+                {RECOGNITION.map((group) => (
                   <div className="hn-rec-row" key={group.label}>
                     <dt className="hn-rec-label">{group.label}</dt>
                     <dd className="hn-rec-items">
@@ -662,16 +597,16 @@ function TabContent({
             </div>
           </section>
 
-          <section className="hn-section" aria-label="Articles">
+          <section className="hn-section" aria-label="Featured projects">
             <div className="hn-container">
               <SectionHead
-                title="Articles"
-                to="/blog"
-                count={BLOGS.length}
+                title="Featured projects"
+                to="/games"
+                count={GAMES.length}
                 onNav={onNav}
               />
               <div className="tv-grid tv-strip">
-                {labBlog.map((m) => (
+                {labGames.slice(0, 6).map((m) => (
                   <SpatialCard
                     key={`${m.kind}-${m.slug}`}
                     media={m}
@@ -680,6 +615,20 @@ function TabContent({
                   />
                 ))}
               </div>
+              <p className="hn-index-links" data-reveal>
+                Browse the full catalogs:{" "}
+                <SmartLink href="/games" className="hn-rec-link">
+                  all {GAMES.length} projects
+                </SmartLink>{" "}
+                ·{" "}
+                <SmartLink href="/hardware" className="hn-rec-link">
+                  all {HARDWARE.length} platforms
+                </SmartLink>{" "}
+                ·{" "}
+                <SmartLink href="/blog" className="hn-rec-link">
+                  news and coverage
+                </SmartLink>
+              </p>
             </div>
           </section>
 

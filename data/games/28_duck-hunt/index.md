@@ -3,22 +3,26 @@ title: "Duck Hunt"
 kicker: "NES"
 tags: ["Mouse Zapper"]
 featured: false
-desc: "The Zapper is gone; your mouse fills in. Duck Hunt, playable on PC through NESRecomp's mouse-as-Zapper substitution."
+desc: "The Zapper is gone; your mouse fills in. Duck Hunt, playable through NESRecomp's mouse-as-Zapper substitution."
 year: "2026"
-status: "Alpha"
+status: "Playable alpha"
+availability: "Source only"
 provenance: "core"
 platform: "nes"
 repo: "https://github.com/mstan/DuckHuntNESRecomp"
 group: "NES"
 links:
-  - { label: "DuckHuntNESRecomp on GitHub", href: "https://github.com/mstan/DuckHuntNESRecomp" }
+  - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/DuckHuntNESRecomp" }
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
+verified: "2026-08-18"
 ---
 
-Duck Hunt is one of the ten commercial titles supported by [NESRecomp](/hardware/nes), maintained by the core team. A light-gun game needs input hardware no modern PC has, so the framework substitutes the mouse for the Zapper.
+Duck Hunt is one of the ten commercial titles supported by [NESRecomp](/hardware/nes), maintained by the core team. A light-gun game needs input hardware no modern computer has, so the framework substitutes the mouse for the Zapper.
 
-## What works today
+## Can I play it?
 
-The game runs as statically recompiled native code through the shared NESRecomp runner, playable with mouse-as-Zapper aiming. Save-state slots are available. Windows x64 is the primary platform; macOS support is experimental.
+Playable with mouse-as-Zapper aiming. Builds from your own ROM dump through the shared NESRecomp runner, with save-state slots. Windows is the primary host platform; macOS support is experimental.
 
-No game data is distributed; the project builds from your own legally dumped ROM.
+## Sources
+
+- [nesrecomp Achieves 10 Commercial Titles (1379.tech)](https://1379.tech/nesrecomp-achieves-10-commercial-titles/)
