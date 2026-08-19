@@ -37,4 +37,4 @@ Your own legally dumped disc image of Mega Man X4.
 
 ## Sources
 
-- [Mega Man X4 Recomp is Out Now! The BEST Mega Man on PS1 (Video Game Esoterica)](https://www.youtube.com/watch?v=Rbh5wKb112A), covered shortly after the release went public.
+- [Mega Man X4 Recomp is Out Now! The BEST Mega Man on PS1 (Video Game Esoterica)](/blog/video-mega-man-x4-out-now), covered shortly after the release went public.

@@ -22,7 +22,7 @@ Three Sonic games run as native apps, each with a released source repo: Sonic th
 
 ## What can be used today
 
-Three game repos are released: Sonic the Hedgehog, Sonic the Hedgehog 2, and Sonic 3 & Knuckles. Per-game configuration directories exist for seven titles across the Sonic family plus Puyo Puyo and Rocket Knight Adventures bring-up.
+Three game repos are released: Sonic the Hedgehog, Sonic the Hedgehog 2, and Sonic 3 & Knuckles. Per-game configuration directories exist for further titles across the Sonic family, with more bring-up work in progress.
 
 ## Supported games
 
@@ -40,7 +40,7 @@ SegaGenesisRecomp distributes no ROMs and no game-derived generated code; every 
 
 ## Known limitations
 
-Puyo Puyo and Rocket Knight Adventures are bring-up work, not released games. The Z80 sound-chip recompiler is experimental.
+Additional titles are bring-up work, not released games. The Z80 sound-chip recompiler is experimental.
 
 ## Technical details
 

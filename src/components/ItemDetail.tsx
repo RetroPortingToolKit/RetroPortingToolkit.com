@@ -131,7 +131,17 @@ function LinksBlock({
 // reading time. Blog posts carry the site author's byline, so it renders
 // only rides blog entries (writing items are often third-party coverage OF him,
 // there (unlike linked writing elsewhere, where a site byline would misattribute).
+// Press and video entries are authored by their outlet or channel, not the
+// team; only 1379.tech writing carries the site author's byline.
+function articleAuthor(item: Item): string {
+  if ((item.kicker === "Press" || item.kicker === "Video") && item.venue) {
+    return item.venue;
+  }
+  return SITE.author;
+}
+
 export function ArticleByline({ item, delay = 200 }: { item: Item; delay?: number }) {
+  const author = articleAuthor(item);
   const meta = [
     formatArticleDate(item.date || item.year),
     item.body ? `${readingTimeMin(item.body)} min read` : "",
@@ -141,10 +151,10 @@ export function ArticleByline({ item, delay = 200 }: { item: Item; delay?: numbe
   return (
     <div className="article-byline blur-in" style={delayed(delay)}>
       <span className="article-avatar" aria-hidden="true">
-        {SITE.author.charAt(0) || "?"}
+        {author.charAt(0) || "?"}
       </span>
       <span className="article-byline-text">
-        <span className="article-author">{SITE.author}</span>
+        <span className="article-author">{author}</span>
         {meta && <span className="article-byline-meta">{meta}</span>}
       </span>
     </div>
@@ -269,7 +279,9 @@ function LabSplit({ item }: { item: Item }) {
             yourself.
           </p>
         )}
-        {item.kind === "blog" && <ArticleEndCard item={item} />}
+        {item.kind === "blog" && articleAuthor(item) === SITE.author && (
+          <ArticleEndCard item={item} />
+        )}
           <AdjacentItems item={item} />
         </div>
       </aside>
@@ -372,8 +384,8 @@ function DefaultDetail({ item }: { item: Item }) {
                   rel="noopener noreferrer"
                   className="modal-published-link"
                 >
-                  Originally published on {item.venue}{" "}
-                  <span className="ext">↗</span>
+                  {item.kicker === "Video" ? "Watch on" : "Originally published on"}{" "}
+                  {item.venue} <span className="ext">↗</span>
                 </a>
               </div>
             )}
@@ -508,7 +520,9 @@ function DefaultDetail({ item }: { item: Item }) {
             yourself.
           </p>
         )}
-        {item.kind === "blog" && <ArticleEndCard item={item} />}
+        {item.kind === "blog" && articleAuthor(item) === SITE.author && (
+          <ArticleEndCard item={item} />
+        )}
         {/* Previous / next cards, like the project modal. Articles get article
             siblings; project pages get project siblings. */}
         <AdjacentItems item={item} />

@@ -50,4 +50,4 @@ Widescreen is experimental, and the project notes 21:9 is not ready.
 ## Sources
 
 - [psxrecomp Overhauled. Now BIOS + Tomba (1379.tech)](https://1379.tech/psxrecomp-overhauled-now-bios-tomba/)
-- [Tomba Recomp is Out Now! A PS1 Recomp Updated (Video Game Esoterica)](https://www.youtube.com/watch?v=sbqPnJhb3uk)
+- [Tomba Recomp is Out Now! A PS1 Recomp Updated (Video Game Esoterica)](/blog/video-tomba-out-now)

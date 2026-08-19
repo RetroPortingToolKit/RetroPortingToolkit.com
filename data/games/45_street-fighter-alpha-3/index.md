@@ -27,4 +27,4 @@ The release exists per coverage: Video Game Esoterica's video "Street Fighter Al
 
 ## Sources
 
-- [Street Fighter Alpha 3 Recomp Out NOW! It's GOOD (Video Game Esoterica)](https://www.youtube.com/watch?v=aITjH0LoEeA)
+- [Street Fighter Alpha 3 Recomp Out NOW! It's GOOD (Video Game Esoterica)](/blog/video-sfa3-recomp-out-now)

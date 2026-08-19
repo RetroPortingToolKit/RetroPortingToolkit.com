@@ -45,4 +45,4 @@ This was the first game recompiled without an explicit disassembly as reference,
 ## Sources
 
 - [Megaman X: Recompiled Release (1379.tech)](https://1379.tech/megaman-x-recompiled-v1-0-0-release/)
-- [Mega Man X Recomp is Out Now! A SNES Recomp (Video Game Esoterica)](https://www.youtube.com/watch?v=XRwKZ0_8u-c)
+- [Mega Man X Recomp is Out Now! A SNES Recomp (Video Game Esoterica)](/blog/video-mega-man-x-out-now)

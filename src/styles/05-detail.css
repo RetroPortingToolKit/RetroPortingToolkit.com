@@ -1584,6 +1584,10 @@ button {
 .video-hero {
   position: relative;
   aspect-ratio: 16 / 9;
+  /* aspect-ratio needs the fixed .modal-hero height released, or the hero
+     locks to 640px wide on full-width page routes */
+  width: 100%;
+  height: auto;
   overflow: hidden;
   background: #05070d;
 }

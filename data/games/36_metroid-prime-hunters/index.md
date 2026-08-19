@@ -53,5 +53,5 @@ The game's dual-CPU ARM code runs natively, with a bounded interpreter tier hand
 ## Sources
 
 - [Metroid Prime Hunters recomp brings the Nintendo DS classic to PC (GenerationAmiga)](https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/)
-- [Metroid Prime Hunters Recomp Out NOW! (Video Game Esoterica)](https://www.youtube.com/watch?v=FFUglxqa_eI)
-- [21:9 first look (Gamemaster1379)](https://www.youtube.com/watch?v=tvqnW6J6KU0)
+- [Metroid Prime Hunters Recomp Out NOW! (Video Game Esoterica)](/blog/video-metroid-prime-hunters-out-now)
+- [21:9 first look (Gamemaster1379)](/blog/video-mph-219-first-look)

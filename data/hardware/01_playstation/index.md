@@ -58,4 +58,4 @@ PSXRecomp takes a PlayStation game's MIPS R3000A machine code, turns it into C, 
 - [Time Extension on OpenPete and PSXRecomp](https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp)
 - [Notebookcheck on Pepsiman in the browser](https://www.notebookcheck.net/A-recompiled-version-of-Pepsiman-lets-you-play-the-PS1-cult-classic-natively-in-your-browser-at-60-FPS.1354060.0.html)
 - [retro-gamer.jp on Twisted Metal 4 (Japanese)](https://retro-gamer.jp/?p=45562)
-- [Watch save states and rewind showcase (video)](https://www.youtube.com/watch?v=L36ppNkuJG0)
+- [Watch save states and rewind showcase (video)](/blog/video-tomba-save-states-rewind)

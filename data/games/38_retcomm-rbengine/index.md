@@ -29,4 +29,4 @@ Modules for admit pacing, input history, hash confirm, and a tick-keyed snapshot
 
 ## Sources
 
-- [Save states & rewind showcase (video)](https://www.youtube.com/watch?v=L36ppNkuJG0)
+- [Save states & rewind showcase (video)](/blog/video-tomba-save-states-rewind)

@@ -45,6 +45,6 @@ Built on the SMWDisX disassembly, 1,937 of the game's 2,074 functions carry real
 
 ## Sources
 
-- [SMW character replacement test (Gamemaster1379)](https://www.youtube.com/watch?v=Owuku0zj4As)
+- [SMW character replacement test (Gamemaster1379)](/blog/video-smw-character-test)
 - [snesrecomp's First Title: Super Mario World (1379.tech)](https://1379.tech/snesrecomps-first-title-super-mario-world/)
 - [The Future of Game Preservation is Decomp-Annotated-Recomps (1379.tech)](https://1379.tech/recomp-vs-decomp-wrong-question/)

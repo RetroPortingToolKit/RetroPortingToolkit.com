@@ -40,4 +40,4 @@ Your own legally dumped disc image of Mega Man X6.
 
 ## Sources
 
-- [Mega Man X6 Recomp is Out Now! ANOTHER PS1 Recomp (Video Game Esoterica)](https://www.youtube.com/watch?v=IXMHXC2BLSc), covered on YouTube in July 2026.
+- [Mega Man X6 Recomp is Out Now! ANOTHER PS1 Recomp (Video Game Esoterica)](/blog/video-mega-man-x6-out-now), covered on YouTube in July 2026.
