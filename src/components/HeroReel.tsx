@@ -113,6 +113,12 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           playsInline
           preload="auto"
           onPlaying={() => setPlaying(true)}
+          onEnded={(e) => {
+            // Native loop can fail on some webm/browser combinations; force it.
+            const v = e.currentTarget;
+            v.currentTime = 0;
+            v.play().catch(() => {});
+          }}
         >
           <source src="/previews/hero-montage.webm" type="video/webm" />
           <source src="/previews/hero-montage.mp4" type="video/mp4" />
