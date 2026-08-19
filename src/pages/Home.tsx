@@ -29,7 +29,6 @@ import {
   type HomeDemo,
   PILLARS,
   TRANSFORMS,
-  THESIS,
   renderSegments,
 } from "@/lib/homeContent";
 
@@ -527,19 +526,6 @@ function TabContent({
                   </li>
                 ))}
               </ol>
-            </div>
-          </section>
-
-          <section className="hn-section" aria-label="One improvement, many games">
-            <div className="hn-container">
-              <h2 className="hn-h2" data-reveal>
-                One improvement can help many games.
-              </h2>
-              <div className="hn-proof" data-reveal>
-                {THESIS.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-              </div>
             </div>
           </section>
 

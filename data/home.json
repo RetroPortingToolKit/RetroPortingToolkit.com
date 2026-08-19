@@ -119,10 +119,7 @@
       "body": "Add optional widescreen, modern controls, multiplayer, mods, translations, and other capabilities, where a project supports them."
     }
   ],
-  "thesis": [
-    "A traditional port improves one game. Retro Porting Toolkit is built to improve the platform tooling underneath many games.",
-    "Once a display, input, audio, or networking path has been implemented for a platform, compatible games can often reuse it. Every new game strengthens the platform tooling, and every platform improvement makes the next game easier."
-  ],
+  "thesis": [],
   "transforms": [
     {
       "title": "Link cable becomes network play",
@@ -139,6 +136,10 @@
     {
       "title": "Text becomes translatable, games become moddable",
       "body": "Runtime text replacement powers an English fan translation of Tsumu Light without patching the original image, and opt-in mod loaders never modify your dump."
+    },
+    {
+      "title": "One improvement can help many games",
+      "body": "These transformations are built into the platform tooling, not into a single title. Once a display, input, or networking path exists for a platform, compatible games can often reuse it: every new game strengthens the tooling, and every platform improvement makes the next game easier."
     }
   ],
   "demos": [
