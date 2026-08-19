@@ -1588,8 +1588,20 @@ button {
      locks to 640px wide on full-width page routes */
   width: 100%;
   height: auto;
+  /* Contained like the talk stage, never full-bleed: cap by viewport height
+     so the page's own title and status pills stay visible below the player
+     instead of a third-party thumbnail filling the first screen. */
+  max-width: min(1100px, calc((100vh - 340px) * 16 / 9));
+  margin: 36px auto 0;
+  border-radius: 12px;
   overflow: hidden;
   background: #05070d;
+}
+@media (max-width: 720px) {
+  .video-hero {
+    margin: 12px 12px 0;
+    border-radius: 8px;
+  }
 }
 .video-hero-frame,
 .video-hero-poster {

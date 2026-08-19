@@ -150,7 +150,44 @@ function VideoDetail({ item }: { item: Item }) {
   );
 }
 
+// Project pages follow the ramine.net split: writeup on the left, media on
+// the right. The primary video (embedded, never re-hosted) leads the carousel
+// with the cover as its poster; gallery shots follow. A cover alone still
+// earns the split; pages with no media at all read as plain articles.
+function projectSlides(item: Item): Slide[] {
+  const slides: Slide[] = [];
+  if (isYouTubeSrc(item.videoUrl)) {
+    slides.push({ src: item.videoUrl as string, poster: item.cover });
+  } else if (
+    item.cover &&
+    !item.gallery.some((g) => g.src === item.cover)
+  ) {
+    slides.push({
+      src: item.cover,
+      srcFallback: item.coverFallback,
+      lqip: item.coverLqip,
+      caption: item.coverCaption,
+    });
+  }
+  for (const g of item.gallery) {
+    slides.push({
+      src: g.src,
+      srcFallback: g.srcFallback,
+      lqip: g.lqip,
+      poster: g.poster,
+      caption: g.caption,
+    });
+  }
+  return slides;
+}
+
 export function ItemDetail({ item }: Props) {
+  if (item.kind !== "blog") {
+    const slides = projectSlides(item);
+    if (slides.length > 0) {
+      return <LabSplit item={item} slides={slides} />;
+    }
+  }
   // News videos read like ramine.net talks: player on top, title and
   // description right below.
   if (
@@ -320,8 +357,8 @@ function AdjacentItems({ item }: { item: Item }) {
 }
 
 // ProjectSplit, but the right pane can be the running thing, and it renders on the full page too.
-function LabSplit({ item }: { item: Item }) {
-  const slides: Slide[] = item.gallery.map((g) => ({
+function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }) {
+  const slides: Slide[] = slidesProp ?? item.gallery.map((g) => ({
     src: g.src,
     srcFallback: g.srcFallback,
     lqip: g.lqip,
@@ -356,6 +393,32 @@ function LabSplit({ item }: { item: Item }) {
             </div>
           )}
           {item.kind === "blog" && <ArticleByline item={item} delay={240} />}
+          {item.kind !== "blog" &&
+            (item.status ||
+              item.availability ||
+              item.arch ||
+              item.provenance ||
+              item.verified ||
+              item.meta.length > 0) && (
+              <div className="modal-meta blur-in" style={delayed(220)}>
+                {item.status && <span className="pill">{item.status}</span>}
+                {item.availability && <span className="pill">{item.availability}</span>}
+                {item.provenance && (
+                  <span className="pill">
+                    {item.provenance === "core" ? "Core project" : "Community project"}
+                  </span>
+                )}
+                {item.arch && <span className="pill">{item.arch}</span>}
+                {item.meta.map((m, i) => (
+                  <span key={i} className="pill">
+                    {m}
+                  </span>
+                ))}
+                {item.verified && (
+                  <span className="pill">Last verified {formatArticleDate(item.verified)}</span>
+                )}
+              </div>
+            )}
           {item.body && (
             <div className="blur-in" style={delayed(320)}>
               <Markdown className="modal-content">{item.body}</Markdown>
