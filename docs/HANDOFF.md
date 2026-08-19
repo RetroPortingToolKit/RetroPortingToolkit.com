@@ -140,3 +140,18 @@ exist publicly (only xboxlle-probe).
   (Ape Escape), randomizer fork (X5), family split-screen (Sonic), Super
   Metroid public-repo claim (SNES page), and similar. Sonic 1 README says "no
   prebuilt binaries" but its Releases page ships them; pages follow releases.
+
+## Full article port (2026-08-19)
+
+- The 14 team articles are republished in full from 1379.tech (verbatim text,
+  site punctuation rule applied), with all content images and Ghost-native
+  videos downloaded into each item folder (~175 MB under data/blog/). Feature
+  images became card covers. Press pages stay as attributed summaries by
+  design (other outlets' copyright).
+- Reprints had four references to non-public projects (RKA screenshot, Legaia
+  paragraph, two SM64DS screenshots); excised per the standing rule. The
+  n64decomp/sm64 reference in the founding article is unrelated prior art and
+  stays.
+- GitHub warns that psxrecomp.mp4 (61 MB) exceeds its 50 MB recommendation
+  (hard limit is 100 MB; push succeeded). If more large videos land, consider
+  compressing to ~720p crf 26 before committing.
