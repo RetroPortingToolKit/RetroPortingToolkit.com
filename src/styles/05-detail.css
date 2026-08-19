@@ -1647,3 +1647,18 @@ button {
 .project-cta:hover {
   opacity: 0.85;
 }
+
+/* Article reader surface: pure white in light, pure black in dark, like the
+   ramine.net writing pages. Scoped by :has so only article views deepen. */
+[data-theme="dark"] .modal-card:has(.modal-body--article),
+[data-theme="dark"] .page-article:has(.modal-body--article) {
+  background: #000;
+  --bg: #000;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .modal-card:has(.modal-body--article),
+  :root:not([data-theme="light"]) .page-article:has(.modal-body--article) {
+    background: #000;
+    --bg: #000;
+  }
+}

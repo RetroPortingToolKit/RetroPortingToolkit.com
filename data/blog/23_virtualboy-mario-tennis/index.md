@@ -7,14 +7,31 @@ desc: "No public disassemblies, no scaffolding: Mario's Tennis brings the Virtua
 date: "2026-05-21"
 venue: "1379.tech"
 layout: "article"
+cover: "./cover.png"
 links:
   - { label: "Read on 1379.tech", href: "https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/" }
 ---
 
-This post announces the Virtual Boy recompiler's first commercial title, Mario's Tennis. The platform choice is a deliberate inversion of the NES strategy. Earlier ecosystems targeted games with good public disassemblies; the Virtual Boy has essentially none. It was picked anyway, because the system itself is simple enough that the recompiler could work without that scaffolding.
+![](./vbrecomp.mp4)
 
-That makes the project a useful stress test of the whole approach. If static recompilation only worked where the community had already done the reverse engineering, it would be a repackaging tool. Getting a commercial title running on a console with no disassembly heritage argues it is something more.
+As I've become more experienced in the ecosystem that is recompilations and achieved my milestones of my other recompilation projects finally hitting their milestone of their first commercial title, I wanted to experiment with a more obscure ecosystem that was going to be less traversed. In the end, I chose the VirtualBoy, both due to novelty, but also it's relative simplicity as a system.
 
-The post closes with a striking ambition: since the games become native code with a modern renderer behind them, the author wants to eventually visually enrich Virtual Boy titles beyond the hardware's red-and-black display, something no amount of emulation accuracy would ever offer.
+![](./mpc-hc64_S9ftLySH8F.png)
+
+![](./mpc-hc64_N1ezkTI7oK.png)
+
+![Mario Tennis Recomp gameplay](./mpc-hc64_8tFh9FA05Z.png)
+
+The pros mostly outweighed the cons for VirtualBoy. The system had very few games, none of which come with disassemblies or annotations online, but a number of them were simpler and more approachable, like Mario Tennis.
+
+Despite the being a fast commercial failure, its novelty has led it to being reasonably well documented itself. The system also had a **much** simpler runtime than say, the Super NES with its register widths and other complexities that required tracking during static analysis.
+
+Even still, using my other projects as a reference, I was able to quickly scaffold out an ecosystem for the VirtualBoy and trial my way quickly into a successful playable loop for Mario Tennis.
+
+## VirtualBoy Next Steps
+
+While I have some target titles and aspirations for other recomp ecosystems, the VirtualBoy was never a system that I owned growing up. There's novelty, but not nostalgia hidden in its short library of games. I don't anticipate I'll make an effort to bring the rest of the library along on my own time. Though, I am curious about someday exploring whether we can visually enrich some of these titles to be something other than the harsh red and blacks of the system, and give a second life to some of these titles.
+
+---
 
 Related: [Mario's Tennis](/games/mario-tennis) on [Virtual Boy](/hardware/virtual-boy).

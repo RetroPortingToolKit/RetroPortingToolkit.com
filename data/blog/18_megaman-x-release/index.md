@@ -7,14 +7,25 @@ desc: "Mega Man X runs start to finish on SNESRecomp, and this time no community
 date: "2026-05-29"
 venue: "1379.tech"
 layout: "article"
+cover: "./maxresdefault.jpg"
 links:
   - { label: "Read on 1379.tech", href: "https://1379.tech/megaman-x-recompiled-v1-0-0-release/" }
 ---
 
-This release post marks a milestone for the SNES ecosystem: Mega Man X becomes SNESRecomp's second fully playable game, completable start to finish as a native executable.
+[MegamanXSNESRecomp](https://github.com/mstan/MegaManXSNESRecomp)
 
-The technical significance is in how it got there. Super Mario World, the framework's first title, leaned on an extensively documented disassembly. Mega Man X is the first game statically recompiled without an explicit disassembly as reference. The toolchain had to stand on its own analysis rather than borrowing structure from years of community reverse engineering. Clearing that bar suggested the pipeline could reach games that nobody has ever picked apart by hand.
+[snesrecomp](https://github.com/mstan/snesrecomp)
 
-As with every release in the ecosystem, the build ships without game data: players supply their own US ROM, and the recompiled runtime does the rest.
+[Watch: 2026 05 29 Megaman X Recompiled Showcase (YouTube)](https://www.youtube.com/watch?v=19_Dgs3vra8)
+
+Megaman X for the Super NES has just gotten it's first fully playable build, making SNESRecomp's second fully playable game, with Legend of Zelda: A Link to the Past remaining in active development towards MVP.
+
+This build was made possible as a result of [snesrecomp](https://github.com/mstan/snesrecomp), an ongoing static recompiler project for the Super NES. The project began with the building of [Super Mario World](https://github.com/mstan/supermarioworldrecomp) as it's first successful showcase. In order to mature the project, both Legend of Zelda: A Link to the Past and Megaman X were targeted as its next titles. Today, Megaman X has released in its first fully playable state, meaning a player can go from the start of the game, through all 8 robot masters, Sigma states, and Sigma himself.
+
+This marks a major milestone in the project's development as being the first game to be recompiled without explicit disassembly as a reference.
+
+The game can be played and downloaded now by going to the [Release](https://github.com/mstan/MegaManXSNESRecomp/releases/) page. Players will be required to provide their own US ROM of Megaman X in order to play.
+
+---
 
 Related: [Mega Man X](/games/mega-man-x) on [Super Nintendo](/hardware/super-nintendo).
