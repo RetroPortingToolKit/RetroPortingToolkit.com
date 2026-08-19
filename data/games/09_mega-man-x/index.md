@@ -14,10 +14,14 @@ group: "Super Nintendo"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MegaManXSNESRecomp" }
   - { label: "Megaman X: Recompiled Release (1379.tech)", href: "https://1379.tech/megaman-x-recompiled-v1-0-0-release/" }
-  - { label: "Watch demo: Mega Man X Recomp is Out Now! A SNES Recomp (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=XRwKZ0_8u-c" }
+  - { label: "Watch: Mega Man X Recomp is out now", href: "/blog/video-mega-man-x-out-now" }
 cover: "https://i.ytimg.com/vi/XRwKZ0_8u-c/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=XRwKZ0_8u-c"
 verified: "2026-08-18"
+gallery:
+  - { src: "./mmx-wide.png", caption: "Widescreen gameplay" }
+  - { src: "./widescreen-highway.png", caption: "Central Highway in widescreen" }
+  - { src: "./widescreen-ocean.png", caption: "Ocean stage in widescreen" }
 ---
 
 Mega Man X is [SNESRecomp](/hardware/super-nintendo)'s most mature title, a core project maintained alongside the framework itself.

@@ -322,7 +322,8 @@ function DefaultDetail({ item }: { item: Item }) {
     )
   ) : null;
 
-  const hasVideoHero = item.kind !== "blog" && isYouTubeSrc(item.videoUrl);
+  const hasVideoHero =
+    (item.kind !== "blog" || item.kicker === "Video") && isYouTubeSrc(item.videoUrl);
   return (
     <>
       {hasVideoHero && <VideoHero item={item} />}
@@ -376,7 +377,7 @@ function DefaultDetail({ item }: { item: Item }) {
                 </a>
               </div>
             )}
-            {coverMedia && (
+            {coverMedia && !hasVideoHero && (
               <figure className="article-cover">
                 {coverMedia}
                 {item.coverCaption && (

@@ -16,6 +16,7 @@ links:
   - { label: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "./smb-pikachu.png"
 ---
 
 Ten commercial NES titles run as native apps built from the user's own cartridge dumps, with no BIOS required at all. NESRecomp uses static recompilation to rebuild each cartridge's original program for modern systems, and it is second only to PlayStation by title count.

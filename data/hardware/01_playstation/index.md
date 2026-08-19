@@ -15,8 +15,9 @@ links:
   - { label: "View source (GitHub)", href: "https://github.com/mstan/psxrecomp" }
   - { label: "I Built a PS1 Static Recompiler With No Prior Experience (1379.tech)", href: "https://1379.tech/i-built-a-ps1-static-recompiler-with-no-prior-experience-and-claude-code/" }
   - { label: "psxrecomp Overhauled. Now BIOS + Tomba (1379.tech)", href: "https://1379.tech/psxrecomp-overhauled-now-bios-tomba/" }
-  - { label: "Watch save states and rewind showcase (video)", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
+  - { label: "Watch: save states and rewind in Tomba", href: "/blog/video-tomba-save-states-rewind" }
 verified: "2026-08-18"
+cover: "./mod-launcher.png"
 ---
 
 Seven core-team titles are playable today, and the same decoder powers community projects like [OpenPete's Spyro the Dragon](/games/openpete-spyro) and the browser port of [Pepsiman](/games/pepsiman). PSXRecomp is the most established ecosystem in the toolkit: it uses static recompilation to turn a PlayStation game into portable code that builds as a native app for modern systems.

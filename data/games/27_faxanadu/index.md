@@ -15,6 +15,7 @@ links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/FaxanaduRecomp" }
   - { label: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
 verified: "2026-08-18"
+cover: "./title-screen.png"
 ---
 
 Faxanadu was the first commercial title [NESRecomp](/hardware/nes) ever supported, and it remains a fixture of the ecosystem, maintained by the core team.

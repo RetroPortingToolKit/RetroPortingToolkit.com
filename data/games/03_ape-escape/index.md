@@ -14,6 +14,9 @@ group: "PlayStation"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/ApeEscapeRecomp" }
 verified: "2026-08-18"
+cover: "./ape-escape.png"
+gallery:
+  - { src: "./ape-escape-21x9.png", caption: "Running at 21:9" }
 ---
 
 Ape Escape is one of the most popular games in the [PSXRecomp](/hardware/playstation) lineup, and one of the youngest.

@@ -15,6 +15,7 @@ links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/LegendOfZeldaNESRecomp" }
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "./voxel-3d.webp"
 ---
 
 The Legend of Zelda is one of the ten commercial titles supported by [NESRecomp](/hardware/nes), maintained by the core team, and the showcase for the framework's opt-in Voxel 3D renderer.

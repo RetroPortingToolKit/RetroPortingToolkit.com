@@ -14,11 +14,15 @@ group: "PlayStation"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/TombaRecomp" }
   - { label: "psxrecomp Overhauled. Now BIOS + Tomba (1379.tech)", href: "https://1379.tech/psxrecomp-overhauled-now-bios-tomba/" }
-  - { label: "Watch demo: Tomba Recomp is Out Now! (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=sbqPnJhb3uk" }
-  - { label: "Watch: save states & rewind showcase", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
+  - { label: "Watch: Tomba Recomp is out now", href: "/blog/video-tomba-out-now" }
+  - { label: "Watch: save states and rewind in Tomba", href: "/blog/video-tomba-save-states-rewind" }
 cover: "https://i.ytimg.com/vi/sbqPnJhb3uk/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=sbqPnJhb3uk"
 verified: "2026-08-18"
+gallery:
+  - { src: "./tomba-launcher.png", caption: "Tomba in the psxrecomp launcher" }
+  - { src: "/covers/tomba-gameplay.jpg", caption: "Native PC gameplay" }
+  - { src: "/covers/tomba-rewind.jpg", caption: "Rewind in action" }
 ---
 
 Every framework has a first game. For [PSXRecomp](/hardware/playstation), it was Tomba!, and the two have grown up together: three weeks to reach the main menu, and now a reasonably playable recompilation. Among its testers is a world-record-holding speedrunner.

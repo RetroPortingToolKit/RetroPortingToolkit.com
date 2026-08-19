@@ -14,6 +14,9 @@ group: "Game Boy Advance"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/EmeraldRecomp" }
 verified: "2026-08-18"
+cover: "./pokemon-emerald-gameplay.webp"
+gallery:
+  - { src: "./pokemon-emerald-title.webp", caption: "Title screen" }
 ---
 
 Pokémon Emerald completes Gen 3 coverage in the [GBARecomp](/hardware/game-boy-advance) lineup, joining [Ruby & Sapphire](/games/pokemon-ruby-sapphire) and [FireRed & LeafGreen](/games/pokemon-firered-leafgreen).

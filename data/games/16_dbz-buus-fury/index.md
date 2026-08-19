@@ -14,6 +14,7 @@ group: "Game Boy Advance"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/DragonBallZBuusFuryRecomp" }
 verified: "2026-08-18"
+cover: "./buus-fury-adaptive.webp"
 ---
 
 Dragon Ball Z: Buu's Fury is one of the Dragon Ball Z titles in the [GBARecomp](/hardware/game-boy-advance) lineup, maintained as a core project.

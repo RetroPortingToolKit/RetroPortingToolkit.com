@@ -14,11 +14,14 @@ group: "Nintendo DS"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MetroidPrimeHuntersRecomp" }
   - { label: "Metroid Prime Hunters recomp brings the Nintendo DS classic to PC (GenerationAmiga)", href: "https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/" }
-  - { label: "Watch demo: Metroid Prime Hunters Recomp Out NOW! (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=FFUglxqa_eI" }
-  - { label: "Watch: 21:9 first look (Gamemaster1379)", href: "https://www.youtube.com/watch?v=tvqnW6J6KU0" }
+  - { label: "Watch: Metroid Prime Hunters Recomp is out now", href: "/blog/video-metroid-prime-hunters-out-now" }
+  - { label: "Watch: Metroid Prime Hunters in 21:9", href: "/blog/video-mph-219-first-look" }
 cover: "https://i.ytimg.com/vi/FFUglxqa_eI/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=FFUglxqa_eI"
 verified: "2026-08-18"
+gallery:
+  - { src: "/covers/mph-online.jpg", caption: "Online multiplayer through Wiimmfi" }
+  - { src: "/covers/mph-2119.jpg", caption: "21:9 widescreen" }
 ---
 
 Metroid Prime Hunters is the one public game consumer of [ndsrecomp](/hardware/nintendo-ds), the very early Nintendo DS static recompiler maintained by the core team. The framework itself is pre-alpha research; this title runs ahead of it as a public alpha.

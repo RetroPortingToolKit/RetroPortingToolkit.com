@@ -15,8 +15,9 @@ links:
   - { label: "View source (GitHub)", href: "https://github.com/mstan/snesrecomp" }
   - { label: "snesrecomp's First Title: Super Mario World (1379.tech)", href: "https://1379.tech/snesrecomps-first-title-super-mario-world/" }
   - { label: "Megaman X: Recompiled Release (1379.tech)", href: "https://1379.tech/megaman-x-recompiled-v1-0-0-release/" }
-  - { label: "Mega Man X Recomp is Out Now! A SNES Recomp (video)", href: "https://www.youtube.com/watch?v=XRwKZ0_8u-c" }
+  - { label: "Watch: Mega Man X Recomp is out now", href: "/blog/video-mega-man-x-out-now" }
 verified: "2026-08-18"
+cover: "./smw-wide.png"
 ---
 
 Three games are released: in the README's own language, Mega Man X is "Fully playable", Super Mario World is "Believed playable end to end", and A Link to the Past is "Playable through the early dungeon". SNESRecomp uses static recompilation to turn Super Nintendo games into native apps; the README states that "SNESRecomp is alpha software".

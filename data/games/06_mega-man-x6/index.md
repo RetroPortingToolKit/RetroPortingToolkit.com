@@ -13,10 +13,15 @@ repo: "https://github.com/mstan/MegaManX6Recomp"
 group: "PlayStation"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MegaManX6Recomp" }
-  - { label: "Watch demo: Mega Man X6 Recomp is Out Now! ANOTHER PS1 Recomp (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=IXMHXC2BLSc" }
+  - { label: "Watch: Mega Man X6 Recomp is out now", href: "/blog/video-mega-man-x6-out-now" }
 cover: "https://i.ytimg.com/vi/IXMHXC2BLSc/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=IXMHXC2BLSc"
 verified: "2026-08-18"
+gallery:
+  - { src: "./mmx6-widescreen-gameplay.png", caption: "Widescreen gameplay" }
+  - { src: "./mmx6-16x9.png", caption: "Native 16:9 presentation" }
+  - { src: "./mmx6-tweaks-launcher.png", caption: "The tweaks launcher" }
+  - { src: "/covers/mmx6-mods.jpg", caption: "Community mods in action" }
 ---
 
 Mega Man X6 is one of the most complete titles in the [PSXRecomp](/hardware/playstation) ecosystem. What sets it apart is the mod layer, an adaptation of the well-known Mega Man X6 Tweaks mod by acediez, carried over with the author's explicit permission.

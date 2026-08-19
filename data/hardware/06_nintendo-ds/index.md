@@ -16,6 +16,7 @@ links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
   - { label: "GenerationAmiga on Metroid Prime Hunters", href: "https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/" }
 verified: "2026-08-18"
+cover: "./prime-hunters-preview.jpg"
 ---
 
 Research only. ndsrecomp is a source-only developer snapshot that recompiles both of the DS's CPUs; in the project's own words it is "very early pre-alpha (v0.0.1)" and "an experimental developer snapshot, not a ready-to-use emulator or a stable framework". One public game consumer exists: [Metroid Prime Hunters](/games/metroid-prime-hunters), in public alpha.

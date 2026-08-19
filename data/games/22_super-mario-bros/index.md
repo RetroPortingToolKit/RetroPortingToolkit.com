@@ -15,6 +15,13 @@ links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/SuperMarioBrosNESRecomp" }
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+cover: "/covers/smb-voxel.jpg"
+gallery:
+  - { src: "./char-pikachu.png", caption: "Pikachu takes the lead role" }
+  - { src: "./char-captain-falcon.png", caption: "Captain Falcon steps in" }
+  - { src: "./char-link.png", caption: "Link visits the Mushroom Kingdom" }
+  - { src: "./char-samus.png", caption: "Samus runs the course" }
+  - { src: "./char-sonic.png", caption: "Sonic joins the roster" }
 ---
 
 Super Mario Bros. is one of the ten commercial titles supported by [NESRecomp](/hardware/nes), maintained by the core team, and the first to cross the line to a full release.

@@ -15,6 +15,7 @@ links:
   - { label: "View source (GitHub)", href: "https://github.com/mstan/vbrecomp" }
   - { label: "VirtualBoy Recomp Gets Its First Title: Mario Tennis (1379.tech)", href: "https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/" }
 verified: "2026-08-18"
+cover: "./mario-tennis-title.png"
 ---
 
 Tech demo. One commercial title, [Mario's Tennis](/games/mario-tennis), runs as a native app on Windows, macOS, and Linux, built from a cartridge dump supplied by the user. vbrecomp uses static recompilation to turn Virtual Boy games into code compiled for modern systems.

@@ -14,6 +14,9 @@ group: "PlayStation"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/Tomba2Recomp" }
 verified: "2026-08-18"
+cover: "./tomba-2.png"
+gallery:
+  - { src: "./tomba-2-adaptive.png", caption: "Adaptive widescreen" }
 ---
 
 Where [Tomba!](/games/tomba) plays in 2.5D, the sequel goes fully 3D, and 3D brings its own presentation puzzles. Tomba! 2 follows its predecessor into [PSXRecomp](/hardware/playstation) territory as a core project.

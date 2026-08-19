@@ -16,6 +16,10 @@ links:
   - { label: "Expanding the *recomp ecosystem with GBARecomp (1379.tech)", href: "https://1379.tech/expanding-the-recomp-ecosystem-with-gbarecomp/" }
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"
+cover: "/covers/minish-cap.jpg"
+gallery:
+  - { src: "./minish-cap-native.webp", caption: "Native resolution" }
+  - { src: "./minish-cap-adaptive.webp", caption: "Adaptive widescreen" }
 ---
 
 When [GBARecomp](/hardware/game-boy-advance) was announced in June 2026, five games were already booting to playable states. The Minish Cap was one of them.

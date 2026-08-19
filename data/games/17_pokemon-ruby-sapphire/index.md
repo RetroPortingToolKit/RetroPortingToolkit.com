@@ -14,6 +14,9 @@ group: "Game Boy Advance"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/RubySapphireRecomp" }
 verified: "2026-08-18"
+cover: "./pokemon-ruby.webp"
+gallery:
+  - { src: "./pokemon-sapphire.webp", caption: "Pokémon Sapphire" }
 ---
 
 Pokémon Ruby and Sapphire carry Gen 3 into the [GBARecomp](/hardware/game-boy-advance) lineup as a core project.

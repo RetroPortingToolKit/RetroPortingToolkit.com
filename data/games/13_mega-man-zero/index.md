@@ -14,6 +14,9 @@ group: "Game Boy Advance"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MegaManZeroRecomp" }
 verified: "2026-08-18"
+cover: "./mmz-gameplay.png"
+gallery:
+  - { src: "./mmz-opening.png", caption: "Opening stage" }
 ---
 
 The Mega Man Zero games are notoriously cramped by the GBA's 3:2 screen, and the collection re-releases never addressed it. This core [GBARecomp](/hardware/game-boy-advance) project takes the problem on directly. It is the consumer repository for the Zero series, with support arriving across the games.

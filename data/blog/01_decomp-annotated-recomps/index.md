@@ -6,7 +6,6 @@ featured: true
 desc: "One named address, one line of code, and Mario moves differently: why recomp versus decomp was never the real fight."
 date: "2026-08-17"
 venue: "1379.tech"
-group: "Project updates"
 layout: "article"
 links:
   - { label: "Read on 1379.tech", href: "https://1379.tech/recomp-vs-decomp-wrong-question/" }

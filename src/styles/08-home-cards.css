@@ -1348,3 +1348,27 @@ html {
   height: 16px;
   display: block;
 }
+
+
+/* News filter chips: All / News / Videos. */
+.news-filter {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 20px;
+}
+.news-filter-chip {
+  appearance: none;
+  border: 1px solid var(--line, rgba(128, 128, 140, 0.35));
+  background: transparent;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.news-filter-chip.active {
+  background: var(--btn-primary-bg, #fff);
+  color: var(--btn-primary-fg, #111);
+  border-color: transparent;
+}

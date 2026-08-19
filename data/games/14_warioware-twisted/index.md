@@ -14,6 +14,7 @@ group: "Game Boy Advance"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/WarioWareTwistedRecomp" }
 verified: "2026-08-18"
+cover: "/covers/warioware-sensors.jpg"
 ---
 
 WarioWare: Twisted! shipped with a tilt sensor built into the cartridge, exactly the kind of hardware a straight port cannot ignore. This core [GBARecomp](/hardware/game-boy-advance) project stands in for that hardware so the game plays on modern devices.

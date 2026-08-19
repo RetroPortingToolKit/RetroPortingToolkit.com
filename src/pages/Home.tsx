@@ -218,8 +218,20 @@ function TabGrid({
   onOpen: (m: LabMedia) => void;
   still?: boolean;
 }) {
-  const all = labAll[kind];
-  const lead = all.filter((m) => !m.group);
+  // News blends everything chronologically with a light filter instead of
+  // grouped sections; Videos are the entries whose kicker is "Video".
+  const [newsFilter, setNewsFilter] = useState<"all" | "news" | "videos">("all");
+  const all =
+    kind === "blog"
+      ? labAll.blog.filter((m) =>
+          newsFilter === "all"
+            ? true
+            : newsFilter === "videos"
+              ? m.kicker === "Video"
+              : m.kicker !== "Video",
+        )
+      : labAll[kind];
+  const lead = kind === "blog" ? all : all.filter((m) => !m.group);
   const groups: { label: string; items: LabMedia[] }[] = [];
   for (const m of all) {
     if (!m.group) continue;
@@ -235,6 +247,26 @@ function TabGrid({
           <span className="hn-tab-count">{all.length}</span>
         </header>
         <p className="blog-tab-sub">{GRID_SUBS[kind]}</p>
+        {kind === "blog" && (
+          <div className="news-filter" role="tablist" aria-label="Filter news">
+            {([
+              ["all", "All"],
+              ["news", "News"],
+              ["videos", "Videos"],
+            ] as const).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={newsFilter === id}
+                className={"news-filter-chip" + (newsFilter === id ? " active" : "")}
+                onClick={() => setNewsFilter(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         {lead.length > 0 && (
           <div className="tv-grid">
             {lead.map((m) => (
@@ -242,7 +274,7 @@ function TabGrid({
             ))}
           </div>
         )}
-        {groups.map((g) => (
+        {kind !== "blog" && groups.map((g) => (
           <Fragment key={g.label}>
             <h2 className="hn-h2 hn-side-title">{g.label}</h2>
             <div className="tv-grid">

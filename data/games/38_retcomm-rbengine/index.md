@@ -11,7 +11,7 @@ repo: "https://github.com/TechnicallyComputers/retcomm-rbengine"
 group: "Shared libraries"
 links:
   - { label: "View source (GitHub)", href: "https://github.com/TechnicallyComputers/retcomm-rbengine" }
-  - { label: "Watch: save states & rewind showcase", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
+  - { label: "Watch: save states and rewind in Tomba", href: "/blog/video-tomba-save-states-rewind" }
 cover: "https://i.ytimg.com/vi/L36ppNkuJG0/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=L36ppNkuJG0"
 verified: "2026-08-18"

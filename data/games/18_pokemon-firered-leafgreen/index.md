@@ -14,6 +14,9 @@ group: "Game Boy Advance"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/FireRedLeafGreenRecomp" }
 verified: "2026-08-18"
+cover: "./pokemon-firered.webp"
+gallery:
+  - { src: "./pokemon-leafgreen.webp", caption: "Pokémon LeafGreen" }
 ---
 
 Pokémon FireRed and LeafGreen share one core [GBARecomp](/hardware/game-boy-advance) repository, and each builds as its own separate native target.

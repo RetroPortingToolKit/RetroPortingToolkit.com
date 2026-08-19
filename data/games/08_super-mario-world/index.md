@@ -12,13 +12,17 @@ platform: "super-nintendo"
 repo: "https://github.com/mstan/SuperMarioWorldRecomp"
 group: "Super Nintendo"
 links:
-  - { label: "Watch demo: SMW character replacement test (Gamemaster1379)", href: "https://www.youtube.com/watch?v=Owuku0zj4As" }
+  - { label: "Watch: character replacement in Super Mario World", href: "/blog/video-smw-character-test" }
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/SuperMarioWorldRecomp" }
   - { label: "snesrecomp's First Title: Super Mario World (1379.tech)", href: "https://1379.tech/snesrecomps-first-title-super-mario-world/" }
   - { label: "The Future of Game Preservation is Decomp-Annotated-Recomps (1379.tech)", href: "https://1379.tech/recomp-vs-decomp-wrong-question/" }
 cover: "https://i.ytimg.com/vi/Owuku0zj4As/hq2.jpg"
 videoUrl: "https://www.youtube.com/watch?v=Owuku0zj4As"
 verified: "2026-08-18"
+gallery:
+  - { src: "./smw-wide.png", caption: "Widescreen gameplay" }
+  - { src: "/covers/smw-character.jpg", caption: "Character replacement test" }
+  - { src: "/covers/smw-extensible.jpg", caption: "An extensible engine" }
 ---
 
 Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever recompiled, and it is still the flagship of the core project.

@@ -15,6 +15,7 @@ links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MarioTennisVirtualBoyRecomp" }
   - { label: "VirtualBoy Recomp Gets Its First Title: Mario Tennis (1379.tech)", href: "https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/" }
 verified: "2026-08-18"
+cover: "./title-screen-3x.png"
 ---
 
 Mario's Tennis is the first and so far only commercial title on [vbrecomp](/hardware/virtual-boy), the Virtual Boy static recompiler maintained by the core team.

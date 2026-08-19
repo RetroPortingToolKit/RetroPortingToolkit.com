@@ -14,6 +14,9 @@ group: "Super Nintendo"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/ZeldaAlttPSNESRecomp" }
 verified: "2026-08-18"
+cover: "./alttp-adaptive.png"
+gallery:
+  - { src: "./alttp-standard.png", caption: "Standard presentation" }
 ---
 
 A Link to the Past is one of the three released [SNESRecomp](/hardware/super-nintendo) titles, maintained as a core project.

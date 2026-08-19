@@ -14,6 +14,7 @@ group: "PlayStation"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MegaManX5Recomp" }
 verified: "2026-08-18"
+cover: "./mega-man-x5.png"
 ---
 
 Mega Man X5 holds the middle of [PSXRecomp](/hardware/playstation)'s PlayStation X run, between [Mega Man X4](/games/mega-man-x4) and [Mega Man X6](/games/mega-man-x6).

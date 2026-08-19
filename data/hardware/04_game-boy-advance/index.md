@@ -16,6 +16,7 @@ links:
   - { label: "Expanding the *recomp ecosystem with GBARecomp (1379.tech)", href: "https://1379.tech/expanding-the-recomp-ecosystem-with-gbarecomp/" }
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"
+cover: "./minish-cap-adaptive.webp"
 ---
 
 About ten Game Boy Advance titles run as native apps, which the README describes as "experimental previews and byproducts of developing the framework". GBARecomp uses static recompilation to turn GBA games into code compiled for modern systems, and it was the toolkit's first 32-bit target.

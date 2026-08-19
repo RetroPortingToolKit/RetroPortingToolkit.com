@@ -15,6 +15,7 @@ links:
   - { label: "View source (GitHub)", href: "https://github.com/mstan/cdirecomp" }
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"
+cover: "./hotel-mario-title.png"
 ---
 
 Research only. cdirecomp can boot the Philips CD-i system ROM as native code and perform a very basic boot of a CD-i title; no game reaches gameplay yet. The project calls itself "a research project shared in the open, not a finished product".

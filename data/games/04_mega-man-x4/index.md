@@ -13,10 +13,12 @@ repo: "https://github.com/mstan/MegaManX4Recomp"
 group: "PlayStation"
 links:
   - { label: "Build from your copy (GitHub)", href: "https://github.com/mstan/MegaManX4Recomp" }
-  - { label: "Watch demo: Mega Man X4 Recomp is Out Now! The BEST Mega Man on PS1 (Video Game Esoterica)", href: "https://www.youtube.com/watch?v=Rbh5wKb112A" }
+  - { label: "Watch: Mega Man X4 Recomp is out now", href: "/blog/video-mega-man-x4-out-now" }
 cover: "https://i.ytimg.com/vi/Rbh5wKb112A/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=Rbh5wKb112A"
 verified: "2026-08-18"
+gallery:
+  - { src: "./mega-man-x4.png", caption: "Mega Man X4 in the psxrecomp launcher" }
 ---
 
 The X series hit PlayStation with X4, and [PSXRecomp](/hardware/playstation) picks the story up right there. It sits alongside [Mega Man X5](/games/mega-man-x5) and [Mega Man X6](/games/mega-man-x6) in the framework's growing run of Capcom titles.
