@@ -12,15 +12,11 @@ import { useEffect, useRef, useState } from "react";
 // Curated capture pool: videoId/frame pairs. hq1/hq2/hq3 are YouTube's real
 // frames at 25/50/75% of the video; hqdefault is its chosen key frame.
 const POOL: string[] = [
-  "https://i.ytimg.com/vi/aITjH0LoEeA/hq2.jpg", // Street Fighter Alpha 3
   "https://i.ytimg.com/vi/Owuku0zj4As/hq2.jpg", // SMW character replacement
-  "https://i.ytimg.com/vi/FFUglxqa_eI/hq2.jpg", // Metroid Prime Hunters
-  "https://i.ytimg.com/vi/sbqPnJhb3uk/hq2.jpg", // Tomba!
-  "https://i.ytimg.com/vi/XRwKZ0_8u-c/hq2.jpg", // Mega Man X
   "https://i.ytimg.com/vi/L36ppNkuJG0/hq1.jpg", // Tomba! (save states capture)
-  "https://i.ytimg.com/vi/Rbh5wKb112A/hq2.jpg", // Mega Man X4
+  "https://i.ytimg.com/vi/9AxKR_u-yu4/hq2.jpg", // SMB character replacement
   "https://i.ytimg.com/vi/tvqnW6J6KU0/hq1.jpg", // Prime Hunters 21:9
-  "https://i.ytimg.com/vi/IXMHXC2BLSc/hq2.jpg", // Mega Man X6
+  "https://i.ytimg.com/vi/_sW-m-HaSVE/hq3.jpg", // SMB voxel 3D
   "https://i.ytimg.com/vi/Owuku0zj4As/hq1.jpg", // SMW char replacement (action)
   "https://i.ytimg.com/vi/L36ppNkuJG0/hq2.jpg", // Tomba!
   "https://i.ytimg.com/vi/tvqnW6J6KU0/hq2.jpg", // Prime Hunters 21:9
