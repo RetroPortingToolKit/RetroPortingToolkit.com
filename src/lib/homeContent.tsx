@@ -95,6 +95,7 @@ const extra = homeData as {
   featured?: HomeFeatured[];
   action?: HomeActionCard[];
   featuredPost?: HomeFeaturedPost;
+  sectionTitles?: Partial<Record<"proof" | "constraints" | "featured" | "action", string>>;
 };
 
 export const PROOF_PRIMARY: ProofSegment[][] = homeData.proof.map(parseProof);
@@ -107,6 +108,21 @@ export const PLATFORM_NOTE = extra.platformNote ?? { title: "", body: "" };
 export const FEATURED: HomeFeatured[] = extra.featured ?? [];
 export const ACTION: HomeActionCard[] = extra.action ?? [];
 export const FEATURED_POST: HomeFeaturedPost | null = extra.featuredPost ?? null;
+
+// Section headings live in content so the page's narrative can be rewritten
+// without touching the component. Must stay in sync with the same defaults in
+// scripts/vite-prerender.mjs, which mirrors these headings into the static shell.
+const SECTION_TITLE_DEFAULTS = {
+  proof: "A different path from emulation.",
+  constraints: "Preserve the game. Replace the constraints.",
+  featured: "Featured projects",
+  action: "See it in action",
+} as const;
+
+export const SECTION_TITLES = {
+  ...SECTION_TITLE_DEFAULTS,
+  ...(extra.sectionTitles ?? {}),
+};
 
 // Pure parser for a draft home.json (proof/recognition/philosophy), used by the
 // live CMS preview to render edits without touching the static import.

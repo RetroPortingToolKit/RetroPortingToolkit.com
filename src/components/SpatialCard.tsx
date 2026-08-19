@@ -46,7 +46,10 @@ export function SpatialCard({
   // Primary path: decode the preview MP4 into a <canvas> via WebCodecs -- no
   // <video> element, so Safari's autoplay policy never applies and it animates
   // on load. Where WebCodecs is unavailable, the <video> fallback below runs.
-  const useCanvas = media.video && WEBCODECS_OK && !still;
+  // Project cards use the <video> element (reliable everywhere, and only
+  // near-viewport cards mount one); the WebCodecs canvas path stays for blog
+  // demo previews, which is what it was written for.
+  const useCanvas = media.video && media.kind === "blog" && WEBCODECS_OK && !still;
   const [near, setNear] = useState(false);
 
   // Only decode while the card is on (or near) screen -- WebCodecs decoders are
@@ -310,7 +313,9 @@ export function SpatialCard({
             );
             return cover;
           })()}
-          {media.video && <PlayBadge />}
+          {/* Animated project cards are ambient motion, not click-to-play;
+              a badge would promise a player that is not there. */}
+          {media.video && media.kind === "blog" && <PlayBadge />}
             <span className="tvcard-sheen" aria-hidden="true" />
           </span>
           <span className="tvcard-body">

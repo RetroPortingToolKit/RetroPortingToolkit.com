@@ -1,7 +1,7 @@
 {
   "proof": [
     "Emulators recreate a console so they can run its library. Retro Porting Toolkit takes a different route: it recompiles one game at a time, preserving the original game logic while replacing the hardware constraints around it. That trades broad compatibility for deeper control over rendering, input, networking, and behavior, and it builds directly on decades of knowledge from the emulation community.",
-    "Getting a game to boot correctly is the floor, not the finish line. On its own, a correct recomp mostly buys faster loading. The point is what comes next: performance headroom and extensibility the original hardware could never offer."
+    "Correctness is measured, not asserted. Builds are checked against the reference cores the community already trusts, melonDS on the Nintendo DS and the Beetle VB core on the Virtual Boy, and against the attract demo sitting in the game's own ROM: prerecorded input that plays the same way every time, so the comparison does not wait on someone playing. Measuring is also what makes an honest answer possible when the answer is unflattering. PlayStation has seven core-team games you can play. The Virtual Boy has exactly one, and vbrecomp still calls itself a tech demo. Every project page says how far it goes."
   ],
   "philosophy": [
     "Go native. Windows, Linux, macOS, Android, even the browser. No emulator core in sight.",
@@ -11,100 +11,106 @@
     "Change the words. Runtime text replacement powers Tsumu Light's English fan translation and NES text overrides.",
     "Play together. Shared netplay, rollback, save states, and rewind (recomp-net and retcomm-rbengine) that every ecosystem can pick up."
   ],
-  "constraintsIntro": "The team's rule of thumb: the games are the byproduct, the ecosystem is the product. And every enhancement follows one hard rule: the original game file is never modified. Features layer over a verified, untouched copy at runtime, and turning them off returns the authentic game, byte for byte.",
+  "constraintsIntro": "Across the mod systems one rule holds: features layer over your own copy of the game while it runs, rather than patching it. Most projects verify your dump's fingerprint before anything starts, and the additions are opt-in switches rather than a second version of the game. Turn widescreen off and the original 4:3 output comes back byte for byte. That is what makes everything below safe to try.",
   "stories": [
     {
-      "title": "The screen was the limit. Not anymore.",
-      "body": "Many GBA games keep whole maps in memory; the screen was the only thing hiding them. Adaptive widescreen widens the real view up to 21:9: The Minish Cap shows more of the world, and Mega Man Zero finally gives you room to react.",
-      "image": "/covers/minish-widescreen.webp",
-      "alt": "The Minish Cap running in adaptive 21:9 widescreen",
-      "href": "/games/minish-cap"
+      "title": "The map was already loaded. The screen was hiding it.",
+      "body": "Game Boy Advance games often load much of their map and overworld into memory at once, and the size of the screen was the only thing keeping it out of sight. Mega Man Zero opens the logical view past the original 240 pixels, 288 recommended and the wider settings still validation targets, so a threat is on screen before it is on top of you. Enemies keep their original spawn rules, so things can still appear near the new edges.",
+      "image": "/covers/mmz-widescreen.png",
+      "alt": "Mega Man Zero running with the view opened past the original Game Boy Advance width",
+      "href": "/games/mega-man-zero"
     },
     {
-      "title": "One mod loader. Four consoles. Zero patched ROMs.",
-      "body": "PlayStation, SNES, GBA, and Genesis now share an opt-in mod loader. Mega Man X6 ships an authorized adaptation of the Mega Man X6 Tweaks patch, and Tomba! re-enables a debug menu the developers left in the game, no disc patching involved.",
-      "image": "/covers/x6-tweaks.png",
-      "alt": "The mod list in Mega Man X6 Recompiled",
-      "href": "/games/mega-man-x6"
+      "title": "Boktai still runs on sunlight. Yours.",
+      "body": "The cartridge carried a real light sensor: the solar gun charged from actual sunlight, and the undead could only be sealed while you had light. A community build keeps the requirement and moves the sensor. Give it a postal code and the weather where you are drives the gauge, empty at night, a bar or three under heavy cloud, full in clear midday, with the full sun point adjustable. Give it no postal code and nothing ever leaves your machine.",
+      "image": "/covers/boktai-sensor.webp",
+      "alt": "Boktai running with its solar gauge driven by local weather",
+      "href": "/games/boktai"
     },
     {
-      "title": "Cartridges become modern sensors.",
-      "body": "WarioWare: Twisted! reads its twist from a controller gyroscope on PC, or from your phone in the Android build. Boktai's solar sensor is on the same path through a community contribution.",
-      "image": "/covers/warioware-gyro.webp",
-      "alt": "WarioWare: Twisted! taking gyro input from a controller and a phone",
-      "href": "/games/warioware-twisted"
+      "title": "The words can change while the game runs.",
+      "body": "Faxanadu is the showcase for the NES framework's text override: dialogue and glyphs are replaced at runtime from a data file, with hot reload, so an edit shows up in the running game about a second later. The same idea carries a whole game on PlayStation, where Tsumu Light, a puzzle game that never left Japan, now reads in English without the disc being touched.",
+      "image": "/covers/faxanadu-native.png",
+      "alt": "Faxanadu running as a native PC application",
+      "href": "/games/faxanadu"
     }
   ],
   "platformNote": {
-    "title": "One improvement can help many games.",
-    "body": "Capabilities live in shared platform runtimes, so work done for one game carries to the next. The mod loader that proved out on Mega Man X6 now serves four consoles, and the same approach is reaching new frontiers: the original Xbox rendered its first recompiled frame, the GameCube boot menu runs in full, and the CD-i BIOS boots into Hotel Mario."
+    "title": "Each console teaches the next.",
+    "body": "The DS recompiler's second processor started as the Game Boy Advance one, because both are ARM. The CD-i's 68000 front end came out of the Genesis work. On the Super Nintendo, the Cx4, Super FX, DSP-1, and SA-1 cartridge chips are modeled once in the shared runtime, each brought up against the game that needed it, so the next game that needs one already has it."
   },
   "featured": [
     {
-      "slug": "super-mario-bros",
-      "capability": "First-person voxel 3D, an opt-in remix of the original engine",
-      "cover": "/covers/smb-voxel.jpg",
-      "alt": "Super Mario Bros. rendered in first-person voxel 3D"
-    },
-    {
       "slug": "minish-cap",
-      "capability": "Adaptive widescreen that genuinely widens the view",
-      "cover": "/covers/minish-cap.jpg",
-      "alt": "The Minish Cap in adaptive widescreen"
+      "capability": "Compiles the paths you actually reach, so a room runs faster the second time and faster again next launch.",
+      "cover": "/previews/minish-cap.webp",
+      "alt": "The Minish Cap running through the Game Boy Advance recompiler"
     },
     {
       "slug": "mega-man-x6",
-      "capability": "203 configurable mod items from an authorized adaptation",
-      "cover": "/covers/mmx6-mods.jpg",
-      "alt": "Mega Man X6 gameplay through PSXRecomp"
+      "capability": "203 mod items you switch on one at a time, adapted from acediez's Tweaks with his permission.",
+      "cover": "/previews/mega-man-x6.webp",
+      "alt": "Mega Man X6 running as a native application"
     },
     {
-      "slug": "tomba",
-      "capability": "Save states and rewind on the game that started PSXRecomp",
-      "cover": "/covers/tomba-gameplay.jpg",
-      "alt": "Tomba! gameplay through PSXRecomp"
+      "slug": "legend-of-zelda",
+      "capability": "Every room stands up as a diorama you can orbit, or a first-person view from Link's own eyes.",
+      "cover": "/covers/zelda-voxel.webp",
+      "alt": "The Legend of Zelda rendered as a raised 3D diorama"
+    },
+    {
+      "slug": "twisted-metal-4",
+      "capability": "Four players on one screen, on Windows, macOS, and Linux.",
+      "cover": "/covers/tm4-boxart.png",
+      "alt": "Twisted Metal 4 recompiled for modern systems"
     }
   ],
   "action": [
     {
-      "videoTitle": "Street Fighter Alpha 3 Recomp Out NOW! It's GOOD",
+      "page": "/games/street-fighter-alpha-3",
+      "videoTitle": "Street Fighter Alpha 3 Recomp is out now",
       "project": "Street Fighter Alpha 3",
       "poster": "/covers/sfa3-setup.jpg",
-      "alt": "Street Fighter Alpha 3 recompilation coverage",
-      "blurb": "About five minutes of game-specific setup reached a running native build. The polish that follows is the usual per-game work.",
-      "page": "/games/street-fighter-alpha-3"
+      "alt": "Street Fighter Alpha 3 running as a native build",
+      "blurb": "Roughly five minutes of game-specific work took this from disc to a running native build, done outside the core team. There is no public download. The video is the record."
     },
     {
-      "videoTitle": "2026 08 10 SMW Test",
+      "page": "/games/super-mario-world",
+      "videoTitle": "Character replacement running in Super Mario World",
       "project": "Super Mario World",
-      "poster": "/covers/smw-character.jpg",
-      "alt": "Super Mario World with a behavior-level replacement character",
-      "blurb": "Behavior-level character replacement: movement, abilities, animation, and sound change, not just the sprite.",
-      "page": "/games/super-mario-world"
+      "poster": "/previews/super-mario-world.webp",
+      "alt": "Super Mario World running with a replacement character",
+      "blurb": "Not a sprite swap: movement, abilities, animation, and sound all change. A disassembly names 1,937 of the game's 2,074 functions, which is why a hook can land on the routine that moves Mario."
     },
     {
-      "videoTitle": "2026 08 09 Metroid Prime Hunters NDS recompiled, 21:9 M&KB first look",
+      "page": "/games/metroid-prime-hunters",
+      "videoTitle": "Metroid Prime Hunters Recomp is out now",
       "project": "Metroid Prime Hunters",
-      "poster": "/covers/mph-2119.jpg",
-      "alt": "Metroid Prime Hunters at 21:9 with mouse and keyboard",
-      "blurb": "21:9 output and mouse and keyboard controls on the DS shooter.",
-      "page": "/games/metroid-prime-hunters"
+      "poster": "/previews/metroid-prime-hunters.webp",
+      "alt": "Metroid Prime Hunters running with mouse aiming",
+      "blurb": "WASD and mouse aiming stand in for the stylus scheme, in a public alpha. The DS framework underneath is still research. The game runs ahead of it."
     },
     {
-      "videoTitle": "PSXRecomp Tomba 1 Save States & Rewind Showcase",
-      "project": "Tomba!",
+      "page": "/games/retcomm-rbengine",
+      "videoTitle": "Save states and rewind, shown off in Tomba!",
+      "project": "retcomm-rbengine",
       "poster": "/covers/tomba-rewind.jpg",
       "alt": "Tomba! with the rewind timeline open",
-      "blurb": "Save states and rewind, driven by the shared rollback machinery.",
-      "page": "/games/tomba"
+      "blurb": "Tomba! is what you watch. The rollback engine is the point: it was lifted out of the PlayStation runtime with the platform-specific types removed, so any host can pick it up."
     }
   ],
   "featuredPost": {
     "slug": "building-enhancing-recomps",
     "eyebrow": "From the build log",
     "title": "Building & Enhancing Recomps: Ecosystem Updates",
-    "blurb": "The full tour of where every ecosystem stands: the shared mod loader, adaptive widescreen across GBA and SNES, gyro and light sensors reborn, a voxel NES experiment, and first light on Xbox, GameCube, and CD-i.",
+    "blurb": "Where every ecosystem stands, including the parts that are barely standing: the GameCube's own system menu running in full, calendar and memory card manager included, the CD-i's player software loading a disc as far as Hotel Mario's title card, and one green dot from the Original Xbox research that traveled a real boot ROM, a retail kernel, and a GPU command stream to get there.",
     "cover": "/covers/build-log-ecosystem.jpg",
     "alt": "Building and Enhancing Recomps article cover"
+  },
+  "sectionTitles": {
+    "proof": "A different path from emulation.",
+    "constraints": "Preserve the game. Replace the constraints.",
+    "featured": "Playable today.",
+    "action": "Watch it run."
   }
 }

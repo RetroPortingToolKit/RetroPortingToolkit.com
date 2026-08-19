@@ -1490,3 +1490,48 @@ html {
   -webkit-line-clamp: 3;
   min-height: 4.2em;
 }
+
+/* Ambient card motion: poster underneath, decoded clip fading in over it.
+   Both fill the card frame, which owns the aspect ratio and the clipping. */
+.card-motion {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.card-motion-poster,
+.card-motion-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.card-motion-layer {
+  opacity: 0;
+  transition:
+    opacity 0.35s var(--ease, ease),
+    transform 0.25s ease;
+}
+.card-motion-layer.is-on {
+  opacity: 1;
+}
+/* The poster is an <img> inside the frame, so the existing frame-img hover
+   rule already scales it; scale the motion layer to match, not the wrapper,
+   or the two transforms compound. */
+.story-card:hover .card-motion-layer,
+.media-card:hover .card-motion-layer,
+.feature-card:hover .card-motion-layer {
+  transform: scale(1.03);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-motion-layer {
+    display: none;
+  }
+}
+
+/* Closing note under the capability stories: a full-width statement, not a
+   narrow orphan paragraph stranded beside dead space. */
+.hn-note {
+  max-width: none;
+}

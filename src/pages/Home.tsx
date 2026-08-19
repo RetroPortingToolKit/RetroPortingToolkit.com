@@ -19,6 +19,8 @@ import {
   useDocumentTitle,
 } from "@/lib/pageTitle";
 import { useOverlayOpen } from "@/lib/overlay";
+import { CardMotion } from "@/components/CardMotion";
+import { previewFor } from "@/generated/previews";
 import {
   PROOF_PRIMARY,
   CONSTRAINTS_INTRO,
@@ -27,6 +29,7 @@ import {
   FEATURED,
   ACTION,
   FEATURED_POST,
+  SECTION_TITLES,
   type HomeActionCard,
   renderSegments,
 } from "@/lib/homeContent";
@@ -82,16 +85,6 @@ function HeadArrow() {
   );
 }
 
-// A play triangle for external video cards.
-function PlayGlyph() {
-  return (
-    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.55)" />
-      <path d="M9.8 7.5v9l7-4.5z" fill="#fff" />
-    </svg>
-  );
-}
-
 // One shared media card for See it in action: static 16:9 poster, play badge,
 // creator attribution, one-line blurb. Never autoplays; the whole card is a
 // link (keyboard-activatable by nature).
@@ -108,10 +101,13 @@ function MediaCard({ card, onActivate }: { card: HomeActionCard; onActivate: () 
       aria-label={`Watch on the project page: ${card.videoTitle}`}
     >
       <span className="media-card-frame">
-        <img src={card.poster} alt={card.alt} width={1280} height={720} loading="lazy" decoding="async" />
-        <span className="media-card-play" aria-hidden="true">
-          <PlayGlyph />
-        </span>
+        {/* Ambient loop of the real thing, not a play button: the card links
+            to the internal video page where the full video is embedded. */}
+        <CardMotion
+          mp4={previewFor(card.page.split("/").pop())?.mp4}
+          poster={previewFor(card.page.split("/").pop())?.poster ?? card.poster}
+          alt={card.alt}
+        />
       </span>
       <span className="media-card-meta">
         <span className="media-card-project">{card.project}</span>
@@ -151,7 +147,11 @@ function FeaturedCard({
       }}
     >
       <span className="media-card-frame">
-        <img src={cover} alt={alt} width={1280} height={720} loading="lazy" decoding="async" />
+        <CardMotion
+          mp4={previewFor(slug)?.mp4}
+          poster={previewFor(slug)?.poster ?? cover}
+          alt={alt}
+        />
       </span>
       <span className="media-card-meta">
         <span className="media-card-project">{item.kicker}</span>
@@ -493,10 +493,10 @@ function TabContent({
             </div>
           </header>
 
-          <section className="hn-section" aria-label="A different path from emulation">
+          <section className="hn-section" aria-label={SECTION_TITLES.proof}>
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                A different path from emulation.
+                {SECTION_TITLES.proof}
               </h2>
               <div className="hn-proof" data-reveal>
                 {sections.proof.map((line, i) => (
@@ -506,10 +506,10 @@ function TabContent({
             </div>
           </section>
 
-          <section className="hn-section" aria-label="Preserve the game, replace the constraints">
+          <section className="hn-section" aria-label={SECTION_TITLES.constraints}>
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                Preserve the game. Replace the constraints.
+                {SECTION_TITLES.constraints}
               </h2>
               <div className="hn-proof" data-reveal>
                 <p>{CONSTRAINTS_INTRO}</p>
@@ -529,7 +529,11 @@ function TabContent({
                     }}
                   >
                     <span className="media-card-frame">
-                      <img src={st.image} alt={st.alt} width={1280} height={720} loading="lazy" decoding="async" />
+                      <CardMotion
+                        mp4={previewFor(st.href.split("/").pop())?.mp4}
+                        poster={previewFor(st.href.split("/").pop())?.poster ?? st.image}
+                        alt={st.alt}
+                      />
                     </span>
                     <span className="media-card-meta">
                       <span className="media-card-title">{st.title}</span>
@@ -578,10 +582,10 @@ function TabContent({
             </section>
           )}
 
-          <section className="hn-section" aria-label="Featured projects">
+          <section className="hn-section" aria-label={SECTION_TITLES.featured}>
             <div className="hn-container">
               <SectionHead
-                title="Featured projects"
+                title={SECTION_TITLES.featured}
                 to="/games"
                 count={GAMES.length}
                 onNav={onNav}
@@ -601,10 +605,10 @@ function TabContent({
             </div>
           </section>
 
-          <section className="hn-section" aria-label="See it in action" id="action">
+          <section className="hn-section" aria-label={SECTION_TITLES.action} id="action">
             <div className="hn-container">
               <h2 className="hn-h2" data-reveal>
-                See it in action
+                {SECTION_TITLES.action}
               </h2>
               <div className="story-grid story-grid--four">
                 {ACTION.map((card) => (

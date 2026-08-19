@@ -1,6 +1,7 @@
 import { HARDWARE, GAMES, BLOGS } from "@/lib/content";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { LQIP } from "@/generated/lqip";
+import { previewFor } from "@/generated/previews";
 import type { Item } from "@/lib/types";
 
 // Media pulled from the real site content so the lab scenes show actual work,
@@ -91,6 +92,27 @@ function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
   };
 }
 
+// Game and platform cards animate whenever a clip exists for the slug: the
+// card shows the real thing moving instead of a still. News cards stay static
+// on purpose, that section reads as a regular blog.
+function projectMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
+  const clip = previewFor(p.slug);
+  if (!clip) return staticMedia(p, i, kind, dir);
+  return {
+    src: clip.mp4,
+    poster: clip.poster,
+    slug: p.slug,
+    title: p.title,
+    kicker: p.kicker,
+    desc: p.desc,
+    tags: p.tags,
+    color: colorFor(p, i),
+    kind,
+    video: true,
+    group: p.group,
+  };
+}
+
 // Blog cards: a post with a live demo gets a MOTION preview (a tiny H.264 clip of the real thing,
 // decoded to canvas like a project card, with a real-screenshot poster at /previews/<slug>.webp).
 // Body-only posts fall back to a static cover.
@@ -121,17 +143,17 @@ const featuredOf = <T extends { featured?: boolean }>(list: T[]): T[] => {
 };
 
 export const labHardware: LabMedia[] = featuredOf(HARDWARE).map((p, i) =>
-  staticMedia(p, i, "hardware", "hardware"),
+  projectMedia(p, i, "hardware", "hardware"),
 );
 export const labGames: LabMedia[] = featuredOf(GAMES).map((p, i) =>
-  staticMedia(p, i, "game", "game"),
+  projectMedia(p, i, "game", "game"),
 );
 export const labBlog: LabMedia[] = featuredOf(BLOGS).map(blogMedia);
 
 // Full per-kind decks for the tab pages, in authored (NN_ prefix) order so the
 // group headings the tab grids build from `group` stay in the authored order.
 export const labAll: Record<LabKind, LabMedia[]> = {
-  hardware: HARDWARE.map((p, i) => staticMedia(p, i, "hardware", "hardware")),
-  game: GAMES.map((p, i) => staticMedia(p, i, "game", "game")),
+  hardware: HARDWARE.map((p, i) => projectMedia(p, i, "hardware", "hardware")),
+  game: GAMES.map((p, i) => projectMedia(p, i, "game", "game")),
   blog: BLOGS.map(blogMedia),
 };

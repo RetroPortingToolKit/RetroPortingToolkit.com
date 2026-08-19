@@ -414,6 +414,13 @@ function readHomeProse() {
     cover: String(e.cover || ""),
     alt: String(e.alt || ""),
   }));
+  out.sectionTitles = {
+    proof: "A different path from emulation.",
+    constraints: "Preserve the game. Replace the constraints.",
+    featured: "Featured projects",
+    action: "See it in action",
+    ...(data.sectionTitles || {}),
+  };
   out.featuredPost = data.featuredPost
     ? {
         slug: String(data.featuredPost.slug || ""),
@@ -444,9 +451,9 @@ function homeStaticHtml(items) {
     `<p>${escapeHtml(about.tagline || "")}</p>`,
     ...(about.bio ? [mdToHtml(about.bio)] : []),
   ];
-  parts.push("<h2>A different path from emulation.</h2>");
+  parts.push(`<h2>${escapeHtml(prose.sectionTitles.proof)}</h2>`);
   parts.push(...prose.proof.map((t) => `<p>${escapeHtml(t)}</p>`));
-  parts.push("<h2>Preserve the game. Replace the constraints.</h2>");
+  parts.push(`<h2>${escapeHtml(prose.sectionTitles.constraints)}</h2>`);
   if (prose.constraintsIntro) parts.push(`<p>${escapeHtml(prose.constraintsIntro)}</p>`);
   if (prose.stories.length) {
     parts.push(
@@ -469,7 +476,7 @@ function homeStaticHtml(items) {
     );
   }
   if (prose.featured.length) {
-    parts.push("<h2>Featured projects</h2><ul>");
+    parts.push(`<h2>${escapeHtml(prose.sectionTitles.featured)}</h2><ul>`);
     for (const fp of prose.featured) {
       const item = items.find((i) => i.kind === "game" && i.slug === fp.slug);
       parts.push(
@@ -479,7 +486,7 @@ function homeStaticHtml(items) {
     parts.push("</ul>");
   }
   if (prose.action.length) {
-    parts.push("<h2>See it in action</h2><ul>");
+    parts.push(`<h2>${escapeHtml(prose.sectionTitles.action)}</h2><ul>`);
     for (const c of prose.action) {
       parts.push(
         `<li><a href="${escapeAttr(c.page)}">${escapeHtml(c.videoTitle)}</a>: ${escapeHtml(c.blurb)}</li>`,
