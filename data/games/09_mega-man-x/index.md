@@ -14,7 +14,7 @@ group: "Super Nintendo"
 links:
   - { label: "Megaman X: Recompiled Release (1379.tech)", href: "https://1379.tech/megaman-x-recompiled-v1-0-0-release/" }
   - { label: "Watch: Mega Man X Recomp is out now", href: "/blog/video-mega-man-x-out-now" }
-cover: "https://i.ytimg.com/vi/XRwKZ0_8u-c/hqdefault.jpg"
+cover: "./mmx-wide.png"
 videoUrl: "https://www.youtube.com/watch?v=XRwKZ0_8u-c"
 verified: "2026-08-18"
 gallery:

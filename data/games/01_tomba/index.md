@@ -15,7 +15,7 @@ links:
   - { label: "psxrecomp Overhauled. Now BIOS + Tomba (1379.tech)", href: "https://1379.tech/psxrecomp-overhauled-now-bios-tomba/" }
   - { label: "Watch: Tomba Recomp is out now", href: "/blog/video-tomba-out-now" }
   - { label: "Watch: save states and rewind in Tomba", href: "/blog/video-tomba-save-states-rewind" }
-cover: "https://i.ytimg.com/vi/sbqPnJhb3uk/hqdefault.jpg"
+cover: "/covers/tomba-gameplay.jpg"
 videoUrl: "https://www.youtube.com/watch?v=sbqPnJhb3uk"
 verified: "2026-08-18"
 gallery:

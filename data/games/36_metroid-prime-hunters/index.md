@@ -15,7 +15,7 @@ links:
   - { label: "Metroid Prime Hunters recomp brings the Nintendo DS classic to PC (GenerationAmiga)", href: "https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/" }
   - { label: "Watch: Metroid Prime Hunters Recomp is out now", href: "/blog/video-metroid-prime-hunters-out-now" }
   - { label: "Watch: Metroid Prime Hunters in 21:9", href: "/blog/video-mph-219-first-look" }
-cover: "https://i.ytimg.com/vi/FFUglxqa_eI/hqdefault.jpg"
+cover: "/covers/mph-2119.jpg"
 videoUrl: "https://www.youtube.com/watch?v=FFUglxqa_eI"
 verified: "2026-08-18"
 gallery:

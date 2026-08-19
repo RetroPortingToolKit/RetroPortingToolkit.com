@@ -13,7 +13,7 @@ repo: "https://github.com/mstan/MegaManX4Recomp"
 group: "PlayStation"
 links:
   - { label: "Watch: Mega Man X4 Recomp is out now", href: "/blog/video-mega-man-x4-out-now" }
-cover: "https://i.ytimg.com/vi/Rbh5wKb112A/hqdefault.jpg"
+cover: "./mega-man-x4.png"
 videoUrl: "https://www.youtube.com/watch?v=Rbh5wKb112A"
 verified: "2026-08-18"
 gallery:

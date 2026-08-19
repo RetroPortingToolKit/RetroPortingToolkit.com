@@ -13,7 +13,7 @@ repo: "https://github.com/mstan/MegaManX6Recomp"
 group: "PlayStation"
 links:
   - { label: "Watch: Mega Man X6 Recomp is out now", href: "/blog/video-mega-man-x6-out-now" }
-cover: "https://i.ytimg.com/vi/IXMHXC2BLSc/hqdefault.jpg"
+cover: "./mmx6-widescreen-gameplay.png"
 videoUrl: "https://www.youtube.com/watch?v=IXMHXC2BLSc"
 verified: "2026-08-18"
 gallery:

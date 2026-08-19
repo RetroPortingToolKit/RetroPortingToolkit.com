@@ -790,7 +790,15 @@ a.tvcard--video {
 .tvcard--blog .tvcard-media {
   aspect-ratio: 4 / 3;
   border-radius: 18px 18px 0 0;
-  
+
+  transform: translateZ(0);
+}
+/* Game and platform cards: without an aspect ratio the absolutely positioned
+   cover collapses to zero height and the cards render text-only. */
+.tvcard--game .tvcard-media,
+.tvcard--hardware .tvcard-media {
+  aspect-ratio: 16 / 9;
+  border-radius: 18px 18px 0 0;
   transform: translateZ(0);
 }
 .tvcard-cover {
