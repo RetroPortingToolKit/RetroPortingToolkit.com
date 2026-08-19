@@ -58,7 +58,10 @@ export function HeroReel({ still = false }: { still?: boolean }) {
   const reduced =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const live = !still && !reduced;
+  // The montage is the hero: it mounts whenever this pane is interactive.
+  // Reduced-motion only quiets the collage rotation (the loading fallback),
+  // it does not suppress the video itself.
+  const live = !still;
   const [playing, setPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -81,8 +84,9 @@ export function HeroReel({ still = false }: { still?: boolean }) {
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    // The collage keeps rotating only until the montage takes over.
-    if (!live || playing) return;
+    // The collage keeps rotating only until the montage takes over, and holds
+    // still for reduced-motion users.
+    if (!live || playing || reduced) return;
     const t = window.setInterval(() => {
       if (document.hidden) return;
       setTick((v) => v + 1);
