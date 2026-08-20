@@ -497,9 +497,9 @@ function TabContent({
                   count={labAll.blog.length}
                   onNav={onNav}
                 />
-                {/* The same card as everywhere else, so the build log does not
-                    read as a different species of thing. */}
-                <div className="home-strip">
+                {/* The same card as everywhere else, at feature width: one
+                    wide card rather than a lone narrow one in an empty row. */}
+                <div className="buildlog-card" data-reveal>
                   <SpatialCard
                     media={{
                       src: featuredPost.cover,
