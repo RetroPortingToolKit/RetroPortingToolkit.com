@@ -327,18 +327,22 @@ export function SpatialCard({
                 {media.kicker}
               </span>
             )}
-            {/* Platform cards answer the two questions up front: how many
-                games run, and how far along the ecosystem is. */}
+            <span className="tvcard-title">{media.title}</span>
+            {/* Platform cards answer the two questions the title cannot: how
+                many games run, and how far along the ecosystem is. */}
             {media.chips && media.chips.length > 0 && (
               <span className="tvcard-chips">
                 {media.chips.map((c) => (
-                  <span key={c} className="tvcard-metachip">
-                    {c}
+                  <span
+                    key={c.label}
+                    className="tvcard-metachip"
+                    style={{ background: c.color }}
+                  >
+                    {c.label}
                   </span>
                 ))}
               </span>
             )}
-            <span className="tvcard-title">{media.title}</span>
             <span className="tvcard-desc">{media.desc}</span>
           </span>
         </span>

@@ -6,7 +6,9 @@
 }
 
 .blog-tab-sub {
-  max-width: 640px;
+  /* full body width: these run long, and a 640px column left them wrapping
+     early against an empty right half */
+  max-width: none;
   margin: -6px 0 28px;
   font-size: 16px;
   line-height: 1.5;

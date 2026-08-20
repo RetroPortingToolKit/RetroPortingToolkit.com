@@ -159,7 +159,7 @@ const GRID_TITLES: Record<LabKind, string> = {
 
 const GRID_SUBS: Record<LabKind, string> = {
   hardware:
-    "One toolset per console: a static recompiler that translates its games ahead of time, plus a runtime that provides the services those games expect. Grouped by how far along each ecosystem is.",
+    "One toolset per console: a static recompiler that translates its games ahead of time, plus a runtime that provides the services those games expect. Sorted by how many games run on each.",
   game:
     "Game projects, community ports, and the shared libraries behind them, from the core team and the community. You provide your own legally dumped game files; nothing here includes game data.",
   blog: "Project updates from the team, plus press and videos from the wider community.",
@@ -180,6 +180,9 @@ function TabGrid({
   // News blends everything chronologically with a light filter instead of
   // grouped sections; Videos are the entries whose kicker is "Video".
   const [newsFilter, setNewsFilter] = useState<"all" | "news" | "videos">("all");
+  // Games: one chip per platform, so a long catalogue can be narrowed to the
+  // console you actually own.
+  const [gameFilter, setGameFilter] = useState<string>("All");
   const all =
     kind === "blog"
       ? labAll.blog.filter((m) =>
@@ -199,14 +202,43 @@ function TabGrid({
     if (g) g.items.push(m);
     else groups.push({ label: m.group, items: [m] });
   }
+  const gameFilters =
+    kind === "game" ? ["All", ...groups.map((g) => g.label)] : [];
+  const shownGroups =
+    kind === "game" && gameFilter !== "All"
+      ? groups.filter((g) => g.label === gameFilter)
+      : groups;
+  const shownCount =
+    kind === "game" && gameFilter !== "All"
+      ? shownGroups.reduce((n, g) => n + g.items.length, 0)
+      : all.length;
+
   return (
     <section className="hn-section hn-subpage-section" aria-label={GRID_TITLES[kind]}>
       <div className="hn-container">
         <header className="hn-tab-head">
           <h1 className="hn-tab-title">{GRID_TITLES[kind]}</h1>
-          <span className="hn-tab-count">{all.length}</span>
+          <span className="hn-tab-count">{shownCount}</span>
         </header>
         <p className="blog-tab-sub">{GRID_SUBS[kind]}</p>
+        {kind === "game" && gameFilters.length > 1 && (
+          <div className="news-filter" role="tablist" aria-label="Filter by platform">
+            {gameFilters.map((label) => (
+              <button
+                key={label}
+                type="button"
+                role="tab"
+                aria-selected={gameFilter === label}
+                className={
+                  "news-filter-chip" + (gameFilter === label ? " active" : "")
+                }
+                onClick={() => setGameFilter(label)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         {kind === "blog" && (
           <div className="news-filter" role="tablist" aria-label="Filter news">
             {([
@@ -234,7 +266,7 @@ function TabGrid({
             ))}
           </div>
         )}
-        {kind === "game" && groups.map((g) => (
+        {kind === "game" && shownGroups.map((g) => (
           <Fragment key={g.label}>
             <h2 className="hn-h2 hn-side-title">{g.label}</h2>
             {GROUP_NOTES[g.label] && (

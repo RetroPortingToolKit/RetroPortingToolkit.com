@@ -33,8 +33,8 @@ export interface LabMedia {
   video: boolean;
   // project shelf ("side" = fun side projects, shown separately on the tab)
   group?: string;
-  /** small labels rendered on the card, e.g. "12 games", "Beta" */
-  chips?: string[];
+  /** small coloured labels on the card, e.g. "12 games", "Beta" */
+  chips?: { label: string; color: string }[];
   /** sort key for the platform grid */
   weight?: number;
 }
@@ -116,6 +116,7 @@ function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
     kind,
     video: false,
     group: p.group,
+    chips: kind === "game" ? [{ label: p.kicker, color }] : undefined,
   };
 }
 
@@ -137,6 +138,7 @@ function projectMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia 
     kind,
     video: true,
     group: p.group,
+    chips: kind === "game" ? [{ label: p.kicker, color: colorFor(p, i) }] : undefined,
   };
 }
 
@@ -171,9 +173,19 @@ for (const g of GAMES) {
 function hardwareMedia(p: Item, i: number): LabMedia {
   const media = projectMedia(p, i, "hardware", "hardware");
   const n = GAME_COUNT[p.slug] ?? 0;
-  const chips: string[] = [];
-  if (n > 0) chips.push(`${n} ${n === 1 ? "game" : "games"}`);
-  if (p.maturity) chips.push(p.maturity);
+  // Catalogue size takes the platform's own colour; maturity gets a fixed
+  // pair so Beta and Alpha read the same way on every card.
+  const MATURITY: Record<string, string> = {
+    Beta: "#15803d",
+    Alpha: "#b45309",
+  };
+  const chips: { label: string; color: string }[] = [];
+  if (n > 0) {
+    chips.push({ label: `${n} ${n === 1 ? "game" : "games"}`, color: colorFor(p, i) });
+  }
+  if (p.maturity) {
+    chips.push({ label: p.maturity, color: MATURITY[p.maturity] ?? colorFor(p, i) });
+  }
   return { ...media, chips, weight: n };
 }
 

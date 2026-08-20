@@ -52,35 +52,10 @@
       "alt": "Mega Man X6 running as a native application"
     },
     {
-      "slug": "legend-of-zelda",
-      "capability": "Every room stands up as a diorama you can orbit, or a view from Link's own eyes.",
-      "cover": "/covers/zelda-voxel.webp",
-      "alt": "The Legend of Zelda rendered as a raised 3D diorama",
-      "still": true
-    },
-    {
-      "slug": "twisted-metal-4",
-      "capability": "Four players on one screen, on Windows, macOS, and Linux.",
-      "cover": "/covers/tm4-boxart.png",
-      "alt": "Twisted Metal 4 recompiled for modern systems"
-    },
-    {
       "slug": "super-mario-bros",
       "capability": "Finish it as Mario, or hand his job to Pikachu, Samus, Link, Captain Falcon, or Sonic.",
       "cover": "/previews/super-mario-bros.webp",
       "alt": "Super Mario Bros. running with Pikachu in Mario's place"
-    },
-    {
-      "slug": "mario-kart-super-circuit",
-      "capability": "60 FPS rendering the original developers left switched off, plus adaptive widescreen.",
-      "cover": "/previews/mario-kart-super-circuit.webp",
-      "alt": "Mario Kart Super Circuit racing in adaptive widescreen"
-    },
-    {
-      "slug": "sonic-the-hedgehog-2",
-      "capability": "The first native two player split-screen versus in the Genesis framework.",
-      "cover": "/previews/sonic-the-hedgehog-2.webp",
-      "alt": "Sonic the Hedgehog 2 running in Emerald Hill Zone"
     }
   ],
   "action": [
@@ -91,14 +66,6 @@
       "poster": "/previews/street-fighter-alpha-3.webp",
       "alt": "Street Fighter Alpha 3 running as a native build",
       "blurb": "About five minutes of game-specific work took a disc to a running native build, outside the core team. The video is the record."
-    },
-    {
-      "page": "/games/super-mario-world",
-      "videoTitle": "Character replacement running in Super Mario World",
-      "project": "Super Mario World",
-      "poster": "/previews/super-mario-world.webp",
-      "alt": "Super Mario World running with a replacement character",
-      "blurb": "Not a sprite swap: movement, abilities, animation, and sound all change."
     },
     {
       "page": "/games/metroid-prime-hunters",
@@ -115,30 +82,6 @@
       "poster": "/covers/tomba-rewind.jpg",
       "alt": "Tomba! with the rewind timeline open",
       "blurb": "Tomba! is what you watch. The rollback engine is the point, and any host can pick it up."
-    },
-    {
-      "page": "/games/tomba",
-      "videoTitle": "Tomba! Recomp is out now",
-      "project": "Tomba!",
-      "poster": "/previews/tomba.webp",
-      "alt": "Tomba! running as a native application",
-      "blurb": "The game PSXRecomp started with, revisited after months of releases made it the most lived-in project in the lineup."
-    },
-    {
-      "page": "/games/mega-man-x4",
-      "videoTitle": "Mega Man X4 Recomp is out now",
-      "project": "Mega Man X4",
-      "poster": "/previews/mega-man-x4.webp",
-      "alt": "Mega Man X4 running as a native application",
-      "blurb": "A genuinely wider 2D field of view rather than a stretched image, with the meters anchored to the new edges."
-    },
-    {
-      "page": "/games/mega-man-x",
-      "videoTitle": "Mega Man X Recomp is out now",
-      "project": "Mega Man X",
-      "poster": "/previews/mega-man-x.webp",
-      "alt": "Mega Man X running as a native application",
-      "blurb": "The first game recompiled without an explicit disassembly to work from, which is why it mattered to the toolchain."
     }
   ],
   "featuredPost": {
