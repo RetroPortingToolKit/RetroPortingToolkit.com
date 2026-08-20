@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Children, isValidElement, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { PreviewLink } from "./PreviewLink";
@@ -51,6 +51,16 @@ export function Markdown({ children, className }: MarkdownProps) {
         // the custom "cite:" protocol survive sanitization.
         urlTransform={(url) => url}
         components={{
+          // The "**Lead-in.** body" flourish must only fire when the bold text
+          // actually STARTS the paragraph. CSS :first-child counts element
+          // children and ignores preceding text, so styling it in CSS alone
+          // put an accent dot in the middle of any sentence that happened to
+          // end in bold.
+          p: ({ children }) => {
+            const first = Children.toArray(children)[0];
+            const leadIn = isValidElement(first) && first.type === "strong";
+            return <p className={leadIn ? "md-leadin" : undefined}>{children}</p>;
+          },
           // PreviewLink wraps SmartLink: it adds a hover card describing the
           // destination when the href resolves to real site content, and falls
           // through to a plain SmartLink when it does not.

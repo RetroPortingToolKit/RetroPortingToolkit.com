@@ -507,11 +507,11 @@
 
 /* "**Lead-in.** body" pattern: a small accent dot before direct-paragraph
    lead-ins only (list rows already carry bullets). */
-.modal-body--article .modal-content > p > strong:first-child {
+.modal-body--article .modal-content > p.md-leadin > strong:first-child {
   color: var(--ink);
   font-weight: 650;
 }
-.modal-body--article .modal-content > p > strong:first-child::before {
+.modal-body--article .modal-content > p.md-leadin > strong:first-child::before {
   content: "";
   display: inline-block;
   width: 6px;
@@ -655,7 +655,7 @@
 /* A "**Lead-in.** rest" line (heavily used in the posts) gets the darker ink so
    the lead reads a touch stronger than the body. */
 .modal-content li > strong:first-child,
-.modal-content p > strong:first-child {
+.modal-content p.md-leadin > strong:first-child {
   color: var(--ink);
 }
 /* Blockquotes: accent spine, not muted (all detail views). */
