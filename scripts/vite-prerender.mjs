@@ -544,7 +544,7 @@ function validateHomeMedia(items) {
     need(fp.alt, `featured "${fp.slug}": missing alt`);
     need(fp.capability, `featured "${fp.slug}": missing capability line`);
   }
-  need(prose.action.length > 0 && prose.action.length <= 4, `action: expected 1-4 cards, found ${prose.action.length}`);
+  need(prose.action.length > 0 && prose.action.length <= 8, `action: expected 1-8 cards, found ${prose.action.length}`);
   for (const c of prose.action) {
     checkAsset(c.poster, `action "${c.videoTitle}"`);
     gamePageExists(c.page, `action "${c.videoTitle}"`);

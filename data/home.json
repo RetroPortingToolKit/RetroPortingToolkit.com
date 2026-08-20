@@ -97,6 +97,30 @@
       "poster": "/covers/tomba-rewind.jpg",
       "alt": "Tomba! with the rewind timeline open",
       "blurb": "Tomba! is what you watch. The rollback engine is the point, and any host can pick it up."
+    },
+    {
+      "page": "/games/tomba",
+      "videoTitle": "Tomba! Recomp is out now",
+      "project": "Tomba!",
+      "poster": "/previews/tomba.webp",
+      "alt": "Tomba! running as a native application",
+      "blurb": "The game PSXRecomp started with, revisited after months of releases made it the most lived-in project in the lineup."
+    },
+    {
+      "page": "/games/mega-man-x4",
+      "videoTitle": "Mega Man X4 Recomp is out now",
+      "project": "Mega Man X4",
+      "poster": "/previews/mega-man-x4.webp",
+      "alt": "Mega Man X4 running as a native application",
+      "blurb": "A genuinely wider 2D field of view rather than a stretched image, with the meters anchored to the new edges."
+    },
+    {
+      "page": "/games/mega-man-x",
+      "videoTitle": "Mega Man X Recomp is out now",
+      "project": "Mega Man X",
+      "poster": "/previews/mega-man-x.webp",
+      "alt": "Mega Man X running as a native application",
+      "blurb": "The first game recompiled without an explicit disassembly to work from, which is why it mattered to the toolchain."
     }
   ],
   "featuredPost": {
