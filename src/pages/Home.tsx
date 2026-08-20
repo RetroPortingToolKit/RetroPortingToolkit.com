@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, type TabId } from "@/components/Tabs";
@@ -32,12 +32,6 @@ import {
   SECTION_TITLES,
   renderSegments,
 } from "@/lib/homeContent";
-
-// Muted one-liner under a group heading, for groups that need context.
-const GROUP_NOTES: Record<string, string> = {
-  "Early platform work":
-    "Everything here is genuinely early: first boots, BIOS bring-up, and research probes. Each page says exactly how far it goes.",
-};
 
 const TAB_PATH: Record<TabId, string> = {
   home: "/",
@@ -179,22 +173,11 @@ function TabGrid({
 }) {
   // News blends everything chronologically with a light filter instead of
   // grouped sections; Videos are the entries whose kicker is "Video".
-  const [newsFilter, setNewsFilter] = useState<"all" | "news" | "videos">("all");
-  // Games: one chip per platform, so a long catalogue can be narrowed to the
-  // console you actually own.
+  // Games: narrow a long catalogue to one console, and choose an order.
   const [gameFilter, setGameFilter] = useState<string>("All");
-  const all =
-    kind === "blog"
-      ? labAll.blog.filter((m) =>
-          newsFilter === "all"
-            ? true
-            : newsFilter === "videos"
-              ? m.kicker === "Video"
-              : m.kicker !== "Video",
-        )
-      : labAll[kind];
-  // Platforms and news are single blended lists; only games keep sections.
-  const lead = kind === "game" ? all.filter((m) => !m.group) : all;
+  const [gameSort, setGameSort] = useState<"catalog" | "name">("catalog");
+  const all = labAll[kind];
+  // Every tab is one blended list now; groups only feed the games filter.
   const groups: { label: string; items: LabMedia[] }[] = [];
   for (const m of all) {
     if (!m.group) continue;
@@ -204,14 +187,15 @@ function TabGrid({
   }
   const gameFilters =
     kind === "game" ? ["All", ...groups.map((g) => g.label)] : [];
-  const shownGroups =
+  const filtered =
     kind === "game" && gameFilter !== "All"
-      ? groups.filter((g) => g.label === gameFilter)
-      : groups;
-  const shownCount =
-    kind === "game" && gameFilter !== "All"
-      ? shownGroups.reduce((n, g) => n + g.items.length, 0)
-      : all.length;
+      ? all.filter((m) => m.group === gameFilter)
+      : all;
+  const lead =
+    kind === "game" && gameSort === "name"
+      ? [...filtered].sort((a, b) => a.title.localeCompare(b.title))
+      : filtered;
+  const shownCount = lead.length;
 
   return (
     <section className="hn-section hn-subpage-section" aria-label={GRID_TITLES[kind]}>
@@ -222,41 +206,30 @@ function TabGrid({
         </header>
         <p className="blog-tab-sub">{GRID_SUBS[kind]}</p>
         {kind === "game" && gameFilters.length > 1 && (
-          <div className="news-filter" role="tablist" aria-label="Filter by platform">
-            {gameFilters.map((label) => (
-              <button
-                key={label}
-                type="button"
-                role="tab"
-                aria-selected={gameFilter === label}
-                className={
-                  "news-filter-chip" + (gameFilter === label ? " active" : "")
-                }
-                onClick={() => setGameFilter(label)}
+          <div className="tab-controls">
+            <label className="tab-control">
+              <span className="tab-control-label">Platform</span>
+              <select
+                value={gameFilter}
+                onChange={(e) => setGameFilter(e.target.value)}
               >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-        {kind === "blog" && (
-          <div className="news-filter" role="tablist" aria-label="Filter news">
-            {([
-              ["all", "All"],
-              ["news", "News"],
-              ["videos", "Videos"],
-            ] as const).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={newsFilter === id}
-                className={"news-filter-chip" + (newsFilter === id ? " active" : "")}
-                onClick={() => setNewsFilter(id)}
+                {gameFilters.map((label) => (
+                  <option key={label} value={label}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="tab-control">
+              <span className="tab-control-label">Sort by</span>
+              <select
+                value={gameSort}
+                onChange={(e) => setGameSort(e.target.value as "catalog" | "name")}
               >
-                {label}
-              </button>
-            ))}
+                <option value="catalog">Catalog order</option>
+                <option value="name">Name (A to Z)</option>
+              </select>
+            </label>
           </div>
         )}
         {lead.length > 0 && (
@@ -266,19 +239,6 @@ function TabGrid({
             ))}
           </div>
         )}
-        {kind === "game" && shownGroups.map((g) => (
-          <Fragment key={g.label}>
-            <h2 className="hn-h2 hn-side-title">{g.label}</h2>
-            {GROUP_NOTES[g.label] && (
-              <p className="blog-tab-sub group-note">{GROUP_NOTES[g.label]}</p>
-            )}
-            <div className="tv-grid">
-              {g.items.map((m) => (
-                <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
-              ))}
-            </div>
-          </Fragment>
-        ))}
       </div>
     </section>
   );

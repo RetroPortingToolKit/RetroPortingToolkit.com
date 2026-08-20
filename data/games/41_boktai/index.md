@@ -10,7 +10,7 @@ availability: "Public build"
 provenance: "community"
 platform: "game-boy-advance"
 repo: "https://github.com/Shy/BoktaiRecomp"
-group: "Community"
+group: "Game Boy Advance"
 verified: "2026-08-18"
 cover: "/data/blog/10_building-enhancing-recomps/boktai.webp"
 ---

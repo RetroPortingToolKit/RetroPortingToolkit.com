@@ -10,7 +10,7 @@ availability: "Public build"
 provenance: "community"
 platform: "playstation"
 repo: "https://github.com/OpokXeno/xenogears-recomp"
-group: "Community"
+group: "PlayStation"
 verified: "2026-08-18"
 ---
 

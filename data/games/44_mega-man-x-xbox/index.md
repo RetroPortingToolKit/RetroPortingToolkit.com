@@ -8,7 +8,7 @@ year: "2026"
 availability: "Source only"
 provenance: "community"
 repo: "https://github.com/Team-Resurgent/MegaManX-X"
-group: "Community"
+group: "Original Xbox"
 verified: "2026-08-18"
 cover: "./gameplay.png"
 ---

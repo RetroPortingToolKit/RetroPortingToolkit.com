@@ -9,7 +9,7 @@ status: "Released"
 availability: "No public release"
 provenance: "community"
 platform: "playstation"
-group: "Community"
+group: "PlayStation"
 cover: "https://i.ytimg.com/vi/aITjH0LoEeA/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=aITjH0LoEeA"
 links:

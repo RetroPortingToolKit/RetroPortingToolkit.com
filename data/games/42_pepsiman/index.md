@@ -9,7 +9,7 @@ status: "Released"
 availability: "No public release"
 provenance: "community"
 platform: "playstation"
-group: "Community"
+group: "PlayStation"
 links:
   - { label: "Pepsiman Recompiled lets you play this cult classic in your browser (Retro Handhelds)", href: "https://retrohandhelds.gg/pepsiman-recompiled-lets-you-play-this-cult-classic-in-your-browser/" }
   - { label: "Pepsiman in your browser at 60 FPS (Notebookcheck)", href: "https://www.notebookcheck.net/A-recompiled-version-of-Pepsiman-lets-you-play-the-PS1-cult-classic-natively-in-your-browser-at-60-FPS.1354060.0.html" }

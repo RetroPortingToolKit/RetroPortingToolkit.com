@@ -9,7 +9,7 @@ status: "Released"
 availability: "Public build"
 provenance: "community"
 platform: "playstation"
-group: "Community"
+group: "PlayStation"
 links:
   - { label: "Visit openpete.com", href: "https://openpete.com" }
   - { label: "PS1 Classic Spyro Comes To PC With PSXRecomp (Time Extension)", href: "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp" }

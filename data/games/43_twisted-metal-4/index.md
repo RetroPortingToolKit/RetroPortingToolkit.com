@@ -10,7 +10,7 @@ availability: "Public build"
 provenance: "community"
 platform: "playstation"
 repo: "https://github.com/TechnicallyComputers/TwistedMetal4Recomp"
-group: "Community"
+group: "PlayStation"
 links:
   - { label: "PS1 Twisted Metal 4 comes to PC/Mac/Linux (retro-gamer.jp)", href: "https://retro-gamer.jp/?p=45562" }
 verified: "2026-08-18"
