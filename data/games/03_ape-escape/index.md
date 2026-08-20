@@ -12,6 +12,8 @@ platform: "playstation"
 repo: "https://github.com/mstan/ApeEscapeRecomp"
 group: "PlayStation"
 verified: "2026-08-18"
+updated: "2026-08-11"
+added: "2026-06-07"
 cover: "./ape-escape.png"
 ---
 

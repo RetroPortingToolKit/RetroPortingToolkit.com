@@ -37,6 +37,9 @@ export interface LabMedia {
   chips?: { label: string; color: string }[];
   /** sort key for the platform grid */
   weight?: number;
+  /** project repository dates, for the games sort control */
+  added?: string;
+  updated?: string;
 }
 
 // Same colored-kicker logic as the site cards, with a palette fallback so every
@@ -117,6 +120,8 @@ function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
     video: false,
     group: p.group,
     chips: kind === "game" ? [{ label: p.kicker, color }] : undefined,
+    added: p.added,
+    updated: p.updated,
   };
 }
 
@@ -139,6 +144,8 @@ function projectMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia 
     video: true,
     group: p.group,
     chips: kind === "game" ? [{ label: p.kicker, color: colorFor(p, i) }] : undefined,
+    added: p.added,
+    updated: p.updated,
   };
 }
 

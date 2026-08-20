@@ -18,6 +18,8 @@ links:
 cover: "https://i.ytimg.com/vi/Owuku0zj4As/hq2.jpg"
 videoUrl: "https://www.youtube.com/watch?v=Owuku0zj4As"
 verified: "2026-08-18"
+updated: "2026-08-15"
+added: "2026-04-01"
 ---
 
 Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever recompiled, and it is still the flagship of the core project. The whole game runs as a native program on your PC. A separate co-op build goes further and puts Mario and Luigi in the same level at the same time, on one machine or over the internet.

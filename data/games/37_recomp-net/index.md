@@ -10,6 +10,8 @@ provenance: "community"
 repo: "https://github.com/TechnicallyComputers/recomp-net"
 group: "Shared libraries"
 verified: "2026-08-18"
+updated: "2026-08-19"
+added: "2026-07-18"
 ---
 
 Multiplayer is infrastructure, and recomp-net is where this ecosystem keeps it: a portable netcode library that recompiled games link against instead of each writing their own. It is written in C11, builds with CMake, and is MIT licensed, maintained by TechnicallyComputers.

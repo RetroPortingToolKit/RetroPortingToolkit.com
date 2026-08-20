@@ -15,6 +15,8 @@ links:
   - { label: "Expanding the *recomp ecosystem with GBARecomp (1379.tech)", href: "https://1379.tech/expanding-the-recomp-ecosystem-with-gbarecomp/" }
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"
+updated: "2026-08-10"
+added: "2026-05-25"
 cover: "/covers/minish-cap.jpg"
 ---
 

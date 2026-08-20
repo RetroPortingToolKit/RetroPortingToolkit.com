@@ -12,6 +12,8 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/DragonBallZBuusFuryRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
+updated: "2026-08-09"
+added: "2026-08-02"
 cover: "./buus-fury-adaptive.webp"
 ---
 

@@ -16,6 +16,8 @@ links:
 cover: "./mmx6-widescreen-gameplay.png"
 videoUrl: "https://www.youtube.com/watch?v=IXMHXC2BLSc"
 verified: "2026-08-18"
+updated: "2026-08-15"
+added: "2026-06-04"
 ---
 
 Mega Man X6 is one of the most complete titles in the [PSXRecomp](/hardware/playstation) ecosystem. What sets it apart is the mod layer: an adaptation of the well-known Mega Man X6 Tweaks project by acediez, carried over with the author's explicit permission, and configurable down to the individual feature instead of taken as one big patch.

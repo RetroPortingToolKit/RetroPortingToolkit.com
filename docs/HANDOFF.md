@@ -364,3 +364,18 @@ second card component for the home page.
   evaluated at import time, so anything it calls must be defined ABOVE it.
   A `const` lookup table declared below it throws "Cannot access before
   initialization" and blanks the whole site.
+
+## Game dates (2026-08-20)
+
+`added:` and `updated:` on each game page come from the project's own GitHub
+repository: `created_at` (first commit) and `pushed_at` (last push), fetched
+with `gh api repos/OWNER/REPO`. They drive the Games tab's sort control.
+Refresh them by re-running that fetch; do not hand-edit.
+
+Three games have no public repository (openpete-spyro, pepsiman,
+street-fighter-alpha-3) and therefore no dates. They sort last rather than
+being given invented ones.
+
+Note `verified:` is a different thing: it is the date the page's FACTS were
+last checked, and every page currently shares one value, so it is useless as
+a sort key.

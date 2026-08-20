@@ -12,6 +12,8 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/WarioWareTwistedRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
+updated: "2026-08-03"
+added: "2026-07-29"
 cover: "/covers/warioware-sensors.jpg"
 ---
 

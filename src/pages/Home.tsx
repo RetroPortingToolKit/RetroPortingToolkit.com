@@ -175,7 +175,7 @@ function TabGrid({
   // grouped sections; Videos are the entries whose kicker is "Video".
   // Games: narrow a long catalogue to one console, and choose an order.
   const [gameFilter, setGameFilter] = useState<string>("All");
-  const [gameSort, setGameSort] = useState<"catalog" | "name">("catalog");
+  const [gameSort, setGameSort] = useState<"updated" | "added" | "name">("updated");
   const all = labAll[kind];
   // Every tab is one blended list now; groups only feed the games filter.
   const groups: { label: string; items: LabMedia[] }[] = [];
@@ -191,10 +191,16 @@ function TabGrid({
     kind === "game" && gameFilter !== "All"
       ? all.filter((m) => m.group === gameFilter)
       : all;
+  // Undated projects (the few with no public repository) sort last rather
+  // than jumping to the top on an empty string.
+  const byDate = (key: "added" | "updated") => (a: LabMedia, b: LabMedia) =>
+    (b[key] ?? "").localeCompare(a[key] ?? "");
   const lead =
-    kind === "game" && gameSort === "name"
-      ? [...filtered].sort((a, b) => a.title.localeCompare(b.title))
-      : filtered;
+    kind !== "game"
+      ? filtered
+      : gameSort === "name"
+        ? [...filtered].sort((a, b) => a.title.localeCompare(b.title))
+        : [...filtered].sort(byDate(gameSort));
   const shownCount = lead.length;
 
   return (
@@ -224,16 +230,19 @@ function TabGrid({
               <span className="tab-control-label">Sort by</span>
               <select
                 value={gameSort}
-                onChange={(e) => setGameSort(e.target.value as "catalog" | "name")}
+                onChange={(e) =>
+                  setGameSort(e.target.value as "updated" | "added" | "name")
+                }
               >
-                <option value="catalog">Catalog order</option>
+                <option value="updated">Recently updated</option>
+                <option value="added">Recently added</option>
                 <option value="name">Name (A to Z)</option>
               </select>
             </label>
           </div>
         )}
         {lead.length > 0 && (
-          <div className={kind === "blog" ? "news-list" : "tv-grid"}>
+          <div className={kind === "game" ? "tv-grid" : "news-list"}>
             {lead.map((m) => (
               <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
             ))}

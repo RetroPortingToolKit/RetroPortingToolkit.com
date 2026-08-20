@@ -70,6 +70,10 @@ export interface Item {
   platform?: string;
   /** "Beta" | "Alpha": how far along a platform ecosystem is */
   maturity?: string;
+  /** first commit in the project's own repository */
+  added?: string;
+  /** last push to the project's own repository */
+  updated?: string;
   /** Hardware items: the original processor architecture (e.g. "MIPS R3000A"). */
   arch?: string;
   /** Canonical source repository URL. */

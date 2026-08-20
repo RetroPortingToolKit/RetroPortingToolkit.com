@@ -10,6 +10,8 @@ provenance: "community"
 repo: "https://github.com/Team-Resurgent/MegaManX-X"
 group: "Original Xbox"
 verified: "2026-08-18"
+updated: "2026-07-25"
+added: "2026-07-25"
 cover: "./gameplay.png"
 ---
 

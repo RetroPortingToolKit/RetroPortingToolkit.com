@@ -18,6 +18,8 @@ links:
 cover: "/covers/tomba-gameplay.jpg"
 videoUrl: "https://www.youtube.com/watch?v=sbqPnJhb3uk"
 verified: "2026-08-18"
+updated: "2026-08-12"
+added: "2026-03-15"
 ---
 
 Every framework has a first game. For [PSXRecomp](/hardware/playstation) it was Tomba!, and the two have grown up together. The original three-week sprint got the game to its main menu, and months of steady releases since have made it the most lived-in project in the lineup. New tricks tend to show up here first. The latest is save states and rewind.

@@ -17,6 +17,8 @@ links:
 cover: "./mmx-wide.png"
 videoUrl: "https://www.youtube.com/watch?v=XRwKZ0_8u-c"
 verified: "2026-08-18"
+updated: "2026-08-16"
+added: "2026-05-22"
 ---
 
 Mega Man X is [SNESRecomp](/hardware/super-nintendo)'s most mature title, a core project maintained alongside the framework itself. It is the one you can simply download and finish: from the opening highway through all eight Mavericks and Sigma, running as a native program on your PC.

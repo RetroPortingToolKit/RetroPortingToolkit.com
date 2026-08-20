@@ -12,6 +12,8 @@ platform: "super-nintendo"
 repo: "https://github.com/mstan/DKC2Recomp"
 group: "Super Nintendo"
 verified: "2026-08-18"
+updated: "2026-08-15"
+added: "2026-07-18"
 cover: "/data/blog/10_building-enhancing-recomps/dkc2-wide.webp"
 ---
 

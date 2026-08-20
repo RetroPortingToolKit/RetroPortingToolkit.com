@@ -12,6 +12,8 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/MarioKartSuperCircuitRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
+updated: "2026-08-03"
+added: "2026-07-30"
 cover: "./super-circuit-widescreen.jpg"
 ---
 

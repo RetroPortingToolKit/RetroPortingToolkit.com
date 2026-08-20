@@ -250,6 +250,8 @@ export function parseItem(path: string, raw: string): Item | null {
     arch: asString(fm.arch) || undefined,
     repo: asString(fm.repo) || undefined,
     maturity: asString(fm.maturity) || undefined,
+    added: asString(fm.added) || undefined,
+    updated: asString(fm.updated) || undefined,
   };
 }
 

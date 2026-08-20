@@ -12,6 +12,8 @@ platform: "super-nintendo"
 repo: "https://github.com/mstan/ZeldaAlttPSNESRecomp"
 group: "Super Nintendo"
 verified: "2026-08-18"
+updated: "2026-08-12"
+added: "2026-05-19"
 cover: "./alttp-adaptive.png"
 ---
 

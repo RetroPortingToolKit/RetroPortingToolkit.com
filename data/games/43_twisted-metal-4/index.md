@@ -14,6 +14,8 @@ group: "PlayStation"
 links:
   - { label: "PS1 Twisted Metal 4 comes to PC/Mac/Linux (retro-gamer.jp)", href: "https://retro-gamer.jp/?p=45562" }
 verified: "2026-08-18"
+updated: "2026-08-18"
+added: "2026-08-07"
 cover: "./boxart.png"
 ---
 

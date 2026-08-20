@@ -12,6 +12,8 @@ platform: "playstation"
 repo: "https://github.com/mstan/Tomba2Recomp"
 group: "PlayStation"
 verified: "2026-08-18"
+updated: "2026-08-12"
+added: "2026-07-03"
 cover: "./tomba-2.png"
 ---
 

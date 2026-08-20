@@ -12,6 +12,8 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/EmeraldRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
+updated: "2026-07-30"
+added: "2026-06-22"
 cover: "./pokemon-emerald-gameplay.webp"
 ---
 

@@ -14,6 +14,8 @@ links:
 cover: "https://i.ytimg.com/vi/L36ppNkuJG0/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=L36ppNkuJG0"
 verified: "2026-08-18"
+updated: "2026-08-20"
+added: "2026-08-12"
 ---
 
 retcomm-rbengine is the ecosystem's rollback engine: a platform-agnostic library of the host policies that make rollback netplay, and the snapshots underneath it, feel playable. It began life inside psxrecomp's runtime and was lifted out with the PlayStation-specific types removed, so any recompilation host can use it. MIT licensed, maintained by TechnicallyComputers.

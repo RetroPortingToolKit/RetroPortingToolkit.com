@@ -12,6 +12,8 @@ platform: "playstation"
 repo: "https://github.com/mstan/TsumuLightRecomp"
 group: "PlayStation"
 verified: "2026-08-18"
+updated: "2026-08-11"
+added: "2026-07-07"
 cover: "./boxart.jpg"
 ---
 

@@ -14,6 +14,8 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
+updated: "2026-07-23"
+added: "2026-04-13"
 cover: "/data/blog/20_nesrecomp-10-titles/GumshoeRecomp_AjIBeqmNFw.png"
 ---
 
