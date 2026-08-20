@@ -314,3 +314,21 @@ for Super Mario Advance 2, Super Mario Advance 4, Xenogears, or recomp-net.
 Blog image FILENAMES are unreliable: SuperMarioBrosRecomp_FJUAp00Pl2.png is a
 Faxanadu shot, FaxanaduRecomp_6sPcjmDyMv-2.png is Duck Hunt, and
 FaxanaduRecomp_6sPcjmDyMv-1.png is Sonic 2. Open an image before captioning it.
+
+
+## Home card animation, root cause (2026-08-19)
+
+Home cards were mounting NO canvas at all: CardMotion gated decoding on an
+IntersectionObserver, and when the first callback says "not intersecting"
+(cards below the fold) and no later callback arrives, `near` stays false
+forever and the card sits on its poster. SpatialCard survives this because a
+45-card grid always has cards intersecting at first paint.
+
+Fix: CardMotion no longer gates on an observer at all. Eleven home cards can
+decode immediately. It now mirrors SpatialCard exactly: canvas over poster,
+NO opacity state (a canvas is transparent until its first frame paints, so
+the poster shows through on its own, and there is no flag that can strand a
+card on the still).
+
+Rule of thumb: any visibility gate is a way for a card to freeze. Only gate
+where the card count actually justifies it.

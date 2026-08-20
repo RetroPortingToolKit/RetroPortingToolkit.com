@@ -1508,14 +1508,11 @@ html {
   object-fit: cover;
   display: block;
 }
+/* No opacity gate: a canvas is transparent until its first frame is painted,
+   so the poster shows through by itself. An opacity state here could strand a
+   card on its still if the state never flipped. */
 .card-motion-layer {
-  opacity: 0;
-  transition:
-    opacity 0.35s var(--ease, ease),
-    transform 0.25s ease;
-}
-.card-motion-layer.is-on {
-  opacity: 1;
+  transition: transform 0.25s ease;
 }
 /* The poster is an <img> inside the frame, so the existing frame-img hover
    rule already scales it; scale the motion layer to match, not the wrapper,
