@@ -19,11 +19,15 @@ WarioWare: Twisted! shipped with a gyro sensor built into the cartridge: you pla
 
 ## Can I play it?
 
-Yes, on Windows and Android, as experimental v0.0.1 previews: the Windows build arrived 2026-07-29 and the Android APK on 2026-08-02. Both run from dumps you provide, your own USA ROM and a retail GBA BIOS, selected through the launcher on first run and remembered afterward. Menus, microgames, cartridge saves, and the gyro-controlled stages all work; back up saves you care about and report repeatable crashes.
+Yes, on Windows and Android, as experimental v0.0.1 previews: the Windows build arrived 2026-07-29 and the Android APK on 2026-08-02.
+
+Both run from dumps you provide, your own USA ROM and a retail GBA BIOS, selected through the launcher on first run and remembered afterward. Menus, microgames, cartridge saves, and the gyro-controlled stages all work. Back up saves you care about, and report repeatable crashes.
 
 ## What the recomp adds
 
-On Android, the phone's own gyroscope drives the game. Hold the phone in landscape and twist it like the original cartridge; it has been tested on a Galaxy S22 Ultra, and gyro sensitivity is adjustable from the launcher. On Windows, a motion-equipped controller supplies the tilt (the ecosystem write-up demonstrates it with a PS5 controller), and holding the left mouse button and dragging horizontally works as a fallback when no motion hardware is available.
+On Android, the phone's own gyroscope drives the game. Hold the phone in landscape and twist it like the original cartridge. It has been tested on a Galaxy S22 Ultra, and gyro sensitivity is adjustable from the launcher.
+
+On Windows, a motion-equipped controller supplies the tilt; the ecosystem write-up demonstrates it with a PS5 controller. When no motion hardware is available, holding the left mouse button and dragging horizontally works as a fallback.
 
 Beyond motion input: a touch-friendly Android launcher and in-game menu, keyboard, controller, and touchscreen controls, cartridge saves and save states, and windowed or fullscreen play on the desktop.
 

@@ -17,11 +17,15 @@ verified: "2026-08-18"
 cover: "/data/blog/20_nesrecomp-10-titles/YoshisCookieRecomp_L6PeM5RcYX.png"
 ---
 
-A core project: Yoshi's Cookie is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes), and one of its cleanest results: believed 100 percent playable, and tested through full games with zero divergence from an emulator reference running alongside.
+A core project: Yoshi's Cookie is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes), and one of its cleanest results. It is believed 100 percent playable, and it was tested through full games with zero divergence from an emulator reference running alongside.
 
 ## Can I play it?
 
-Yes. A v1.0.0 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/YoshisCookieRecomp/releases); it is built from a dump you provide (USA version), verified by checksum. Single-player mode works across all rounds, speeds, and music types, the versus mode plays two on one keyboard, and the options screen covers round, speed, handicap, and music selection. Audio is still basic while full sound mixing lands in the framework.
+Yes. A v1.0.0 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/YoshisCookieRecomp/releases). It is built from a dump you provide, the USA version, verified by checksum.
+
+![The title screen picks the mode: 1P, or VS.](/data/blog/20_nesrecomp-10-titles/YoshisCookieRecomp_ax49jcT0Mx.png)
+
+Single-player mode works across all rounds, speeds, and music types, the versus mode plays two on one keyboard, and the options screen covers round, speed, handicap, and music selection. Audio is still basic while full sound mixing lands in the framework.
 
 ## What the recomp adds
 

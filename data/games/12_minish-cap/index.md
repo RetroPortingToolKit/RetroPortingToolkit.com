@@ -16,20 +16,29 @@ links:
   - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 verified: "2026-08-18"
 cover: "/covers/minish-cap.jpg"
-gallery:
-  - { src: "./minish-cap-native.webp", caption: "Native resolution" }
-  - { src: "./minish-cap-adaptive.webp", caption: "Adaptive widescreen" }
 ---
 
 The Minish Cap is the game [GBARecomp](/hardware/game-boy-advance) was built around, and it is the most mature title in the GBA lineup. When the framework was announced in June 2026 with six games booting, Minish Cap was already into gameplay. It is also the clearest demonstration of what the approach can do that an original cartridge cannot: widen the view until you see almost twice as much of Hyrule.
 
+![The recompiled Minish Cap running on a PC.](/previews/minish-cap.mp4)
+
 ## Can I play it?
 
-Yes, as an in-development preview. Windows builds are on the GitHub Releases page, currently v0.0.4 (July 2026), and you can also build from source. Either way the game runs from a dump you provide: the runtime checks the USA ROM's fingerprint and refuses to launch anything else. Overworld, dialogue, and save states all work, but not every corner of the game has been tested, so expect rough edges.
+Yes, as an in-development preview. Windows builds are on the GitHub Releases page, currently v0.0.4 (July 2026), and you can also build from source.
+
+Either way the game runs from a dump you provide: the runtime checks the USA ROM's fingerprint and refuses to launch anything else. Overworld, dialogue, and save states all work, but not every corner of the game has been tested, so expect rough edges.
 
 ## What the recomp adds
 
-The faithful default is the original 240x160 image. Enable Adaptive Widescreen from the launcher's Mods page and the logical view widens as the window does, from 240 up to 480 pixels across while staying 160 tall. A 21:9 display shows roughly 373x160, and the feature has been demonstrated at 21:9 in the ecosystem write-ups. The extra width is not a stretch: the side margins read the game's own rendered room layers, so authored scenery continues to the real room edge without repeating. The HUD follows the corners of the wider view while dialogue stays centered over the play area. Entities and scripted effects keep their original behavior, so sprites can still pop in at the edges of the extended view.
+The faithful default is the original 240x160 image, exactly as the cartridge drew it.
+
+![Native resolution: 240 pixels across, the view a GBA gives you.](./minish-cap-native.webp)
+
+Enable Adaptive Widescreen from the launcher's Mods page and the logical view widens as the window does, from 240 up to 480 pixels across while staying 160 tall. A 21:9 display shows roughly 373x160, and the feature has been demonstrated at 21:9 in the ecosystem write-ups.
+
+![Adaptive widescreen: the same moment, now with the gardens on one side and the house on the other.](./minish-cap-adaptive.webp)
+
+The extra width is not a stretch. The side margins read the game's own rendered room layers, so authored scenery continues to the real room edge without repeating. The HUD follows the corners of the wider view while dialogue stays centered over the play area. Entities and scripted effects keep their original behavior, so sprites can still pop in at the edges of the extended view.
 
 Save states work from the keyboard: Shift+F1 through F9 to save a slot, F1 through F9 to load it.
 

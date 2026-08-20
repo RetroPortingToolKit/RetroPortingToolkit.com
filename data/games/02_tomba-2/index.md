@@ -13,11 +13,11 @@ repo: "https://github.com/mstan/Tomba2Recomp"
 group: "PlayStation"
 verified: "2026-08-18"
 cover: "./tomba-2.png"
-gallery:
-  - { src: "./tomba-2-adaptive.png", caption: "Adaptive widescreen" }
 ---
 
 Tomba! 2 follows [Tomba!](/games/tomba) into [PSXRecomp](/hardware/playstation) territory as a core project, and it carries the framework's most flexible screen trick: adaptive widescreen. Resize the window to any shape from 4:3 up to 21:9 and the game draws more of the world to fill it, instead of stretching a fixed picture.
+
+![Adaptive widescreen](./tomba-2-adaptive.png)
 
 ## Can I play it?
 

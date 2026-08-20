@@ -21,7 +21,9 @@ Pepsiman (1999) never released outside Japan, which makes it a fitting pick for 
 
 ## Can I play it?
 
-Not at the covered address right now. The project, started by kem0X as RepsiMan and released publicly as Pepsiman Recompiled, was playable in the browser when Notebookcheck covered it in July 2026, built from BIOS, disc, and memory card data you provide. As of this page's last check, the play URL from that coverage has been taken down ("This content is no longer available"), and no public repository for the project has been identified, so there is currently no verified place to play or build it. The press link stays as the record of the release.
+Not at the covered address right now. The project, started by kem0X as RepsiMan and released publicly as Pepsiman Recompiled, was playable in the browser when Notebookcheck covered it in July 2026, built from BIOS, disc, and memory card data you provide.
+
+As of this page's last check, the play URL from that coverage has been taken down ("This content is no longer available"), and no public repository for the project has been identified. There is currently no verified place to play or build it. The press link stays as the record of the release.
 
 ## What the recomp added
 

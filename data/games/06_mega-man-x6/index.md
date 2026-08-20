@@ -16,26 +16,35 @@ links:
 cover: "./mmx6-widescreen-gameplay.png"
 videoUrl: "https://www.youtube.com/watch?v=IXMHXC2BLSc"
 verified: "2026-08-18"
-gallery:
-  - { src: "./mmx6-widescreen-gameplay.png", caption: "Widescreen gameplay" }
-  - { src: "./mmx6-16x9.png", caption: "Native 16:9 presentation" }
-  - { src: "./mmx6-tweaks-launcher.png", caption: "The tweaks launcher" }
-  - { src: "/covers/mmx6-mods.jpg", caption: "Community mods in action" }
 ---
 
 Mega Man X6 is one of the most complete titles in the [PSXRecomp](/hardware/playstation) ecosystem. What sets it apart is the mod layer: an adaptation of the well-known Mega Man X6 Tweaks project by acediez, carried over with the author's explicit permission, and configurable down to the individual feature instead of taken as one big patch.
 
+![Mega Man X6 running from a native build](/previews/mega-man-x6.mp4)
+
 ## Can I play it?
 
-Yes, released and playable. The current version is v1.0.9 (2026-08-15), on a steady cadence of updates, with a Windows package on the GitHub releases page. The game is built from a dump you provide, and this one is picky about the disc: it wants the USA v1.1 revision of Mega Man X6. A bundled open-source BIOS boots it out of the box, and the launcher warns if the disc does not match before trying to run it anyway.
+Yes, released and playable. The current version is v1.0.9 (2026-08-15), on a steady cadence of updates, with a Windows package on the GitHub releases page.
+
+The game is built from a dump you provide, and this one is picky about the disc: it wants the USA v1.1 revision of Mega Man X6. A bundled open-source BIOS boots it out of the box, and the launcher warns if the disc does not match before trying to run it anyway.
+
+![Video Game Esoterica on the X6 release and its mod catalog](https://www.youtube.com/watch?v=IXMHXC2BLSc)
 
 ## What the recomp adds
 
-- The Tweaks adaptation ships as 15 package families containing 203 independently configurable mod items, from animation timing to status adjustments, all off by default. You tune the game piece by piece rather than taking an all-or-nothing patch.
-- An English retranslation by DuoDynamo, included with his direct redistribution approval, also opt-in and off by default.
-- An attribution ledger in the repository records where each item came from and the permission behind it.
-- Experimental 16:9 widescreen that draws more of the scene on both sides rather than stretching the 4:3 picture.
-- Opt-in FMV skips, fast loading that accelerates disc loads without touching game timing, and DualShock support with rumble.
+The Tweaks adaptation ships as 15 package families containing 203 independently configurable mod items, from animation timing to status adjustments, all off by default. You tune the game piece by piece rather than taking an all-or-nothing patch.
+
+![The tweaks launcher](./mmx6-tweaks-launcher.png)
+
+An English retranslation by DuoDynamo is included with his direct redistribution approval, also opt-in and off by default. Permission is the point here, not a footnote: an attribution ledger in the repository records where each item came from and the approval behind it.
+
+![Community mods in action](/covers/mmx6-mods.jpg)
+
+The framework's own additions sit alongside the mod layer. Experimental 16:9 widescreen draws more of the scene on both sides rather than stretching the 4:3 picture.
+
+![Native 16:9 presentation](./mmx6-16x9.png)
+
+Beyond that: opt-in FMV skips, fast loading that accelerates disc loads without touching game timing, and DualShock support with rumble.
 
 ## Technical details
 

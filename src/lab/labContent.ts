@@ -45,27 +45,50 @@ const colorFor = (p: Item, i: number): string =>
 // art this way even before a screenshot or capture exists; an authored `cover:`
 // in frontmatter always wins.
 export function svgCover(title: string, kicker: string, color: string): string {
-  const esc = (s: string) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-  // Big mark: initials of up to three words ("Super Mario World" -> SMW),
-  // falling back to the first two characters for one-word titles.
-  const words = title.replace(/[^\w\s]/g, "").split(/\s+/).filter(Boolean);
-  const mark =
-    words.length >= 2
-      ? words.slice(0, 3).map((w) => w[0]).join("").toUpperCase()
-      : title.slice(0, 2).toUpperCase();
-  const scan = Array.from({ length: 12 }, (_, r) => `<rect x="0" y="${r * 30}" width="640" height="15" fill="#000" opacity="0.06"/>`).join("");
+  const esc = (v: string) =>
+    v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  // Wrap the title onto up to three lines so the cover carries the game's
+  // NAME, not an abbreviation. Initials read as a missing image; the title set
+  // properly reads as a designed cover, which is what a game with no
+  // screenshot in existence still deserves.
+  const words = title.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    const next = line ? `${line} ${w}` : w;
+    if (next.length > 15 && line) {
+      lines.push(line);
+      line = w;
+    } else {
+      line = next;
+    }
+    if (lines.length === 3) break;
+  }
+  if (line && lines.length < 3) lines.push(line);
+  const size = lines.length >= 3 ? 64 : lines.length === 2 ? 78 : 92;
+  const blockH = lines.length * size * 1.06;
+  const startY = 360 / 2 - blockH / 2 + size * 0.82;
+  const text = lines
+    .map(
+      (l, i) =>
+        `<text x="44" y="${Math.round(startY + i * size * 1.06)}" font-family="ui-rounded,system-ui,-apple-system,sans-serif" font-size="${size}" font-weight="800" fill="#fff" letter-spacing="-2">${esc(l)}</text>`,
+    )
+    .join("");
+  const scan = Array.from(
+    { length: 12 },
+    (_, r) => `<rect x="0" y="${r * 30}" width="640" height="15" fill="#000" opacity="0.06"/>`,
+  ).join("");
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360">` +
     `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
     `<stop offset="0" stop-color="${esc(color)}"/><stop offset="1" stop-color="#0d0f17"/></linearGradient>` +
     `<radialGradient id="h" cx="0.25" cy="0.2" r="0.9">` +
-    `<stop offset="0" stop-color="#fff" stop-opacity="0.28"/><stop offset="0.6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>` +
+    `<stop offset="0" stop-color="#fff" stop-opacity="0.26"/><stop offset="0.6" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>` +
     `<rect width="640" height="360" fill="url(#g)"/>` +
     scan +
     `<rect width="640" height="360" fill="url(#h)"/>` +
-    `<text x="596" y="332" text-anchor="end" font-family="ui-rounded,system-ui,-apple-system,sans-serif" font-size="200" font-weight="800" fill="#fff" opacity="0.9" letter-spacing="-8">${esc(mark)}</text>` +
-    `<text x="44" y="66" font-family="ui-rounded,system-ui,-apple-system,sans-serif" font-size="26" font-weight="700" fill="#fff" opacity="0.75" letter-spacing="3">${esc(kicker.toUpperCase())}</text>` +
+    `<text x="44" y="62" font-family="ui-rounded,system-ui,-apple-system,sans-serif" font-size="22" font-weight="700" fill="#fff" opacity="0.72" letter-spacing="3">${esc(kicker.toUpperCase())}</text>` +
+    text +
     `</svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }

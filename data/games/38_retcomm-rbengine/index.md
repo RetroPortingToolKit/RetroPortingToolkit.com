@@ -20,11 +20,21 @@ retcomm-rbengine is the ecosystem's rollback engine: a platform-agnostic library
 
 ## What it does
 
-Six small modules that together manage time: a scheduler for admit pacing (when to run a frame, when to wait, when to invent an input), per-slot input history with hold-last invention, hash confirmation that compares local and peer frame commits, a tick-keyed snapshot ring, a filter for stale rollback messages, and a monotonic clock helper. The snapshot ring is the substrate that save states are built on, and the same machinery enables rewind. It depends on [recomp-net](/games/recomp-net), which owns the network session and wire protocol; this library owns what the host does with them.
+Six small modules that together manage time: a scheduler for admit pacing (when to run a frame, when to wait, when to invent an input), per-slot input history with hold-last invention, hash confirmation that compares local and peer frame commits, a tick-keyed snapshot ring, a filter for stale rollback messages, and a monotonic clock helper.
+
+The snapshot ring is the substrate that save states are built on, and the same machinery enables rewind.
+
+![Tomba on PSXRecomp, the runtime this library was lifted out of](/previews/retcomm-rbengine.mp4)
+
+The library depends on [recomp-net](/games/recomp-net), which owns the network session and wire protocol. This one owns what the host does with them.
 
 ## Which projects use it
 
-[PSXRecomp](/hardware/playstation) builds on it for save states and rewind, both shown publicly in the Tomba showcase video (2026-08-12). Game-specific pieces, such as savestate serialization and state digests, stay in each engine and bind in through the library's hooks.
+[PSXRecomp](/hardware/playstation) builds on it for save states and rewind, both shown publicly in the Tomba showcase video (2026-08-12).
+
+![Save states and rewind, shown off in Tomba](https://www.youtube.com/watch?v=L36ppNkuJG0)
+
+Game-specific pieces, such as savestate serialization and state digests, stay in each engine and bind in through the library's hooks.
 
 ## Sources
 

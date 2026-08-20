@@ -21,15 +21,23 @@ A core project: Metroid is one of the [ten commercial titles](/blog/nesrecomp-10
 
 ## Can I play it?
 
-The starting area, yes. A v0.1.0 Windows x64 build is on [GitHub Releases](https://github.com/mstan/MetroidNESRecomp/releases) (2026-06-18, adding password save support), with an experimental Linux AppImage alongside; it is built from a dump you provide (US version). Within the starting region you can walk, jump, shoot, pick up the Morph Ball, and fight enemies, and the death, Game Over, password, and restart cycle is stable: the build has run more than 115,000 frames without crashing. Beyond that region, enemies, doors, or items may silently fail where code paths have not yet been mapped, and behavior has not yet been validated against an emulator reference.
+The starting area, yes. A v0.1.0 Windows x64 build is on [GitHub Releases](https://github.com/mstan/MetroidNESRecomp/releases) (2026-06-18, adding password save support), with an experimental Linux AppImage alongside; it is built from a dump you provide (US version).
+
+Within the starting region you can walk, jump, shoot, pick up the Morph Ball, and fight enemies. The death, Game Over, password, and restart cycle is stable: the build has run more than 115,000 frames without crashing.
+
+Beyond that region, enemies, doors, or items may silently fail where code paths have not yet been mapped, and behavior has not yet been validated against an emulator reference.
 
 ## What the recomp adds
 
-An experimental first-person Voxel 3D mode, off by default in the launcher's Mods screen. The camera follows Samus, Left and Right steer her heading, and holding Up smoothly raises the view along the near-vertical shot path while the lens widens so overhead enemies and her shots stay visible. The energy readout is kept as a clean overlay rather than part of the 3D scene. Numpad keys adjust pitch, yaw, roll, field of view, and sprite scale; Numpad 0 toggles the view. The mode does not patch the ROM or alter password data.
+An experimental first-person Voxel 3D mode, off by default in the launcher's Mods screen. The camera follows Samus, Left and Right steer her heading, and holding Up smoothly raises the view along the near-vertical shot path while the lens widens so overhead enemies and her shots stay visible.
+
+The energy readout is kept as a clean overlay rather than part of the 3D scene. Numpad keys adjust pitch, yaw, roll, field of view, and sprite scale; Numpad 0 toggles the view. The mode does not patch the ROM or alter password data.
 
 ## Technical details
 
-An MMC1 cartridge with eight program banks: bank 7 is fixed and holds the main loop and interrupt handlers, banks 0 through 6 swap in area-specific code, and bank switching is handled through runtime dispatch. Metroid was chosen partly because it has a comprehensive public disassembly, which the framework leans on: symbols help separate code from data and make the recompiled output easier to verify. Even with that help, the game has hundreds of dispatch targets to chase down, which is why it remains an early foundation.
+An MMC1 cartridge with eight program banks: bank 7 is fixed and holds the main loop and interrupt handlers, banks 0 through 6 swap in area-specific code, and bank switching is handled through runtime dispatch.
+
+Metroid was chosen partly because it has a comprehensive public disassembly, which the framework leans on: symbols help separate code from data and make the recompiled output easier to verify. Even with that help, the game has hundreds of dispatch targets to chase down, which is why it remains an early foundation.
 
 ## Sources
 

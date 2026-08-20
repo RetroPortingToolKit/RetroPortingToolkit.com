@@ -21,7 +21,11 @@ A core project: Mega Man 3 is one of the [ten commercial titles](/blog/nesrecomp
 
 ## Can I play it?
 
-The early stretch. A v0.0.1 Windows x64 build (2026-04-27) is on [GitHub Releases](https://github.com/mstan/Megaman3NESRecomp/releases), with an experimental Linux AppImage alongside; it is built from a dump you provide (USA version). The title screen, main menu, and Robot Master stage select all work, stages load with scrolling backgrounds and basic enemies, and movement, jumping, and the Mega Buster are functional. Boss fights, special weapons, and passwords are untested and may stall the game; some areas show visual glitches or missing sprites, and audio is still basic.
+The early stretch. A v0.0.1 Windows x64 build (2026-04-27) is on [GitHub Releases](https://github.com/mstan/Megaman3NESRecomp/releases), with an experimental Linux AppImage alongside; it is built from a dump you provide (USA version).
+
+The title screen, main menu, and Robot Master stage select all work. Stages load with scrolling backgrounds and basic enemies, and movement, jumping, and the Mega Buster are functional.
+
+Boss fights, special weapons, and passwords are untested and may stall the game. Some areas show visual glitches or missing sprites, and audio is still basic.
 
 ## What the recomp adds
 
@@ -29,7 +33,9 @@ At this stage, the shared runner's conveniences: save states, a fast-forward tog
 
 ## Technical details
 
-An MMC3 (Mapper 4) cartridge with program and graphics bank switching and a scanline interrupt, the most involved of the four mapper families the framework supports. Those four families (NROM, MMC1, MMC3, GxROM) cover roughly 78 percent of the licensed NES library, per the framework README. Mega Man 3 was chosen partly for its comprehensive public disassembly, which seeds function discovery and defines data regions the recompiler should not treat as code.
+An MMC3 (Mapper 4) cartridge with program and graphics bank switching and a scanline interrupt, the most involved of the four mapper families the framework supports. Those four families (NROM, MMC1, MMC3, GxROM) cover roughly 78 percent of the licensed NES library, per the framework README.
+
+Mega Man 3 was chosen partly for its comprehensive public disassembly, which seeds function discovery and defines data regions the recompiler should not treat as code.
 
 ## Sources
 

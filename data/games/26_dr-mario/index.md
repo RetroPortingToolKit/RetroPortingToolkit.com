@@ -17,11 +17,15 @@ verified: "2026-08-18"
 cover: "/data/blog/20_nesrecomp-10-titles/DrMarioRecomp_eoeWPp44eP.png"
 ---
 
-A core project: Dr. Mario was among the [first four commercial titles](/blog/nesrecomp-4-titles) [NESRecomp](/hardware/nes) ever supported, and it remains a quick proof that the whole idea works: a puzzle game you can download, point at your own dump, and play.
+A core project: Dr. Mario was among the [first four commercial titles](/blog/nesrecomp-4-titles) [NESRecomp](/hardware/nes) ever supported. It is still the quickest proof that the idea works. A puzzle game you download, point at your own dump, and play.
 
 ## Can I play it?
 
-Yes, in single player. A v1.1.0 Windows x64 build (2026-04-07) is on [GitHub Releases](https://github.com/mstan/DrMarioNesRecomp/releases), with an experimental Linux AppImage alongside; it is built from a dump you provide (USA version), verified by checksum. One-player mode is tested through virus clearing, the options menu works (level, speed, and music selection), and all three music settings play. Two-player controls are mapped but unverified, ending sequences are untested, and audio may run slightly fast in some configurations.
+Yes, in single player. A v1.1.0 Windows x64 build (2026-04-07) is on [GitHub Releases](https://github.com/mstan/DrMarioNesRecomp/releases), with an experimental Linux AppImage alongside. It is built from a dump you provide, the USA version, verified by checksum.
+
+![One-player mode at level 00, medium speed, four viruses left in the bottle.](/data/blog/20_nesrecomp-10-titles/DrMarioRecomp_8cliR8zN4q.png)
+
+One-player mode is tested through virus clearing. The options menu works for level, speed, and music selection, and all three music settings play. Two-player controls are mapped but unverified, ending sequences are untested, and audio may run slightly fast in some configurations.
 
 ## What the recomp adds
 

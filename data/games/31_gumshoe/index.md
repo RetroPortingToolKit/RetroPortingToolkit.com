@@ -21,11 +21,17 @@ A core project: Gumshoe is one of the [ten commercial titles](/blog/nesrecomp-10
 
 ## Can I play it?
 
-Yes, end to end. A v1.3 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/GumshoeNESRecomp/releases), with an experimental Linux AppImage alongside; it is built from a dump you provide (USA/Europe version). Jumping, obstacle shooting, enemy hit detection, bottle targets, round progression, and scoring all work; an earlier cosmetic bug where the timer and shot counter did not render was fixed in v1.2. Audio is still basic while full sound mixing lands in the framework.
+Yes, end to end. A v1.3 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/GumshoeNESRecomp/releases), with an experimental Linux AppImage alongside. It is built from a dump you provide, the USA/Europe version.
+
+Jumping, obstacle shooting, enemy hit detection, bottle targets, round progression, and scoring all work. An earlier cosmetic bug where the timer and shot counter did not render was fixed in v1.2. Audio is still basic while full sound mixing lands in the framework.
 
 ## What the recomp adds
 
-The mouse stands in for the Zapper light gun: moving aims, left click fires, and a crosshair marks the aim point, white normally and red when firing, with the system cursor hidden over the game window. The runner adds save states (F6 saves, F7 restores) and an F5 fast-forward toggle.
+The mouse stands in for the Zapper light gun. Moving aims, left click fires, and a crosshair marks the aim point, white normally and red when firing, with the system cursor hidden over the game window.
+
+![Mr. Stevenson keeps walking on his own. The white crosshair at right is the mouse.](/data/blog/20_nesrecomp-10-titles/GumshoeRecomp_DVKZb2r0SM.png)
+
+The runner adds save states (F6 saves, F7 restores) and an F5 fast-forward toggle.
 
 ## Technical details
 

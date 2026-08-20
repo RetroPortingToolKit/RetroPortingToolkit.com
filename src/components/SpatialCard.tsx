@@ -46,10 +46,11 @@ export function SpatialCard({
   // Primary path: decode the preview MP4 into a <canvas> via WebCodecs -- no
   // <video> element, so Safari's autoplay policy never applies and it animates
   // on load. Where WebCodecs is unavailable, the <video> fallback below runs.
-  // Project cards use the <video> element (reliable everywhere, and only
-  // near-viewport cards mount one); the WebCodecs canvas path stays for blog
-  // demo previews, which is what it was written for.
-  const useCanvas = media.video && media.kind === "blog" && WEBCODECS_OK && !still;
+  // Decode the clip into a <canvas> with WebCodecs: Safari refuses to autoplay
+  // a grid of <video> elements, and this path has no video element for its
+  // policy to apply to. The <video> fallback below covers browsers without
+  // WebCodecs.
+  const useCanvas = media.video && WEBCODECS_OK && !still;
   const [near, setNear] = useState(false);
 
   // Only decode while the card is on (or near) screen -- WebCodecs decoders are

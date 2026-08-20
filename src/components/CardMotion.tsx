@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAutoplayVideo } from "@/lib/useAutoplayVideo";
+import { playMp4ToCanvas, WEBCODECS_OK } from "@/lib/canvasVideo";
 
 // Ambient card motion: a short silent loop of the real thing, shown where a
 // static cover would otherwise sit. The poster IS the clip's first frame, so
@@ -28,6 +29,7 @@ export function CardMotion({
 }) {
   const hostRef = useRef<HTMLSpanElement>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [near, setNear] = useState(false);
   const [ready, setReady] = useState(false);
   const play = useCallback(() => {
@@ -38,6 +40,9 @@ export function CardMotion({
   }, []);
 
   const animated = !!mp4 && !still;
+  // Canvas-decoded playback is the primary path: Safari will not autoplay a
+  // page full of <video> elements, and a canvas is not subject to that policy.
+  const useCanvas = animated && WEBCODECS_OK;
 
   useEffect(() => {
     if (!animated) return;
@@ -79,7 +84,22 @@ export function CardMotion({
       node.defaultMuted = true;
     }
   }, []);
-  useAutoplayVideo(videoRef, { autoplay: animated && near, whenVisible: false });
+  useAutoplayVideo(videoRef, {
+    autoplay: animated && !useCanvas && near,
+    whenVisible: false,
+  });
+
+  useEffect(() => {
+    if (!useCanvas || !near || !mp4) return;
+    const c = canvasRef.current;
+    if (!c) return;
+    const handle = playMp4ToCanvas(c, mp4);
+    setReady(true);
+    return () => {
+      handle.stop();
+      setReady(false);
+    };
+  }, [useCanvas, near, mp4]);
 
   return (
     <span
@@ -96,7 +116,14 @@ export function CardMotion({
         loading="lazy"
         decoding="async"
       />
-      {animated && near && (
+      {useCanvas && near && (
+        <canvas
+          ref={canvasRef}
+          className={"card-motion-layer" + (ready ? " is-on" : "")}
+          aria-hidden="true"
+        />
+      )}
+      {animated && !useCanvas && near && (
         <video
           ref={attachVideo}
           className={"card-motion-layer" + (ready ? " is-on" : "")}

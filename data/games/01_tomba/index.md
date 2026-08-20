@@ -18,28 +18,38 @@ links:
 cover: "/covers/tomba-gameplay.jpg"
 videoUrl: "https://www.youtube.com/watch?v=sbqPnJhb3uk"
 verified: "2026-08-18"
-gallery:
-  - { src: "./tomba-launcher.png", caption: "Tomba in the psxrecomp launcher" }
-  - { src: "/covers/tomba-gameplay.jpg", caption: "Native PC gameplay" }
-  - { src: "/covers/tomba-rewind.jpg", caption: "Rewind in action" }
 ---
 
-Every framework has a first game. For [PSXRecomp](/hardware/playstation) it was Tomba!, and the two have grown up together: the original three-week sprint got the game to its main menu, and months of steady releases since have made it the most lived-in project in the lineup. New tricks tend to show up here first. The latest is save states and rewind.
+Every framework has a first game. For [PSXRecomp](/hardware/playstation) it was Tomba!, and the two have grown up together. The original three-week sprint got the game to its main menu, and months of steady releases since have made it the most lived-in project in the lineup. New tricks tend to show up here first. The latest is save states and rewind.
+
+![Tomba! running from a native build](/previews/tomba.mp4)
 
 ## Can I play it?
 
-Yes, as a playable alpha. The current release is v0.12.0-alpha (2026-08-12), with a Windows package and an experimental Linux AppImage on the GitHub releases page; macOS is supported by building from source. The game is built from a dump you provide: your Tomba! (USA) disc image, in formats from plain .cue and .bin through .chd, and even the raw disc image from the Steam release. Everything boots from a bundled open-source BIOS, so no extra files are needed, though the launcher accepts your own retail BIOS dump if you prefer it.
+Yes, as a playable alpha. The current release is v0.12.0-alpha (2026-08-12), with a Windows package and an experimental Linux AppImage on the GitHub releases page. macOS is supported by building from source.
+
+The game itself comes from a dump you provide: your Tomba! (USA) disc image, in formats from plain .cue and .bin through .chd, and even the raw disc image from the Steam release. Everything boots from a bundled open-source BIOS, so no extra files are needed, though the launcher accepts your own retail BIOS dump if you prefer it.
+
+![Tomba! in the psxrecomp launcher](./tomba-launcher.png)
 
 ## What the recomp adds
 
-- Save states and rewind, shown publicly for the first time on this title. The rewind work arrived in v0.12.0 as a community contribution.
+Save states and rewind were shown publicly for the first time on this title. The rewind work arrived in v0.12.0 as a community contribution.
+
+![Rewind in action](/covers/tomba-rewind.jpg)
+
+Beyond that:
+
 - Experimental 16:9 widescreen with a genuinely wider field of view: you see more of the world at the sides, not a stretched picture. Some 2D menu and video elements can look off, and 21:9 is not ready yet.
 - FMV skipping, with an optional auto-skip for the intro.
 - A warp debug menu on the launcher's Mods page.
 - A Fast Loading mod, off by default.
 - Controller choice: analog or D-pad, plus an optional Hybrid mod that switches to digital when you touch the D-pad and back to analog when you move the stick.
-- Your in-game OPTION settings, like text speed and vibration, persist across launches.
 - Supersampling at 2x to 4x internal resolution, with optional texture filtering.
+
+Your in-game OPTION settings, like text speed and vibration, persist across launches.
+
+![Video Game Esoterica on the updated Tomba! recompilation](https://www.youtube.com/watch?v=sbqPnJhb3uk)
 
 ## Technical details
 

@@ -19,12 +19,16 @@ Tsumu Light is a hamster-themed stacking puzzle game that only ever released in 
 
 ## Can I play it?
 
-Yes, as a playable alpha. The current release is v0.0.2 (2026-07-10), with a Windows package on the GitHub releases page. The game is built from a dump you provide: your Tsumu Light (Japan) disc image, plus a standard PlayStation BIOS file. English is the default language in the launcher, with the original Japanese one setting away. The puzzle stages play start to finish, and the game boots instantly.
+Yes, as a playable alpha. The current release is v0.0.2 (2026-07-10), with a Windows package on the GitHub releases page. The game is built from a dump you provide: your Tsumu Light (Japan) disc image, plus a standard PlayStation BIOS file.
+
+English is the default language in the launcher, with the original Japanese one setting away. The puzzle stages play start to finish, and the game boots instantly.
 
 ## What the recomp adds
 
-- The English translation covers the HUD, the menus, the stage-select names and high-score labels, and the memory-card save, format, and quit dialogs.
-- The translation lives in a plain data file, translations/tsumu.toml, and is applied at runtime. The game's own assets are never modified, so the text can be revised without touching the game image at all.
+The translation is the reason this project exists. It covers the HUD, the menus, the stage-select names and high-score labels, and the memory-card save, format, and quit dialogs. It lives in a plain data file, translations/tsumu.toml, and is applied at runtime, so the game's own assets are never modified and the text can be revised without touching the game image at all.
+
+Two smaller comforts come with it:
+
 - Instant boot: the console startup sequence is skipped and the game launches straight in. The authentic slow boot remains available as an option.
 - Keyboard or a DualShock and DualSense style pad both work. Tsumu is a digital game, so the pad presents as a digital controller and the analog options stay out of the way.
 

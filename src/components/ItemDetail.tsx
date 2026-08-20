@@ -11,7 +11,6 @@ import {
 } from "@/lib/content";
 import { useItemNavigate } from "@/lib/useItemNavigate";
 import { svgCover } from "@/lab/labContent";
-import { previewFor } from "@/generated/previews";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { Markdown } from "./Markdown";
 import { BlurText } from "./BlurText";
@@ -153,48 +152,9 @@ function VideoDetail({ item }: { item: Item }) {
   );
 }
 
-// Project pages follow the ramine.net split: writeup on the left, media on
-// the right. The primary video (embedded, never re-hosted) leads the carousel
-// with the cover as its poster; gallery shots follow. A cover alone still
-// earns the split; pages with no media at all read as plain articles.
-function projectSlides(item: Item): Slide[] {
-  const slides: Slide[] = [];
-  const clip = previewFor(item.slug);
-  if (isYouTubeSrc(item.videoUrl)) {
-    slides.push({ src: item.videoUrl as string, poster: item.cover });
-  } else if (item.kind === "hardware" && clip) {
-    // A platform page leads with the platform actually running. The console
-    // photograph is card art; it does not belong in the page's media pane.
-    slides.push({ src: clip.mp4, poster: clip.poster });
-  } else if (
-    item.cover &&
-    !item.gallery.some((g) => g.src === item.cover)
-  ) {
-    slides.push({
-      src: item.cover,
-      srcFallback: item.coverFallback,
-      lqip: item.coverLqip,
-      caption: item.coverCaption,
-    });
-  }
-  for (const g of item.gallery) {
-    slides.push({
-      src: g.src,
-      srcFallback: g.srcFallback,
-      lqip: g.lqip,
-      poster: g.poster,
-      caption: g.caption,
-    });
-  }
-  return slides;
-}
-
 export function ItemDetail({ item }: Props) {
-  if (item.kind !== "blog") {
-    const slides = projectSlides(item);
-    if (slides.length > 0) {
-      return <LabSplit item={item} slides={slides} />;
-    }
+  if (item.kind === "hardware") {
+    return <LabSplit item={item} slides={[]} />;
   }
   // News videos read like ramine.net talks: player on top, title and
   // description right below.
@@ -552,11 +512,12 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
               allowFullScreen
             />
           </>
+        ) : item.kind === "hardware" ? (
+          // A platform's media pane is its catalog. Console art and a lone
+          // clip added nothing that the game cards do not say better.
+          <PlatformGames item={item} />
         ) : (
-          <>
-            <ProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
-            {item.kind === "hardware" && <PlatformGames item={item} />}
-          </>
+          <ProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
         )}
       </div>
     </div>
@@ -564,7 +525,9 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
 }
 
 function DefaultDetail({ item }: { item: Item }) {
-  const isArticle = item.kind === "blog";
+  // Game pages read as articles: one column, with the video embeds and
+  // screenshots placed inline through the body where they earn their spot.
+  const isArticle = item.kind === "blog" || item.kind === "game";
   // The cover media, shared between the standalone hero (project pages) and the
   // in-masthead figure (articles). Articles keep the cover INSIDE
   // .modal-body--article so the desktop modal's click-outside bounds still fit.
@@ -587,8 +550,9 @@ function DefaultDetail({ item }: { item: Item }) {
     )
   ) : null;
 
-  const hasVideoHero =
-    (item.kind !== "blog" || item.kicker === "Video") && isYouTubeSrc(item.videoUrl);
+  // No lead video hero: blog videos use VideoDetail, and a game's video is
+  // embedded inline in its body.
+  const hasVideoHero = false;
   return (
     <>
       {hasVideoHero && <VideoHero item={item} />}
@@ -629,6 +593,37 @@ function DefaultDetail({ item }: { item: Item }) {
               delay={40}
             />
             {item.kind === "blog" && <ArticleByline item={item} />}
+            {/* A game article still has to answer the two questions a card
+                answers: which platform, and can I play it. Then the one link
+                that matters. */}
+            {item.kind === "game" && (
+              <div className="article-projectmeta blur-in" style={delayed(200)}>
+                {item.kicker && item.platform && (
+                  <SmartLink
+                    className="tvcard-chip tvcard-chip--link"
+                    href={`/hardware/${item.platform}`}
+                  >
+                    <span
+                      className="tvcard-chip-bg"
+                      style={{ background: chipColorFor(item.kicker) ?? CHIP_PALETTE[0] }}
+                    >
+                      {item.kicker}
+                    </span>
+                  </SmartLink>
+                )}
+                {item.status && <span className="pill">{item.status}</span>}
+                {item.repo && (
+                  <a
+                    className="project-cta"
+                    href={item.repo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Get the project on GitHub <span className="ext">↗</span>
+                  </a>
+                )}
+              </div>
+            )}
             {item.kind === "blog" && item.venue && item.links[0] && (
               <div className="modal-meta blur-in" style={delayed(220)}>
                 <a

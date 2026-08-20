@@ -19,15 +19,19 @@ cover: "./title-screen.png"
 
 Faxanadu was the [first commercial title](/blog/nesrecomp-4-titles) [NESRecomp](/hardware/nes) ever supported: the proof of concept that started the whole NES ecosystem, chosen because it was unlikely to already have much attention. Today it is one of the most complete games in the family, playable from title screen to credits and maintained by the core team.
 
+It is also the game the [effort first got on screen at all](/blog/journey-with-ai-and-recompilation), in February 2026.
+
+![The first successful render, February 2026. The sky palette is wrong and the sprites are garbled, but the world is there.](/data/blog/19_journey-with-ai-and-recompilation/faxanadu_pc_LeclJi8wRk.png)
+
 ## Can I play it?
 
-Yes. A v2.2.0 Windows x64 build (2026-06-17) is on [GitHub Releases](https://github.com/mstan/FaxanaduRecomp/releases), with an experimental Linux AppImage alongside; it is built from a dump you provide (USA version). The game runs from title screen through credits with no outstanding known bugs, though it has not been 100 percent playtested.
+Yes. A v2.2.0 Windows x64 build (2026-06-17) is on [GitHub Releases](https://github.com/mstan/FaxanaduRecomp/releases), with an experimental Linux AppImage alongside. It is built from a dump you provide, the USA version. The game runs from title screen through credits with no outstanding known bugs, though it has not been 100 percent playtested.
 
 ## What the recomp adds
 
-Password relief first. Faxanadu saves progress with long mantras instead of a battery, so the recomp keeps them for you: on startup it reads a plain text file next to the executable and auto-fills your most recent mantra on the password screen, and a command-line option can override it for a single session. Capturing the priest's mantra automatically is not yet implemented, so for now you still copy it into the file yourself.
+Password relief first. Faxanadu saves progress with long mantras instead of a battery, so the recomp keeps them for you. On startup it reads a plain text file next to the executable and auto-fills your most recent mantra on the password screen, and a command-line option can override it for a single session. Capturing the priest's mantra automatically is not yet implemented, so for now you still copy it into the file yourself.
 
-It is also the showcase for the framework's Text Override System: dialogue and glyphs are replaced at runtime from a JSON file, with hot reload, so an edit appears in the running game within about a second. That opens the door to retranslation and accessibility work without any ROM hacking. Save states and a fast-forward toggle round it out.
+It is also the showcase for the framework's Text Override System. Dialogue and glyphs are replaced at runtime from a JSON file, with hot reload, so an edit appears in the running game within about a second. That opens the door to retranslation and accessibility work without any ROM hacking. Save states and a fast-forward toggle round it out.
 
 ## Technical details
 

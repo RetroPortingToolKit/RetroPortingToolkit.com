@@ -268,3 +268,45 @@ exist publicly (only xboxlle-probe).
   Handhelds; both outlets are linked on their pages. tsumu-light uses the
   project's own launcher box art (250px, upscaled), matching the precedent set
   by sonic-3-and-knuckles and twisted-metal-4.
+
+## Game pages are articles (2026-08-19, fifth pass)
+
+- Game pages render in the article reader, not the two-pane split. Media is
+  placed INLINE through the body: `![caption](./shot.png)` for stills,
+  `![caption](/previews/<slug>.mp4)` for the looping clip, and
+  `![caption](https://www.youtube.com/watch?v=ID)` for coverage, which
+  Markdown.tsx renders as a click-to-play embed. The `gallery:` frontmatter is
+  gone from every game page; leaving it would render the same images twice.
+- The article masthead carries the game's platform chip (links to the platform
+  page), its status pill, and the GitHub button. Games do NOT get an author
+  byline; that stays blog-only.
+- Platform pages: the right pane is the games grid alone. No console art, no
+  carousel.
+- Cards decode their clip into a <canvas> via WebCodecs again
+  (`canvasVideo.ts`). That is the Safari fix: Safari will not autoplay a grid
+  of <video> elements. Do NOT "simplify" this to a <video> element again; it
+  looks broken on Safari. The <video> path is only the fallback where
+  WebCodecs is missing.
+- Generated cover art now sets the game's TITLE rather than its initials, so a
+  game with no screenshot in existence still gets a designed cover.
+- scripts/optimize-media.mjs now exists, so CMS media uploads work: jpg/png to
+  webp (cwebp, chosen adaptively between lossless and lossy), mov/m4v to mp4
+  plus a webm sibling, mp4 normalized and given a webm, and one LQIP entry
+  merged per upload. Single-file mode only, never a tree walk.
+
+## Verifying in the in-app browser pane
+
+The pane frequently reports `visibility: hidden` AND `innerWidth/innerHeight
+= 0`. In that state NO item detail renders at all (the layout hooks see a
+zero viewport), media is paused, and requestAnimationFrame never fires, so
+canvas playback cannot paint. Call resize_window with a real size first, e.g.
+1440x900, before concluding anything is broken.
+
+## Media that does not exist anywhere
+
+Searched exhaustively (repos, releases, READMEs, article images, the team
+channel's 340 videos, 1379.tech's sitemap): no footage or screenshots exist
+for Super Mario Advance 2, Super Mario Advance 4, Xenogears, or recomp-net.
+Blog image FILENAMES are unreliable: SuperMarioBrosRecomp_FJUAp00Pl2.png is a
+Faxanadu shot, FaxanaduRecomp_6sPcjmDyMv-2.png is Duck Hunt, and
+FaxanaduRecomp_6sPcjmDyMv-1.png is Sonic 2. Open an image before captioning it.
