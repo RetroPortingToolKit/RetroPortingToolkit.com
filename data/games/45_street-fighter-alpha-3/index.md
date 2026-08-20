@@ -6,8 +6,9 @@ featured: true
 desc: "One of PlayStation's great fighters running as a native app, with about five minutes of game-specific work behind it."
 year: "2026"
 status: "Released"
-availability: "No public release"
+availability: "Public build"
 provenance: "community"
+repo: "https://github.com/TechnicallyComputers/Street-Fighter-Alpha-3-Recomp"
 platform: "playstation"
 group: "PlayStation"
 cover: "https://i.ytimg.com/vi/aITjH0LoEeA/hqdefault.jpg"
@@ -15,6 +16,8 @@ videoUrl: "https://www.youtube.com/watch?v=aITjH0LoEeA"
 links:
   - { label: "Watch: Street Fighter Alpha 3 Recomp is out now", href: "/blog/video-sfa3-recomp-out-now" }
 verified: "2026-08-18"
+added: "2026-08-08"
+updated: "2026-08-18"
 ---
 
 An independent recompilation of Street Fighter Alpha 3 built on [PSXRecomp](/hardware/playstation). It is a community build rather than a core project, and it matters less for what it changes than for what it proves.
@@ -27,7 +30,7 @@ The team cites roughly five minutes of game-specific work from disc to a running
 
 ## Can I play it?
 
-Not yet from anywhere this site can point to. The release exists: Video Game Esoterica's coverage, [Street Fighter Alpha 3 Recomp is out now](/blog/video-sfa3-recomp-out-now), shows it running as a native app. But no public repository or download has been identified, so the video stands as the reference for what is shown running.
+Yes. TechnicallyComputers publishes builds on GitHub, currently v0.2.14 (2026-08-18), with zips for Windows, macOS on both Intel and Apple silicon, and Linux. You supply your own Street Fighter Alpha 3 (USA) disc image. Titles can be run standalone from the release zip, or managed through the RetComM Launcher, which handles installs, updates and ROM wiring across the community's recomps. Video Game Esoterica's [coverage](/blog/video-sfa3-recomp-out-now) shows it running.
 
 ![Video Game Esoterica on the Street Fighter Alpha 3 recompilation](https://www.youtube.com/watch?v=aITjH0LoEeA)
 

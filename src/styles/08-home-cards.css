@@ -1583,7 +1583,7 @@ html {
 .news-list .tvcard-tilt {
   display: grid;
   /* text gets the larger share: these cards are mostly words. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
   align-items: stretch;
 }
 .buildlog-card .tvcard--blog .tvcard-media,
@@ -1592,7 +1592,8 @@ html {
 .news-list .tvcard--hardware .tvcard-media {
   aspect-ratio: auto;
   height: 100%;
-  min-height: 300px;
+  /* short enough that a card with two lines of text is not mostly picture */
+  min-height: 210px;
   border-radius: 18px 0 0 18px;
 }
 .buildlog-card .tvcard--blog .tvcard-body,
@@ -1600,13 +1601,13 @@ html {
 .news-list .tvcard--blog .tvcard-body,
 .news-list .tvcard--hardware .tvcard-body {
   justify-content: center;
-  padding: 34px 38px;
-  gap: 14px;
+  padding: 24px 30px;
+  gap: 10px;
   border-radius: 0 18px 18px 0;
 }
 .buildlog-card .tvcard-title,
 .news-list .tvcard-title {
-  font-size: clamp(22px, 2vw, 28px);
+  font-size: clamp(20px, 1.7vw, 25px);
   -webkit-line-clamp: 3;
   min-height: 0;
 }
