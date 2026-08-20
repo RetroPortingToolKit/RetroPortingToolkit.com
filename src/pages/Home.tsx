@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, type TabId } from "@/components/Tabs";
 import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
+import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { HeroReel } from "@/components/HeroReel";
 import {
   labAll,
@@ -19,7 +20,6 @@ import {
   useDocumentTitle,
 } from "@/lib/pageTitle";
 import { useOverlayOpen } from "@/lib/overlay";
-import { CardMotion } from "@/components/CardMotion";
 import { previewFor } from "@/generated/previews";
 import {
   PROOF_PRIMARY,
@@ -30,7 +30,6 @@ import {
   ACTION,
   FEATURED_POST,
   SECTION_TITLES,
-  type HomeActionCard,
   renderSegments,
 } from "@/lib/homeContent";
 
@@ -88,81 +87,31 @@ function HeadArrow() {
 // One shared media card for See it in action: static 16:9 poster, play badge,
 // creator attribution, one-line blurb. Never autoplays; the whole card is a
 // link (keyboard-activatable by nature).
-function MediaCard({ card, onActivate }: { card: HomeActionCard; onActivate: () => void }) {
-  return (
-    <a
-      className="media-card"
-      href={card.page}
-      onClick={(e) => {
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-        e.preventDefault();
-        onActivate();
-      }}
-      aria-label={`Watch on the project page: ${card.videoTitle}`}
-    >
-      <span className="media-card-frame">
-        {/* Ambient loop of the real thing, not a play button: the card links
-            to the internal video page where the full video is embedded. */}
-        <CardMotion
-          mp4={previewFor(card.page.split("/").pop())?.mp4}
-          poster={previewFor(card.page.split("/").pop())?.poster ?? card.poster}
-          alt={card.alt}
-        />
-      </span>
-      <span className="media-card-meta">
-        <span className="media-card-project">{card.project}</span>
-        <span className="media-card-title">{card.videoTitle}</span>
-        <span className="media-card-blurb">{card.blurb}</span>
-      </span>
-    </a>
-  );
-}
-
-// Featured project card: cover, title, platform, status metadata, one
-// capability line; opens the project page as a modal like every other card.
-function FeaturedCard({
-  slug,
-  capability,
-  cover,
-  alt,
-  onActivate,
-}: {
-  slug: string;
-  capability: string;
-  cover: string;
-  alt: string;
-  onActivate: () => void;
-}) {
+// Home cards are the same cards as the catalog: same component, same tilt,
+// same canvas-decoded clip. Only the blurb differs, since the home page says
+// something specific about why an item is here.
+function homeCard(
+  slug: string,
+  blurb: string,
+  fallbackCover: string,
+): LabMedia | null {
   const item = findItem("game", slug);
   if (!item) return null;
-  const path = pathFor("game", slug);
-  return (
-    <a
-      className="feature-card"
-      href={path}
-      onClick={(e) => {
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-        e.preventDefault();
-        onActivate();
-      }}
-    >
-      <span className="media-card-frame">
-        <CardMotion
-          mp4={previewFor(slug)?.mp4}
-          poster={previewFor(slug)?.poster ?? cover}
-          alt={alt}
-        />
-      </span>
-      <span className="media-card-meta">
-        <span className="media-card-project">{item.kicker}</span>
-        <span className="media-card-title">{item.title}</span>
-        <span className="media-card-blurb">{capability}</span>
-        <span className="media-card-credit">
-          {[item.status, item.availability].filter(Boolean).join(" · ")}
-        </span>
-      </span>
-    </a>
-  );
+  const clip = previewFor(slug);
+  const color =
+    item.kickerColor ?? chipColorFor(item.kicker) ?? CHIP_PALETTE[slug.length % CHIP_PALETTE.length];
+  return {
+    src: clip ? clip.mp4 : (item.cover ?? fallbackCover),
+    poster: clip?.poster,
+    slug,
+    title: item.title,
+    kicker: item.kicker,
+    desc: blurb,
+    tags: item.tags,
+    color,
+    kind: "game",
+    video: !!clip,
+  };
 }
 
 function SectionHead({
@@ -515,32 +464,20 @@ function TabContent({
                 <p>{CONSTRAINTS_INTRO}</p>
               </div>
               <div className="story-grid">
-                {STORIES.map((st) => (
-                  <a
-                    className="story-card"
-                    data-reveal
-                    key={st.title}
-                    href={st.href}
-                    onClick={(e) => {
-                      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                      e.preventDefault();
-                      const slug = st.href.split("/").pop() ?? "";
-                      onOpen({ kind: "game", slug } as LabMedia);
-                    }}
-                  >
-                    <span className="media-card-frame">
-                      <CardMotion
-                        mp4={previewFor(st.href.split("/").pop())?.mp4}
-                        poster={previewFor(st.href.split("/").pop())?.poster ?? st.image}
-                        alt={st.alt}
-                      />
-                    </span>
-                    <span className="media-card-meta">
-                      <span className="media-card-title">{st.title}</span>
-                      <span className="media-card-blurb">{st.body}</span>
-                    </span>
-                  </a>
-                ))}
+                {STORIES.map((st) => {
+                  const slug = st.href.split("/").pop() ?? "";
+                  const media = homeCard(slug, st.body, st.image);
+                  if (!media) return null;
+                  // The story's own headline leads the card, not the game name.
+                  return (
+                    <SpatialCard
+                      key={st.title}
+                      media={{ ...media, title: st.title }}
+                      onOpen={onOpen}
+                      still={!interactive}
+                    />
+                  );
+                })}
               </div>
               <p className="hn-note" data-reveal>
                 <strong>{PLATFORM_NOTE.title}</strong> {PLATFORM_NOTE.body}
@@ -591,16 +528,17 @@ function TabContent({
                 onNav={onNav}
               />
               <div className="home-strip">
-                {FEATURED.map((fp) => (
-                  <FeaturedCard
-                    key={fp.slug}
-                    slug={fp.slug}
-                    capability={fp.capability}
-                    cover={fp.cover}
-                    alt={fp.alt}
-                    onActivate={() => onOpen({ kind: "game", slug: fp.slug } as LabMedia)}
-                  />
-                ))}
+                {FEATURED.map((fp) => {
+                  const media = homeCard(fp.slug, fp.capability, fp.cover);
+                  return media ? (
+                    <SpatialCard
+                      key={fp.slug}
+                      media={media}
+                      onOpen={onOpen}
+                      still={!interactive}
+                    />
+                  ) : null;
+                })}
               </div>
             </div>
           </section>
@@ -611,16 +549,20 @@ function TabContent({
                 {SECTION_TITLES.action}
               </h2>
               <div className="home-strip">
-                {ACTION.map((card) => (
-                  <MediaCard
-                    key={card.page}
-                    card={card}
-                    onActivate={() => {
-                      const slug = card.page.split("/").pop() ?? "";
-                      onOpen({ kind: "game", slug } as LabMedia);
-                    }}
-                  />
-                ))}
+                {ACTION.map((card) => {
+                  const slug = card.page.split("/").pop() ?? "";
+                  const media = homeCard(slug, card.blurb, card.poster);
+                  if (!media) return null;
+                  // The video's title leads here, since this row is coverage.
+                  return (
+                    <SpatialCard
+                      key={card.page}
+                      media={{ ...media, title: card.videoTitle }}
+                      onOpen={onOpen}
+                      still={!interactive}
+                    />
+                  );
+                })}
               </div>
               <p className="hn-index-links" data-reveal>
                 <SmartLink href="/blog" className="hn-rec-link">

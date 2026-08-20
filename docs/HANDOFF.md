@@ -332,3 +332,18 @@ card on the still).
 
 Rule of thumb: any visibility gate is a way for a card to freeze. Only gate
 where the card count actually justifies it.
+
+
+## Home cards ARE catalog cards (2026-08-19)
+
+The home page no longer has bespoke card components. Stories, "Playable
+today" and "Watch it run" all render `SpatialCard`, the same component the
+Games and Platforms grids use, built by the `homeCard()` helper in
+src/pages/Home.tsx. Only the blurb (and, for stories and the coverage row,
+the headline) is overridden; the media, tilt, chip logic and canvas-decoded
+playback are shared.
+
+This is why: three separate card implementations meant three chances to get
+Safari playback wrong, and the home one was the one that was wrong. There is
+now a single path. `CardMotion` and its CSS are deleted; do not reintroduce a
+second card component for the home page.
