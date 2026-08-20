@@ -1,12 +1,10 @@
 ---
 headerName: "Retro Porting Toolkit"
-heroTitle: "Bring classic console games to modern hardware."
-role: "Retro Porting Toolkit"
+heroTitle: "Retro Porting Toolkit can convert code from original console games into modern apps (for PC and more)."
+role: "An open ecosystem"
 eyebrow: "An open ecosystem"
-tagline: "Retro Porting Toolkit is an open ecosystem for turning code from original console games into modern apps."
+tagline: "It can combine modern decompilation and recompilation techniques, to unlock features that emulators couldn't achieve."
 locations:
   - "Open source"
 email: "hello@retroportingtoolkit.com"
 ---
-
-Depending on the project, that can unlock true widescreen, higher frame rates, modern controls, online play, save states, translations, and deep modding.
