@@ -497,31 +497,14 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
             </div>
           )}
           {item.kind === "blog" && <ArticleByline item={item} delay={240} />}
-          {item.kind !== "blog" &&
-            (item.status ||
-              item.availability ||
-              item.arch ||
-              item.provenance ||
-              item.verified ||
-              item.meta.length > 0) && (
-              <div className="modal-meta blur-in" style={delayed(220)}>
-                {item.status && <span className="pill">{item.status}</span>}
-                {item.availability && <span className="pill">{item.availability}</span>}
-                {item.provenance && (
-                  <span className="pill">
-                    {item.provenance === "core" ? "Core project" : "Community project"}
-                  </span>
-                )}
-                {item.meta.map((m, i) => (
-                  <span key={i} className="pill">
-                    {m}
-                  </span>
-                ))}
-                {item.verified && (
-                  <span className="pill">Last verified {formatArticleDate(item.verified)}</span>
-                )}
-              </div>
-            )}
+          {/* One pill, the only one a reader needs at a glance: can I play it?
+              Provenance, packaging, architecture and verification dates are
+              jargon here; the writeup and Sources carry them. */}
+          {item.kind !== "blog" && item.status && (
+            <div className="modal-meta blur-in" style={delayed(220)}>
+              <span className="pill">{item.status}</span>
+            </div>
+          )}
           {item.kind !== "blog" && item.repo && (
             <a
               className="project-cta blur-in"
@@ -702,30 +685,14 @@ function DefaultDetail({ item }: { item: Item }) {
               duration={360}
               delay={40}
             />
-            {(item.venue ||
-              item.status ||
-              item.availability ||
-              item.arch ||
-              item.provenance ||
-              item.verified ||
-              item.meta.length > 0) && (
+            {item.kind === "blog" && item.venue && (
               <div className="modal-meta blur-in" style={delayed(220)}>
-                {item.status && <span className="pill">{item.status}</span>}
-                {item.availability && <span className="pill">{item.availability}</span>}
-                {item.provenance && (
-                  <span className="pill">
-                    {item.provenance === "core" ? "Core project" : "Community project"}
-                  </span>
-                )}
-                {item.venue && <span className="pill">{item.venue}</span>}
-                {item.meta.map((m, i) => (
-                  <span key={i} className="pill">
-                    {m}
-                  </span>
-                ))}
-                {item.verified && (
-                  <span className="pill">Last verified {formatArticleDate(item.verified)}</span>
-                )}
+                <span className="pill">{item.venue}</span>
+              </div>
+            )}
+            {item.kind !== "blog" && item.status && (
+              <div className="modal-meta blur-in" style={delayed(220)}>
+                <span className="pill">{item.status}</span>
               </div>
             )}
             {item.repo && (
