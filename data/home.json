@@ -1,6 +1,6 @@
 {
   "proof": [
-    "Emulators recreate a console so they can run its library. Retro Porting Toolkit recompiles one game at a time instead, keeping the original game logic and replacing the hardware constraints around it. Less breadth, far more control over rendering, input, networking, and behavior."
+    "Retro Porting Toolkit keeps the original game logic while freeing it from the hardware it was built for. That means native widescreen, modern controls, higher frame rates, online play, bug fixes, modding, and entirely new features, not just a more accurate recreation of the original console."
   ],
   "philosophy": [
     "Go native. Windows, Linux, macOS, Android, even the browser. No emulator core in sight.",
@@ -108,7 +108,7 @@
     "alt": "Building and Enhancing Recomps article cover"
   },
   "sectionTitles": {
-    "proof": "A different path from emulation.",
+    "proof": "Emulation lets old games run. Recompilation lets them evolve.",
     "constraints": "Preserve the game. Replace the constraints.",
     "featured": "Playable today.",
     "action": "Watch it run."
