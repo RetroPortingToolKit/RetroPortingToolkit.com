@@ -27,7 +27,7 @@
       "href": "/games/boktai"
     },
     {
-      "title": "The words can change while the game runs.",
+      "title": "Change the words. Mid-game.",
       "body": "Faxanadu is the showcase for the NES framework's text override: dialogue and glyphs are replaced at runtime from a data file, with hot reload, so an edit shows up in the running game about a second later. The same idea carries a whole game on PlayStation, where Tsumu Light, a puzzle game that never left Japan, now reads in English without the disc being touched.",
       "image": "/covers/faxanadu-native.png",
       "alt": "Faxanadu running as a native PC application",
@@ -41,21 +41,24 @@
   "featured": [
     {
       "slug": "minish-cap",
-      "capability": "Compiles the paths you actually play, so rooms get faster the more you play them.",
+      "capability": "The Minish Cap keeps the routes you walk, so a room you revisit runs quicker, and quicker again next launch.",
       "cover": "/previews/minish-cap.webp",
-      "alt": "The Minish Cap running through the Game Boy Advance recompiler"
+      "alt": "The Minish Cap running through the Game Boy Advance recompiler",
+      "headline": "It gets faster the more you play."
     },
     {
       "slug": "mega-man-x6",
-      "capability": "203 mod items you switch on one at a time, adapted from acediez's Tweaks with permission.",
+      "capability": "Mega Man X6 carries an authorized adaptation of acediez's Tweaks, layered on while the game runs so the disc is never patched.",
       "cover": "/previews/mega-man-x6.webp",
-      "alt": "Mega Man X6 running as a native application"
+      "alt": "Mega Man X6 running as a native application",
+      "headline": "203 mods. Every one a switch."
     },
     {
       "slug": "super-mario-bros",
-      "capability": "Finish it as Mario, or hand his job to Pikachu, Samus, Link, Captain Falcon, or Sonic.",
+      "capability": "Super Mario Bros. as a native PC game, finishable as Pikachu, Samus, Link, Captain Falcon, or Sonic.",
       "cover": "/previews/super-mario-bros.webp",
-      "alt": "Super Mario Bros. running with Pikachu in Mario's place"
+      "alt": "Super Mario Bros. running with Pikachu in Mario's place",
+      "headline": "Mario's job is optional."
     }
   ],
   "action": [
@@ -65,7 +68,8 @@
       "project": "Street Fighter Alpha 3",
       "poster": "/previews/street-fighter-alpha-3.webp",
       "alt": "Street Fighter Alpha 3 running as a native build",
-      "blurb": "About five minutes of game-specific work took a disc to a running native build, outside the core team. The video is the record."
+      "blurb": "Street Fighter Alpha 3, taken to a running build by someone outside the core team. There is no public download, so the video is the record.",
+      "headline": "Five minutes from disc to native."
     },
     {
       "page": "/games/metroid-prime-hunters",
@@ -73,7 +77,8 @@
       "project": "Metroid Prime Hunters",
       "poster": "/previews/metroid-prime-hunters.webp",
       "alt": "Metroid Prime Hunters running with mouse aiming",
-      "blurb": "WASD and mouse aiming stand in for the stylus, in a public alpha."
+      "blurb": "Metroid Prime Hunters in a public alpha, with the DS framework underneath it still research.",
+      "headline": "Aim a DS shooter with your mouse."
     },
     {
       "page": "/games/retcomm-rbengine",
@@ -81,7 +86,8 @@
       "project": "retcomm-rbengine",
       "poster": "/covers/tomba-rewind.jpg",
       "alt": "Tomba! with the rewind timeline open",
-      "blurb": "Tomba! is what you watch. The rollback engine is the point, and any host can pick it up."
+      "blurb": "You are watching Tomba!, but the engine is the point: lifted out of the PlayStation runtime so any host can pick it up.",
+      "headline": "Rewind, built once for everyone."
     }
   ],
   "featuredPost": {
@@ -90,7 +96,8 @@
     "title": "Building & Enhancing Recomps: Ecosystem Updates",
     "blurb": "Where every ecosystem stands, including the parts barely standing: the GameCube's own system menu, the CD-i reaching Hotel Mario's title card, and one green dot out of the Xbox research.",
     "cover": "/covers/build-log-ecosystem.jpg",
-    "alt": "Building and Enhancing Recomps article cover"
+    "alt": "Building and Enhancing Recomps article cover",
+    "headline": "Every ecosystem, exactly where it stands."
   },
   "sectionTitles": {
     "proof": "Emulation lets old games run. Recompilation lets them evolve.",

@@ -537,7 +537,7 @@ function TabContent({
                     media={{
                       src: featuredPost.cover,
                       slug: featuredPost.slug,
-                      title: featuredPost.title,
+                      title: featuredPost.headline ?? featuredPost.title,
                       kicker: featuredPost.eyebrow,
                       desc: featuredPost.blurb,
                       color: chipColorFor("1379.tech") ?? CHIP_PALETTE[0],
@@ -563,10 +563,11 @@ function TabContent({
               <div className="home-strip">
                 {FEATURED.map((fp) => {
                   const media = homeCard(fp.slug, fp.capability, fp.cover, fp.still === true);
-                  return media ? (
+                  const titled = media && { ...media, title: fp.headline ?? media.title };
+                  return titled ? (
                     <SpatialCard
                       key={fp.slug}
-                      media={media}
+                      media={titled}
                       onOpen={onOpen}
                       still={!interactive}
                     />
@@ -590,7 +591,7 @@ function TabContent({
                   return (
                     <SpatialCard
                       key={card.page}
-                      media={{ ...media, title: card.videoTitle }}
+                      media={{ ...media, title: card.headline ?? card.videoTitle }}
                       onOpen={onOpen}
                       still={!interactive}
                     />

@@ -410,6 +410,7 @@ function readHomeProse() {
     : null;
   out.featured = (data.featured || []).map((e) => ({
     slug: String(e.slug || ""),
+    headline: String(e.headline || ""),
     capability: String(e.capability || ""),
     cover: String(e.cover || ""),
     alt: String(e.alt || ""),
@@ -427,12 +428,14 @@ function readHomeProse() {
         eyebrow: String(data.featuredPost.eyebrow || ""),
         title: String(data.featuredPost.title || ""),
         blurb: String(data.featuredPost.blurb || ""),
+        headline: String(data.featuredPost.headline || ""),
         cover: String(data.featuredPost.cover || ""),
         alt: String(data.featuredPost.alt || ""),
       }
     : null;
   out.action = (data.action || []).map((e) => ({
     videoTitle: String(e.videoTitle || ""),
+    headline: String(e.headline || ""),
     project: String(e.project || ""),
     page: String(e.page || ""),
     poster: String(e.poster || ""),
@@ -472,7 +475,7 @@ function homeStaticHtml(items) {
   if (prose.featuredPost) {
     parts.push(
       `<h2>${escapeHtml(prose.featuredPost.eyebrow || "From the build log")}</h2>` +
-        `<p><a href="/blog/${escapeAttr(prose.featuredPost.slug)}">${escapeHtml(prose.featuredPost.title)}</a>: ${escapeHtml(prose.featuredPost.blurb)}</p>`,
+        `<p><a href="/blog/${escapeAttr(prose.featuredPost.slug)}">${escapeHtml(prose.featuredPost.headline || prose.featuredPost.title)}</a>: ${escapeHtml(prose.featuredPost.blurb)}</p>`,
     );
   }
   if (prose.featured.length) {
@@ -489,7 +492,7 @@ function homeStaticHtml(items) {
     parts.push(`<h2>${escapeHtml(prose.sectionTitles.action)}</h2><ul>`);
     for (const c of prose.action) {
       parts.push(
-        `<li><a href="${escapeAttr(c.page)}">${escapeHtml(c.videoTitle)}</a>: ${escapeHtml(c.blurb)}</li>`,
+        `<li><a href="${escapeAttr(c.page)}">${escapeHtml(c.headline || c.videoTitle)}</a>: ${escapeHtml(c.blurb)}</li>`,
       );
     }
     parts.push("</ul>");

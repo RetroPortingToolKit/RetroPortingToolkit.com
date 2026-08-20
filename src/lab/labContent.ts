@@ -181,7 +181,7 @@ function hardwareMedia(p: Item, i: number): LabMedia {
   };
   const chips: { label: string; color: string }[] = [];
   if (n > 0) {
-    chips.push({ label: `${n} ${n === 1 ? "game" : "games"}`, color: colorFor(p, i) });
+    chips.push({ label: `${n} ${n === 1 ? "game" : "games"}`, color: "#475569" });
   }
   if (p.maturity) {
     chips.push({ label: p.maturity, color: MATURITY[p.maturity] ?? colorFor(p, i) });

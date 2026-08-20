@@ -71,6 +71,8 @@ export interface HomeFeatured {
   /** show the cover instead of the clip, where motion would
       contradict what the card claims */
   still?: boolean;
+  /** card headline; falls back to the game's own title */
+  headline?: string;
 }
 
 export interface HomeActionCard {
@@ -80,6 +82,8 @@ export interface HomeActionCard {
   poster: string;
   alt: string;
   blurb: string;
+  /** card headline; falls back to the video's title */
+  headline?: string;
 }
 
 export interface HomeFeaturedPost {
@@ -89,6 +93,8 @@ export interface HomeFeaturedPost {
   blurb: string;
   cover: string;
   alt: string;
+  /** card headline; falls back to the article title */
+  headline?: string;
 }
 
 const extra = homeData as {
