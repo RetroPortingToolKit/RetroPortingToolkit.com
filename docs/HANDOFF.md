@@ -239,8 +239,12 @@ exist publicly (only xboxlle-probe).
   checks attributed to the runtime and hedged with "most projects", the green
   dot attributed to Xbox research rather than to a real console, and the
   Virtual Boy tech-demo status attributed to vbrecomp.
-- No clip: cd-i (source is only Philips boot logos) and game-boy-advance
-  (available window framed Link at the edge). Both keep static covers.
+- cd-i does now have a clip, cut from the shell/menu at 0 to 5s rather than
+  the Philips logos deeper in the same source.
+- Checking a clip for black bars: cropdetect gives FALSE POSITIVES on games
+  whose own background is black (Virtual Boy reports 494:352, GameCube 636:360
+  while being perfectly framed). Measure max luminance per edge strip across
+  the frames instead; a real letterbox bar stays pinned near 16.
 
 ## Media sourcing (2026-08-19, fourth pass)
 
