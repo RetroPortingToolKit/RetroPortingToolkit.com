@@ -201,6 +201,10 @@ export default function Admin() {
   const [authErr, setAuthErr] = useState<string | null>(null);
   const [hasPasskey, setHasPasskey] = useState(false);
   const [hasGithub, setHasGithub] = useState(false);
+  // GitHub is the primary way in. The password stays reachable as a fallback,
+  // one click away, so a GitHub outage or a bad allowlist cannot lock the
+  // owner out of their own CMS.
+  const [pwOpen, setPwOpen] = useState(false);
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
   const [setupMsg, setSetupMsg] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
@@ -872,6 +876,8 @@ export default function Admin() {
     );
   }
 
+  const showPwPath = !hasGithub || pwOpen;
+
   if (authNeeded) {
     return (
       <div className="applecms" style={{ ...styles.full, alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -891,13 +897,19 @@ export default function Admin() {
                 </svg>
                 Sign in with GitHub
               </a>
-              <div style={{ font: "400 13px/1 var(--ac-font-text)", color: "var(--ac-label-2)", textAlign: "center", margin: "12px 0" }}>
-                {hasPasskey ? "or use Face ID or your password" : "or use your password"}
-              </div>
+              {!pwOpen && (
+                <button
+                  className="cmsx-disc"
+                  style={{ ...styles.disclosure, width: "100%", textAlign: "center", marginTop: 14 }}
+                  onClick={() => setPwOpen(true)}
+                >
+                  {hasPasskey ? "Use Face ID or a password instead" : "Use a password instead"}
+                </button>
+              )}
             </>
           )}
 
-          {hasPasskey && (
+          {showPwPath && hasPasskey && (
             <>
               <button
                 onClick={signInPasskey}
@@ -912,6 +924,7 @@ export default function Admin() {
             </>
           )}
 
+          {showPwPath && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -936,8 +949,9 @@ export default function Admin() {
               {authBusy ? "Signing in..." : "Sign in"}
             </button>
           </form>
+          )}
 
-          {!hasPasskey && (
+          {showPwPath && !hasPasskey && (
             <button className="cmsx-disc" style={{ ...styles.disclosure, marginTop: 14 }} onClick={() => setupPasskey(pw)} disabled={!pw}>
               Set up Face ID with this password
             </button>
@@ -1548,6 +1562,28 @@ const styles: Record<string, React.CSSProperties> = {
 };
 
 const hoverCss = `
+/* The admin UI is styled from its own --ac-* token set. These map onto the
+   site tokens in 01-base.css, so the CMS follows the site's light/dark theme
+   for free. Without them every var(--ac-*) reference resolves to nothing:
+   buttons lose their background and keep color:#fff, i.e. they vanish. */
+.applecms {
+  --ac-font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ac-bg: var(--bg, #ffffff);
+  --ac-label: var(--ink, #1d1d1f);
+  --ac-label-2: var(--ink-2, #424245);
+  --ac-separator: var(--hairline-2, #e8e8ed);
+  --ac-accent: var(--accent, #0066cc);
+  --ac-red: #d70015;
+  --ac-fill-4: rgba(120, 120, 128, 0.12);
+  --ac-radius-control: 8px;
+  --ac-radius-field: 8px;
+  color: var(--ac-label);
+  background: var(--ac-bg);
+}
+[data-theme="dark"] .applecms { --ac-red: #ff453a; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .applecms { --ac-red: #ff453a; }
+}
 .cmsx-save:not(:disabled):hover { filter: brightness(1.04); }
 .cmsx-disc:hover, .cmsx-link:hover { text-decoration: underline; }
 .cmsx-ghost:hover { background: var(--ac-fill-4); }
