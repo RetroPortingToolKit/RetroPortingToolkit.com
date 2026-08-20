@@ -94,10 +94,13 @@ function homeCard(
   slug: string,
   blurb: string,
   fallbackCover: string,
+  /** force the still: for cards whose claim is something the clip does not
+      show, where motion would contradict the copy */
+  forceStill = false,
 ): LabMedia | null {
   const item = findItem("game", slug);
   if (!item) return null;
-  const clip = previewFor(slug);
+  const clip = forceStill ? undefined : previewFor(slug);
   const color =
     item.kickerColor ?? chipColorFor(item.kicker) ?? CHIP_PALETTE[slug.length % CHIP_PALETTE.length];
   return {
@@ -488,33 +491,30 @@ function TabContent({
           {featuredPost && (
             <section className="hn-section" aria-label="From the build log">
               <div className="hn-container">
-                <a
-                  className="buildlog-banner"
-                  data-reveal
-                  href={`/blog/${featuredPost.slug}`}
-                  onClick={(e) => {
-                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-                    e.preventDefault();
-                    onOpen({ kind: "blog", slug: featuredPost.slug } as LabMedia);
-                  }}
-                >
-                  <span className="buildlog-banner-media">
-                    <img
-                      src={featuredPost.cover}
-                      alt={featuredPost.alt}
-                      width={1280}
-                      height={720}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </span>
-                  <span className="buildlog-banner-text">
-                    <span className="buildlog-banner-eyebrow">{featuredPost.eyebrow}</span>
-                    <span className="buildlog-banner-title">{featuredPost.title}</span>
-                    <span className="buildlog-banner-blurb">{featuredPost.blurb}</span>
-                    <span className="buildlog-banner-cta">Read the update <HeadArrow /></span>
-                  </span>
-                </a>
+                <SectionHead
+                  title={featuredPost.eyebrow}
+                  to="/blog"
+                  count={labAll.blog.length}
+                  onNav={onNav}
+                />
+                {/* The same card as everywhere else, so the build log does not
+                    read as a different species of thing. */}
+                <div className="home-strip">
+                  <SpatialCard
+                    media={{
+                      src: featuredPost.cover,
+                      slug: featuredPost.slug,
+                      title: featuredPost.title,
+                      kicker: featuredPost.eyebrow,
+                      desc: featuredPost.blurb,
+                      color: chipColorFor("1379.tech") ?? CHIP_PALETTE[0],
+                      kind: "blog",
+                      video: false,
+                    }}
+                    onOpen={onOpen}
+                    still={!interactive}
+                  />
+                </div>
               </div>
             </section>
           )}
@@ -529,7 +529,7 @@ function TabContent({
               />
               <div className="home-strip">
                 {FEATURED.map((fp) => {
-                  const media = homeCard(fp.slug, fp.capability, fp.cover);
+                  const media = homeCard(fp.slug, fp.capability, fp.cover, fp.still === true);
                   return media ? (
                     <SpatialCard
                       key={fp.slug}

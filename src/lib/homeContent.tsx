@@ -68,6 +68,9 @@ export interface HomeFeatured {
   capability: string;
   cover: string;
   alt: string;
+  /** show the cover instead of the clip, where motion would
+      contradict what the card claims */
+  still?: boolean;
 }
 
 export interface HomeActionCard {

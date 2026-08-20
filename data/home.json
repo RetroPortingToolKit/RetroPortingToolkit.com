@@ -1,7 +1,6 @@
 {
   "proof": [
-    "Emulators recreate a console so they can run its library. Retro Porting Toolkit recompiles one game at a time instead, keeping the original game logic and replacing the hardware constraints around it. Less breadth, far more control over rendering, input, networking, and behavior.",
-    "Correctness is measured against the emulator cores the community already trusts. Seven PlayStation games are playable today. The Virtual Boy has one, and vbrecomp still calls itself a tech demo."
+    "Emulators recreate a console so they can run its library. Retro Porting Toolkit recompiles one game at a time instead, keeping the original game logic and replacing the hardware constraints around it. Less breadth, far more control over rendering, input, networking, and behavior."
   ],
   "philosophy": [
     "Go native. Windows, Linux, macOS, Android, even the browser. No emulator core in sight.",
@@ -56,7 +55,8 @@
       "slug": "legend-of-zelda",
       "capability": "Every room stands up as a diorama you can orbit, or a view from Link's own eyes.",
       "cover": "/covers/zelda-voxel.webp",
-      "alt": "The Legend of Zelda rendered as a raised 3D diorama"
+      "alt": "The Legend of Zelda rendered as a raised 3D diorama",
+      "still": true
     },
     {
       "slug": "twisted-metal-4",

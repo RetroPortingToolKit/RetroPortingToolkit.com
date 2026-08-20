@@ -1514,10 +1514,13 @@ html {
   scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  /* let the cards' shadows breathe without clipping */
-  padding: 6px 6px 14px;
-  margin-inline: -6px;
-  scroll-padding-inline: 6px;
+  /* A scroll container clips on BOTH axes, so the card shadows were being
+     cut into a visible rectangle. The hover shadow reaches 44px down and
+     about 40px out, so pad past that and pull the space back with negative
+     margins (the trick .tv-grid.tv-strip already uses). */
+  padding: 48px 44px 96px;
+  margin: -44px -44px -92px;
+  scroll-padding-inline: 44px;
 }
 .home-strip::-webkit-scrollbar {
   display: none;
@@ -1531,47 +1534,25 @@ html {
   }
 }
 
-/* Card chrome for the home rows. */
-.home-strip .media-card,
-.home-strip .feature-card {
-  gap: 0;
-  background: var(--bg);
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
-}
-.home-strip .media-card-frame {
-  border-radius: 18px 18px 0 0;
-}
-.home-strip .media-card-meta {
-  padding: 15px 17px 19px;
-  gap: 5px;
-}
-.home-strip .media-card-blurb {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 
-/* Capability stories are cards too, same chrome as the strips. */
-.story-grid .story-card {
-  gap: 0;
-  background: var(--bg);
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+
+/* Card text block: breathing room under the headline, and space reserved for
+   two lines of title plus three of description on every card, so rows line up
+   and short blurbs do not produce stubby cards. */
+.tvcard--game .tvcard-body,
+.tvcard--hardware .tvcard-body,
+.tvcard--blog .tvcard-body {
+  padding: 18px 20px 24px;
+  gap: 10px;
 }
-.story-grid .media-card-frame {
-  border-radius: 18px 18px 0 0;
+.tvcard--game .tvcard-title,
+.tvcard--hardware .tvcard-title,
+.tvcard--blog .tvcard-title {
+  min-height: 2.44em;
 }
-.story-grid .media-card-meta {
-  padding: 15px 17px 19px;
-  gap: 5px;
-}
-.story-grid .media-card-blurb {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.tvcard--game .tvcard-desc,
+.tvcard--hardware .tvcard-desc,
+.tvcard--blog .tvcard-desc {
+  -webkit-line-clamp: 3;
+  min-height: 4.3em;
 }
