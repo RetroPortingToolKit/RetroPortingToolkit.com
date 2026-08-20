@@ -6,6 +6,7 @@ featured: false
 desc: "Sonic the Hedgehog 1, 2, and 3 & Knuckles rebuilt as native apps from your own cartridge, with opt-in widescreen that shows more of the stage."
 year: "2026"
 status: "Playable alpha"
+maturity: "Beta"
 availability: "Source only"
 provenance: "core"
 arch: "Motorola 68000"

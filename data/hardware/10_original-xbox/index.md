@@ -6,6 +6,7 @@ featured: false
 desc: "Research with no public release: the Xbox work checks its answers against a real console, and only the probing tool is public so far."
 year: "2026"
 status: "Research"
+maturity: "Alpha"
 availability: "No public release"
 provenance: "core"
 arch: "Intel Pentium III (x86)"

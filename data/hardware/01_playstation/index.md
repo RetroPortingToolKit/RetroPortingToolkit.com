@@ -6,6 +6,7 @@ featured: true
 desc: "Seven core-team games are playable today, and the same framework powers community ports of Spyro, Xenogears, and Pepsiman."
 year: "2026"
 status: "Playable alpha"
+maturity: "Beta"
 availability: "Public build"
 provenance: "core"
 arch: "MIPS R3000A"

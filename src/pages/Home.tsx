@@ -190,7 +190,8 @@ function TabGrid({
               : m.kicker !== "Video",
         )
       : labAll[kind];
-  const lead = kind === "blog" ? all : all.filter((m) => !m.group);
+  // Platforms and news are single blended lists; only games keep sections.
+  const lead = kind === "game" ? all.filter((m) => !m.group) : all;
   const groups: { label: string; items: LabMedia[] }[] = [];
   for (const m of all) {
     if (!m.group) continue;
@@ -233,7 +234,7 @@ function TabGrid({
             ))}
           </div>
         )}
-        {kind !== "blog" && groups.map((g) => (
+        {kind === "game" && groups.map((g) => (
           <Fragment key={g.label}>
             <h2 className="hn-h2 hn-side-title">{g.label}</h2>
             {GROUP_NOTES[g.label] && (

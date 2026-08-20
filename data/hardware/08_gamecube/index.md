@@ -6,6 +6,7 @@ featured: false
 desc: "Research only: the GameCube's own system menu, rolling cube and all, boots natively from a firmware dump you provide. No playable games yet."
 year: "2026"
 status: "Research"
+maturity: "Alpha"
 availability: "Source only"
 provenance: "core"
 arch: "PowerPC (Gekko)"

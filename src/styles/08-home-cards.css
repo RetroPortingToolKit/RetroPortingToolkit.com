@@ -1612,3 +1612,22 @@ html {
     padding: 20px 22px 26px;
   }
 }
+
+/* Platform card meta chips: catalogue size and maturity, quiet next to the
+   title rather than competing with it. */
+.tvcard-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tvcard-metachip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}

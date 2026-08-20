@@ -249,6 +249,7 @@ export function parseItem(path: string, raw: string): Item | null {
     platform: asString(fm.platform) || undefined,
     arch: asString(fm.arch) || undefined,
     repo: asString(fm.repo) || undefined,
+    maturity: asString(fm.maturity) || undefined,
   };
 }
 

@@ -6,6 +6,7 @@ featured: true
 desc: "Ten commercial NES games rebuilt as native apps from your own cartridge dump, no BIOS needed, including a Zelda you can orbit in 3D."
 year: "2026"
 status: "Playable alpha"
+maturity: "Beta"
 availability: "Source only"
 provenance: "core"
 arch: "6502"

@@ -6,6 +6,7 @@ featured: true
 desc: "Fifteen Game Boy Advance titles running as experimental previews, with a wider view that shows more of the world and a phone build whose gyroscope stands in for the tilt cartridge."
 year: "2026"
 status: "Playable alpha"
+maturity: "Beta"
 availability: "Public build"
 provenance: "core"
 arch: "ARM7TDMI"

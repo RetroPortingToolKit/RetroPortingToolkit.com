@@ -6,6 +6,7 @@ featured: true
 desc: "Three released games, from a fully playable Mega Man X to an early Link to the Past build, with widescreen and CD-quality music."
 year: "2026"
 status: "Playable alpha"
+maturity: "Beta"
 availability: "Public build"
 provenance: "core"
 arch: "65816"

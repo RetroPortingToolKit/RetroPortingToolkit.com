@@ -6,6 +6,7 @@ featured: false
 desc: "Very early research on rebuilding both DS processors; one public game, Metroid Prime Hunters, is in public alpha."
 year: "2026"
 status: "Research"
+maturity: "Alpha"
 availability: "Source only"
 provenance: "core"
 arch: "ARM946E-S + ARM7TDMI"

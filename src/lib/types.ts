@@ -68,6 +68,8 @@ export interface Item {
   provenance?: "core" | "community";
   /** Games items: slug of the hardware ecosystem page this project runs on. */
   platform?: string;
+  /** "Beta" | "Alpha": how far along a platform ecosystem is */
+  maturity?: string;
   /** Hardware items: the original processor architecture (e.g. "MIPS R3000A"). */
   arch?: string;
   /** Canonical source repository URL. */

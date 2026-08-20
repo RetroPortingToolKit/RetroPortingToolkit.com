@@ -6,6 +6,7 @@ featured: false
 desc: "One commercial title, Mario's Tennis, running as a native tech demo on Windows, macOS, and Linux, built from your own cartridge dump."
 year: "2026"
 status: "Tech demo"
+maturity: "Alpha"
 availability: "Source only"
 provenance: "core"
 arch: "NEC V810"

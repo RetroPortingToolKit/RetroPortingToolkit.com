@@ -33,6 +33,10 @@ export interface LabMedia {
   video: boolean;
   // project shelf ("side" = fun side projects, shown separately on the tab)
   group?: string;
+  /** small labels rendered on the card, e.g. "12 games", "Beta" */
+  chips?: string[];
+  /** sort key for the platform grid */
+  weight?: number;
 }
 
 // Same colored-kicker logic as the site cards, with a palette fallback so every
@@ -158,6 +162,21 @@ function blogMedia(p: Item, i: number): LabMedia {
   return staticMedia(p, i, "blog", "blog");
 }
 
+// How many game pages name this platform: the number a reader actually wants.
+const GAME_COUNT: Record<string, number> = {};
+for (const g of GAMES) {
+  if (g.platform) GAME_COUNT[g.platform] = (GAME_COUNT[g.platform] ?? 0) + 1;
+}
+
+function hardwareMedia(p: Item, i: number): LabMedia {
+  const media = projectMedia(p, i, "hardware", "hardware");
+  const n = GAME_COUNT[p.slug] ?? 0;
+  const chips: string[] = [];
+  if (n > 0) chips.push(`${n} ${n === 1 ? "game" : "games"}`);
+  if (p.maturity) chips.push(p.maturity);
+  return { ...media, chips, weight: n };
+}
+
 // Per-kind decks for the home strips (featured items only, falling back to the
 // full list when nothing is flagged featured).
 const featuredOf = <T extends { featured?: boolean }>(list: T[]): T[] => {
@@ -166,7 +185,7 @@ const featuredOf = <T extends { featured?: boolean }>(list: T[]): T[] => {
 };
 
 export const labHardware: LabMedia[] = featuredOf(HARDWARE).map((p, i) =>
-  projectMedia(p, i, "hardware", "hardware"),
+  hardwareMedia(p, i),
 );
 export const labGames: LabMedia[] = featuredOf(GAMES).map((p, i) =>
   projectMedia(p, i, "game", "game"),
@@ -176,7 +195,10 @@ export const labBlog: LabMedia[] = featuredOf(BLOGS).map(blogMedia);
 // Full per-kind decks for the tab pages, in authored (NN_ prefix) order so the
 // group headings the tab grids build from `group` stay in the authored order.
 export const labAll: Record<LabKind, LabMedia[]> = {
-  hardware: HARDWARE.map((p, i) => projectMedia(p, i, "hardware", "hardware")),
+  // One blended list, most-supported platform first.
+  hardware: [...HARDWARE]
+    .map((p, i) => hardwareMedia(p, i))
+    .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0)),
   game: GAMES.map((p, i) => projectMedia(p, i, "game", "game")),
   blog: BLOGS.map(blogMedia),
 };

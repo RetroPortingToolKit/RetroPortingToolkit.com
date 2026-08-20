@@ -6,6 +6,7 @@ featured: false
 desc: "Very early research that rebuilds the entire Philips CD-i player software; Hotel Mario reaches its title card, and gameplay is not yet reachable."
 year: "2026"
 status: "Research"
+maturity: "Alpha"
 availability: "Source only"
 provenance: "core"
 arch: "Philips SCC68070"

@@ -347,3 +347,20 @@ This is why: three separate card implementations meant three chances to get
 Safari playback wrong, and the home one was the one that was wrong. There is
 now a single path. `CardMotion` and its CSS are deleted; do not reintroduce a
 second card component for the home page.
+
+
+## Platform cards (2026-08-20)
+
+- Platform cards carry two meta chips: the number of game pages naming that
+  platform (computed in labContent from `platform:` frontmatter, never typed
+  by hand) and a maturity label read from a new `maturity:` field on each
+  data/hardware page ("Beta" for the five with playable catalogues,
+  "Alpha" for the research bring-ups). Change the label in the frontmatter,
+  not in a component.
+- The Platforms tab is one blended list sorted by game count, so the group
+  headings ("Active platform ecosystems" / "Early platform work") no longer
+  render. Only the Games tab still groups.
+- Watch the module init order in src/lab/labContent.ts: `labHardware` is
+  evaluated at import time, so anything it calls must be defined ABOVE it.
+  A `const` lookup table declared below it throws "Cannot access before
+  initialization" and blanks the whole site.
