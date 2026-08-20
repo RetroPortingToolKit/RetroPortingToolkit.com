@@ -63,6 +63,24 @@
       "capability": "Four players on one screen, on Windows, macOS, and Linux.",
       "cover": "/covers/tm4-boxart.png",
       "alt": "Twisted Metal 4 recompiled for modern systems"
+    },
+    {
+      "slug": "super-mario-bros",
+      "capability": "Finish it as Mario, or hand his job to Pikachu, Samus, Link, Captain Falcon, or Sonic.",
+      "cover": "/previews/super-mario-bros.webp",
+      "alt": "Super Mario Bros. running with Pikachu in Mario's place"
+    },
+    {
+      "slug": "mario-kart-super-circuit",
+      "capability": "60 FPS rendering the original developers left switched off, plus adaptive widescreen.",
+      "cover": "/previews/mario-kart-super-circuit.webp",
+      "alt": "Mario Kart Super Circuit racing in adaptive widescreen"
+    },
+    {
+      "slug": "sonic-the-hedgehog-2",
+      "capability": "The first native two player split-screen versus in the Genesis framework.",
+      "cover": "/previews/sonic-the-hedgehog-2.webp",
+      "alt": "Sonic the Hedgehog 2 running in Emerald Hill Zone"
     }
   ],
   "action": [

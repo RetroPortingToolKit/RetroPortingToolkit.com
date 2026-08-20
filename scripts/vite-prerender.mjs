@@ -536,7 +536,7 @@ function validateHomeMedia(items) {
     need(st.alt, `story "${st.title}": missing alt`);
     gamePageExists(st.href, `story "${st.title}"`);
   }
-  need(prose.featured.length === 4, `featured: expected 4 entries, found ${prose.featured.length}`);
+  need(prose.featured.length > 0 && prose.featured.length <= 8, `featured: expected 1-8 entries, found ${prose.featured.length}`);
   for (const fp of prose.featured) {
     const item = items.find((i) => i.kind === "game" && i.slug === fp.slug);
     need(item, `featured "${fp.slug}": no such game page`);
