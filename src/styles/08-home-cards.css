@@ -1513,22 +1513,26 @@ html {
   margin-top: 26px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
+  /* No scroll-snap: with a full-bleed strip the browser snapped the first
+     card to the padding edge, silently scrolling the row on load so it
+     opened mid-list. */
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   /* A scroll container clips on BOTH axes, so the card shadows were being
      cut into a visible rectangle. The hover shadow reaches 44px down and
      about 40px out, so pad past that and pull the space back with negative
      margins (the trick .tv-grid.tv-strip already uses). */
-  padding: 48px 44px 96px;
-  margin: -44px -44px -92px;
-  scroll-padding-inline: 44px;
+  padding-block: 48px 96px;
+  margin-block: -44px -92px;
+  /* Full bleed: the row runs to the screen edge so the next card continues
+     off the side rather than being sliced at the container boundary. The
+     padding puts the first card back on the container's left edge. */
+  margin-inline: calc(50% - 50vw);
+  padding-inline: calc(50vw - 50%);
+  scroll-padding-inline: calc(50vw - 50%);
 }
 .home-strip::-webkit-scrollbar {
   display: none;
-}
-.home-strip > * {
-  scroll-snap-align: start;
 }
 @media (max-width: 900px) {
   .home-strip {
@@ -1544,8 +1548,8 @@ html {
 .tvcard--game .tvcard-body,
 .tvcard--hardware .tvcard-body,
 .tvcard--blog .tvcard-body {
-  padding: 18px 20px 24px;
-  gap: 10px;
+  padding: 20px 22px 26px;
+  gap: 12px;
 }
 .tvcard--game .tvcard-title,
 .tvcard--hardware .tvcard-title,
