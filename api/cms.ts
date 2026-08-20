@@ -23,6 +23,107 @@ const PASSWORD = process.env.CMS_PASSWORD || "";
 const TOKEN = process.env.GITHUB_TOKEN || "";
 const RP_NAME = process.env.CMS_RP_NAME || "Content editor";
 
+// ------------------------------------------------------------------- identity
+// Who is allowed in, and as whom. Both lists live in environment variables so
+// nothing about the membership of this site is committed to a public repo.
+//
+//   CMS_ALLOWED_LOGINS  comma-separated GitHub logins, e.g. "alice,bob"
+//   CMS_AGENT_KEYS      comma-separated <login>:<label>:<sha256-of-token>
+//   CMS_GITHUB_CLIENT_ID / CMS_GITHUB_CLIENT_SECRET  the OAuth app
+//
+// Agent keys are stored only as SHA-256 hashes: the token itself is shown once,
+// when it is minted by scripts/cms-token.mjs, and cannot be recovered from here.
+const GH_CLIENT_ID = process.env.CMS_GITHUB_CLIENT_ID || "";
+const GH_CLIENT_SECRET = process.env.CMS_GITHUB_CLIENT_SECRET || "";
+
+export interface Actor {
+  /** GitHub login, or "owner" for the legacy password session */
+  login: string;
+  /** how they authenticated */
+  via: "github" | "password" | "agent";
+  /** the agent key's label, when via === "agent" */
+  agent?: string;
+}
+
+function csv(value: string): string[] {
+  return value.split(",").map((v) => v.trim()).filter(Boolean);
+}
+
+export function allowedLogins(env = process.env.CMS_ALLOWED_LOGINS || ""): string[] {
+  return csv(env).map((l) => l.toLowerCase());
+}
+
+export function isAllowedLogin(login: string, env?: string): boolean {
+  const list = allowedLogins(env);
+  return list.includes(login.trim().toLowerCase());
+}
+
+export interface AgentKey {
+  login: string;
+  label: string;
+  hash: string;
+}
+
+export function parseAgentKeys(env = process.env.CMS_AGENT_KEYS || ""): AgentKey[] {
+  const out: AgentKey[] = [];
+  for (const entry of csv(env)) {
+    const [login, label, hash] = entry.split(":");
+    if (!login || !label || !hash) continue;
+    out.push({ login: login.trim().toLowerCase(), label: label.trim(), hash: hash.trim().toLowerCase() });
+  }
+  return out;
+}
+
+export function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token, "utf8").digest("hex");
+}
+
+/** Match a bearer token against the configured agent keys, in constant time. */
+export function agentForToken(token: string, env?: string): AgentKey | null {
+  if (!token) return null;
+  const digest = hashToken(token);
+  let found: AgentKey | null = null;
+  // Compare against every key regardless of an early match so the time taken
+  // does not reveal how many keys are configured or which one matched.
+  for (const key of parseAgentKeys(env)) {
+    if (key.hash.length === digest.length && safeEqual(key.hash, digest)) found = key;
+  }
+  // An agent may only act while its owner is still on the allowlist, so
+  // removing a person revokes their agents too.
+  return found && isAllowedLogin(found.login) ? found : null;
+}
+
+function bearer(req: Request): string {
+  const h = req.headers.get("authorization") || "";
+  return h.toLowerCase().startsWith("bearer ") ? h.slice(7).trim() : "";
+}
+
+/** The identity behind this request, or null when it is not authenticated. */
+function actorFor(req: Request): Actor | null {
+  const token = bearer(req);
+  if (token) {
+    const key = agentForToken(token);
+    return key ? { login: key.login, via: "agent", agent: key.label } : null;
+  }
+  const payload = verifyPayload(readCookie(req, "cms_session"));
+  if (!payload) return null;
+  const sub = typeof payload.sub === "string" ? payload.sub : "";
+  if (payload.via === "github") {
+    // A login removed from the allowlist loses access on its next request,
+    // without waiting for the cookie to expire.
+    return isAllowedLogin(sub) ? { login: sub, via: "github" } : null;
+  }
+  return { login: sub || "owner", via: "password" };
+}
+
+/** How this actor should be credited in the commit trailer. */
+function actorLabel(actor: Actor | null): string {
+  if (!actor) return "unknown";
+  if (actor.via === "agent") return `${actor.login} via agent ${actor.agent}`;
+  if (actor.via === "github") return actor.login;
+  return "owner";
+}
+
 // ---------------------------------------------------------------- http helpers
 function json(body: unknown, status = 200, cookies: string[] = []): Response {
   const h = new Headers({ "content-type": "application/json", "cache-control": "no-store" });
@@ -100,7 +201,8 @@ function readChallenge(req: Request, purpose: "reg" | "auth"): string | null {
   return p.ch;
 }
 const clearChallenge = () => `cms_ch=; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=0`;
-const sessionCookie = () => `cms_session=${signPayload({ sub: "cms-admin" }, 7 * 24 * 3600_000)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`;
+const sessionCookie = (sub = "cms-admin", via: "password" | "github" = "password") =>
+  `cms_session=${signPayload({ sub, via }, 7 * 24 * 3600_000)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`;
 const clearSession = () => `cms_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
 // non-secret flag so the live site can show the "Edit page" button
 // Scope the hint to the registrable domain of whatever host is serving, so a
@@ -120,7 +222,10 @@ function hasSession(req: Request): boolean {
   return !!verifyPayload(readCookie(req, "cms_session"));
 }
 function authed(req: Request): boolean {
-  return !PASSWORD || hasSession(req);
+  if (actorFor(req)) return true;
+  // With no password and no allowlist configured the CMS is open, which is the
+  // template's unconfigured state; once either is set, access is closed.
+  return !PASSWORD && allowedLogins().length === 0 && parseAgentKeys().length === 0;
 }
 
 // -------------------------------------------------------------- github contents
@@ -140,14 +245,22 @@ async function ghReadFile(path: string): Promise<{ content: string; sha: string 
   const content = j.encoding === "base64" ? Buffer.from(j.content, "base64").toString("utf8") : j.content;
   return { content, sha: j.sha };
 }
-async function ghWriteFile(path: string, text: string, message: string): Promise<void> {
+async function ghWriteFile(path: string, text: string, message: string, actor?: Actor | null): Promise<void> {
   const existing = await ghReadFile(path);
   if (existing && existing.content === text) return; // no-op, avoid an empty commit
   const body: Record<string, unknown> = {
-    message,
+    // The trailer records who asked for the change; the commit author records
+    // it in git itself, so `git log` alone answers "who edited this".
+    message: actor ? `${message}\n\nEdited-by: ${actorLabel(actor)}` : message,
     content: Buffer.from(text, "utf8").toString("base64"),
     branch: BRANCH,
   };
+  if (actor && actor.via !== "password") {
+    body.author = {
+      name: actor.agent ? `${actor.login} (agent: ${actor.agent})` : actor.login,
+      email: `${actor.login}@users.noreply.github.com`,
+    };
+  }
   if (existing) body.sha = existing.sha;
   const r = await fetch(`${GH}/contents/${path}`, {
     method: "PUT",
@@ -244,7 +357,7 @@ async function readEditable(id: string) {
   return { id, type, raw: file.content };
 }
 
-async function writeHome(payload: Record<string, unknown>) {
+async function writeHome(payload: Record<string, unknown>, actor?: Actor | null) {
   const about = (payload.about || {}) as Record<string, unknown>;
   const fm = String(about.frontmatter ?? "");
   try {
@@ -272,14 +385,14 @@ async function writeHome(payload: Record<string, unknown>) {
       null,
       2,
     ) + "\n";
-  await ghWriteFile("data/about.md", aboutOut, "CMS: update Home hero (about.md)");
-  await ghWriteFile("data/home.json", homeOut, "CMS: update Home content (home.json)");
+  await ghWriteFile("data/about.md", aboutOut, "CMS: update Home hero (about.md)", actor);
+  await ghWriteFile("data/home.json", homeOut, "CMS: update Home content (home.json)", actor);
   return { ok: true };
 }
 
-async function writeEditable(id: string, payload: Record<string, unknown>) {
+async function writeEditable(id: string, payload: Record<string, unknown>, actor?: Actor | null) {
   if (!isAllowed(id)) return { ok: false, error: "not_editable" };
-  if (id === "page:home") return writeHome(payload);
+  if (id === "page:home") return writeHome(payload, actor);
   const type = typeOf(id);
   if (type === "md") {
     const fm = String(payload.frontmatter ?? "");
@@ -289,7 +402,7 @@ async function writeEditable(id: string, payload: Record<string, unknown>) {
       return { ok: false, error: `invalid YAML frontmatter: ${(e as Error).message}` };
     }
     const body = String(payload.body ?? "").replace(/\s+$/, "");
-    await ghWriteFile(id, `---\n${fm.trim()}\n---\n\n${body}\n`, `CMS: update ${id}`);
+    await ghWriteFile(id, `---\n${fm.trim()}\n---\n\n${body}\n`, `CMS: update ${id}`, actor);
     return { ok: true };
   }
   // json
@@ -299,7 +412,7 @@ async function writeEditable(id: string, payload: Record<string, unknown>) {
   } catch (e) {
     return { ok: false, error: `invalid JSON: ${(e as Error).message}` };
   }
-  await ghWriteFile(id, raw.endsWith("\n") ? raw : raw + "\n", `CMS: update ${id}`);
+  await ghWriteFile(id, raw.endsWith("\n") ? raw : raw + "\n", `CMS: update ${id}`, actor);
   return { ok: true };
 }
 
@@ -340,7 +453,7 @@ function stubFrontmatter(kind: string, title: string): string {
   return lines.join("\n");
 }
 
-async function createEditable(payload: Record<string, unknown>) {
+async function createEditable(payload: Record<string, unknown>, actor?: Actor | null) {
   const kind = String(payload.kind || "");
   const title = String(payload.title || "").trim();
   if (!(KINDS as readonly string[]).includes(kind)) return { ok: false, error: "unknown_kind" };
@@ -370,13 +483,12 @@ async function createEditable(payload: Record<string, unknown>) {
   if (!isAllowed(id)) return { ok: false, error: "refused" };
 
   const body = "Write the post here. This body renders as markdown on the item page.\n";
-  await ghWriteFile(id, `---\n${stubFrontmatter(kind, title)}\n---\n\n${body}`, `cms: add ${kind}/${slug}`);
+  await ghWriteFile(id, `---\n${stubFrontmatter(kind, title)}\n---\n\n${body}`, `cms: add ${kind}/${slug}`, actor);
   return { ok: true, id, slug, kind };
 }
 
 async function listEditable() {
   const paths = (await ghListTree()).map((e) => e.path);
-  const has = (p: string) => paths.includes(p);
   const groups: { group: string; items: { id: string; title: string; sub?: string; type: string }[] }[] = [];
 
   const pages = [{ id: "page:home", title: "Home", sub: "hero, proof, recognition, philosophy", type: "home" }];
@@ -497,11 +609,119 @@ async function passkeyAuthVerify(req: Request, body: Record<string, unknown>): P
   return json({ ok: true }, 200, [clearChallenge(), sessionCookie(), hintCookie(true)]);
 }
 
+// -------------------------------------------------------------- github oauth
+// Sign-in is delegated to GitHub: we never see a password, and the person's
+// login is what the commit is attributed to. The token we receive is used once
+// to read the profile and is never stored; writes still go through the site's
+// own GITHUB_TOKEN, so signing in grants no access to anyone's repositories.
+function originOf(req: Request): string {
+  const host = (req.headers.get("x-forwarded-host") || req.headers.get("host") || "").split(",")[0].trim();
+  const proto = (req.headers.get("x-forwarded-proto") || "https").split(",")[0].trim();
+  return `${proto}://${host}`;
+}
+
+/** Only same-site paths are accepted as a post-login destination. */
+function safeNext(raw: string | null): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/";
+  return raw;
+}
+
+function githubStart(req: Request): Response {
+  if (!GH_CLIENT_ID || !SECRET) return json({ error: "github_not_configured" }, 500);
+  const next = safeNext(new URL(req.url).searchParams.get("next"));
+  // The state is a signed, short-lived value, so a callback cannot be forged
+  // or replayed from another site.
+  const state = signPayload({ next, purpose: "oauth" }, 10 * 60_000);
+  const params = new URLSearchParams({
+    client_id: GH_CLIENT_ID,
+    redirect_uri: `${originOf(req)}/api/cms/auth/github/callback`,
+    scope: "read:user",
+    state,
+    allow_signup: "false",
+  });
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: `https://github.com/login/oauth/authorize?${params}`,
+      "set-cookie": `cms_oauth=${state}; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=600`,
+      "cache-control": "no-store",
+    },
+  });
+}
+
+function loginFailed(reason: string): Response {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location: `/?cms_login=${encodeURIComponent(reason)}`,
+      "set-cookie": `cms_oauth=; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=0`,
+      "cache-control": "no-store",
+    },
+  });
+}
+
+async function githubCallback(req: Request): Promise<Response> {
+  if (!GH_CLIENT_ID || !GH_CLIENT_SECRET) return json({ error: "github_not_configured" }, 500);
+  const url = new URL(req.url);
+  const code = url.searchParams.get("code") || "";
+  const state = url.searchParams.get("state") || "";
+  const cookie = readCookie(req, "cms_oauth");
+  const payload = verifyPayload(state);
+  if (!code || !payload || payload.purpose !== "oauth" || !cookie || !safeEqual(cookie, state)) {
+    return loginFailed("state");
+  }
+
+  const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+    method: "POST",
+    headers: { accept: "application/json", "content-type": "application/json" },
+    body: JSON.stringify({
+      client_id: GH_CLIENT_ID,
+      client_secret: GH_CLIENT_SECRET,
+      code,
+      redirect_uri: `${originOf(req)}/api/cms/auth/github/callback`,
+    }),
+  });
+  const tokenJson = (await tokenRes.json().catch(() => ({}))) as { access_token?: string };
+  if (!tokenRes.ok || !tokenJson.access_token) return loginFailed("exchange");
+
+  const userRes = await fetch("https://api.github.com/user", {
+    headers: {
+      authorization: `Bearer ${tokenJson.access_token}`,
+      accept: "application/vnd.github+json",
+      "user-agent": "cms",
+    },
+  });
+  const user = (await userRes.json().catch(() => ({}))) as { login?: string };
+  if (!userRes.ok || !user.login) return loginFailed("profile");
+  if (!isAllowedLogin(user.login)) return loginFailed("not_allowed");
+
+  return new Response(null, {
+    status: 302,
+    headers: [
+      ["location", safeNext(typeof payload.next === "string" ? payload.next : "/")],
+      ["set-cookie", `cms_oauth=; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=0`],
+      ["set-cookie", sessionCookie(user.login.toLowerCase(), "github")],
+      ["set-cookie", hintCookie(true, req)],
+      ["cache-control", "no-store"],
+    ],
+  });
+}
+
 // ------------------------------------------------------------------- handlers
 export async function GET(req: Request): Promise<Response> {
   const route = sub(req);
+  if (route === "auth/github/start") return githubStart(req);
+  if (route === "auth/github/callback") return githubCallback(req);
   if (route === "auth") {
-    return json({ required: !!PASSWORD, authed: authed(req), hasPasskey: (await loadCreds()).creds.length > 0, env: "prod" });
+    const actor = actorFor(req);
+    return json({
+      required: !!PASSWORD || allowedLogins().length > 0,
+      authed: authed(req),
+      hasPasskey: (await loadCreds()).creds.length > 0,
+      github: !!GH_CLIENT_ID,
+      user: actor ? { login: actor.login, via: actor.via, agent: actor.agent ?? null } : null,
+      env: "prod",
+    });
   }
   if (!authed(req)) return json({ error: "auth", required: !!PASSWORD }, 401);
   if (route === "list") {
@@ -537,7 +757,7 @@ export async function POST(req: Request): Promise<Response> {
   if (!authed(req)) return json({ error: "auth", required: !!PASSWORD }, 401);
   if (route === "save") {
     try {
-      const result = await writeEditable(String(body.id || ""), body);
+      const result = await writeEditable(String(body.id || ""), body, actorFor(req));
       return json(result, result.ok ? 200 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
@@ -545,7 +765,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "new") {
     try {
-      const result = await createEditable(body);
+      const result = await createEditable(body, actorFor(req));
       return json(result, result.ok ? 200 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);

@@ -200,6 +200,8 @@ export default function Admin() {
   const [authBusy, setAuthBusy] = useState(false);
   const [authErr, setAuthErr] = useState<string | null>(null);
   const [hasPasskey, setHasPasskey] = useState(false);
+  const [hasGithub, setHasGithub] = useState(false);
+  const [signedInAs, setSignedInAs] = useState<string | null>(null);
   const [setupMsg, setSetupMsg] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
@@ -434,6 +436,8 @@ export default function Admin() {
       .then((d) => {
         if (d) {
           setHasPasskey(!!d.hasPasskey);
+          setHasGithub(!!d.github);
+          setSignedInAs(d.user?.login ?? null);
           setAuthRequired(!!d.required);
           if (d.env === "prod") setProd(true);
           setEnvKnown(true);
@@ -875,6 +879,24 @@ export default function Admin() {
         <div style={{ width: 300 }}>
           <h1 style={{ font: "600 22px/1.25 var(--ac-font-text)", letterSpacing: "0.016em", margin: "0 0 14px", color: "var(--ac-label)" }}>Sign in</h1>
 
+          {hasGithub && (
+            <>
+              <a
+                href={`/api/cms/auth/github/start?next=${encodeURIComponent(location.pathname)}`}
+                className="cmsx-save"
+                style={{ ...styles.saveBtn, width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none", boxSizing: "border-box" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                  <path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.88 2.34.67.07-.52.28-.88.51-1.08-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.2c0 .21.15.46.55.38A8 8 0 0 0 8 0Z" />
+                </svg>
+                Sign in with GitHub
+              </a>
+              <div style={{ font: "400 13px/1 var(--ac-font-text)", color: "var(--ac-label-2)", textAlign: "center", margin: "12px 0" }}>
+                {hasPasskey ? "or use Face ID or your password" : "or use your password"}
+              </div>
+            </>
+          )}
+
           {hasPasskey && (
             <>
               <button
@@ -1051,6 +1073,14 @@ export default function Admin() {
             <button className="ac-icon-btn" onClick={() => setupPasskey()} title={hasPasskey ? "Add another Face ID / passkey" : "Set up Face ID / passkey sign-in"} aria-label="Face ID">
               <FaceIdIcon />
             </button>
+            {signedInAs && (
+              <span
+                title={`Signed in as ${signedInAs}`}
+                style={{ font: "500 12.5px/1 var(--ac-font-text)", color: "var(--ac-label-2)", marginRight: 8 }}
+              >
+                {signedInAs}
+              </span>
+            )}
             {authRequired && (
               <button className="ac-icon-btn" onClick={signOut} title="Sign out" aria-label="Sign out">
                 <SignOutIcon />
