@@ -379,3 +379,34 @@ being given invented ones.
 Note `verified:` is a different thing: it is the date the page's FACTS were
 last checked, and every page currently shares one value, so it is useless as
 a sort key.
+
+## Catalogue expansion (2026-08-20)
+
+45 games and 10 platforms became 70 and 13. Everything new was written from
+the project's own README and releases.
+
+New platforms: Game Boy (mstan/gbrecompiled), Master System and Game Gear
+(mstan/smsggrecomp), Nintendo 64 (NO platform repo: the Stadium projects build
+on forks of Mr-Wiseguy's N64Recomp, credited as prior work, and the page omits
+`repo:` rather than pointing at someone else's project).
+
+Find missing projects with:
+  gh search repos "R.A.I.D. community" --limit 100 --json fullName
+The community publishes weekly, so "no public repository" lines on pages go
+stale fast. Street Fighter Alpha 3 had said that for weeks while a repo with
+14 releases existed.
+
+Traps hit while doing this:
+- A repo being visible to `gh` does NOT mean it is public: our login has access
+  to private repos. TechnicallyComputers/Wipeout-3-Special-Edition-Recomp is
+  private (404 unauthenticated), so its page links the public mstan copy
+  instead. ALWAYS verify with an unauthenticated
+  `curl https://api.github.com/repos/OWNER/NAME` before linking.
+- Some repos are untouched forks with no releases; link the upstream where the
+  actual work and downloads live (Syphon Filter 2 -> Alexbeav).
+- Box art in a repo is not always that game (Marvel vs Capcom's is Marvel Super
+  Heroes vs Street Fighter); open the image before using it.
+- Some READMEs are copy-pasted from another title (Toy Story 2's names Tomba
+  and Tomba's serial); ignore claims that trace back to the wrong game.
+- `year:` is the PROJECT's year ("2026") on every page, not the original
+  game's release year. It feeds the article date line.

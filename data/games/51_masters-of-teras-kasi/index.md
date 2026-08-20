@@ -1,0 +1,49 @@
+---
+title: "Star Wars: Masters of Teras Kasi"
+kicker: "PlayStation"
+tags: ["Netplay"]
+featured: false
+desc: "Netplay is compiled into the published builds, and a whole optimization step exists for nothing but the intro FMV."
+year: "2026"
+status: "Partial"
+availability: "Public build"
+provenance: "community"
+platform: "playstation"
+repo: "https://github.com/TechnicallyComputers/MastersOfTerasKasiRecomp"
+group: "PlayStation"
+verified: "2026-08-20"
+updated: "2026-08-18"
+added: "2026-07-21"
+cover: "./boxart.png"
+---
+
+MastersOfTerasKasiRecomp is a community project by TechnicallyComputers that rebuilds Star Wars: Masters of Teras Kasi, the 1997 PlayStation fighting game, as a native program on [PSXRecomp](/hardware/playstation). What stands out is where the effort has gone: two-player netplay that the published builds ship with switched on, and a profile-guided optimization pass whose entire job is the game's intro video.
+
+## Can I play it?
+
+Some of it, with a build step in between. Release zips cover Windows, macOS on both Intel and Apple silicon, and Linux, the latest being v0.3.15 on 2026-08-18. They are not finished binaries: each zip is a Generate and rebuild host, carrying the executable, the sources, and the recompiler, so the game is built on your machine from a dump you provide.
+
+The project's own status line is careful. It boots far enough to present video and audio, and the known cost of that bring-up is heavy dirty-RAM interpretation, which leaves audio stuttery until more seeds and overlays land. An issue log in the repository tracks the rest.
+
+The disc it wants is the USA Redump dump, SLUS-00562, a 17-track cue with the audio tracks intact. The build instructions ask for a PS1 BIOS image placed under the framework's bios folder, and the launcher has its own Browse BIOS step.
+
+## What the recomp adds
+
+Netplay is the substantial one. Release CI builds with netplay and ICE enabled, so the packages on the releases page are netplay packages. The issue log shows how far that has been taken: the host owns saving and loading, memory cards are hashed and only sent to the guest when they differ, and both sides rendezvous before resuming from a load. Gameplay holds around 60 FPS in a match. Matches are gated on the disc, so peers must present the same 17-track cue and the same disc fingerprint before they can play at all.
+
+The other addition is stranger. Profile-guided optimization is usually a build-system detail; here it is a menu item. Settings, then SYSTEM, then Optimize FMV Playback trains the compiler on a real run of the game's intro and rebuilds with those profiles, because faithful load-delay timing makes that video the most expensive thing the runtime does. The issue log puts numbers on it: roughly 39 FPS without, roughly 48 to 50 with. The training stays on your machine and is deliberately kept out of CI builds.
+
+The title is also carried in the RetComM Launcher catalogue, which installs, updates, and rebuilds it alongside other recomps instead of making you repeat each game's wizard by hand.
+
+## Technical details
+
+PSXRecomp translates the game's MIPS R3000A machine code to C, which compiles into a native binary alongside the PS1 hardware runtime. The renderer is OpenGL, the aspect ratio stays 4:3, and the controller defaults to digital.
+
+Release packaging is deliberately thin: a zip never contains a BIOS dump, a disc image, or prebuilt game C. CI produces four targets, Linux x64, Windows x64 through MSYS2 MinGW, and macOS on arm64 and x64. The project notes that a Linux binary built against a newer glibc will not load on an older one, so Linux test packs are built inside a Fedora container with the libraries bundled.
+
+Debug builds are a separate configuration, much slower, with a TCP debug server on port 4520. Playtesting is done on Release for that reason.
+
+## Sources
+
+- [Project README, issue log and releases (GitHub)](https://github.com/TechnicallyComputers/MastersOfTerasKasiRecomp)
+- [RetComM Launcher catalogue entry (GitHub)](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/titles/masters-of-teras-kasi-psx.json)
