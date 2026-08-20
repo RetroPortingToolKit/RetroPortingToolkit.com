@@ -233,7 +233,7 @@ function TabGrid({
           </div>
         )}
         {lead.length > 0 && (
-          <div className="tv-grid">
+          <div className={kind === "blog" ? "news-list" : "tv-grid"}>
             {lead.map((m) => (
               <SpatialCard key={`${m.kind}-${m.slug}`} media={m} onOpen={onOpen} still={still} />
             ))}
