@@ -1,7 +1,7 @@
 {
   "proof": [
-    "Emulators recreate a console so they can run its library. Retro Porting Toolkit takes a different route: it recompiles one game at a time, preserving the original game logic while replacing the hardware constraints around it. That trades broad compatibility for deeper control over rendering, input, networking, and behavior, and it builds directly on decades of knowledge from the emulation community.",
-    "Correctness is measured, not asserted. Builds are checked against the reference cores the community already trusts, melonDS on the Nintendo DS and the Beetle VB core on the Virtual Boy, and against the attract demo sitting in the game's own ROM: prerecorded input that plays the same way every time, so the comparison does not wait on someone playing. Measuring is also what makes an honest answer possible when the answer is unflattering. PlayStation has seven core-team games you can play. The Virtual Boy has exactly one, and vbrecomp still calls itself a tech demo. Every project page says how far it goes."
+    "Emulators recreate a console so they can run its library. Retro Porting Toolkit recompiles one game at a time instead, keeping the original game logic and replacing the hardware constraints around it. Less breadth, far more control over rendering, input, networking, and behavior.",
+    "Correctness is measured against the emulator cores the community already trusts. Seven PlayStation games are playable today. The Virtual Boy has one, and vbrecomp still calls itself a tech demo."
   ],
   "philosophy": [
     "Go native. Windows, Linux, macOS, Android, even the browser. No emulator core in sight.",
@@ -11,7 +11,7 @@
     "Change the words. Runtime text replacement powers Tsumu Light's English fan translation and NES text overrides.",
     "Play together. Shared netplay, rollback, save states, and rewind (recomp-net and retcomm-rbengine) that every ecosystem can pick up."
   ],
-  "constraintsIntro": "Across the mod systems one rule holds: features layer over your own copy of the game while it runs, rather than patching it. Most projects verify your dump's fingerprint before anything starts, and the additions are opt-in switches rather than a second version of the game. Turn widescreen off and the original 4:3 output comes back byte for byte. That is what makes everything below safe to try.",
+  "constraintsIntro": "Features layer over your own copy while the game runs, rather than patching it. Turn one off and the original comes back.",
   "stories": [
     {
       "title": "The map was already loaded. The screen was hiding it.",
@@ -37,24 +37,24 @@
   ],
   "platformNote": {
     "title": "Each console teaches the next.",
-    "body": "The DS recompiler's second processor started as the Game Boy Advance one, because both are ARM. The CD-i's 68000 front end came out of the Genesis work. On the Super Nintendo, the Cx4, Super FX, DSP-1, and SA-1 cartridge chips are modeled once in the shared runtime, each brought up against the game that needed it, so the next game that needs one already has it."
+    "body": "The DS recompiler's second processor began as the Game Boy Advance one. The CD-i's 68000 front end came out of the Genesis work."
   },
   "featured": [
     {
       "slug": "minish-cap",
-      "capability": "Compiles the paths you actually reach, so a room runs faster the second time and faster again next launch.",
+      "capability": "Compiles the paths you actually play, so rooms get faster the more you play them.",
       "cover": "/previews/minish-cap.webp",
       "alt": "The Minish Cap running through the Game Boy Advance recompiler"
     },
     {
       "slug": "mega-man-x6",
-      "capability": "203 mod items you switch on one at a time, adapted from acediez's Tweaks with his permission.",
+      "capability": "203 mod items you switch on one at a time, adapted from acediez's Tweaks with permission.",
       "cover": "/previews/mega-man-x6.webp",
       "alt": "Mega Man X6 running as a native application"
     },
     {
       "slug": "legend-of-zelda",
-      "capability": "Every room stands up as a diorama you can orbit, or a first-person view from Link's own eyes.",
+      "capability": "Every room stands up as a diorama you can orbit, or a view from Link's own eyes.",
       "cover": "/covers/zelda-voxel.webp",
       "alt": "The Legend of Zelda rendered as a raised 3D diorama"
     },
@@ -72,7 +72,7 @@
       "project": "Street Fighter Alpha 3",
       "poster": "/covers/sfa3-setup.jpg",
       "alt": "Street Fighter Alpha 3 running as a native build",
-      "blurb": "Roughly five minutes of game-specific work took this from disc to a running native build, done outside the core team. There is no public download. The video is the record."
+      "blurb": "About five minutes of game-specific work took a disc to a running native build, outside the core team. The video is the record."
     },
     {
       "page": "/games/super-mario-world",
@@ -80,7 +80,7 @@
       "project": "Super Mario World",
       "poster": "/previews/super-mario-world.webp",
       "alt": "Super Mario World running with a replacement character",
-      "blurb": "Not a sprite swap: movement, abilities, animation, and sound all change. A disassembly names 1,937 of the game's 2,074 functions, which is why a hook can land on the routine that moves Mario."
+      "blurb": "Not a sprite swap: movement, abilities, animation, and sound all change."
     },
     {
       "page": "/games/metroid-prime-hunters",
@@ -88,7 +88,7 @@
       "project": "Metroid Prime Hunters",
       "poster": "/previews/metroid-prime-hunters.webp",
       "alt": "Metroid Prime Hunters running with mouse aiming",
-      "blurb": "WASD and mouse aiming stand in for the stylus scheme, in a public alpha. The DS framework underneath is still research. The game runs ahead of it."
+      "blurb": "WASD and mouse aiming stand in for the stylus, in a public alpha."
     },
     {
       "page": "/games/retcomm-rbengine",
@@ -96,14 +96,14 @@
       "project": "retcomm-rbengine",
       "poster": "/covers/tomba-rewind.jpg",
       "alt": "Tomba! with the rewind timeline open",
-      "blurb": "Tomba! is what you watch. The rollback engine is the point: it was lifted out of the PlayStation runtime with the platform-specific types removed, so any host can pick it up."
+      "blurb": "Tomba! is what you watch. The rollback engine is the point, and any host can pick it up."
     }
   ],
   "featuredPost": {
     "slug": "building-enhancing-recomps",
     "eyebrow": "From the build log",
     "title": "Building & Enhancing Recomps: Ecosystem Updates",
-    "blurb": "Where every ecosystem stands, including the parts that are barely standing: the GameCube's own system menu running in full, calendar and memory card manager included, the CD-i's player software loading a disc as far as Hotel Mario's title card, and one green dot from the Original Xbox research that traveled a real boot ROM, a retail kernel, and a GPU command stream to get there.",
+    "blurb": "Where every ecosystem stands, including the parts barely standing: the GameCube's own system menu, the CD-i reaching Hotel Mario's title card, and one green dot out of the Xbox research.",
     "cover": "/covers/build-log-ecosystem.jpg",
     "alt": "Building and Enhancing Recomps article cover"
   },

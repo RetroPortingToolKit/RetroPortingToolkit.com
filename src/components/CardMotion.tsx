@@ -30,6 +30,12 @@ export function CardMotion({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [near, setNear] = useState(false);
   const [ready, setReady] = useState(false);
+  const play = useCallback(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    void v.play().catch(() => {});
+  }, []);
 
   const animated = !!mp4 && !still;
 
@@ -76,7 +82,11 @@ export function CardMotion({
   useAutoplayVideo(videoRef, { autoplay: animated && near, whenVisible: false });
 
   return (
-    <span ref={hostRef} className={"card-motion" + (className ? ` ${className}` : "")}>
+    <span
+      ref={hostRef}
+      className={"card-motion" + (className ? ` ${className}` : "")}
+      onPointerEnter={play}
+    >
       <img
         className="card-motion-poster"
         src={poster}
@@ -95,9 +105,17 @@ export function CardMotion({
           loop
           playsInline
           autoPlay
-          preload="metadata"
+          preload="auto"
           aria-hidden="true"
-          onPlaying={() => setReady(true)}
+          // Reveal as soon as the clip can render a frame, not when it starts
+          // playing: frame 1 matches the poster, so an autoplay that is
+          // blocked or deferred still looks right instead of freezing the
+          // card on its still. Nudge playback here too, since a canplay that
+          // arrives after the element mounted can miss the initial attempt.
+          onCanPlay={() => {
+            setReady(true);
+            play();
+          }}
         />
       )}
     </span>

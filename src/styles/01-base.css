@@ -172,7 +172,13 @@ a,
 .theme-toggle {
   cursor: pointer;
 }
+/* Descendants of anything clickable inherit the pointer. `button *` matters
+   as much as `a *`: the card grid renders each card as a <button>, so without
+   it the cursor reverted to an arrow over the card's own artwork. */
 a *,
+button *,
+[role="button"] *,
+[role="tab"] *,
 .talk-card *,
 .writing-card *,
 .proj-card *,

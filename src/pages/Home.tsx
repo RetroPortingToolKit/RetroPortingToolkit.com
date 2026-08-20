@@ -590,7 +590,7 @@ function TabContent({
                 count={GAMES.length}
                 onNav={onNav}
               />
-              <div className="story-grid story-grid--four">
+              <div className="home-strip">
                 {FEATURED.map((fp) => (
                   <FeaturedCard
                     key={fp.slug}
@@ -610,7 +610,7 @@ function TabContent({
               <h2 className="hn-h2" data-reveal>
                 {SECTION_TITLES.action}
               </h2>
-              <div className="story-grid story-grid--four">
+              <div className="home-strip">
                 {ACTION.map((card) => (
                   <MediaCard
                     key={card.page}

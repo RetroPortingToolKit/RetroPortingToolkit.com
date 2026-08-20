@@ -2,6 +2,7 @@
 // Slugs with a short looping card preview at /previews/<slug>.mp4, whose
 // first frame is mirrored at /previews/<slug>.webp for the still state.
 export const PREVIEW_SLUGS: ReadonlySet<string> = new Set([
+  "game-boy-advance",
   "gamecube",
   "mega-man-x-xbox",
   "mega-man-x4",
@@ -9,6 +10,7 @@ export const PREVIEW_SLUGS: ReadonlySet<string> = new Set([
   "metroid-prime-hunters",
   "minish-cap",
   "nes",
+  "nintendo-ds",
   "original-xbox",
   "playstation",
   "sega-genesis",

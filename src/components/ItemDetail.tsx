@@ -11,6 +11,7 @@ import {
 } from "@/lib/content";
 import { useItemNavigate } from "@/lib/useItemNavigate";
 import { svgCover } from "@/lab/labContent";
+import { previewFor } from "@/generated/previews";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { Markdown } from "./Markdown";
 import { BlurText } from "./BlurText";
@@ -158,8 +159,13 @@ function VideoDetail({ item }: { item: Item }) {
 // earns the split; pages with no media at all read as plain articles.
 function projectSlides(item: Item): Slide[] {
   const slides: Slide[] = [];
+  const clip = previewFor(item.slug);
   if (isYouTubeSrc(item.videoUrl)) {
     slides.push({ src: item.videoUrl as string, poster: item.cover });
+  } else if (item.kind === "hardware" && clip) {
+    // A platform page leads with the platform actually running. The console
+    // photograph is card art; it does not belong in the page's media pane.
+    slides.push({ src: clip.mp4, poster: clip.poster });
   } else if (
     item.cover &&
     !item.gallery.some((g) => g.src === item.cover)
@@ -463,7 +469,7 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
       <aside className="project-split-left" ref={leftRef}>
         <div className="project-split-inner">
           <BlurText as="h1" className="modal-title" text={item.title} stagger={12} duration={360} delay={40} />
-          {item.kicker && (
+          {item.kicker && item.kind === "game" && (
             <div className="modal-tags blur-in" style={delayed(160)}>
               {/* One chip, styled exactly like the card chips. Feature tags
                   were noise; the body covers the features. Game chips link to
@@ -506,7 +512,6 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
                     {item.provenance === "core" ? "Core project" : "Community project"}
                   </span>
                 )}
-                {item.arch && <span className="pill">{item.arch}</span>}
                 {item.meta.map((m, i) => (
                   <span key={i} className="pill">
                     {m}
@@ -668,6 +673,7 @@ function DefaultDetail({ item }: { item: Item }) {
         ) : (
           <>
             {item.kicker &&
+              item.kind !== "hardware" &&
               (item.kind === "game" && item.platform ? (
                 <SmartLink
                   className="tvcard-chip tvcard-chip--link"
@@ -711,7 +717,6 @@ function DefaultDetail({ item }: { item: Item }) {
                     {item.provenance === "core" ? "Core project" : "Community project"}
                   </span>
                 )}
-                {item.arch && <span className="pill">{item.arch}</span>}
                 {item.venue && <span className="pill">{item.venue}</span>}
                 {item.meta.map((m, i) => (
                   <span key={i} className="pill">

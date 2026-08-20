@@ -1400,14 +1400,15 @@ html {
   color: var(--muted);
   min-height: 2.8em;
 }
-/* Console photography is shot on white, so it sits on a light plate and is
-   contained rather than cropped: the whole console stays visible. */
+/* Console photography fills the frame like every other cover. Containing it
+   on a plate left visible bezels around the card art, which read as a bug. */
 .tvcard--hardware .tvcard-media {
-  background: #f2f2f4;
+  background: #ececed;
 }
-.tvcard--hardware .tvcard-cover {
-  object-fit: contain;
-  padding: 14px;
+.tvcard--hardware img.tvcard-cover {
+  object-fit: cover;
+  object-position: center 55%;
+  transform: scale(1.35);
 }
 
 /* From the build log: one wide banner linking the featured article. */
@@ -1534,4 +1535,59 @@ html {
    narrow orphan paragraph stranded beside dead space. */
 .hn-note {
   max-width: none;
+}
+
+/* Home strips: three cards across, the rest a horizontal scroll, so a row can
+   hold more than fits without turning into a wall of columns. Cards carry the
+   same chrome as the catalog cards: media on top, text on a card surface. */
+.home-strip {
+  --strip-gap: 20px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - 2 * var(--strip-gap)) / 3);
+  gap: var(--strip-gap);
+  margin-top: 26px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  /* let the cards' shadows breathe without clipping */
+  padding: 6px 6px 14px;
+  margin-inline: -6px;
+  scroll-padding-inline: 6px;
+}
+.home-strip::-webkit-scrollbar {
+  display: none;
+}
+.home-strip > * {
+  scroll-snap-align: start;
+}
+@media (max-width: 900px) {
+  .home-strip {
+    grid-auto-columns: min(78vw, 330px);
+  }
+}
+
+/* Card chrome for the home rows. */
+.home-strip .media-card,
+.home-strip .feature-card {
+  gap: 0;
+  background: var(--bg);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+.home-strip .media-card-frame {
+  border-radius: 18px 18px 0 0;
+}
+.home-strip .media-card-meta {
+  padding: 15px 17px 19px;
+  gap: 5px;
+}
+.home-strip .media-card-blurb {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
