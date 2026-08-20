@@ -12,6 +12,7 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/MarioKartSuperCircuitRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
+cover: "./super-circuit-widescreen.jpg"
 ---
 
 Mario Kart: Super Circuit hides a surprise in its own code: a 60 FPS rendering behavior that the original developers never enabled. This core [GBARecomp](/hardware/game-boy-advance) project runs the game natively on Windows and lets you switch that behavior on, along with a widescreen view of the track.

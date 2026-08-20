@@ -15,6 +15,7 @@ links:
   - { label: "PS1 Classic Spyro Comes To PC With PSXRecomp (Time Extension)", href: "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp" }
   - { label: "Spyro the Dragon fan PC port at 240 FPS (ixbt.games)", href: "https://ixbt.games/en/news/2026/08/16/spustia-28-let-na-pk-mozno-poigrat-v-originalnuiu-spyro-the-dragon-s-playstation-1-v-240-fps-vysel-fanatskii-pk-port.html" }
 verified: "2026-08-18"
+cover: "./openpete-spyro.jpg"
 ---
 
 OpenPete is a community-built native PC port of Spyro the Dragon, named after Spyro's development codename. It is a hybrid: functions the fan decompilation has worked out by hand run as rewritten code, and [PSXRecomp](/hardware/playstation) covers everything the decompilation has not reached yet. The result plays like Spyro, but behaves like a modern PC game.

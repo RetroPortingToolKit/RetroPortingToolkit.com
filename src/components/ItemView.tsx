@@ -150,7 +150,7 @@ function NavControls({ item, onClose, enableKeyboard = true }: NavControlsProps)
   }, [enableKeyboard, canNav, navVisible, go]);
 
   return (
-    <div className="modal-controls">
+    <>
       {canGoBack && (
         <button
           type="button"
@@ -171,6 +171,7 @@ function NavControls({ item, onClose, enableKeyboard = true }: NavControlsProps)
           </span>
         </button>
       )}
+      <div className="modal-controls">
       {navVisible && (
         <>
           <button
@@ -205,7 +206,8 @@ function NavControls({ item, onClose, enableKeyboard = true }: NavControlsProps)
           <CloseIcon />
         </span>
       </button>
-    </div>
+      </div>
+    </>
   );
 }
 

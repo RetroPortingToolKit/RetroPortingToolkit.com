@@ -241,3 +241,30 @@ exist publicly (only xboxlle-probe).
   Virtual Boy tech-demo status attributed to vbrecomp.
 - No clip: cd-i (source is only Philips boot logos) and game-boy-advance
   (available window framed Link at the edge). Both keep static covers.
+
+## Media sourcing (2026-08-19, fourth pass)
+
+- YouTube downloads WORK again, in full, with:
+  `yt-dlp -f "best[height<=720]" --extractor-args "youtube:player_client=web_embedded" --referer "https://1379.tech/" <url>`
+  The old 10 MB truncation is gone. Several scratchpad `dec_*.mp4` files are
+  those old partials and decode only part way (dec_aITjH0LoEeA stops at 32s,
+  all intro); re-download rather than trusting them.
+- ALWAYS cropdetect before cutting a clip:
+  `ffmpeg -ss <t> -t 2 -i <src> -vf cropdetect=24:2:0 -f null -`
+  Cutting by eye left black bars baked into gamecube, virtual-boy and
+  super-mario-bros, which read as broken card art. Verify the finished clip
+  the same way; it should report crop=640:360:0:0.
+- Sources that are NOT montages, despite their names: nesrecomp.mp4 is one
+  continuous Zelda session, snesrecomp.mp4 is Super Mario World only,
+  genesisrecomp.mp4 is Sonic 2 only, psxrecomp.mp4 is Tomba! only.
+- Still no footage anywhere for: Metroid, Mega Man 3, Dr. Mario, Faxanadu,
+  Duck Hunt, Yoshi, Yoshi's Cookie, Gumshoe, A Link to the Past, DKC2,
+  Sonic 3 & Knuckles, Tomba! 2, Ape Escape, Mega Man X5. Stills only.
+- Still no cover art anywhere for: super-mario-advance-2, super-mario-advance-4,
+  recomp-net, xenogears. Repos, releases, READMEs, articles and coverage were
+  all searched; these keep generated art.
+- Cover provenance worth knowing: openpete-spyro's cover is an ixbt.games frame
+  (credited by them to a third-party channel) and pepsiman's is from Retro
+  Handhelds; both outlets are linked on their pages. tsumu-light uses the
+  project's own launcher box art (250px, upscaled), matching the precedent set
+  by sonic-3-and-knuckles and twisted-metal-4.

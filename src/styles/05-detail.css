@@ -1796,3 +1796,12 @@ button {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
+/* Back sits top LEFT, where a back affordance belongs; prev/next/close keep
+   the top-right cluster. */
+.modal-back {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+}

@@ -1591,3 +1591,25 @@ html {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Capability stories are cards too, same chrome as the strips. */
+.story-grid .story-card {
+  gap: 0;
+  background: var(--bg);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+.story-grid .media-card-frame {
+  border-radius: 18px 18px 0 0;
+}
+.story-grid .media-card-meta {
+  padding: 15px 17px 19px;
+  gap: 5px;
+}
+.story-grid .media-card-blurb {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

@@ -11,8 +11,10 @@ provenance: "community"
 platform: "playstation"
 group: "Community"
 links:
+  - { label: "Pepsiman Recompiled lets you play this cult classic in your browser (Retro Handhelds)", href: "https://retrohandhelds.gg/pepsiman-recompiled-lets-you-play-this-cult-classic-in-your-browser/" }
   - { label: "Pepsiman in your browser at 60 FPS (Notebookcheck)", href: "https://www.notebookcheck.net/A-recompiled-version-of-Pepsiman-lets-you-play-the-PS1-cult-classic-natively-in-your-browser-at-60-FPS.1354060.0.html" }
 verified: "2026-08-18"
+cover: "./pepsiman-browser.jpg"
 ---
 
 Pepsiman (1999) never released outside Japan, which makes it a fitting pick for a community recompilation with an unusual target: instead of a Windows or Linux binary, this one compiles the game to WebAssembly and runs it in a browser tab.

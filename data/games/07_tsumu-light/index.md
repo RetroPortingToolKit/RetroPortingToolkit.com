@@ -12,6 +12,7 @@ platform: "playstation"
 repo: "https://github.com/mstan/TsumuLightRecomp"
 group: "PlayStation"
 verified: "2026-08-18"
+cover: "./boxart.jpg"
 ---
 
 Tsumu Light is a hamster-themed stacking puzzle game that only ever released in Japan. This core [PSXRecomp](/hardware/playstation) project pairs the recompilation with an original English fan translation, so the menus, the stage names, and even the save dialogs finally read in English. It is the smallest game in the lineup and the one that shows the framework can do more than run code: it can localize.
