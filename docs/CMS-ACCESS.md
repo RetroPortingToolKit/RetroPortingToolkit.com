@@ -5,8 +5,20 @@ through the site's own `GITHUB_TOKEN`, which redeploys in a minute or two.
 
 | Who | How they authenticate | Configured by |
 |---|---|---|
-| You, or a friend | Sign in with GitHub | `CMS_ALLOWED_LOGINS` |
+| Anyone in the org | Sign in with GitHub | `CMS_ALLOWED_ORG` |
+| Someone outside it | Sign in with GitHub | `CMS_ALLOWED_LOGINS` |
 | Their agent | a bearer token | `CMS_AGENT_KEYS` |
+
+Access is org membership. Add someone to the RetroPortingToolKit org on GitHub
+and they can edit; remove them and they cannot. There is no separate list to
+keep in step, and an invitation is not membership: it counts once accepted.
+
+Membership is asked of GitHub per request, not recorded in the session, so
+removing someone takes effect within two minutes rather than whenever their
+cookie expires. `CMS_ALLOWED_LOGINS` still works alongside it, for someone who
+should edit without joining the org, and it is checked first without a network
+call, which is why the owner stays on it: it is the way back in if the GitHub
+API is unreachable.
 
 There is no password and no passkey. Both were shared secrets for a single
 identity-less `cms-admin` session, which is exactly what makes a commit
@@ -25,6 +37,7 @@ public. It all lives in the host's environment.
 ```
 CMS_GITHUB_CLIENT_ID       OAuth app client id
 CMS_GITHUB_CLIENT_SECRET   OAuth app client secret
+CMS_ALLOWED_ORG            a GitHub org whose members may edit
 CMS_ALLOWED_LOGINS         comma-separated GitHub logins: "alice,bob"
 CMS_AGENT_KEYS             comma-separated <login>:<label>:<sha256-of-token>
 CMS_SESSION_SECRET         HMAC key for the session cookie (already set)

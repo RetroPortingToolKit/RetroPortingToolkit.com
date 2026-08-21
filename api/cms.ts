@@ -24,9 +24,15 @@ const TOKEN = process.env.GITHUB_TOKEN || "";
 // Who is allowed in, and as whom. Both lists live in environment variables so
 // nothing about the membership of this site is committed to a public repo.
 //
+//   CMS_ALLOWED_ORG     a GitHub org: every member of it may edit
 //   CMS_ALLOWED_LOGINS  comma-separated GitHub logins, e.g. "alice,bob"
 //   CMS_AGENT_KEYS      comma-separated <login>:<label>:<sha256-of-token>
 //   CMS_GITHUB_CLIENT_ID / CMS_GITHUB_CLIENT_SECRET  the OAuth app
+//
+// The org and the list are additive: either one lets a person in. The org is
+// the usual way, so access is granted and revoked on GitHub's members page
+// rather than here, and the list stays available for someone who should edit
+// without joining.
 //
 // Agent keys are stored only as SHA-256 hashes: the token itself is shown once,
 // when it is minted by scripts/cms-token.mjs, and cannot be recovered from here.
@@ -55,6 +61,58 @@ export function isAllowedLogin(login: string, env?: string): boolean {
   return list.includes(login.trim().toLowerCase());
 }
 
+export function allowedOrg(env = process.env.CMS_ALLOWED_ORG || ""): string {
+  return env.trim();
+}
+
+/** Auth is configured at all, so the CMS is closed rather than open. */
+export function accessConfigured(): boolean {
+  return !!allowedOrg() || allowedLogins().length > 0 || parseAgentKeys().length > 0;
+}
+
+// Membership is asked of GitHub, not stored here, so removing someone from the
+// org removes their access. GET /orgs/{org}/members/{login} answers 204 for a
+// member and 404 otherwise, and sees private members because the site token
+// belongs to a member. Answers are cached briefly: without it every request
+// would cost an API call, and with it a removal takes effect within the TTL.
+const ORG_TTL_MS = 120_000;
+const orgCache = new Map<string, { member: boolean; at: number }>();
+
+export function clearOrgCache(): void {
+  orgCache.clear();
+}
+
+async function isOrgMember(login: string, now = Date.now()): Promise<boolean> {
+  const org = allowedOrg();
+  if (!org || !login || !TOKEN) return false;
+  const key = login.toLowerCase();
+  const hit = orgCache.get(key);
+  if (hit && now - hit.at < ORG_TTL_MS) return hit.member;
+  let member = false;
+  try {
+    const r = await fetch(`https://api.github.com/orgs/${encodeURIComponent(org)}/members/${encodeURIComponent(login)}`, {
+      headers: ghHeaders(),
+    });
+    if (r.status === 204) member = true;
+    else if (r.status === 404) member = false;
+    // Anything else (rate limit, outage, a token that lost read:org) is not an
+    // answer. Leave the cache alone and deny this request rather than caching
+    // a false negative for everyone.
+    else return hit?.member ?? false;
+  } catch {
+    return hit?.member ?? false;
+  }
+  orgCache.set(key, { member, at: now });
+  return member;
+}
+
+/** May this GitHub login edit? Org membership or the explicit allowlist. */
+export async function mayEdit(login: string): Promise<boolean> {
+  if (!login) return false;
+  if (isAllowedLogin(login)) return true;
+  return isOrgMember(login);
+}
+
 export interface AgentKey {
   login: string;
   label: string;
@@ -76,7 +134,7 @@ export function hashToken(token: string): string {
 }
 
 /** Match a bearer token against the configured agent keys, in constant time. */
-export function agentForToken(token: string, env?: string): AgentKey | null {
+export function agentKeyForToken(token: string, env?: string): AgentKey | null {
   if (!token) return null;
   const digest = hashToken(token);
   let found: AgentKey | null = null;
@@ -85,9 +143,7 @@ export function agentForToken(token: string, env?: string): AgentKey | null {
   for (const key of parseAgentKeys(env)) {
     if (key.hash.length === digest.length && safeEqual(key.hash, digest)) found = key;
   }
-  // An agent may only act while its owner is still on the allowlist, so
-  // removing a person revokes their agents too.
-  return found && isAllowedLogin(found.login) ? found : null;
+  return found;
 }
 
 function bearer(req: Request): string {
@@ -95,20 +151,28 @@ function bearer(req: Request): string {
   return h.toLowerCase().startsWith("bearer ") ? h.slice(7).trim() : "";
 }
 
-/** The identity behind this request, or null when it is not authenticated. */
-function actorFor(req: Request): Actor | null {
+/** Who this request claims to be. Says nothing about whether they may edit. */
+function identityFor(req: Request): Actor | null {
   const token = bearer(req);
   if (token) {
-    const key = agentForToken(token);
+    const key = agentKeyForToken(token);
     return key ? { login: key.login, via: "agent", agent: key.label } : null;
   }
   const payload = verifyPayload(readCookie(req, "cms_session"));
   if (!payload) return null;
   const sub = typeof payload.sub === "string" ? payload.sub : "";
   if (payload.via !== "github") return null;
-  // A login removed from the allowlist loses access on its next request,
-  // without waiting for the cookie to expire.
-  return isAllowedLogin(sub) ? { login: sub, via: "github" } : null;
+  return { login: sub, via: "github" };
+}
+
+/** The identity behind this request, once confirmed to still have access.
+    Checked per request, not just at sign-in, so leaving the org or coming off
+    the allowlist takes effect without waiting for the cookie to expire. An
+    agent is bound to its owner: revoking the person revokes their agents. */
+async function actorFor(req: Request): Promise<Actor | null> {
+  const who = identityFor(req);
+  if (!who) return null;
+  return (await mayEdit(who.login)) ? who : null;
 }
 
 /** How this actor should be credited in the commit trailer. */
@@ -195,11 +259,11 @@ const hintCookie = (on: boolean, req?: Request) => {
   return `cms_hint=${on ? "1" : ""};${scope} Path=/; SameSite=Lax; Secure; Max-Age=${on ? 604800 : 0}`;
 };
 
-function authed(req: Request): boolean {
-  if (actorFor(req)) return true;
-  // With no allowlist and no agent keys configured the CMS is open, which is
-  // the template's unconfigured state; once either is set, access is closed.
-  return allowedLogins().length === 0 && parseAgentKeys().length === 0;
+async function authed(req: Request): Promise<boolean> {
+  if (await actorFor(req)) return true;
+  // With no org, no allowlist and no agent keys configured the CMS is open,
+  // which is the template's unconfigured state; once any is set, it is closed.
+  return !accessConfigured();
 }
 
 // -------------------------------------------------------------- github contents
@@ -576,7 +640,7 @@ async function githubCallback(req: Request): Promise<Response> {
   });
   const user = (await userRes.json().catch(() => ({}))) as { login?: string };
   if (!userRes.ok || !user.login) return loginFailed("profile");
-  if (!isAllowedLogin(user.login)) return loginFailed("not_allowed");
+  if (!(await mayEdit(user.login))) return loginFailed("not_allowed");
 
   return new Response(null, {
     status: 302,
@@ -596,16 +660,16 @@ export async function GET(req: Request): Promise<Response> {
   if (route === "auth/github/start") return githubStart(req);
   if (route === "auth/github/callback") return githubCallback(req);
   if (route === "auth") {
-    const actor = actorFor(req);
+    const actor = await actorFor(req);
     return json({
-      required: allowedLogins().length > 0 || parseAgentKeys().length > 0,
-      authed: authed(req),
+      required: accessConfigured(),
+      authed: !!actor || !accessConfigured(),
       github: !!GH_CLIENT_ID,
       user: actor ? { login: actor.login, via: actor.via, agent: actor.agent ?? null } : null,
       env: "prod",
     });
   }
-  if (!authed(req)) return json({ error: "auth", required: true }, 401);
+  if (!(await authed(req))) return json({ error: "auth", required: true }, 401);
   if (route === "list") {
     try {
       return json({ groups: await listEditable() });
@@ -627,10 +691,10 @@ export async function POST(req: Request): Promise<Response> {
 
   if (route === "logout") return json({ ok: true }, 200, [clearSession(), hintCookie(false)]);
 
-  if (!authed(req)) return json({ error: "auth", required: true }, 401);
+  if (!(await authed(req))) return json({ error: "auth", required: true }, 401);
   if (route === "save") {
     try {
-      const result = await writeEditable(String(body.id || ""), body, actorFor(req));
+      const result = await writeEditable(String(body.id || ""), body, await actorFor(req));
       return json(result, result.ok ? 200 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
@@ -638,7 +702,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "new") {
     try {
-      const result = await createEditable(body, actorFor(req));
+      const result = await createEditable(body, await actorFor(req));
       return json(result, result.ok ? 200 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);

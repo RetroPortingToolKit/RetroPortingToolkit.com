@@ -825,7 +825,7 @@ export default function Admin() {
                 Sign in with GitHub
               </a>
               <p style={{ font: "400 13px/1.45 var(--ac-font-text)", color: "var(--ac-label-2)", textAlign: "center", margin: "14px 0 0" }}>
-                Editing is limited to the people on this site's allowlist.
+                Editing is open to members of the project's GitHub organization.
               </p>
             </>
           ) : (
