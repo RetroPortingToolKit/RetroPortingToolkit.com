@@ -1,14 +1,17 @@
 # CMS access: people and their agents
 
-The CMS has three ways in. All of them end at the same place: a commit to
-`main` through the site's own `GITHUB_TOKEN`, which redeploys in a minute or
-two.
+The CMS has two ways in. Both end at the same place: a commit to `main`
+through the site's own `GITHUB_TOKEN`, which redeploys in a minute or two.
 
 | Who | How they authenticate | Configured by |
 |---|---|---|
-| You | password, or a passkey on your device | `CMS_PASSWORD` |
-| A friend | Sign in with GitHub | `CMS_ALLOWED_LOGINS` |
+| You, or a friend | Sign in with GitHub | `CMS_ALLOWED_LOGINS` |
 | Their agent | a bearer token | `CMS_AGENT_KEYS` |
+
+There is no password and no passkey. Both were shared secrets for a single
+identity-less `cms-admin` session, which is exactly what makes a commit
+unattributable, so they were removed once GitHub sign-in worked. Every way in
+now carries a GitHub login, and `git log` alone answers who edited what.
 
 Everyone who gets in can publish directly. There is no review step, by
 decision: treat adding someone to the allowlist as handing them commit access
@@ -26,7 +29,6 @@ CMS_ALLOWED_LOGINS         comma-separated GitHub logins: "alice,bob"
 CMS_AGENT_KEYS             comma-separated <login>:<label>:<sha256-of-token>
 CMS_SESSION_SECRET         HMAC key for the session cookie (already set)
 GITHUB_TOKEN               the token every commit is actually made with (already set)
-CMS_PASSWORD               your own fallback login (already set)
 ```
 
 ## One-time setup: the GitHub OAuth app

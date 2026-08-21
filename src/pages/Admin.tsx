@@ -193,20 +193,12 @@ export default function Admin() {
     };
   }, [dragging]);
 
-  // auth (only enforced when CMS_PASSWORD is set on the dev server)
+  // auth (open on the dev server; GitHub sign-in in production)
   const [authNeeded, setAuthNeeded] = useState(false);
   const [authRequired, setAuthRequired] = useState(false);
-  const [pw, setPw] = useState("");
-  const [authBusy, setAuthBusy] = useState(false);
-  const [authErr, setAuthErr] = useState<string | null>(null);
-  const [hasPasskey, setHasPasskey] = useState(false);
+
   const [hasGithub, setHasGithub] = useState(false);
-  // GitHub is the primary way in. The password stays reachable as a fallback,
-  // one click away, so a GitHub outage or a bad allowlist cannot lock the
-  // owner out of their own CMS.
-  const [pwOpen, setPwOpen] = useState(false);
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
-  const [setupMsg, setSetupMsg] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [creating, setCreating] = useState(false);
@@ -380,28 +372,6 @@ export default function Admin() {
     loadList();
   }, [loadList]);
 
-  const signIn = useCallback(() => {
-    setAuthBusy(true);
-    setAuthErr(null);
-    fetch("/api/cms/login", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ password: pw }),
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.ok) {
-          setPw("");
-          setAuthNeeded(false);
-          loadList();
-        } else {
-          setAuthErr("Wrong password.");
-        }
-      })
-      .catch(() => setAuthErr("Sign in failed."))
-      .finally(() => setAuthBusy(false));
-  }, [pw, loadList]);
-
   const signOut = useCallback(() => {
     fetch("/api/cms/logout", { method: "POST" }).finally(() => {
       setSelected(null);
@@ -432,14 +402,12 @@ export default function Admin() {
       .finally(() => setPublishing(false));
   }, [publishing]);
 
-  // know whether a passkey is registered (to offer Face ID) + whether a password
-  // is configured (to show Sign out)
+  // who we are, and which sign-in routes this deployment offers
   useEffect(() => {
     fetch("/api/cms/auth")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d) {
-          setHasPasskey(!!d.hasPasskey);
           setHasGithub(!!d.github);
           setSignedInAs(d.user?.login ?? null);
           setAuthRequired(!!d.required);
@@ -448,63 +416,6 @@ export default function Admin() {
         }
       })
       .catch(() => {});
-  }, []);
-
-  const signInPasskey = useCallback(async () => {
-    setAuthBusy(true);
-    setAuthErr(null);
-    try {
-      const opts = await fetch("/api/cms/passkey/auth/options", { method: "POST" }).then((r) => r.json());
-      const { startAuthentication } = await import("@simplewebauthn/browser");
-      const assertion = await startAuthentication({ optionsJSON: opts });
-      const r = await fetch("/api/cms/passkey/auth/verify", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(assertion),
-      }).then((res) => res.json());
-      if (r.ok) {
-        setAuthNeeded(false);
-        loadList();
-      } else {
-        setAuthErr("Face ID sign-in failed.");
-      }
-    } catch {
-      setAuthErr("Face ID was cancelled or unavailable.");
-    } finally {
-      setAuthBusy(false);
-    }
-  }, [loadList]);
-
-  // Register a passkey on THIS device. Works when already signed in; on the
-  // login screen it passes the password to bootstrap the first device.
-  const setupPasskey = useCallback(async (password?: string) => {
-    setSetupMsg(null);
-    try {
-      const opts = await fetch("/api/cms/passkey/register/options", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(password ? { password } : {}),
-      }).then((r) => r.json());
-      if (opts.error) {
-        setSetupMsg(opts.error === "auth" ? "Sign in first (or enter your password) to set up Face ID." : `Could not start: ${opts.error}`);
-        return;
-      }
-      const { startRegistration } = await import("@simplewebauthn/browser");
-      const attestation = await startRegistration({ optionsJSON: opts });
-      const r = await fetch("/api/cms/passkey/register/verify", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(attestation),
-      }).then((res) => res.json());
-      if (r.ok) {
-        setHasPasskey(true);
-        setSetupMsg("Face ID is set up. Use it to sign in next time.");
-      } else {
-        setSetupMsg(`Setup failed: ${r.error || "unknown"}`);
-      }
-    } catch {
-      setSetupMsg("Setup was cancelled or unavailable.");
-    }
   }, []);
 
   const jsonError = useMemo(() => {
@@ -876,8 +787,6 @@ export default function Admin() {
     );
   }
 
-  const showPwPath = !hasGithub || pwOpen;
-
   if (authNeeded) {
     return (
       <div className="applecms" style={{ ...styles.full, alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -885,7 +794,7 @@ export default function Admin() {
         <div style={{ width: 300 }}>
           <h1 style={{ font: "600 22px/1.25 var(--ac-font-text)", letterSpacing: "0.016em", margin: "0 0 14px", color: "var(--ac-label)" }}>Sign in</h1>
 
-          {hasGithub && (
+          {hasGithub ? (
             <>
               <a
                 href={`/api/cms/auth/github/start?next=${encodeURIComponent(location.pathname)}`}
@@ -897,66 +806,16 @@ export default function Admin() {
                 </svg>
                 Sign in with GitHub
               </a>
-              {!pwOpen && (
-                <button
-                  className="cmsx-disc"
-                  style={{ ...styles.disclosure, width: "100%", textAlign: "center", marginTop: 14 }}
-                  onClick={() => setPwOpen(true)}
-                >
-                  {hasPasskey ? "Use Face ID or a password instead" : "Use a password instead"}
-                </button>
-              )}
+              <p style={{ font: "400 13px/1.45 var(--ac-font-text)", color: "var(--ac-label-2)", textAlign: "center", margin: "14px 0 0" }}>
+                Editing is limited to the people on this site's allowlist.
+              </p>
             </>
+          ) : (
+            <p style={{ font: "400 15px/1.5 var(--ac-font-text)", color: "var(--ac-label-2)", margin: 0 }}>
+              GitHub sign-in is not configured on this deployment, so there is no
+              way to sign in. Set CMS_GITHUB_CLIENT_ID and CMS_GITHUB_CLIENT_SECRET.
+            </p>
           )}
-
-          {showPwPath && hasPasskey && (
-            <>
-              <button
-                onClick={signInPasskey}
-                disabled={authBusy}
-                className="cmsx-save"
-                style={{ ...styles.saveBtn, width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: authBusy ? 0.6 : 1 }}
-              >
-                <FaceIdIcon />
-                {authBusy ? "..." : "Sign in with Face ID"}
-              </button>
-              <div style={{ font: "400 13px/1 var(--ac-font-text)", color: "var(--ac-label-2)", textAlign: "center", margin: "12px 0" }}>or use your password</div>
-            </>
-          )}
-
-          {showPwPath && (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              signIn();
-            }}
-          >
-            <input
-              type="password"
-              autoFocus={!hasPasskey}
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-              placeholder="Password"
-              style={styles.input}
-            />
-            {authErr && <div style={{ font: "500 13px/1.4 var(--ac-font-text)", color: "var(--ac-red)", margin: "8px 0 0" }}>{authErr}</div>}
-            <button
-              type="submit"
-              className="cmsx-save"
-              disabled={authBusy || !pw}
-              style={{ ...styles.saveBtn, width: "100%", marginTop: 12, opacity: authBusy || !pw ? 0.5 : 1 }}
-            >
-              {authBusy ? "Signing in..." : "Sign in"}
-            </button>
-          </form>
-          )}
-
-          {showPwPath && !hasPasskey && (
-            <button className="cmsx-disc" style={{ ...styles.disclosure, marginTop: 14 }} onClick={() => setupPasskey(pw)} disabled={!pw}>
-              Set up Face ID with this password
-            </button>
-          )}
-          {setupMsg && <div style={{ font: "500 13px/1.5 var(--ac-font-text)", color: "var(--ac-label-2)", marginTop: 10 }}>{setupMsg}</div>}
         </div>
       </div>
     );
@@ -1080,13 +939,9 @@ export default function Admin() {
           {publishMsg && (
             <div style={{ font: "500 12px/1.35 var(--ac-font-text)", color: publishMsg.kind === "ok" ? "var(--ac-accent)" : "var(--ac-red)", padding: "0 12px 6px" }}>{publishMsg.text}</div>
           )}
-          {setupMsg && <div style={{ font: "400 12px/1.35 var(--ac-font-text)", color: "var(--ac-label-2)", padding: "0 12px 6px" }}>{setupMsg}</div>}
           <div className="ac-account">
             <img src="/favicon.jpeg" alt="" aria-hidden="true" className="ac-avatar" />
             <span className="ac-account-name">{SITE.title}</span>
-            <button className="ac-icon-btn" onClick={() => setupPasskey()} title={hasPasskey ? "Add another Face ID / passkey" : "Set up Face ID / passkey sign-in"} aria-label="Face ID">
-              <FaceIdIcon />
-            </button>
             {signedInAs && (
               <span
                 title={`Signed in as ${signedInAs}`}
@@ -1324,20 +1179,6 @@ export default function Admin() {
         </main>
       </div>
     </div>
-  );
-}
-
-function FaceIdIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 8V6a2 2 0 0 1 2-2h2" />
-      <path d="M16 4h2a2 2 0 0 1 2 2v2" />
-      <path d="M20 16v2a2 2 0 0 1-2 2h-2" />
-      <path d="M8 20H6a2 2 0 0 1-2-2v-2" />
-      <path d="M9 9v1" />
-      <path d="M15 9v1" />
-      <path d="M9 15a3 3 0 0 0 6 0" />
-    </svg>
   );
 }
 

@@ -65,22 +65,12 @@ function feedsPlugin(): Plugin {
 // build. On prod, api/cms.ts serves the same routes as a Vercel function. See
 // scripts/cms-dev.mjs for the allow-list and write logic.
 function cmsDevApi(): Plugin {
-  let password: string | undefined;
   let autoPull = { enabled: false, intervalMs: 45000 };
   return {
     name: "cms-dev-api",
     apply: "serve",
     configResolved(cfg) {
-      // read CMS_PASSWORD server-side from .env.local (or the shell); never
-      // exposed to the client (only VITE_-prefixed vars reach import.meta.env).
-      // No password => the editor is open, with a warning.
       const env = loadEnv(cfg.mode, process.cwd(), "");
-      password = env.CMS_PASSWORD || process.env.CMS_PASSWORD;
-      if (!password) {
-        console.warn(
-          "[cms] no CMS_PASSWORD set: the /admin editor is OPEN on this dev server",
-        );
-      }
       // Background auto-pull keeps the dev working tree current with edits made
       // on the live site. Opt-in (CMS_AUTOPULL=1): it runs `git` against the
       // repo on a timer, so only enable it on a dev box you own, and never on
@@ -94,7 +84,7 @@ function cmsDevApi(): Plugin {
       };
     },
     configureServer(server) {
-      server.middlewares.use(createCmsMiddleware({ password }));
+      server.middlewares.use(createCmsMiddleware());
       if (!autoPull.enabled) return;
       const http = server.httpServer;
       if (!http) return;

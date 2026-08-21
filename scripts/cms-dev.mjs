@@ -16,13 +16,6 @@ import crypto from "node:crypto";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
-import {
-  hasPasskey,
-  passkeyRegisterOptions,
-  passkeyRegisterVerify,
-  passkeyAuthOptions,
-  passkeyAuthVerify,
-} from "./cms-passkey.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -685,7 +678,7 @@ export function startAutoPull(opts = {}) {
   return stop;
 }
 
-// ---- middleware (+ optional password auth) ----
+// ---- middleware ----
 function send(res, status, body, headers) {
   res.statusCode = status;
   res.setHeader("content-type", "application/json");
@@ -702,13 +695,6 @@ function parseCookies(req) {
     out[part.slice(0, i).trim()] = part.slice(i + 1).trim();
   }
   return out;
-}
-
-function safeEqual(a, b) {
-  const ab = Buffer.from(String(a));
-  const bb = Buffer.from(String(b));
-  if (ab.length !== bb.length) return false;
-  return crypto.timingSafeEqual(ab, bb);
 }
 
 // A NON-secret "signed-in" flag scoped to the registrable domain of whatever
@@ -739,15 +725,10 @@ function readBody(req, cb, limit = 2_000_000) {
 
 const COOKIE = "cms_session";
 
-// Returns the dev middleware. If `password` is set, the list/read/save routes
-// require a valid session cookie (obtained via POST /api/cms/login); otherwise
-// the editor is open (with a startup warning). The session token is random per
-// dev-server start, so restarting signs everyone out.
-export function createCmsMiddleware(opts = {}) {
-  const password = opts.password || "";
-  const SESSION = crypto.randomBytes(24).toString("hex");
-  const authed = (req) => !password || parseCookies(req)[COOKIE] === SESSION;
-  const sessionCookie = () => `${COOKIE}=${SESSION}; HttpOnly; SameSite=Lax; Path=/; Max-Age=604800`;
+// Returns the dev middleware. The dev editor is open: it binds to localhost and
+// writes to the working tree, and there is no password to hold. Production auth
+// (GitHub sign-in, agent bearer tokens) lives in api/cms.ts.
+export function createCmsMiddleware() {
 
   return function cmsMiddleware(req, res, next) {
     const url = (req.originalUrl || req.url || "").split("?")[0];
@@ -755,25 +736,7 @@ export function createCmsMiddleware(opts = {}) {
     const query = new URLSearchParams((req.originalUrl || req.url || "").split("?")[1] || "");
 
     if (url === "/api/cms/auth" && req.method === "GET") {
-      return send(res, 200, { required: !!password, authed: authed(req), hasPasskey: hasPasskey(), env: "dev" });
-    }
-    if (url === "/api/cms/login" && req.method === "POST") {
-      return readBody(req, (raw) => {
-        let pw = "";
-        try {
-          pw = String(JSON.parse(raw || "{}").password || "");
-        } catch {
-          return send(res, 400, { ok: false, error: "bad_request" });
-        }
-        if (!password) return send(res, 200, { ok: true, open: true });
-        if (safeEqual(pw, password)) {
-          const cookies = [sessionCookie()];
-          const h = hintCookie(req, true);
-          if (h) cookies.push(h);
-          return send(res, 200, { ok: true }, { "set-cookie": cookies });
-        }
-        return send(res, 401, { ok: false, error: "bad_password" });
-      });
+      return send(res, 200, { required: false, authed: true, github: false, user: null, env: "dev" });
     }
     if (url === "/api/cms/logout" && req.method === "POST") {
       const cookies = [`${COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`];
@@ -781,67 +744,6 @@ export function createCmsMiddleware(opts = {}) {
       if (h) cookies.push(h);
       return send(res, 200, { ok: true }, { "set-cookie": cookies });
     }
-
-    // ---- passkey (WebAuthn) ----
-    // Sign-in ceremonies are open (only a registered credential can succeed).
-    if (url === "/api/cms/passkey/auth/options" && req.method === "POST") {
-      passkeyAuthOptions(req)
-        .then((o) => send(res, 200, o))
-        .catch((e) => send(res, 500, { error: e.message }));
-      return;
-    }
-    if (url === "/api/cms/passkey/auth/verify" && req.method === "POST") {
-      return readBody(req, (raw) => {
-        let body;
-        try {
-          body = JSON.parse(raw || "{}");
-        } catch {
-          return send(res, 400, { ok: false, error: "bad_request" });
-        }
-        passkeyAuthVerify(req, body)
-          .then((r) => {
-            if (!r.ok) return send(res, 401, r);
-            const cookies = [sessionCookie()];
-            const h = hintCookie(req, true);
-            if (h) cookies.push(h);
-            return send(res, 200, { ok: true }, { "set-cookie": cookies });
-          })
-          .catch((e) => send(res, 500, { ok: false, error: e.message }));
-      });
-    }
-    // Registration is gated: an existing session, OR the CMS_PASSWORD bootstrap.
-    // (With no password set, the dev server is open, so registration is too.)
-    if (url === "/api/cms/passkey/register/options" && req.method === "POST") {
-      return readBody(req, (raw) => {
-        let body = {};
-        try {
-          body = JSON.parse(raw || "{}");
-        } catch {
-          /* empty body is fine for an authed request */
-        }
-        const ok = !password || authed(req) || (body.password && safeEqual(String(body.password), password));
-        if (!ok) return send(res, 401, { error: "auth" });
-        passkeyRegisterOptions(req)
-          .then((o) => send(res, 200, o))
-          .catch((e) => send(res, 500, { error: e.message }));
-      });
-    }
-    if (url === "/api/cms/passkey/register/verify" && req.method === "POST") {
-      return readBody(req, (raw) => {
-        let body;
-        try {
-          body = JSON.parse(raw || "{}");
-        } catch {
-          return send(res, 400, { ok: false, error: "bad_request" });
-        }
-        passkeyRegisterVerify(req, body)
-          .then((r) => send(res, r.ok ? 200 : 400, r))
-          .catch((e) => send(res, 500, { ok: false, error: e.message }));
-      });
-    }
-
-    // everything below requires auth (when a password is configured)
-    if (!authed(req)) return send(res, 401, { error: "auth", required: !!password });
 
     if (url === "/api/cms/list" && req.method === "GET") {
       try {

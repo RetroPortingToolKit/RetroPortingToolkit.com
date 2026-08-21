@@ -2,9 +2,9 @@
 // signature, Node runtime) that mirrors the dev middleware (scripts/cms-dev.mjs)
 // but for the static live site: content is read/written via the GitHub Contents
 // API (a save = a commit -> Vercel rebuild, ~1-2 min live), and all state is
-// stateless (signed cookies for the session + WebAuthn challenge; passkey
-// credentials committed to cms-passkeys.prod.json). Env: CMS_SESSION_SECRET
-// (cookie HMAC), CMS_PASSWORD (register bootstrap + fallback login), GITHUB_TOKEN
+// stateless (one signed cookie for the session). There is no password: people
+// sign in through GitHub and agents present a bearer token, so every write
+// carries an identity. Env: CMS_SESSION_SECRET (cookie HMAC), GITHUB_TOKEN
 // (Contents read/write). On a preview deployment it commits to the branch it was
 // built from; in production it commits to main.
 import crypto from "node:crypto";
@@ -17,11 +17,8 @@ const OWNER = process.env.CMS_REPO_OWNER || process.env.VERCEL_GIT_REPO_OWNER ||
 const REPO = process.env.CMS_REPO_NAME || process.env.VERCEL_GIT_REPO_SLUG || "";
 const BRANCH = process.env.VERCEL_GIT_COMMIT_REF || "main";
 const GH = `https://api.github.com/repos/${OWNER}/${REPO}`;
-const CRED_PATH = "cms-passkeys.prod.json";
 const SECRET = process.env.CMS_SESSION_SECRET || "";
-const PASSWORD = process.env.CMS_PASSWORD || "";
 const TOKEN = process.env.GITHUB_TOKEN || "";
-const RP_NAME = process.env.CMS_RP_NAME || "Content editor";
 
 // ------------------------------------------------------------------- identity
 // Who is allowed in, and as whom. Both lists live in environment variables so
@@ -37,10 +34,10 @@ const GH_CLIENT_ID = process.env.CMS_GITHUB_CLIENT_ID || "";
 const GH_CLIENT_SECRET = process.env.CMS_GITHUB_CLIENT_SECRET || "";
 
 export interface Actor {
-  /** GitHub login, or "owner" for the legacy password session */
+  /** GitHub login */
   login: string;
   /** how they authenticated */
-  via: "github" | "password" | "agent";
+  via: "github" | "agent";
   /** the agent key's label, when via === "agent" */
   agent?: string;
 }
@@ -108,12 +105,10 @@ function actorFor(req: Request): Actor | null {
   const payload = verifyPayload(readCookie(req, "cms_session"));
   if (!payload) return null;
   const sub = typeof payload.sub === "string" ? payload.sub : "";
-  if (payload.via === "github") {
-    // A login removed from the allowlist loses access on its next request,
-    // without waiting for the cookie to expire.
-    return isAllowedLogin(sub) ? { login: sub, via: "github" } : null;
-  }
-  return { login: sub || "owner", via: "password" };
+  if (payload.via !== "github") return null;
+  // A login removed from the allowlist loses access on its next request,
+  // without waiting for the cookie to expire.
+  return isAllowedLogin(sub) ? { login: sub, via: "github" } : null;
 }
 
 /** How this actor should be credited in the commit trailer. */
@@ -153,15 +148,6 @@ function readCookie(req: Request, name: string): string | undefined {
   }
   return undefined;
 }
-function rpInfo(req: Request) {
-  const host = (req.headers.get("x-forwarded-host") || req.headers.get("host") || "")
-    .split(",")[0]
-    .trim();
-  const hostname = host.split(":")[0];
-  const proto = (req.headers.get("x-forwarded-proto") || "https").split(",")[0].trim();
-  return { rpID: hostname, origin: `${proto}://${host}` };
-}
-
 // --------------------------------------------------------- signed cookie (HMAC)
 const b64u = (b: Buffer) => b.toString("base64url");
 const unb64u = (s: string) => Buffer.from(s, "base64url");
@@ -192,17 +178,8 @@ function verifyPayload(token: string | undefined): Record<string, unknown> | nul
   if (typeof payload.exp !== "number" || Date.now() > payload.exp) return null;
   return payload;
 }
-function signChallenge(challenge: string, purpose: "reg" | "auth"): string {
-  return `cms_ch=${signPayload({ ch: challenge, purpose }, 5 * 60_000)}; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=300`;
-}
-function readChallenge(req: Request, purpose: "reg" | "auth"): string | null {
-  const p = verifyPayload(readCookie(req, "cms_ch"));
-  if (!p || p.purpose !== purpose || typeof p.ch !== "string") return null;
-  return p.ch;
-}
-const clearChallenge = () => `cms_ch=; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=0`;
-const sessionCookie = (sub = "cms-admin", via: "password" | "github" = "password") =>
-  `cms_session=${signPayload({ sub, via }, 7 * 24 * 3600_000)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`;
+const sessionCookie = (sub: string) =>
+  `cms_session=${signPayload({ sub, via: "github" }, 7 * 24 * 3600_000)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`;
 const clearSession = () => `cms_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
 // non-secret flag so the live site can show the "Edit page" button
 // Scope the hint to the registrable domain of whatever host is serving, so a
@@ -218,14 +195,11 @@ const hintCookie = (on: boolean, req?: Request) => {
   return `cms_hint=${on ? "1" : ""};${scope} Path=/; SameSite=Lax; Secure; Max-Age=${on ? 604800 : 0}`;
 };
 
-function hasSession(req: Request): boolean {
-  return !!verifyPayload(readCookie(req, "cms_session"));
-}
 function authed(req: Request): boolean {
   if (actorFor(req)) return true;
-  // With no password and no allowlist configured the CMS is open, which is the
-  // template's unconfigured state; once either is set, access is closed.
-  return !PASSWORD && allowedLogins().length === 0 && parseAgentKeys().length === 0;
+  // With no allowlist and no agent keys configured the CMS is open, which is
+  // the template's unconfigured state; once either is set, access is closed.
+  return allowedLogins().length === 0 && parseAgentKeys().length === 0;
 }
 
 // -------------------------------------------------------------- github contents
@@ -255,7 +229,7 @@ async function ghWriteFile(path: string, text: string, message: string, actor?: 
     content: Buffer.from(text, "utf8").toString("base64"),
     branch: BRANCH,
   };
-  if (actor && actor.via !== "password") {
+  if (actor) {
     body.author = {
       name: actor.agent ? `${actor.login} (agent: ${actor.agent})` : actor.login,
       email: `${actor.login}@users.noreply.github.com`,
@@ -518,97 +492,6 @@ async function listEditable() {
   return groups;
 }
 
-// ------------------------------------------------------------------ passkey
-type Cred = { id: string; publicKey: string; counter: number; transports?: string[] };
-async function loadCreds(): Promise<{ creds: Cred[]; sha: string | null }> {
-  const f = await ghReadFile(CRED_PATH);
-  if (!f) return { creds: [], sha: null };
-  try {
-    const creds = JSON.parse(f.content || "[]");
-    return { creds: Array.isArray(creds) ? creds : [], sha: f.sha };
-  } catch {
-    return { creds: [], sha: f.sha };
-  }
-}
-async function saveCreds(creds: Cred[], message: string): Promise<void> {
-  await ghWriteFile(CRED_PATH, JSON.stringify(creds, null, 2) + "\n", message);
-}
-
-async function passkeyRegisterOptions(req: Request, body: Record<string, unknown>): Promise<Response> {
-  const pw = String(body.password || "");
-  const ok = !PASSWORD || hasSession(req) || safeEqual(pw, PASSWORD);
-  if (!ok) return json({ error: "auth" }, 401);
-  const { generateRegistrationOptions } = await import("@simplewebauthn/server");
-  const { rpID } = rpInfo(req);
-  const { creds } = await loadCreds();
-  const options = await generateRegistrationOptions({
-    rpName: RP_NAME,
-    rpID,
-    userName: "admin",
-    userID: new TextEncoder().encode("cms-admin"),
-    attestationType: "none",
-    excludeCredentials: creds.map((c) => ({ id: c.id, transports: c.transports as never })),
-    authenticatorSelection: { residentKey: "preferred", userVerification: "preferred" },
-  });
-  return json(options, 200, [signChallenge(options.challenge, "reg")]);
-}
-async function passkeyRegisterVerify(req: Request, body: Record<string, unknown>): Promise<Response> {
-  const { verifyRegistrationResponse } = await import("@simplewebauthn/server");
-  const { rpID, origin } = rpInfo(req);
-  const expectedChallenge = readChallenge(req, "reg");
-  if (!expectedChallenge) return json({ ok: false, error: "no_challenge" }, 400, [clearChallenge()]);
-  let result;
-  try {
-    result = await verifyRegistrationResponse({ response: body as never, expectedChallenge, expectedOrigin: origin, expectedRPID: rpID });
-  } catch (e) {
-    return json({ ok: false, error: (e as Error).message }, 400, [clearChallenge()]);
-  }
-  if (!result.verified || !result.registrationInfo) return json({ ok: false, error: "not_verified" }, 400, [clearChallenge()]);
-  const c = result.registrationInfo.credential;
-  const { creds } = await loadCreds();
-  creds.push({ id: c.id, publicKey: Buffer.from(c.publicKey).toString("base64url"), counter: c.counter, transports: c.transports as string[] });
-  await saveCreds(creds, "CMS: register passkey");
-  return json({ ok: true }, 200, [clearChallenge(), sessionCookie(), hintCookie(true)]);
-}
-async function passkeyAuthOptions(req: Request): Promise<Response> {
-  const { generateAuthenticationOptions } = await import("@simplewebauthn/server");
-  const { rpID } = rpInfo(req);
-  const { creds } = await loadCreds();
-  const options = await generateAuthenticationOptions({
-    rpID,
-    userVerification: "preferred",
-    allowCredentials: creds.map((c) => ({ id: c.id, transports: c.transports as never })),
-  });
-  return json(options, 200, [signChallenge(options.challenge, "auth")]);
-}
-async function passkeyAuthVerify(req: Request, body: Record<string, unknown>): Promise<Response> {
-  const { verifyAuthenticationResponse } = await import("@simplewebauthn/server");
-  const { rpID, origin } = rpInfo(req);
-  const expectedChallenge = readChallenge(req, "auth");
-  if (!expectedChallenge) return json({ ok: false, error: "no_challenge" }, 400, [clearChallenge()]);
-  const { creds } = await loadCreds();
-  const cred = creds.find((c) => c.id === body.id);
-  if (!cred) return json({ ok: false, error: "unknown_credential" }, 401, [clearChallenge()]);
-  let result;
-  try {
-    result = await verifyAuthenticationResponse({
-      response: body as never,
-      expectedChallenge,
-      expectedOrigin: origin,
-      expectedRPID: rpID,
-      credential: { id: cred.id, publicKey: Buffer.from(cred.publicKey, "base64url"), counter: cred.counter, transports: cred.transports as never },
-    });
-  } catch (e) {
-    return json({ ok: false, error: (e as Error).message }, 401, [clearChallenge()]);
-  }
-  if (!result.verified) return json({ ok: false, error: "not_verified" }, 401, [clearChallenge()]);
-  if (result.authenticationInfo.newCounter !== cred.counter) {
-    cred.counter = result.authenticationInfo.newCounter;
-    await saveCreds(creds, "CMS: passkey counter");
-  }
-  return json({ ok: true }, 200, [clearChallenge(), sessionCookie(), hintCookie(true)]);
-}
-
 // -------------------------------------------------------------- github oauth
 // Sign-in is delegated to GitHub: we never see a password, and the person's
 // login is what the commit is attributed to. The token we receive is used once
@@ -700,7 +583,7 @@ async function githubCallback(req: Request): Promise<Response> {
     headers: [
       ["location", safeNext(typeof payload.next === "string" ? payload.next : "/")],
       ["set-cookie", `cms_oauth=; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=0`],
-      ["set-cookie", sessionCookie(user.login.toLowerCase(), "github")],
+      ["set-cookie", sessionCookie(user.login.toLowerCase())],
       ["set-cookie", hintCookie(true, req)],
       ["cache-control", "no-store"],
     ],
@@ -715,15 +598,14 @@ export async function GET(req: Request): Promise<Response> {
   if (route === "auth") {
     const actor = actorFor(req);
     return json({
-      required: !!PASSWORD || allowedLogins().length > 0,
+      required: allowedLogins().length > 0 || parseAgentKeys().length > 0,
       authed: authed(req),
-      hasPasskey: (await loadCreds()).creds.length > 0,
       github: !!GH_CLIENT_ID,
       user: actor ? { login: actor.login, via: actor.via, agent: actor.agent ?? null } : null,
       env: "prod",
     });
   }
-  if (!authed(req)) return json({ error: "auth", required: !!PASSWORD }, 401);
+  if (!authed(req)) return json({ error: "auth", required: true }, 401);
   if (route === "list") {
     try {
       return json({ groups: await listEditable() });
@@ -743,18 +625,9 @@ export async function POST(req: Request): Promise<Response> {
   const route = sub(req);
   const body = await readJson(req);
 
-  if (route === "login") {
-    if (!PASSWORD) return json({ ok: true, open: true });
-    if (safeEqual(String(body.password || ""), PASSWORD)) return json({ ok: true }, 200, [sessionCookie(), hintCookie(true)]);
-    return json({ ok: false, error: "bad_password" }, 401);
-  }
   if (route === "logout") return json({ ok: true }, 200, [clearSession(), hintCookie(false)]);
-  if (route === "passkey/auth/options") return passkeyAuthOptions(req);
-  if (route === "passkey/auth/verify") return passkeyAuthVerify(req, body);
-  if (route === "passkey/register/options") return passkeyRegisterOptions(req, body);
-  if (route === "passkey/register/verify") return passkeyRegisterVerify(req, body);
 
-  if (!authed(req)) return json({ error: "auth", required: !!PASSWORD }, 401);
+  if (!authed(req)) return json({ error: "auth", required: true }, 401);
   if (route === "save") {
     try {
       const result = await writeEditable(String(body.id || ""), body, actorFor(req));
