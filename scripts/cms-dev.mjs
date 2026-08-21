@@ -238,6 +238,11 @@ function readOne(id) {
         kicker: typeof fm.kicker === "string" ? fm.kicker : "",
         date: typeof fm.date === "string" ? fm.date : "",
         cover: typeof fm.cover === "string" ? fm.cover : "",
+        platform: typeof fm.platform === "string" ? fm.platform : "",
+        status: typeof fm.status === "string" ? fm.status : "",
+        repo: typeof fm.repo === "string" ? fm.repo : "",
+        author: typeof fm.author === "string" ? fm.author : "",
+        authorAvatar: typeof fm.authorAvatar === "string" ? fm.authorAvatar : "",
         tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
       };
     } catch {}

@@ -13,7 +13,7 @@
 // HIG token set and component vocabulary this markup was written against.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SITE } from "@/lib/site";
-import { FOLDER_KIND, NEW_LABEL } from "@/lib/cmsKinds";
+import { FOLDER_KIND, NEW_LABEL, type CmsKind } from "@/lib/cmsKinds";
 import { labAll, type LabMedia } from "@/lab/labContent";
 import { SpatialCard } from "@/components/SpatialCard";
 
@@ -35,8 +35,29 @@ interface MdFields {
   date: string;
   /** repo path or ./name of the lead image or video */
   cover: string;
+  /** games: the hardware slug this runs on */
+  platform: string;
+  status: string;
+  repo: string;
+  /** blog: who wrote it, and their avatar */
+  author: string;
+  authorAvatar: string;
   tags: string[];
 }
+
+const EMPTY_FIELDS: MdFields = {
+  title: "",
+  desc: "",
+  kicker: "",
+  date: "",
+  cover: "",
+  platform: "",
+  status: "",
+  repo: "",
+  author: "",
+  authorAvatar: "",
+  tags: [],
+};
 interface HomeRecGroup {
   label: string;
   items: string; // one "Text | /href" per line
@@ -208,6 +229,7 @@ export default function Admin() {
 
   const [hasGithub, setHasGithub] = useState(false);
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  const [me, setMe] = useState<{ name: string; avatar: string } | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [creating, setCreating] = useState(false);
@@ -224,7 +246,7 @@ export default function Admin() {
   const [frontmatter, setFrontmatter] = useState("");
   const [body, setBody] = useState("");
   const [raw, setRaw] = useState("");
-  const [q, setQ] = useState<MdFields>({ title: "", desc: "", kicker: "", date: "", cover: "", tags: [] });
+  const [q, setQ] = useState<MdFields>(EMPTY_FIELDS);
   const [tagsInput, setTagsInput] = useState("");
   const [home, setHome] = useState<HomeBuf | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -434,6 +456,7 @@ export default function Admin() {
         if (d) {
           setHasGithub(!!d.github);
           setSignedInAs(d.user?.login ?? null);
+          setMe(d.user ? { name: d.user.name || d.user.login || "", avatar: d.user.avatar || "" } : null);
           setAuthRequired(!!d.required);
           if (d.env === "prod") setProd(true);
           setEnvKnown(true);
@@ -498,7 +521,7 @@ export default function Admin() {
             setFrontmatter(d.frontmatter || "");
             setBody(d.body || "");
             setRaw("");
-            const f: MdFields = d.fields || { title: "", desc: "", kicker: "", date: "", cover: "", tags: [] };
+            const f: MdFields = { ...EMPTY_FIELDS, ...(d.fields || {}) };
             setQ(f);
             setTagsInput((f.tags || []).join(", "));
             baseline.current = JSON.stringify({ frontmatter: d.frontmatter || "", body: d.body || "" });
@@ -832,6 +855,21 @@ export default function Admin() {
     if (!f) return g.items;
     return g.items.filter((i) => i.title.toLowerCase().includes(f) || i.id.toLowerCase().includes(f));
   }, [groups, selectedFolder, filter]);
+
+  /** The kind of the open item, which decides which fields it should show. */
+  const openKind = useMemo<CmsKind | null>(() => {
+    const m = selected?.id.match(/^data\/(blog|hardware|games)\//);
+    return m ? (m[1] as CmsKind) : null;
+  }, [selected]);
+
+  /** Platforms a game can sit on, read from the Hardware folder rather than
+      hardcoded, so adding a platform makes it selectable straight away. */
+  const platformOptions = useMemo(() => {
+    const g = groups?.find((gr) => gr.group === "Hardware");
+    return (g?.items || [])
+      .map((i) => ({ slug: (i.sub || "").trim(), title: i.title }))
+      .filter((o) => o.slug);
+  }, [groups]);
 
   // Split the folder into what the site publishes as a card and what it does
   // not, preserving the list order within each part.
@@ -1189,13 +1227,87 @@ export default function Admin() {
                         />
                       </Field>
                       <div style={{ display: "flex", gap: 14 }}>
-                        <Field label="Kicker" grow>
+                        <Field label={openKind === "games" ? "Kicker (shown above the title)" : "Kicker"} grow>
                           <input style={styles.input} value={q.kicker} onChange={(e) => patchScalar("kicker", e.target.value)} />
                         </Field>
-                        <Field label="Date">
-                          <input style={{ ...styles.input, width: 150 }} value={q.date} onChange={(e) => patchScalar("date", e.target.value)} placeholder="YYYY-MM-DD" />
-                        </Field>
+                        {openKind === "blog" && (
+                          <Field label="Date">
+                            <input style={{ ...styles.input, width: 150 }} value={q.date} onChange={(e) => patchScalar("date", e.target.value)} placeholder="YYYY-MM-DD" />
+                          </Field>
+                        )}
                       </div>
+
+                      {openKind === "games" && (
+                        <Field label="Platform">
+                          <select style={styles.input} value={q.platform} onChange={(e) => patchScalar("platform", e.target.value)}>
+                            <option value="">Choose a platform</option>
+                            {platformOptions.map((o) => (
+                              <option key={o.slug} value={o.slug}>
+                                {o.title}
+                              </option>
+                            ))}
+                            {/* A value the Hardware folder no longer offers still
+                                shows, so opening a page never silently drops it. */}
+                            {q.platform && !platformOptions.some((o) => o.slug === q.platform) && (
+                              <option value={q.platform}>{q.platform} (not in Hardware)</option>
+                            )}
+                          </select>
+                        </Field>
+                      )}
+
+                      {openKind !== "blog" && (
+                        <div style={{ display: "flex", gap: 14 }}>
+                          <Field label="Status" grow>
+                            <input
+                              style={styles.input}
+                              value={q.status}
+                              onChange={(e) => patchScalar("status", e.target.value)}
+                              placeholder="Playable alpha"
+                            />
+                          </Field>
+                          <Field label="Repository" grow>
+                            <input
+                              style={styles.input}
+                              value={q.repo}
+                              onChange={(e) => patchScalar("repo", e.target.value)}
+                              placeholder="https://github.com/owner/repo"
+                            />
+                          </Field>
+                        </div>
+                      )}
+
+                      {openKind === "blog" && (
+                        <div style={{ display: "flex", gap: 14 }}>
+                          <Field label="Author" grow>
+                            <input
+                              style={styles.input}
+                              value={q.author}
+                              onChange={(e) => patchScalar("author", e.target.value)}
+                              placeholder={me?.name || "Your name"}
+                            />
+                          </Field>
+                          <Field label="Author avatar URL" grow>
+                            <input
+                              style={styles.input}
+                              value={q.authorAvatar}
+                              onChange={(e) => patchScalar("authorAvatar", e.target.value)}
+                              placeholder="https://..."
+                            />
+                          </Field>
+                        </div>
+                      )}
+                      {openKind === "blog" && me && (q.author !== me.name || q.authorAvatar !== me.avatar) && (
+                        <button
+                          className="cmsx-disc"
+                          style={{ ...styles.disclosure, marginTop: -6 }}
+                          onClick={() => {
+                            patchScalar("author", me.name);
+                            patchScalar("authorAvatar", me.avatar);
+                          }}
+                        >
+                          Use my name and avatar ({me.name})
+                        </button>
+                      )}
                       <Field label="Tags (comma-separated)">
                         <input style={styles.input} value={tagsInput} onChange={(e) => patchTags(e.target.value)} />
                       </Field>

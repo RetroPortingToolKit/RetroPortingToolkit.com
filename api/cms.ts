@@ -42,6 +42,10 @@ const GH_CLIENT_SECRET = process.env.CMS_GITHUB_CLIENT_SECRET || "";
 export interface Actor {
   /** GitHub login */
   login: string;
+  /** display name, when GitHub has one */
+  name?: string;
+  /** avatar URL */
+  avatar?: string;
   /** how they authenticated */
   via: "github" | "agent";
   /** the agent key's label, when via === "agent" */
@@ -162,7 +166,12 @@ function identityFor(req: Request): Actor | null {
   if (!payload) return null;
   const sub = typeof payload.sub === "string" ? payload.sub : "";
   if (payload.via !== "github") return null;
-  return { login: sub, via: "github" };
+  return {
+    login: sub,
+    via: "github",
+    name: typeof payload.name === "string" ? payload.name : undefined,
+    avatar: typeof payload.avatar === "string" ? payload.avatar : undefined,
+  };
 }
 
 /** The identity behind this request, once confirmed to still have access.
@@ -242,8 +251,8 @@ function verifyPayload(token: string | undefined): Record<string, unknown> | nul
   if (typeof payload.exp !== "number" || Date.now() > payload.exp) return null;
   return payload;
 }
-const sessionCookie = (sub: string) =>
-  `cms_session=${signPayload({ sub, via: "github" }, 7 * 24 * 3600_000)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`;
+const sessionCookie = (sub: string, profile?: { name?: string; avatar?: string }) =>
+  `cms_session=${signPayload({ sub, via: "github", name: profile?.name || "", avatar: profile?.avatar || "" }, 7 * 24 * 3600_000)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`;
 const clearSession = () => `cms_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
 // non-secret flag so the live site can show the "Edit page" button
 // Scope the hint to the registrable domain of whatever host is serving, so a
@@ -409,10 +418,15 @@ function mdFields(fmText: string) {
       kicker: str(fm.kicker),
       date: str(fm.date),
       cover: str(fm.cover),
+      platform: str(fm.platform),
+      status: str(fm.status),
+      repo: str(fm.repo),
+      author: str(fm.author),
+      authorAvatar: str(fm.authorAvatar),
       tags: Array.isArray(fm.tags) ? (fm.tags as unknown[]).filter((t) => typeof t === "string") : [],
     };
   } catch {
-    return { title: "", desc: "", kicker: "", date: "", cover: "", tags: [] as string[] };
+    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authorAvatar: "", tags: [] as string[] };
   }
 }
 
@@ -538,7 +552,7 @@ function slugify(title: string): string {
     .slice(0, 60);
 }
 
-function stubFrontmatter(kind: string, title: string): string {
+function stubFrontmatter(kind: string, title: string, actor?: Actor | null): string {
   const today = new Date().toISOString().slice(0, 10);
   const esc = (s: string) => s.replace(/"/g, '\\"');
   const lines = [
@@ -548,8 +562,20 @@ function stubFrontmatter(kind: string, title: string): string {
     `featured: false`,
     `desc: "One line describing this ${KIND_NOUN[kind]}."`,
   ];
-  if (kind === "blog") lines.push(`date: "${today}"`);
-  else lines.push(`year: "${today.slice(0, 4)}"`);
+  if (kind === "blog") {
+    lines.push(`date: "${today}"`);
+    // A post is bylined to whoever created it, not to the site's default
+    // author, which is how someone else's name ends up on your writing.
+    if (actor?.name || actor?.login) lines.push(`author: "${esc(actor.name || actor.login)}"`);
+    if (actor?.avatar) lines.push(`authorAvatar: "${esc(actor.avatar)}"`);
+  } else {
+    lines.push(`year: "${today.slice(0, 4)}"`);
+    lines.push(`status: ""`);
+    lines.push(`repo: ""`);
+    // A game has to say which platform it runs on; the editor offers the
+    // Hardware folder as the choices.
+    if (kind === "games") lines.push(`platform: ""`);
+  }
   return lines.join("\n");
 }
 
@@ -583,7 +609,7 @@ async function createEditable(payload: Record<string, unknown>, actor?: Actor | 
   if (!isAllowed(id)) return { ok: false, error: "refused" };
 
   const body = "Write the post here. This body renders as markdown on the item page.\n";
-  await ghWriteFile(id, `---\n${stubFrontmatter(kind, title)}\n---\n\n${body}`, `cms: add ${kind}/${slug}`, actor);
+  await ghWriteFile(id, `---\n${stubFrontmatter(kind, title, actor)}\n---\n\n${body}`, `cms: add ${kind}/${slug}`, actor);
   return { ok: true, id, slug, kind };
 }
 
@@ -700,7 +726,7 @@ async function githubCallback(req: Request): Promise<Response> {
       "user-agent": "cms",
     },
   });
-  const user = (await userRes.json().catch(() => ({}))) as { login?: string };
+  const user = (await userRes.json().catch(() => ({}))) as { login?: string; name?: string; avatar_url?: string };
   if (!userRes.ok || !user.login) return loginFailed("profile");
   if (!(await mayEdit(user.login))) return loginFailed("not_allowed");
 
@@ -709,7 +735,7 @@ async function githubCallback(req: Request): Promise<Response> {
     headers: [
       ["location", safeNext(typeof payload.next === "string" ? payload.next : "/")],
       ["set-cookie", `cms_oauth=; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=0`],
-      ["set-cookie", sessionCookie(user.login.toLowerCase())],
+      ["set-cookie", sessionCookie(user.login.toLowerCase(), { name: user.name || user.login, avatar: user.avatar_url })],
       ["set-cookie", hintCookie(true, req)],
       ["cache-control", "no-store"],
     ],
@@ -813,7 +839,9 @@ export async function GET(req: Request): Promise<Response> {
       required: accessConfigured(),
       authed: !!actor || !accessConfigured(),
       github: !!GH_CLIENT_ID,
-      user: actor ? { login: actor.login, via: actor.via, agent: actor.agent ?? null } : null,
+      user: actor
+        ? { login: actor.login, via: actor.via, agent: actor.agent ?? null, name: actor.name ?? null, avatar: actor.avatar ?? null }
+        : null,
       env: "prod",
     });
   }

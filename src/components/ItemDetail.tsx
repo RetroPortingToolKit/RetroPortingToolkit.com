@@ -184,7 +184,16 @@ function LinksBlock({
 // there (unlike linked writing elsewhere, where a site byline would misattribute).
 // Press and video entries are authored by their outlet or channel, not the
 // team; only 1379.tech writing carries the site author's byline.
+/** The sign-off belongs to a person who wrote the piece. Press and video
+    entries are bylined to an outside outlet, which does not sign off. */
+function showsEndCard(item: Item): boolean {
+  if (item.author) return true;
+  return articleAuthor(item) === SITE.author;
+}
+
 function articleAuthor(item: Item): string {
+  // An explicit byline wins: whoever wrote the page said so on the page.
+  if (item.author) return item.author;
   if ((item.kicker === "Press" || item.kicker === "Video") && item.venue) {
     return item.venue;
   }
@@ -219,13 +228,17 @@ function ArticleEndCard({ item }: { item: Item }) {
   const date = formatArticleDate(item.date || item.year);
   return (
     <aside className="article-endcard">
-      <span className="article-endcard-avatar" aria-hidden="true">
-        {SITE.author.charAt(0) || "?"}
-      </span>
+      {item.authorAvatar ? (
+        <img className="article-endcard-avatar" src={item.authorAvatar} alt="" aria-hidden="true" />
+      ) : (
+        <span className="article-endcard-avatar" aria-hidden="true">
+          {articleAuthor(item).charAt(0) || "?"}
+        </span>
+      )}
       <div className="article-endcard-text">
-        <span className="article-endcard-name">Written by {SITE.author}</span>
+        <span className="article-endcard-name">Written by {articleAuthor(item)}</span>
         <span className="article-endcard-line">
-          Building recompilation ecosystems for legacy games.
+          {item.authorBio || "Building recompilation ecosystems for legacy games."}
         </span>
         {date && <span className="article-endcard-date">{date}</span>}
       </div>
@@ -445,7 +458,7 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
             yourself.
           </p>
         )}
-        {item.kind === "blog" && articleAuthor(item) === SITE.author && (
+        {item.kind === "blog" && showsEndCard(item) && (
           <ArticleEndCard item={item} />
         )}
           {item.kind === "game" && <RelatedGames item={item} />}
@@ -723,7 +736,7 @@ function DefaultDetail({ item }: { item: Item }) {
             yourself.
           </p>
         )}
-        {item.kind === "blog" && articleAuthor(item) === SITE.author && (
+        {item.kind === "blog" && showsEndCard(item) && (
           <ArticleEndCard item={item} />
         )}
         {item.kind === "game" && <RelatedGames item={item} />}

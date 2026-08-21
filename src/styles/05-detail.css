@@ -1856,3 +1856,10 @@ button {
   padding: 8px 16px;
   font-size: 13.5px;
 }
+
+/* An author who set an avatar gets the picture in the sign-off card; without
+   one the same element renders their monogram, so both must fill the circle. */
+img.article-endcard-avatar {
+  object-fit: cover;
+  padding: 0;
+}

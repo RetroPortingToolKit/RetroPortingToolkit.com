@@ -53,6 +53,12 @@ export interface Item {
   featured?: boolean;
   group?: string;
   venue?: string;
+  /** Byline for this page. Falls back to the site author when absent. */
+  author?: string;
+  /** Avatar URL for the byline; a monogram is drawn when absent. */
+  authorAvatar?: string;
+  /** One-line bio under the sign-off. */
+  authorBio?: string;
   year?: string;
   duration?: string;
   date?: string;
