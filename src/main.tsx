@@ -12,6 +12,9 @@ import "./styles/07-collections-cv.css";
 import "./styles/08-home-cards.css";
 import "./styles/09-blog-demo.css";
 import "./styles/10-link-previews.css";
+// Scoped to .applecms, so it dresses the /admin editor without touching the
+// public site's cascade. Appended last per the partial ordering.
+import "./styles/11-apple-cms.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Missing #root element");

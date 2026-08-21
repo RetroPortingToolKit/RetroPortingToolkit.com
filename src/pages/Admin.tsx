@@ -9,8 +9,8 @@
 // The "Home" page is a composite: its hero/identity is data/about.md and its
 // proof/recognition/philosophy is data/home.json, edited together here.
 //
-// Self-contained on purpose: inline styles + lazy-loaded route, so none of this
-// weight or CSS lands in the public bundle unless /admin is opened.
+// Chrome comes from src/styles/apple.css (scoped to .applecms), the same Apple
+// HIG token set and component vocabulary this markup was written against.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SITE } from "@/lib/site";
 
@@ -1243,8 +1243,8 @@ function FolderGlyph() {
 
 function Field({ label, children, grow }: { label: string; children: React.ReactNode; grow?: boolean }) {
   return (
-    <label className="ac-field" style={{ flex: grow ? 1 : undefined }}>
-      <div className="ac-field-label">{label}</div>
+    <label style={{ display: "block", marginBottom: 16, flex: grow ? 1 : undefined, minWidth: 0 }}>
+      <div style={{ font: "590 13px/1.4 var(--ac-font-text)", letterSpacing: "-0.006em", color: "var(--ac-label-2)", marginBottom: 6 }}>{label}</div>
       {children}
     </label>
   );
@@ -1252,9 +1252,9 @@ function Field({ label, children, grow }: { label: string; children: React.React
 
 function SectionHead({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="ac-sectionhead">
-      <div className="ac-sectionhead-title">{title}</div>
-      {hint && <div className="ac-sectionhead-hint">{hint}</div>}
+    <div style={{ margin: "28px 0 14px", paddingBottom: 8, borderBottom: "1px solid var(--ac-separator)" }}>
+      <div style={{ font: "600 20px/1.25 var(--ac-font-text)", letterSpacing: "0.019em", color: "var(--ac-label)" }}>{title}</div>
+      {hint && <div style={{ font: "400 13px/1.45 var(--ac-font-text)", letterSpacing: "-0.006em", color: "var(--ac-label-2)", marginTop: 4 }}>{hint}</div>}
     </div>
   );
 }
@@ -1381,7 +1381,7 @@ const styles: Record<string, React.CSSProperties> = {
   rowOn: { background: "color-mix(in srgb, var(--accent, #0066cc) 15%, transparent)" },
   rowTitle: { display: "block", font: "500 13px/1.35 system-ui", color: V.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   rowSub: { display: "block", font: "400 12px/1.3 system-ui", color: V.ink3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 },
-  main: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0, background: "var(--ac-canvas)" },
+  main: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0, background: "var(--ac-bg)" },
   toolbar: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 22px", borderBottom: `1px solid ${V.line}`, flex: "0 0 auto" },
   saveBtn: { padding: "8px 18px", border: 0, borderRadius: "var(--ac-radius-control)", background: "var(--ac-accent)", color: "#fff", font: "600 14px/1 var(--ac-font-text)", cursor: "pointer" },
   publishBar: { flex: "0 0 auto", padding: "10px 12px 12px", borderTop: `1px solid ${V.line}` },
@@ -1389,16 +1389,13 @@ const styles: Record<string, React.CSSProperties> = {
   syncBtn: { width: "100%", padding: "7px 14px", marginTop: 6, border: 0, borderRadius: 8, background: "rgba(128,128,130,0.14)", color: V.ink, font: "600 12px/1 system-ui", cursor: "pointer" },
   ghostBtn: { padding: "6px 12px", border: "1px solid var(--ac-separator)", borderRadius: "var(--ac-radius-control)", background: "transparent", color: "var(--ac-label)", font: "500 13px/1 var(--ac-font-text)", cursor: "pointer" },
   splitRow: { flex: 1, display: "flex", minHeight: 0 },
-  editorScroll: { flex: "1 1 0", minWidth: 320, overflowY: "auto", padding: "8px 28px 96px", background: "var(--ac-canvas)" },
+  editorScroll: { flex: "1 1 0", minWidth: 320, overflowY: "auto", padding: "24px 24px 80px", background: "var(--ac-bg)" },
   previewPane: { flex: "1 1 0", minWidth: 320, display: "flex", flexDirection: "column", background: "var(--ac-bg)" },
   previewBar: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 12px", borderBottom: "1px solid var(--ac-separator)", flex: "0 0 auto" },
   previewLink: { font: "500 12px/1 ui-monospace, monospace", color: "var(--ac-accent)", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   iframeAbs: { position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, background: "#fff", transition: "opacity .18s ease" },
   previewLoading: { position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ac-label-2)", font: "400 13px/1 var(--ac-font-text)" },
-  // Appearance lives in the .applecms input/textarea/select rule so focus and
-  // hover states are expressible; this keeps only the box metrics call sites
-  // override.
-  input: { width: "100%", boxSizing: "border-box" },
+  input: { width: "100%", padding: "8px 11px", border: "1px solid var(--ac-separator)", borderRadius: "var(--ac-radius-field)", font: "400 15px/1.45 var(--ac-font-text)", letterSpacing: "-0.015em", color: "var(--ac-label)", background: "var(--ac-bg)", boxSizing: "border-box" },
   mono: { font: "400 13px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace" },
   dim: { color: "var(--ac-label-2)", font: "400 15px/1.5 var(--ac-font-text)", padding: 16 },
   disclosure: { display: "block", margin: "4px 0 12px", padding: 0, border: 0, background: "transparent", color: "var(--ac-accent)", font: "500 13px/1 var(--ac-font-text)", cursor: "pointer" },
@@ -1406,385 +1403,7 @@ const styles: Record<string, React.CSSProperties> = {
 };
 
 const hoverCss = `
-/* The admin UI is styled from its own --ac-* token set. These map onto the
-   site tokens in 01-base.css, so the CMS follows the site's light/dark theme
-   for free. Without them every var(--ac-*) reference resolves to nothing:
-   buttons lose their background and keep color:#fff, i.e. they vanish. */
-.applecms {
-  --ac-font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --ac-bg: var(--bg, #ffffff);
-  --ac-label: var(--ink, #1d1d1f);
-  --ac-label-2: var(--ink-2, #424245);
-  --ac-separator: var(--hairline-2, #e8e8ed);
-  --ac-accent: var(--accent, #0066cc);
-  --ac-red: #d70015;
-  --ac-fill-4: rgba(120, 120, 128, 0.12);
-  --ac-radius-control: 8px;
-  --ac-radius-field: 8px;
-  --ac-chrome: rgba(246, 246, 248, 0.72);
-  --ac-chrome-solid: #f6f6f8;
-  --ac-fill-3: rgba(0, 0, 0, 0.06);
-  --ac-selected: rgba(0, 102, 204, 0.12);
-  --ac-canvas: #f2f2f5;
-  --ac-field: #ffffff;
-  --ac-field-border: rgba(0, 0, 0, 0.14);
-  --ac-focus: rgba(0, 102, 204, 0.28);
-  --ac-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
-  --ac-shadow-2: 0 8px 24px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(0, 0, 0, 0.06);
-  color: var(--ac-label);
-  background: var(--ac-bg);
-}
-[data-theme="dark"] .applecms {
-  --ac-red: #ff453a;
-  --ac-chrome: rgba(38, 38, 41, 0.72);
-  --ac-chrome-solid: #262629;
-  --ac-fill-3: rgba(255, 255, 255, 0.09);
-  --ac-selected: rgba(10, 132, 255, 0.24);
-  --ac-canvas: #161618;
-  --ac-field: #232326;
-  --ac-field-border: rgba(255, 255, 255, 0.14);
-  --ac-focus: rgba(10, 132, 255, 0.4);
-  --ac-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
-  --ac-shadow-2: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(255, 255, 255, 0.08);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .applecms {
-    --ac-red: #ff453a;
-    --ac-chrome: rgba(38, 38, 41, 0.72);
-    --ac-chrome-solid: #262629;
-    --ac-fill-3: rgba(255, 255, 255, 0.09);
-    --ac-selected: rgba(10, 132, 255, 0.24);
-    --ac-canvas: #161618;
-    --ac-field: #232326;
-    --ac-field-border: rgba(255, 255, 255, 0.14);
-    --ac-focus: rgba(10, 132, 255, 0.4);
-    --ac-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.06);
-    --ac-shadow-2: 0 10px 30px rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(255, 255, 255, 0.08);
-  }
-}
 .cmsx-save:not(:disabled):hover { filter: brightness(1.04); }
 .cmsx-disc:hover, .cmsx-link:hover { text-decoration: underline; }
 .cmsx-ghost:hover { background: var(--ac-fill-4); }
-
-/* ---- window chrome ---------------------------------------------------- */
-.applecms * { box-sizing: border-box; }
-/* Translucent chrome, per Apple's material hierarchy: the sidebar is the
-   heavier structural layer, the toolbar the lighter one over content. */
-.ac-chrome {
-  background: var(--ac-chrome);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  backdrop-filter: blur(24px) saturate(180%);
-}
-@media (prefers-reduced-transparency: reduce) {
-  .ac-chrome { background: var(--ac-chrome-solid); backdrop-filter: none; -webkit-backdrop-filter: none; }
-}
-
-.ac-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  height: 52px;
-  padding: 0 12px;
-  border-bottom: 1px solid var(--ac-separator);
-}
-.ac-toolbar-title {
-  font: 600 13.5px/1 var(--ac-font-text);
-  letter-spacing: -0.006em;
-  color: var(--ac-label);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.ac-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ac-label-2);
-  cursor: pointer;
-}
-.ac-icon-btn:hover { background: var(--ac-fill-3); color: var(--ac-label); }
-
-.ac-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  flex: 0 0 auto;
-  padding: 6px 12px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ac-accent);
-  font: 500 13px/1 var(--ac-font-text);
-  letter-spacing: -0.006em;
-  text-decoration: none;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.ac-btn:disabled { opacity: 0.4; cursor: default; }
-.ac-btn-plain:not(:disabled):hover { background: var(--ac-fill-3); }
-.ac-btn-gray {
-  background: var(--ac-fill-3);
-  color: var(--ac-label);
-}
-.ac-btn-gray:not(:disabled):hover { filter: brightness(0.94); }
-.ac-btn-filled {
-  background: var(--ac-accent);
-  color: #fff;
-  font-weight: 600;
-}
-.ac-btn-filled:not(:disabled):hover { filter: brightness(1.06); }
-.ac-back { padding-left: 4px; max-width: 220px; overflow: hidden; }
-.ac-back > :last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ---- sidebar ---------------------------------------------------------- */
-.ac-sidebar {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  border-right: 1px solid var(--ac-separator);
-}
-.ac-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 8px; }
-
-.ac-folder {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 7px 8px;
-  border: 0;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ac-label);
-  font: 500 13.5px/1.2 var(--ac-font-text);
-  letter-spacing: -0.008em;
-  text-align: left;
-  cursor: pointer;
-}
-.ac-folder:hover { background: var(--ac-fill-3); }
-.ac-folder-on { background: var(--ac-selected); }
-.ac-folder-icon {
-  display: inline-flex;
-  flex: 0 0 auto;
-  color: var(--ac-accent);
-}
-.ac-folder-name { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ac-badge {
-  flex: 0 0 auto;
-  padding: 1px 7px;
-  border-radius: 9px;
-  background: var(--ac-fill-3);
-  color: var(--ac-label-2);
-  font: 500 11.5px/1.5 var(--ac-font-text);
-  font-variant-numeric: tabular-nums;
-}
-
-.ac-account {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  padding: 8px 10px;
-  border-top: 1px solid var(--ac-separator);
-}
-.ac-avatar { width: 22px; height: 22px; border-radius: 5px; object-fit: cover; flex: 0 0 auto; }
-.ac-account-name {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font: 600 13px/1 var(--ac-font-text);
-  color: var(--ac-label);
-}
-
-/* ---- list view -------------------------------------------------------- */
-.ac-listview { display: flex; flex-direction: column; flex: 1; min-height: 0; background: var(--ac-canvas); }
-.ac-listview-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex: 0 0 auto;
-  padding: 22px 20px 12px;
-}
-.ac-listview-title {
-  font: 700 26px/1.2 var(--ac-font-text);
-  letter-spacing: -0.021em;
-  color: var(--ac-label);
-}
-.ac-listview-count {
-  font: 400 13px/1 var(--ac-font-text);
-  color: var(--ac-label-2);
-  font-variant-numeric: tabular-nums;
-}
-
-.ac-search-wrap { position: relative; flex: 0 0 auto; }
-.ac-search-icon {
-  position: absolute;
-  left: 9px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: inline-flex;
-  color: var(--ac-label-2);
-  pointer-events: none;
-}
-.applecms .ac-search {
-  width: 100%;
-  padding: 8px 12px 8px 32px;
-  border: 1px solid var(--ac-field-border);
-  border-radius: var(--ac-radius-field);
-  background: var(--ac-field);
-  color: var(--ac-label);
-  font: 400 13.5px/1.3 var(--ac-font-text);
-  box-shadow: var(--ac-shadow-1);
-}
-
-.ac-notelist { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 12px 20px; }
-.ac-noterow {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 11px 14px 12px;
-  border: 1px solid var(--ac-field-border);
-  border-radius: 10px;
-  background: var(--ac-field);
-  box-shadow: var(--ac-shadow-1);
-  text-align: left;
-  cursor: pointer;
-}
-.ac-noterow:hover { border-color: var(--ac-accent); box-shadow: var(--ac-shadow-2); }
-.ac-noterow-title {
-  font: 600 14px/1.3 var(--ac-font-text);
-  letter-spacing: -0.01em;
-  color: var(--ac-label);
-}
-.ac-noterow-sub {
-  font: 400 12.5px/1.35 var(--ac-font-text);
-  color: var(--ac-label-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-.ac-split-handle {
-  flex: 0 0 auto;
-  width: 6px;
-  cursor: col-resize;
-  background: var(--ac-separator);
-  transition: background 120ms ease-out;
-}
-.ac-split-handle:hover { background: var(--ac-accent); }
-
-/* ---- feel: press on pointer-down, visible focus ----------------------- */
-.applecms button,
-.applecms a,
-.applecms input,
-.applecms textarea,
-.applecms select { transition: background 120ms ease-out, box-shadow 120ms ease-out, border-color 120ms ease-out, transform 90ms ease-out; }
-.applecms button:not(:disabled):active,
-.applecms .ac-btn:not(:disabled):active,
-.cmsx-save:not(:disabled):active { transform: scale(0.97); }
-.applecms :focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3.5px var(--ac-focus);
-  border-radius: 7px;
-}
-@media (prefers-reduced-motion: reduce) {
-  .applecms * { transition-duration: 1ms !important; }
-  .applecms button:active, .applecms .ac-btn:active { transform: none; }
-}
-
-/* ---- form controls ----------------------------------------------------- */
-.applecms input,
-.applecms textarea,
-.applecms select {
-  padding: 9px 12px;
-  border: 1px solid var(--ac-field-border);
-  border-radius: var(--ac-radius-field);
-  background: var(--ac-field);
-  color: var(--ac-label);
-  font: 400 15px/1.45 var(--ac-font-text);
-  letter-spacing: -0.012em;
-  box-shadow: var(--ac-shadow-1);
-}
-.applecms textarea { resize: vertical; }
-.applecms input:hover,
-.applecms textarea:hover { border-color: var(--ac-label-2); }
-.applecms input:focus,
-.applecms textarea:focus,
-.applecms select:focus {
-  outline: none;
-  border-color: var(--ac-accent);
-  box-shadow: 0 0 0 3.5px var(--ac-focus);
-}
-.applecms ::placeholder { color: var(--ac-label-2); opacity: 0.7; }
-
-/* Inset grouped rows: a soft canvas with the editable content on raised
-   cards, so the eye lands on the thing it can change rather than on a label. */
-.ac-field {
-  display: block;
-  margin-bottom: 10px;
-  min-width: 0;
-  padding: 9px 14px 11px;
-  border: 1px solid var(--ac-field-border);
-  border-radius: 10px;
-  background: var(--ac-field);
-  box-shadow: var(--ac-shadow-1);
-}
-.ac-field:focus-within {
-  border-color: var(--ac-accent);
-  box-shadow: 0 0 0 3.5px var(--ac-focus);
-}
-.ac-field-label {
-  font: 590 11px/1.4 var(--ac-font-text);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ac-label-2);
-  margin-bottom: 2px;
-}
-/* A control inside a card IS the card: no second box around it. */
-.ac-field input,
-.ac-field textarea,
-.ac-field select {
-  width: 100%;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-.ac-field input:hover,
-.ac-field textarea:hover,
-.ac-field input:focus,
-.ac-field textarea:focus,
-.ac-field select:focus { border: 0; box-shadow: none; }
-
-/* Section heads carry the weight, so fields below them need no box of their
-   own: hierarchy comes from type and spacing rather than more borders. */
-.ac-sectionhead { margin: 34px 0 16px; }
-.ac-sectionhead:first-child { margin-top: 4px; }
-.ac-sectionhead-title {
-  font: 700 21px/1.2 var(--ac-font-text);
-  letter-spacing: -0.017em;
-  color: var(--ac-label);
-}
-.ac-sectionhead-hint {
-  font: 400 13.5px/1.5 var(--ac-font-text);
-  letter-spacing: -0.006em;
-  color: var(--ac-label-2);
-  margin-top: 5px;
-  max-width: 58ch;
-}
 `;
