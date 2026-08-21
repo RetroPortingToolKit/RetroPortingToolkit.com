@@ -237,6 +237,7 @@ function readOne(id) {
         desc: typeof fm.desc === "string" ? fm.desc : "",
         kicker: typeof fm.kicker === "string" ? fm.kicker : "",
         date: typeof fm.date === "string" ? fm.date : "",
+        cover: typeof fm.cover === "string" ? fm.cover : "",
         tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
       };
     } catch {}
@@ -678,6 +679,67 @@ export function startAutoPull(opts = {}) {
   return stop;
 }
 
+
+// ---- item folders: an item is index.md plus the media it embeds ----
+const ITEM_RE = /^data\/(blog|hardware|games)\/([^/]+)\/index\.md$/;
+const ASSET_EXT = /\.(png|jpe?g|webp|gif|avif|svg|mp4|webm|mov)$/i;
+
+export function itemFolder(id) {
+  const m = typeof id === "string" ? id.match(ITEM_RE) : null;
+  return m ? `data/${m[1]}/${m[2]}` : null;
+}
+
+export function safeAssetName(name) {
+  const base = String(name).split(/[\\/]/).pop() || "";
+  const clean = base.trim().replace(/\s+/g, "-").replace(/[^A-Za-z0-9._-]/g, "");
+  if (!clean || clean.startsWith(".") || clean.includes("..")) return null;
+  if (!ASSET_EXT.test(clean)) return null;
+  return clean;
+}
+
+export function listAssets(id) {
+  const folder = itemFolder(id);
+  if (!folder) return { ok: false, error: "not_an_item" };
+  const abs = path.join(ROOT, folder);
+  if (!fs.existsSync(abs)) return { ok: true, assets: [] };
+  const assets = fs
+    .readdirSync(abs)
+    .filter((f) => f !== "index.md" && ASSET_EXT.test(f))
+    .sort();
+  return { ok: true, assets };
+}
+
+export function deleteAsset(payload) {
+  const folder = itemFolder(String(payload?.id || ""));
+  if (!folder) return { ok: false, error: "not_an_item" };
+  const name = safeAssetName(String(payload?.name || ""));
+  if (!name) return { ok: false, error: "bad_name" };
+  const abs = path.join(ROOT, folder, name);
+  if (!fs.existsSync(abs)) return { ok: false, error: "not_found" };
+  fs.rmSync(abs);
+  return { ok: true, path: `${folder}/${name}` };
+}
+
+export function deleteEditable(payload) {
+  const id = String(payload?.id || "");
+  const folder = itemFolder(id);
+  if (!folder) return { ok: false, error: "Only content items can be deleted." };
+  const abs = path.join(ROOT, folder);
+  if (!fs.existsSync(abs)) return { ok: false, error: "not_found" };
+  const slug = folder.split("/").pop().replace(/^\d+_/, "");
+  const removed = [folder];
+  fs.rmSync(abs, { recursive: true, force: true });
+  // The generated preview is keyed to the slug and nothing else references it.
+  for (const ext of ["mp4", "webp", "webm", "png", "jpg"]) {
+    const prev = path.join(ROOT, "public", "previews", `${slug}.${ext}`);
+    if (fs.existsSync(prev)) {
+      fs.rmSync(prev);
+      removed.push(`public/previews/${slug}.${ext}`);
+    }
+  }
+  return { ok: true, removed: removed.length, files: removed };
+}
+
 // ---- middleware ----
 function send(res, status, body, headers) {
   res.statusCode = status;
@@ -795,6 +857,33 @@ export function createCmsMiddleware() {
         },
         300_000_000, // allow large media (base64-inflated)
       );
+    }
+    if (url === "/api/cms/assets" && req.method === "GET") {
+      return send(res, 200, listAssets(query.get("id") || ""));
+    }
+    if (url === "/api/cms/asset/delete" && req.method === "POST") {
+      return readBody(req, (raw) => {
+        let body = {};
+        try {
+          body = JSON.parse(raw || "{}");
+        } catch {
+          return send(res, 400, { ok: false, error: "bad_request" });
+        }
+        const r = deleteAsset(body);
+        return send(res, r.ok ? 200 : 400, r);
+      });
+    }
+    if (url === "/api/cms/delete" && req.method === "POST") {
+      return readBody(req, (raw) => {
+        let body = {};
+        try {
+          body = JSON.parse(raw || "{}");
+        } catch {
+          return send(res, 400, { ok: false, error: "bad_request" });
+        }
+        const r = deleteEditable(body);
+        return send(res, r.ok ? 200 : 400, r);
+      });
     }
     if (url === "/api/cms/save" && req.method === "POST") {
       return readBody(req, (raw) => {

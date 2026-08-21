@@ -307,6 +307,67 @@ async function ghWriteFile(path: string, text: string, message: string, actor?: 
   });
   if (!r.ok) throw new Error(`gh_write_${r.status} ${path}: ${await r.text()}`);
 }
+/** One commit that may write and delete several files at once.
+    The Contents API is one file per commit, which would mean a commit and a
+    rebuild per asset, and cannot express a deletion alongside the edit that
+    stops referencing it. The Git Data API can: blobs, then a tree layered on
+    the current one (a null sha removes a path), then a commit, then the ref. */
+type Change = { path: string; text: string } | { path: string; base64: string } | { path: string; remove: true };
+
+async function ghJson(url: string, init?: RequestInit): Promise<Record<string, unknown>> {
+  const r = await fetch(url, {
+    ...init,
+    headers: { ...ghHeaders(), "content-type": "application/json", ...(init?.headers as object) },
+  });
+  if (!r.ok) throw new Error(`gh_${r.status} ${url.replace(GH, "")}: ${await r.text()}`);
+  return (await r.json()) as Record<string, unknown>;
+}
+
+async function ghCommit(changes: Change[], message: string, actor?: Actor | null): Promise<string | null> {
+  if (!changes.length) return null;
+  const ref = await ghJson(`${GH}/git/ref/heads/${BRANCH}`);
+  const parent = (ref.object as { sha: string }).sha;
+  const base = await ghJson(`${GH}/git/commits/${parent}`);
+  const baseTree = (base.tree as { sha: string }).sha;
+
+  const tree: Record<string, unknown>[] = [];
+  for (const c of changes) {
+    if ("remove" in c) {
+      tree.push({ path: c.path, mode: "100644", type: "blob", sha: null });
+      continue;
+    }
+    const blob = await ghJson(`${GH}/git/blobs`, {
+      method: "POST",
+      body: "text" in c
+        ? JSON.stringify({ content: c.text, encoding: "utf-8" })
+        : JSON.stringify({ content: c.base64, encoding: "base64" }),
+    });
+    tree.push({ path: c.path, mode: "100644", type: "blob", sha: blob.sha });
+  }
+
+  const newTree = await ghJson(`${GH}/git/trees`, {
+    method: "POST",
+    body: JSON.stringify({ base_tree: baseTree, tree }),
+  });
+  const commitBody: Record<string, unknown> = {
+    message: actor ? `${message}\n\nEdited-by: ${actorLabel(actor)}` : message,
+    tree: newTree.sha,
+    parents: [parent],
+  };
+  if (actor) {
+    commitBody.author = {
+      name: actor.agent ? `${actor.login} (agent: ${actor.agent})` : actor.login,
+      email: `${actor.login}@users.noreply.github.com`,
+    };
+  }
+  const commit = await ghJson(`${GH}/git/commits`, { method: "POST", body: JSON.stringify(commitBody) });
+  await ghJson(`${GH}/git/refs/heads/${BRANCH}`, {
+    method: "PATCH",
+    body: JSON.stringify({ sha: commit.sha }),
+  });
+  return commit.sha as string;
+}
+
 async function ghListTree(): Promise<{ path: string }[]> {
   const r = await fetch(`${GH}/git/trees/${BRANCH}?recursive=1`, { headers: ghHeaders() });
   if (!r.ok) throw new Error(`gh_tree_${r.status}`);
@@ -347,10 +408,11 @@ function mdFields(fmText: string) {
       desc: str(fm.desc),
       kicker: str(fm.kicker),
       date: str(fm.date),
+      cover: str(fm.cover),
       tags: Array.isArray(fm.tags) ? (fm.tags as unknown[]).filter((t) => typeof t === "string") : [],
     };
   } catch {
-    return { title: "", desc: "", kicker: "", date: "", tags: [] as string[] };
+    return { title: "", desc: "", kicker: "", date: "", cover: "", tags: [] as string[] };
   }
 }
 
@@ -654,6 +716,92 @@ async function githubCallback(req: Request): Promise<Response> {
   });
 }
 
+// ------------------------------------------------------------------- assets
+// An item is a folder: index.md plus whatever images and videos it embeds.
+// Everything here works on that folder, and nothing outside it.
+
+const ITEM_RE = /^data\/(blog|hardware|games)\/([^/]+)\/index\.md$/;
+const ASSET_EXT = /\.(png|jpe?g|webp|gif|avif|svg|mp4|webm|mov)$/i;
+// Vercel caps a serverless request body at 4.5 MB and base64 costs a third on
+// top, so the file itself has to stay under that with room to spare.
+const MAX_ASSET_BYTES = 3 * 1024 * 1024;
+
+/** The folder an item lives in, or null if the id is not an item. */
+function itemFolder(id: string): string | null {
+  const m = typeof id === "string" ? id.match(ITEM_RE) : null;
+  return m ? `data/${m[1]}/${m[2]}` : null;
+}
+
+function itemSlug(id: string): string | null {
+  const m = typeof id === "string" ? id.match(ITEM_RE) : null;
+  return m ? m[2].replace(/^\d+_/, "") : null;
+}
+
+/** A safe leaf filename: no separators, no traversal, known media extension. */
+function safeAssetName(name: string): string | null {
+  const base = String(name).split(/[\\/]/).pop() || "";
+  const clean = base.trim().replace(/\s+/g, "-").replace(/[^A-Za-z0-9._-]/g, "");
+  if (!clean || clean.startsWith(".") || clean.includes("..")) return null;
+  if (!ASSET_EXT.test(clean)) return null;
+  return clean;
+}
+
+async function listAssets(id: string): Promise<{ ok: boolean; assets?: string[]; error?: string }> {
+  const folder = itemFolder(id);
+  if (!folder) return { ok: false, error: "not_an_item" };
+  const paths = (await ghListTree()).map((e) => e.path);
+  const assets = paths
+    .filter((p) => p.startsWith(`${folder}/`) && p !== `${folder}/index.md`)
+    .map((p) => p.slice(folder.length + 1));
+  return { ok: true, assets };
+}
+
+async function uploadAsset(body: Record<string, unknown>, actor?: Actor | null) {
+  const id = String(body.id || "");
+  const folder = itemFolder(id);
+  if (!folder) return { ok: false, error: "not_an_item" };
+  const name = safeAssetName(String(body.filename || ""));
+  if (!name) return { ok: false, error: "That file type is not supported here." };
+  const base64 = String(body.contentBase64 || body.data || "").replace(/^data:[^,]*,/, "");
+  if (!base64) return { ok: false, error: "empty_file" };
+  const bytes = Math.floor((base64.length * 3) / 4);
+  if (bytes > MAX_ASSET_BYTES) {
+    return { ok: false, error: `That file is ${(bytes / 1024 / 1024).toFixed(1)} MB. The limit here is 3 MB.` };
+  }
+  const path = `${folder}/${name}`;
+  await ghCommit([{ path, base64 }], `cms: add ${path}`, actor);
+  return { ok: true, path, name, markdown: `![](./${name})` };
+}
+
+async function deleteAsset(body: Record<string, unknown>, actor?: Actor | null) {
+  const id = String(body.id || "");
+  const folder = itemFolder(id);
+  if (!folder) return { ok: false, error: "not_an_item" };
+  const name = safeAssetName(String(body.name || ""));
+  if (!name) return { ok: false, error: "bad_name" };
+  const path = `${folder}/${name}`;
+  const exists = (await ghListTree()).some((e) => e.path === path);
+  if (!exists) return { ok: false, error: "not_found" };
+  await ghCommit([{ path, remove: true }], `cms: remove ${path}`, actor);
+  return { ok: true, path };
+}
+
+/** Remove an item: its whole folder, and the generated preview keyed to its
+    slug, which nothing else references once the item is gone. */
+async function deleteEditable(body: Record<string, unknown>, actor?: Actor | null) {
+  const id = String(body.id || "");
+  const folder = itemFolder(id);
+  const slug = itemSlug(id);
+  if (!folder || !slug) return { ok: false, error: "Only content items can be deleted." };
+  const paths = (await ghListTree()).map((e) => e.path);
+  const own = paths.filter((p) => p === `${folder}/index.md` || p.startsWith(`${folder}/`));
+  if (!own.length) return { ok: false, error: "not_found" };
+  const previews = paths.filter((p) => new RegExp(`^public/previews/${slug}\\.(mp4|webp|webm|png|jpg)$`).test(p));
+  const changes: Change[] = [...own, ...previews].map((path) => ({ path, remove: true }));
+  await ghCommit(changes, `cms: delete ${folder}`, actor);
+  return { ok: true, removed: changes.length, files: [...own, ...previews] };
+}
+
 // ------------------------------------------------------------------- handlers
 export async function GET(req: Request): Promise<Response> {
   const route = sub(req);
@@ -682,6 +830,10 @@ export async function GET(req: Request): Promise<Response> {
     const data = await readEditable(id);
     return data ? json(data) : json({ error: "not_found" }, 404);
   }
+  if (route === "assets") {
+    const id = new URL(req.url).searchParams.get("id") || "";
+    return json(await listAssets(id));
+  }
   return json({ error: "unknown_cms_route" }, 404);
 }
 
@@ -692,6 +844,30 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "logout") return json({ ok: true }, 200, [clearSession(), hintCookie(false)]);
 
   if (!(await authed(req))) return json({ error: "auth", required: true }, 401);
+  if (route === "upload") {
+    try {
+      const r = await uploadAsset(body, await actorFor(req));
+      return json(r, r.ok ? 200 : 400);
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message }, 500);
+    }
+  }
+  if (route === "asset/delete") {
+    try {
+      const r = await deleteAsset(body, await actorFor(req));
+      return json(r, r.ok ? 200 : 400);
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message }, 500);
+    }
+  }
+  if (route === "delete") {
+    try {
+      const r = await deleteEditable(body, await actorFor(req));
+      return json(r, r.ok ? 200 : 400);
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message }, 500);
+    }
+  }
   if (route === "save") {
     try {
       const result = await writeEditable(String(body.id || ""), body, await actorFor(req));

@@ -33,6 +33,8 @@ interface MdFields {
   desc: string;
   kicker: string;
   date: string;
+  /** repo path or ./name of the lead image or video */
+  cover: string;
   tags: string[];
 }
 interface HomeRecGroup {
@@ -222,7 +224,7 @@ export default function Admin() {
   const [frontmatter, setFrontmatter] = useState("");
   const [body, setBody] = useState("");
   const [raw, setRaw] = useState("");
-  const [q, setQ] = useState<MdFields>({ title: "", desc: "", kicker: "", date: "", tags: [] });
+  const [q, setQ] = useState<MdFields>({ title: "", desc: "", kicker: "", date: "", cover: "", tags: [] });
   const [tagsInput, setTagsInput] = useState("");
   const [home, setHome] = useState<HomeBuf | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -249,9 +251,18 @@ export default function Admin() {
   // set when the open doc's file changed underneath the editor (a background
   // pull, or a rejected stale save). Freezes auto-save until the user reloads.
   const [staleBase, setStaleBase] = useState(false);
-  // dev-only media upload (image/video -> pipeline -> cover path)
+  // media in the selected item's folder: upload, insert into the body, remove
   const [uploading, setUploading] = useState(false);
-  const [uploadedPath, setUploadedPath] = useState<string | null>(null);
+  const [assets, setAssets] = useState<string[]>([]);
+  const [assetBusy, setAssetBusy] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  // A page that exists in the repo but not yet in the deployed build: the
+  // preview would otherwise fall back to a listing and look like the edit
+  // silently did nothing.
+  const [notLiveYet, setNotLiveYet] = useState(false);
+  // where the next upload goes: the cover, or inline at the body's cursor
+  const uploadTarget = useRef<"cover" | "body">("cover");
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const previewUrl = selected ? previewFor(selected.id) : null;
@@ -265,6 +276,12 @@ export default function Admin() {
   // Load the page into whichever frame is hidden; swap to it once it has painted.
   const loadPreview = useCallback((url: string) => {
     if (!url) return;
+    // Ask whether the route is actually in the deployed build. A newly created
+    // page 404s until the rebuild lands, and the SPA answers a 404 by showing
+    // its listing, which reads as "my page is missing" rather than "not yet".
+    fetch(url, { method: "HEAD" })
+      .then((r) => setNotLiveYet(r.status === 404))
+      .catch(() => setNotLiveYet(false));
     previewCounter.current += 1;
     const src = url + (url.includes("?") ? "&" : "?") + "cmsPreview=1&cms=" + previewCounter.current;
     const target: "A" | "B" = activeRef.current === "A" ? "B" : "A";
@@ -443,6 +460,8 @@ export default function Admin() {
         .then((r) => r.json())
         .then((d) => {
           setSelected(item);
+          setAssets([]);
+          loadAssets(item.id);
           setSelectedFolder((f) => f || folderOf(item.id));
           baseSha.current = d.baseSha || "";
           setStaleBase(false);
@@ -479,7 +498,7 @@ export default function Admin() {
             setFrontmatter(d.frontmatter || "");
             setBody(d.body || "");
             setRaw("");
-            const f: MdFields = d.fields || { title: "", desc: "", kicker: "", date: "", tags: [] };
+            const f: MdFields = d.fields || { title: "", desc: "", kicker: "", date: "", cover: "", tags: [] };
             setQ(f);
             setTagsInput((f.tags || []).join(", "));
             baseline.current = JSON.stringify({ frontmatter: d.frontmatter || "", body: d.body || "" });
@@ -588,14 +607,35 @@ export default function Admin() {
       .finally(() => setSaving(false));
   }, [prod, selected, saving, staleBase, type, jsonError, draftPayload, current, refreshPreview]);
 
-  // Dev media upload: send the file, the server runs the WebP/WebM pipeline and
-  // returns the path; set it as the cover and reload the preview so the new asset
-  // resolves in the page's asset glob.
+  // The media already in this item's folder. Read after each change so the
+  // list is the repo's answer rather than a guess about what a write did.
+  const loadAssets = useCallback((id: string) => {
+    fetch(`/api/cms/assets?id=${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setAssets(d?.ok ? d.assets || [] : []))
+      .catch(() => setAssets([]));
+  }, []);
+
+  /** Put markdown at the body's cursor, or at the end when it is not focused. */
+  const insertIntoBody = useCallback((markdown: string) => {
+    const el = bodyRef.current;
+    setBody((prev) => {
+      const at = el && document.activeElement === el ? el.selectionStart : prev.length;
+      const before = prev.slice(0, at).replace(/\s*$/, "");
+      const after = prev.slice(at).replace(/^\s*/, "");
+      return `${before}${before ? "\n\n" : ""}${markdown}${after ? "\n\n" : ""}${after}`;
+    });
+    setMsg({ kind: "ok", text: "Added to the body. Save & publish to make it live." });
+  }, []);
+
+  // Upload a file into the item's folder. On dev the server runs the WebP/WebM
+  // pipeline; on prod it commits the file as given. Either way it lands in the
+  // folder, and goes to the cover or the body depending on which button asked.
   const onUploadFile = useCallback(
     (file: File) => {
       if (!selected) return;
+      const target = uploadTarget.current;
       setUploading(true);
-      setUploadedPath(null);
       setMsg(null);
       const reader = new FileReader();
       reader.onload = () => {
@@ -607,17 +647,23 @@ export default function Admin() {
         })
           .then((r) => r.json())
           .then((d) => {
-            if (d.ok) {
-              setFrontmatter((fm) => setScalar(fm, "cover", d.path));
-              setUploadedPath(d.path);
-              window.setTimeout(() => {
-                if (previewUrlRef.current) loadPreview(previewUrlRef.current);
-              }, 500);
-            } else {
+            if (!d.ok) {
               setMsg({ kind: "err", text: d.error || "Upload failed." });
+              return;
             }
+            const name = d.name || String(d.path || "").split("/").pop() || "";
+            if (target === "cover") {
+              setFrontmatter((fm) => setScalar(fm, "cover", d.path));
+              setQ((prev) => ({ ...prev, cover: d.path }));
+            } else {
+              insertIntoBody(d.markdown || `![](./${name})`);
+            }
+            loadAssets(selected.id);
+            window.setTimeout(() => {
+              if (previewUrlRef.current) loadPreview(previewUrlRef.current);
+            }, 500);
           })
-          .catch(() => setMsg({ kind: "err", text: "Upload failed (is the dev server running?)." }))
+          .catch(() => setMsg({ kind: "err", text: "Upload failed." }))
           .finally(() => setUploading(false));
       };
       reader.onerror = () => {
@@ -626,8 +672,62 @@ export default function Admin() {
       };
       reader.readAsDataURL(file);
     },
-    [selected, loadPreview],
+    [selected, loadPreview, loadAssets, insertIntoBody],
   );
+
+  /** Remove one file from the item's folder. It stays referenced in the body
+      if it was embedded there, so say so rather than editing prose silently. */
+  const removeAsset = useCallback(
+    async (name: string) => {
+      if (!selected) return;
+      if (!window.confirm(`Delete ${name} from this item? This cannot be undone.`)) return;
+      setAssetBusy(name);
+      try {
+        const r = await fetch("/api/cms/asset/delete", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ id: selected.id, name }),
+        }).then((res) => res.json());
+        if (!r.ok) {
+          setMsg({ kind: "err", text: r.error || "Could not delete that file." });
+          return;
+        }
+        loadAssets(selected.id);
+        setMsg({
+          kind: "ok",
+          text: body.includes(name)
+            ? `Deleted ${name}. The body still links to it, so remove that too.`
+            : `Deleted ${name}.`,
+        });
+      } finally {
+        setAssetBusy(null);
+      }
+    },
+    [selected, loadAssets, body],
+  );
+
+  /** Remove the whole item: its folder, and the preview clip keyed to it. */
+  const deleteItem = useCallback(async () => {
+    if (!selected) return;
+    const label = selected.title || selected.id;
+    if (!window.confirm(`Delete "${label}"?\n\nThis removes the page and its media, and cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const r = await fetch("/api/cms/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: selected.id }),
+      }).then((res) => res.json());
+      if (!r.ok) {
+        setMsg({ kind: "err", text: r.error || "Could not delete that item." });
+        return;
+      }
+      setSelected(null);
+      loadList();
+    } finally {
+      setDeleting(false);
+    }
+  }, [selected, loadList]);
 
   // Cmd/Ctrl+S to save
   useEffect(() => {
@@ -912,6 +1012,16 @@ export default function Admin() {
                 {publishing ? "Publishing..." : "Publish"}
               </button>
             )}
+            {selected && /^data\/(blog|hardware|games)\//.test(selected.id) && (
+              <button
+                className="ac-btn ac-btn-plain ac-danger"
+                onClick={deleteItem}
+                disabled={deleting}
+                title="Delete this page and its media"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            )}
             <button
               className="ac-icon-btn"
               title={
@@ -1089,46 +1199,121 @@ export default function Admin() {
                       <Field label="Tags (comma-separated)">
                         <input style={styles.input} value={tagsInput} onChange={(e) => patchTags(e.target.value)} />
                       </Field>
-                      {!prod && selected && /^data\/(blog|hardware|games)\//.test(selected.id) && (
-                        <Field label="Cover image / video">
-                          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                      {selected && /^data\/(blog|hardware|games)\//.test(selected.id) && (
+                        <>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*,video/*"
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) onUploadFile(f);
+                              e.target.value = "";
+                            }}
+                          />
+                          <Field label="Cover image / video">
                             <input
-                              ref={fileInputRef}
-                              type="file"
-                              accept="image/*,video/*"
-                              style={{ display: "none" }}
-                              onChange={(e) => {
-                                const f = e.target.files?.[0];
-                                if (f) onUploadFile(f);
-                                e.target.value = "";
-                              }}
+                              style={styles.input}
+                              value={q.cover}
+                              onChange={(e) => patchScalar("cover", e.target.value)}
+                              placeholder="./cover.webp, or /previews/slug.webp"
                             />
-                            <button
-                              className="cmsx-ghost"
-                              style={{ ...styles.ghostBtn, opacity: uploading ? 0.6 : 1 }}
-                              disabled={uploading}
-                              onClick={() => fileInputRef.current?.click()}
-                            >
-                              {uploading ? "Processing..." : "Upload image or video"}
-                            </button>
-                            {uploadedPath && (
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
                               <button
                                 className="cmsx-ghost"
-                                style={styles.ghostBtn}
-                                onClick={() => navigator.clipboard?.writeText(uploadedPath)}
-                                title="Copy the path (for gallery: entries)"
+                                style={{ ...styles.ghostBtn, opacity: uploading ? 0.6 : 1 }}
+                                disabled={uploading}
+                                onClick={() => {
+                                  uploadTarget.current = "cover";
+                                  fileInputRef.current?.click();
+                                }}
                               >
-                                Copy {uploadedPath}
+                                {uploading ? "Uploading..." : "Upload a cover"}
                               </button>
+                              {q.cover && (
+                                <button className="cmsx-ghost" style={styles.ghostBtn} onClick={() => patchScalar("cover", "")}>
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                          </Field>
+
+                          <Field label="Media in this page">
+                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: assets.length ? 10 : 0, flexWrap: "wrap" }}>
+                              <button
+                                className="cmsx-ghost"
+                                style={{ ...styles.ghostBtn, opacity: uploading ? 0.6 : 1 }}
+                                disabled={uploading}
+                                onClick={() => {
+                                  uploadTarget.current = "body";
+                                  fileInputRef.current?.click();
+                                }}
+                              >
+                                {uploading ? "Uploading..." : "Add image or video to the body"}
+                              </button>
+                              <span style={{ font: "400 11.5px/1.4 var(--ac-font-text)", color: "var(--ac-label-2)" }}>
+                                {prod ? "Committed as uploaded. Up to 3 MB." : "Runs the WebP/WebM pipeline."}
+                              </span>
+                            </div>
+                            {assets.map((name) => {
+                              const used = body.includes(name);
+                              return (
+                                <div
+                                  key={name}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 8,
+                                    padding: "7px 0",
+                                    borderTop: "1px solid var(--ac-separator)",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      flex: 1,
+                                      minWidth: 0,
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      font: "400 13px/1.3 var(--ac-font-text)",
+                                      color: "var(--ac-label)",
+                                    }}
+                                    title={name}
+                                  >
+                                    {name}
+                                  </span>
+                                  <span style={{ font: "400 11.5px/1 var(--ac-font-text)", color: "var(--ac-label-2)" }}>
+                                    {used ? "in the body" : "unused"}
+                                  </span>
+                                  <button
+                                    className="ac-btn ac-btn-plain"
+                                    onClick={() => insertIntoBody(`![](./${name})`)}
+                                    title="Insert at the cursor in the body"
+                                  >
+                                    Insert
+                                  </button>
+                                  <button
+                                    className="ac-btn ac-btn-plain ac-danger"
+                                    disabled={assetBusy === name}
+                                    onClick={() => removeAsset(name)}
+                                  >
+                                    {assetBusy === name ? "..." : "Delete"}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                            {!assets.length && (
+                              <div style={{ font: "400 12.5px/1.4 var(--ac-font-text)", color: "var(--ac-label-2)" }}>
+                                Nothing uploaded to this page yet.
+                              </div>
                             )}
-                            <span style={{ font: "400 11px/1.4 system-ui", color: V.ink3 }}>
-                              Runs the WebP/WebM pipeline, sets the cover. Copy the path for gallery entries. Dev only.
-                            </span>
-                          </div>
-                        </Field>
+                          </Field>
+                        </>
                       )}
                       <Field label="Body (markdown)">
                         <textarea
+                          ref={bodyRef}
                           style={{ ...styles.input, ...styles.mono, minHeight: 320, resize: "vertical" }}
                           value={body}
                           onChange={(e) => setBody(e.target.value)}
@@ -1190,6 +1375,29 @@ export default function Admin() {
                     title="Drag to resize · double-click to reset"
                   />
                   <div style={{ ...styles.previewPane, flex: "1 1 0" }}>
+                    {notLiveYet && (
+                      <div
+                        style={{
+                          flex: "0 0 auto",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "9px 14px",
+                          borderBottom: "1px solid var(--ac-separator)",
+                          background: "var(--ac-tinted-fill, rgba(0,122,255,0.15))",
+                          font: "400 12.5px/1.4 var(--ac-font-text)",
+                          color: "var(--ac-label)",
+                        }}
+                      >
+                        <span style={{ flex: 1 }}>
+                          This page is not in the published build yet, so the preview is showing the
+                          site's fallback. It goes live a minute or two after you publish.
+                        </span>
+                        <button className="ac-btn ac-btn-gray" onClick={() => previewUrl && loadPreview(previewUrl)}>
+                          Check again
+                        </button>
+                      </div>
+                    )}
                     <div style={{ position: "relative", flex: 1, background: "#f5f5f7" }}>
                       {active === null && <div style={styles.previewLoading}>Loading preview...</div>}
                       <iframe
