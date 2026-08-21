@@ -251,7 +251,7 @@ async function ghListTree(): Promise<{ path: string }[]> {
 }
 
 // ---------------------------------------------------------------- content model
-const KINDS = ["blog", "hardware", "games"] as const;
+export const KINDS = ["blog", "hardware", "games"] as const;
 function isAllowed(id: string): boolean {
   if (typeof id !== "string" || id.includes("..") || id.includes("\0")) return false;
   if (id === "page:home") return true;

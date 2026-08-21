@@ -320,7 +320,7 @@ export function writeEditable(id, payload) {
 // post means allocating a folder, not just writing a file. The slug becomes the
 // URL and is permanent in practice (renaming the folder changes the URL), so it
 // is derived from the title once, here, and never rewritten on later saves.
-const KIND_DIRS = new Set(["blog", "hardware", "games"]);
+export const KIND_DIRS = new Set(["blog", "hardware", "games"]);
 
 // Reads naturally in the stub description: "this post", not "this blog".
 const KIND_NOUN = { blog: "article", hardware: "platform", games: "game" };

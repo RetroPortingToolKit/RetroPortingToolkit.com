@@ -13,6 +13,7 @@
 // HIG token set and component vocabulary this markup was written against.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SITE } from "@/lib/site";
+import { FOLDER_KIND, NEW_LABEL } from "@/lib/cmsKinds";
 import { labAll, type LabMedia } from "@/lab/labContent";
 import { SpatialCard } from "@/components/SpatialCard";
 
@@ -84,18 +85,6 @@ const recTextToItems = (text: string) =>
 // The public page this content renders on, for the live preview.
 // Sidebar folder label -> the data/ directory a new item goes in. Folders not
 // listed here (Pages, Sources) are not collections you add to from the editor.
-const FOLDER_KIND: Record<string, string> = {
-  Blog: "blog",
-  Articles: "blog",
-  Hardware: "hardware",
-  Games: "game",
-};
-
-const NEW_LABEL: Record<string, string> = {
-  blog: "article",
-  hardware: "platform",
-  game: "project",
-};
 
 const ITEM_ID_RE = /^data\/(blog|hardware|games)\/\d*_?([^/]+)\/index\.md$/;
 const KIND_OF_DIR: Record<string, LabMedia["kind"]> = { blog: "blog", hardware: "hardware", games: "game" };
