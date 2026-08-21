@@ -308,3 +308,14 @@
   display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px;
   font: 400 var(--ac-fs-subheadline)/1.3 var(--ac-font-text); letter-spacing: var(--ac-tr-subheadline); color: var(--ac-label-2);
 }
+
+/* ---- published cards inside the editor's list view ----
+   The list view shows the site's own cards. .tv-grid pulls itself 6px left so
+   its cards' shadow padding lines up with a full-bleed page; inside the
+   editor's 8px-padded note list that leaves them 12px short of the list
+   title, so the pull is reversed here. */
+.applecms .ac-notelist .tv-grid {
+  margin-inline: 6px;
+  margin-top: 0;
+  padding-bottom: 8px;
+}

@@ -13,6 +13,8 @@
 // HIG token set and component vocabulary this markup was written against.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SITE } from "@/lib/site";
+import { labAll, type LabMedia } from "@/lab/labContent";
+import { SpatialCard } from "@/components/SpatialCard";
 
 type DocType = "md" | "json" | "raw" | "home";
 interface ListItem {
@@ -94,6 +96,22 @@ const NEW_LABEL: Record<string, string> = {
   hardware: "platform",
   game: "project",
 };
+
+const ITEM_ID_RE = /^data\/(blog|hardware|games)\/\d*_?([^/]+)\/index\.md$/;
+const KIND_OF_DIR: Record<string, LabMedia["kind"]> = { blog: "blog", hardware: "hardware", games: "game" };
+
+const MEDIA_BY_KEY = new Map<string, LabMedia>();
+for (const k of ["hardware", "game", "blog"] as const) {
+  for (const m of labAll[k]) MEDIA_BY_KEY.set(`${m.kind}-${m.slug}`, m);
+}
+
+/** The published card for an editable item, when it has one. */
+function mediaForItem(id: string): LabMedia | null {
+  const m = id.match(ITEM_ID_RE);
+  if (!m) return null;
+  const kind = KIND_OF_DIR[m[1]];
+  return (kind && MEDIA_BY_KEY.get(`${kind}-${m[2]}`)) || null;
+}
 
 function previewFor(id: string): string {
   let m: RegExpMatchArray | null;
@@ -726,6 +744,17 @@ export default function Admin() {
     return g.items.filter((i) => i.title.toLowerCase().includes(f) || i.id.toLowerCase().includes(f));
   }, [groups, selectedFolder, filter]);
 
+  // Split the folder into what the site publishes as a card and what it does
+  // not, preserving the list order within each part.
+  const cardItems = useMemo(
+    () =>
+      currentItems
+        .map((item) => ({ item, media: mediaForItem(item.id) }))
+        .filter((x): x is { item: ListItem; media: LabMedia } => !!x.media),
+    [currentItems],
+  );
+  const rowItems = useMemo(() => currentItems.filter((i) => !mediaForItem(i.id)), [currentItems]);
+
   // ---- create a new item in the selected folder ----
   // Only the content folders can take a new item: "Pages" holds the composite
   // Home doc, which is not a collection you add to.
@@ -1008,7 +1037,25 @@ export default function Admin() {
                 <input className="ac-search" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search" />
               </div>
               <div className="ac-notelist">
-                {currentItems.map((it) => (
+                {/* Items that are published as cards on the site are shown as
+                    that same card here, so the editor's list and the live page
+                    read as one thing. Anything without a card (Pages, sources,
+                    a folder not yet built) keeps the plain row. */}
+                {!!cardItems.length && (
+                  <div className="tv-grid">
+                    {cardItems.map(({ item, media }) => (
+                      <SpatialCard
+                        key={item.id}
+                        media={media}
+                        onOpen={(m) => {
+                          const hit = cardItems.find((c) => c.media === m);
+                          if (hit) open(hit.item);
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+                {rowItems.map((it) => (
                   <button key={it.id} className="ac-noterow" onClick={() => open(it)} title={it.id}>
                     <span className="ac-noterow-title">{it.title}</span>
                     {it.sub && <span className="ac-noterow-sub">{it.sub}</span>}
