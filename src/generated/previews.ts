@@ -19,6 +19,7 @@ export const PREVIEW_SLUGS: ReadonlySet<string> = new Set([
   "nintendo-ds",
   "original-xbox",
   "playstation",
+  "pokemon-red-blue",
   "retcomm-rbengine",
   "sega-genesis",
   "sonic-the-hedgehog",
