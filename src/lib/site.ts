@@ -11,7 +11,7 @@ export const SITE = {
   url: "https://retroportingtoolkit.com",
   /** One-line description for <meta name="description"> and feed subtitles. */
   description:
-    "An open ecosystem for turning code from original console games into modern apps: static recompilers, runtimes, game projects, community ports, and shared libraries. You provide your own game files.",
+    "An open ecosystem for turning code from original console games into modern apps: static recompilers, runtimes, game projects, and community ports. You provide your own game files.",
   /**
    * Short positioning line. Used in the prerendered page title
    * ("<title> · <tagline>") and the static shell header crawlers read.

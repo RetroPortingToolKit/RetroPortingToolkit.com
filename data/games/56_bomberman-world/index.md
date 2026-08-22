@@ -27,7 +27,7 @@ The flow is the one this group uses across its titles. Run a release zip standal
 
 ## What the recomp adds
 
-The player count, carried across. Bomberman World was a five player game on a multitap, and the project keeps that number: five in the game config, and five netplay slots in the RetComM catalogue entry, over the shared [recomp-net](/games/recomp-net) stack on either LAN or ICE transports. That entry is a declaration in the catalogue, not a tested result.
+The player count, carried across. Bomberman World was a five player game on a multitap, and the project keeps that number: five in the game config, and five netplay slots in the RetComM catalogue entry, over the shared [recomp-net](/blog/recomp-net) stack on either LAN or ICE transports. That entry is a declaration in the catalogue, not a tested result.
 
 Past the player count the project ships nothing of its own. No widescreen, no mods, no translation layer. What you get is the framework's defaults: the OpenGL renderer at 4:3, digital pads, and memory cards written to a saves folder next to the game.
 

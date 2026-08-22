@@ -779,9 +779,7 @@ export function buildRouteMeta(origin) {
   const TAB_DESC = {
     hardware: `${counts.hardware} platform recompilation ${counts.hardware === 1 ? "ecosystem" : "ecosystems"} from ${SITE_NAME}: decoders and runtimes for original console hardware.`,
     games: (() => {
-      const libs = items.filter((i) => i.kind === "game" && i.group === "Shared libraries").length;
-      const gamesOnly = counts.game - libs;
-      return `${counts.game} projects built on ${SITE_NAME}: ${gamesOnly} game recompilations and ${libs} shared ${libs === 1 ? "library" : "libraries"}.`;
+      return `${counts.game} game recompilations and community ports built on ${SITE_NAME}.`;
     })(),
     blog: `${counts.blog} ${counts.blog === 1 ? "article" : "articles"}: technical writing from the team, press coverage, and videos.`,
   };

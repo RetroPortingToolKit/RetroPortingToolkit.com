@@ -36,7 +36,7 @@ No BIOS dump is needed to play: builds boot the bundled open-source OpenBIOS by 
 - Live language switching: translations are hot-reloaded TOML tables, so a Japanese-only game like Tsumu Light can be played in English, and a translator can see an edited line in-game without rebuilding.
 - Supersampling, plus opt-in fixes for the PS1's polygon jitter and texture warp that leave game logic untouched.
 - Authentic 1x CD-ROM load times by default, with opt-in turbo and fast-loading mods when you want them.
-- Opt-in netplay support, in active development on the shared [recomp-net](/games/recomp-net) rollback library.
+- Opt-in netplay support, in active development on the shared [recomp-net](/blog/recomp-net) rollback library.
 - Games get faster as you play them: code the disc streams in at runtime is captured and compiled to native code in the background, and your discoveries persist between sessions.
 
 ## Technical details

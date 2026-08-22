@@ -155,7 +155,7 @@ const GRID_SUBS: Record<LabKind, string> = {
   hardware:
     "One toolset per console: a static recompiler that translates its games ahead of time, plus a runtime that provides the services those games expect. Sorted by how many games run on each.",
   game:
-    "Game projects, community ports, and the shared libraries behind them, from the core team and the community. You provide your own legally dumped game files; nothing here includes game data.",
+    "Game projects and community ports, from the core team and the community. You provide your own legally dumped game files; nothing here includes game data.",
   blog: "Project updates from the team, plus press and videos from the wider community.",
 };
 
