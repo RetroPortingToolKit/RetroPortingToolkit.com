@@ -738,6 +738,18 @@ export function deleteEditable(payload) {
   const abs = path.join(ROOT, folder);
   if (!fs.existsSync(abs)) return { ok: false, error: "not_found" };
   const slug = folder.split("/").pop().replace(/^\d+_/, "");
+
+  // The build refuses a homepage that links a page which does not exist, so
+  // deleting a featured page breaks every later build, far from whoever did it.
+  const segment = (id.match(ITEM_RE) || [])[1] || "";
+  const homeFile = path.join(DATA_DIR, "home.json");
+  if (fs.existsSync(homeFile) && fs.readFileSync(homeFile, "utf8").includes(`/${segment}/${slug}`)) {
+    return {
+      ok: false,
+      error: `The home page features this page, so deleting it would break the site build. Remove it from the home page first: open Pages > Home and take out the card that points at /${segment}/${slug}.`,
+    };
+  }
+
   const removed = [folder];
   fs.rmSync(abs, { recursive: true, force: true });
   // The generated preview is keyed to the slug and nothing else references it.

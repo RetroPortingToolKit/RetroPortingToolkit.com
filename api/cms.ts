@@ -825,6 +825,11 @@ function itemFolder(id: string): string | null {
   return m ? `data/${m[1]}/${m[2]}` : null;
 }
 
+/** The URL segment for an item id: data/games/... is served at /games/... */
+function kindSegment(id: string): string {
+  return id.match(ITEM_RE)?.[1] ?? "";
+}
+
 function itemSlug(id: string): string | null {
   const m = typeof id === "string" ? id.match(ITEM_RE) : null;
   return m ? m[2].replace(/^\d+_/, "") : null;
@@ -886,6 +891,18 @@ async function deleteEditable(body: Record<string, unknown>, actor?: Actor | nul
   const folder = itemFolder(id);
   const slug = itemSlug(id);
   if (!folder || !slug) return { ok: false, error: "Only content items can be deleted." };
+  // The homepage names the pages it features, and the build refuses to
+  // produce a homepage that links a page which does not exist. Deleting one
+  // out from under it therefore breaks every later build, not just this one,
+  // and the failure surfaces nowhere near the person who caused it.
+  const home = await ghReadFile("data/home.json");
+  if (home && home.content.includes(`/${kindSegment(id)}/${slug}`)) {
+    return {
+      ok: false,
+      error: `The home page features this page, so deleting it would break the site build. Remove it from the home page first: open Pages > Home and take out the card that points at /${kindSegment(id)}/${slug}.`,
+    };
+  }
+
   const paths = (await ghListTree()).map((e) => e.path);
   const own = paths.filter((p) => p === `${folder}/index.md` || p.startsWith(`${folder}/`));
   if (!own.length) return { ok: false, error: "not_found" };
