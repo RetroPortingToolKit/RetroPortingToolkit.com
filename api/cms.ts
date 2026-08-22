@@ -977,6 +977,109 @@ async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | 
   return { ok: true, id: target, slug, title };
 }
 
+// -------------------------------------------------------------------- publish
+// One call that produces a finished page. The editor's flow is new -> read ->
+// save -> upload, which is three round trips and three commits, and an agent
+// gets to fumble at each one. This takes the whole post, media included, and
+// writes it as a single commit.
+
+const PUBLISH_FIELDS = [
+  "kicker",
+  "desc",
+  "date",
+  "year",
+  "status",
+  "availability",
+  "platform",
+  "repo",
+  "videoUrl",
+  "author",
+  "authorAvatar",
+  "authorBio",
+  "venue",
+] as const;
+
+async function publishItem(payload: Record<string, unknown>, actor?: Actor | null) {
+  const kind = String(payload.kind || "");
+  if (!(KINDS as readonly string[]).includes(kind)) {
+    return { ok: false, error: `kind must be one of: ${KINDS.join(", ")}` };
+  }
+  const title = String(payload.title || "").trim();
+  if (!title) return { ok: false, error: "A title is required." };
+  const slug = slugify(String(payload.slug || title));
+  if (!slug) return { ok: false, error: "That title has no usable characters for a URL." };
+
+  const paths = (await ghListTree()).map((e) => e.path);
+  const folders = await foldersOf(kind, paths);
+  if (folders.some((f) => folderSlugOf(f) === slug)) {
+    return { ok: false, error: `"${slug}" already exists in ${kind}. Use /save to change it, or pass a different slug.` };
+  }
+
+  const folder = `data/${kind}/${nextOrder(folders)}_${slug}`;
+  const changes: Change[] = [];
+  const media = Array.isArray(payload.media) ? (payload.media as Record<string, unknown>[]) : [];
+  let cover = typeof payload.cover === "string" ? payload.cover : "";
+  const attached: string[] = [];
+
+  for (const m of media) {
+    const name = safeAssetName(String(m.filename || ""));
+    if (!name) return { ok: false, error: `"${String(m.filename)}" is not a supported media filename.` };
+    const base64 = String(m.contentBase64 || m.data || "").replace(/^data:[^,]*,/, "");
+    if (!base64) return { ok: false, error: `"${name}" has no contentBase64.` };
+    const bytes = Math.floor((base64.length * 3) / 4);
+    if (bytes > MAX_ASSET_BYTES) {
+      return { ok: false, error: `"${name}" is ${(bytes / 1024 / 1024).toFixed(1)} MB. The limit is 3 MB.` };
+    }
+    changes.push({ path: `${folder}/${name}`, base64 });
+    attached.push(name);
+    if (m.cover === true && !cover) cover = `./${name}`;
+  }
+  // No cover named and nothing flagged: the first image is the obvious one.
+  if (!cover) {
+    const firstImage = attached.find((n) => /\.(png|jpe?g|webp|gif|avif)$/i.test(n));
+    if (firstImage) cover = `./${firstImage}`;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const fm: Record<string, unknown> = { title };
+  for (const key of PUBLISH_FIELDS) {
+    const v = payload[key];
+    if (typeof v === "string" && v.trim()) fm[key] = v.trim();
+  }
+  if (Array.isArray(payload.tags)) {
+    fm.tags = (payload.tags as unknown[]).filter((t): t is string => typeof t === "string");
+  }
+  if (!fm.desc) fm.desc = `One line describing this ${KIND_NOUN[kind]}.`;
+  if (kind === "blog") {
+    if (!fm.date) fm.date = today;
+    if (!fm.author && (actor?.name || actor?.login)) fm.author = actor.name || actor.login;
+    if (!fm.authorAvatar && actor?.avatar) fm.authorAvatar = actor.avatar;
+  } else if (!fm.year) {
+    fm.year = today.slice(0, 4);
+  }
+  if (cover) fm.cover = cover;
+  fm.featured = payload.featured === true;
+  // Default to a draft: an agent publishing straight to the front page on its
+  // first try is the failure mode worth defaulting away from. Pass
+  // draft: false to go live.
+  fm.draft = payload.draft !== false;
+
+  const body = String(payload.body || "").trim();
+  if (!body) return { ok: false, error: "A body is required." };
+  changes.push({ path: `${folder}/index.md`, text: `---\n${yaml.dump(fm).trim()}\n---\n\n${body}\n` });
+
+  await ghCommit(changes, `cms: publish ${kind}/${slug}`, actor);
+  return {
+    ok: true,
+    id: `${folder}/index.md`,
+    slug,
+    kind,
+    draft: fm.draft === true,
+    url: `/${kind === "games" ? "games" : kind}/${slug}`,
+    media: attached,
+  };
+}
+
 // ------------------------------------------------------------------- handlers
 export async function GET(req: Request): Promise<Response> {
   const route = sub(req);
@@ -1034,6 +1137,14 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "asset/delete") {
     try {
       const r = await deleteAsset(body, await actorFor(req));
+      return json(r, r.ok ? 200 : 400);
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message }, 500);
+    }
+  }
+  if (route === "publish") {
+    try {
+      const r = await publishItem(body, await actorFor(req));
       return json(r, r.ok ? 200 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);

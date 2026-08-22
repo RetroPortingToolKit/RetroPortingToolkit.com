@@ -807,6 +807,70 @@ export function duplicateEditable(payload) {
   return { ok: true, id: `data/${kind}/${order}_${slug}/index.md`, slug, title };
 }
 
+export function publishItem(payload) {
+  const kind = String(payload?.kind || "");
+  if (!KIND_DIRS.has(kind)) return { ok: false, error: `kind must be one of: ${[...KIND_DIRS].join(", ")}` };
+  const title = String(payload?.title || "").trim();
+  if (!title) return { ok: false, error: "A title is required." };
+  const slug = slugify(String(payload?.slug || title));
+  if (!slug) return { ok: false, error: "That title has no usable characters for a URL." };
+  const folders = foldersOf(kind);
+  if (folders.some((f) => folderSlugOf(f) === slug)) {
+    return { ok: false, error: `"${slug}" already exists in ${kind}.` };
+  }
+
+  const order = String(Math.max(0, ...folders.map((f) => Number((f.match(/^(\d+)_/) || [])[1] || 0))) + 1).padStart(2, "0");
+  const dir = path.join(DATA_DIR, kind, `${order}_${slug}`);
+  const media = Array.isArray(payload?.media) ? payload.media : [];
+  const attached = [];
+  let cover = typeof payload?.cover === "string" ? payload.cover : "";
+
+  fs.mkdirSync(dir, { recursive: true });
+  for (const m of media) {
+    const name = safeAssetName(String(m?.filename || ""));
+    if (!name) return { ok: false, error: `"${String(m?.filename)}" is not a supported media filename.` };
+    const b64 = String(m?.contentBase64 || m?.data || "").replace(/^data:[^,]*,/, "");
+    if (!b64) return { ok: false, error: `"${name}" has no contentBase64.` };
+    fs.writeFileSync(path.join(dir, name), Buffer.from(b64, "base64"));
+    attached.push(name);
+    if (m?.cover === true && !cover) cover = `./${name}`;
+  }
+  if (!cover) {
+    const firstImage = attached.find((n) => /\.(png|jpe?g|webp|gif|avif)$/i.test(n));
+    if (firstImage) cover = `./${firstImage}`;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const fm = { title };
+  for (const key of ["kicker", "desc", "date", "year", "status", "availability", "platform", "repo", "videoUrl", "author", "authorAvatar", "authorBio", "venue"]) {
+    const v = payload?.[key];
+    if (typeof v === "string" && v.trim()) fm[key] = v.trim();
+  }
+  if (Array.isArray(payload?.tags)) fm.tags = payload.tags.filter((t) => typeof t === "string");
+  if (!fm.desc) fm.desc = `One line describing this ${KIND_NOUN[kind]}.`;
+  if (kind === "blog") {
+    if (!fm.date) fm.date = today;
+  } else if (!fm.year) {
+    fm.year = today.slice(0, 4);
+  }
+  if (cover) fm.cover = cover;
+  fm.featured = payload?.featured === true;
+  fm.draft = payload?.draft !== false;
+
+  const body = String(payload?.body || "").trim();
+  if (!body) return { ok: false, error: "A body is required." };
+  fs.writeFileSync(path.join(dir, "index.md"), `---\n${yaml.dump(fm).trim()}\n---\n\n${body}\n`);
+  return {
+    ok: true,
+    id: `data/${kind}/${order}_${slug}/index.md`,
+    slug,
+    kind,
+    draft: fm.draft === true,
+    url: `/${kind}/${slug}`,
+    media: attached,
+  };
+}
+
 // ---- middleware ----
 function send(res, status, body, headers) {
   res.statusCode = status;
@@ -937,6 +1001,18 @@ export function createCmsMiddleware() {
           return send(res, 400, { ok: false, error: "bad_request" });
         }
         const r = deleteAsset(body);
+        return send(res, r.ok ? 200 : 400, r);
+      });
+    }
+    if (url === "/api/cms/publish" && req.method === "POST") {
+      return readBody(req, (raw) => {
+        let body = {};
+        try {
+          body = JSON.parse(raw || "{}");
+        } catch {
+          return send(res, 400, { ok: false, error: "bad_request" });
+        }
+        const r = publishItem(body);
         return send(res, r.ok ? 200 : 400, r);
       });
     }
