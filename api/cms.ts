@@ -977,7 +977,7 @@ async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | 
   return { ok: true, id: target, slug, title };
 }
 
-// -------------------------------------------------------------------- publish
+// ----------------------------------------------------------------------- post
 // One call that produces a finished page. The editor's flow is new -> read ->
 // save -> upload, which is three round trips and three commits, and an agent
 // gets to fumble at each one. This takes the whole post, media included, and
@@ -999,7 +999,7 @@ const PUBLISH_FIELDS = [
   "venue",
 ] as const;
 
-async function publishItem(payload: Record<string, unknown>, actor?: Actor | null) {
+async function postItem(payload: Record<string, unknown>, actor?: Actor | null) {
   const kind = String(payload.kind || "");
   if (!(KINDS as readonly string[]).includes(kind)) {
     return { ok: false, error: `kind must be one of: ${KINDS.join(", ")}` };
@@ -1068,7 +1068,7 @@ async function publishItem(payload: Record<string, unknown>, actor?: Actor | nul
   if (!body) return { ok: false, error: "A body is required." };
   changes.push({ path: `${folder}/index.md`, text: `---\n${yaml.dump(fm).trim()}\n---\n\n${body}\n` });
 
-  await ghCommit(changes, `cms: publish ${kind}/${slug}`, actor);
+  await ghCommit(changes, `cms: post ${kind}/${slug}`, actor);
   return {
     ok: true,
     id: `${folder}/index.md`,
@@ -1142,9 +1142,9 @@ export async function POST(req: Request): Promise<Response> {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
   }
-  if (route === "publish") {
+  if (route === "post") {
     try {
-      const r = await publishItem(body, await actorFor(req));
+      const r = await postItem(body, await actorFor(req));
       return json(r, r.ok ? 200 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);

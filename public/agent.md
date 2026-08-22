@@ -14,7 +14,7 @@ If they have not given you one, stop and ask for it. Do not try to sign in.
 ## Post something
 
 One request creates a finished page. Send `POST` to
-`https://retroportingtoolkit.com/api/cms/publish` with
+`https://retroportingtoolkit.com/api/cms/post` with
 `Authorization: Bearer <token>` and `Content-Type: application/json`.
 
 ```json

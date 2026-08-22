@@ -807,7 +807,7 @@ export function duplicateEditable(payload) {
   return { ok: true, id: `data/${kind}/${order}_${slug}/index.md`, slug, title };
 }
 
-export function publishItem(payload) {
+export function postItem(payload) {
   const kind = String(payload?.kind || "");
   if (!KIND_DIRS.has(kind)) return { ok: false, error: `kind must be one of: ${[...KIND_DIRS].join(", ")}` };
   const title = String(payload?.title || "").trim();
@@ -1004,7 +1004,7 @@ export function createCmsMiddleware() {
         return send(res, r.ok ? 200 : 400, r);
       });
     }
-    if (url === "/api/cms/publish" && req.method === "POST") {
+    if (url === "/api/cms/post" && req.method === "POST") {
       return readBody(req, (raw) => {
         let body = {};
         try {
@@ -1012,7 +1012,7 @@ export function createCmsMiddleware() {
         } catch {
           return send(res, 400, { ok: false, error: "bad_request" });
         }
-        const r = publishItem(body);
+        const r = postItem(body);
         return send(res, r.ok ? 200 : 400, r);
       });
     }
