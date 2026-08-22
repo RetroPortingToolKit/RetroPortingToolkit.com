@@ -296,6 +296,7 @@ export default function Admin() {
   const [slugBusy, setSlugBusy] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [rowBusy, setRowBusy] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   // A page that exists in the repo but not yet in the deployed build: the
   // preview would otherwise fall back to a listing and look like the edit
   // silently did nothing.
@@ -1124,6 +1125,7 @@ export default function Admin() {
   return (
     <div className="applecms" style={styles.full}>
       <style>{hoverCss}</style>
+      {showHelp && <HelpSheet onClose={() => setShowHelp(false)} prod={prod} />}
 
       {/* window toolbar: leading = sidebar toggle + a contextual back (Apple: item
           -> list -> site); trailing = the document's actions when editing. */}
@@ -1151,6 +1153,11 @@ export default function Admin() {
         <div style={{ flex: 1, minWidth: 0, marginLeft: 4 }}>
           <div className="ac-toolbar-title">{selected ? selected.title : selectedFolder}</div>
         </div>
+        {!selected && (
+          <button className="ac-btn ac-btn-plain" onClick={() => setShowHelp(true)}>
+            How this works
+          </button>
+        )}
         {selected && (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {msg && (
@@ -1211,7 +1218,8 @@ export default function Admin() {
                   ? "Save & publish commits your change and rebuilds the site. It goes live about 1-2 minutes later."
                   : "Save writes your edit instantly. Publish pushes it to the live site (live about 1-2 minutes after)."
               }
-              aria-label="About saving and publishing"
+              aria-label="How this works"
+              onClick={() => setShowHelp(true)}
             >
               <HelpIcon />
             </button>
@@ -1828,6 +1836,157 @@ function ChevronLeftIcon() {
 }
 
 // questionmark.circle for the publish-timing help
+
+/** In-product documentation. Deliberately task-shaped ("what happens when I
+    press this") rather than a second copy of docs/AUTHORING.md, which
+    describes what a page IS. The few house-style rules are repeated here
+    because someone in this editor will not go and read a file in the repo,
+    and getting them wrong is visible on the published page. */
+function HelpSheet({ onClose, prod }: { onClose: () => void; prod: boolean }) {
+  const H = ({ children }: { children: React.ReactNode }) => (
+    <h2 style={{ font: "700 15px/1.3 var(--ac-font-text)", letterSpacing: "-0.01em", color: "var(--ac-label)", margin: "26px 0 8px" }}>
+      {children}
+    </h2>
+  );
+  const P = ({ children }: { children: React.ReactNode }) => (
+    <p style={{ font: "400 13.5px/1.55 var(--ac-font-text)", color: "var(--ac-label-2)", margin: "0 0 10px" }}>{children}</p>
+  );
+  const Key = ({ children }: { children: React.ReactNode }) => (
+    <span style={{ font: "600 13px/1.4 var(--ac-font-text)", color: "var(--ac-label)" }}>{children}</span>
+  );
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="How this works"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9500,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        background: "rgba(0,0,0,0.34)",
+        WebkitBackdropFilter: "blur(3px)",
+        backdropFilter: "blur(3px)",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "min(620px, 100%)",
+          maxHeight: "100%",
+          overflowY: "auto",
+          padding: "26px 30px 34px",
+          borderRadius: 14,
+          background: "var(--ac-bg)",
+          border: "1px solid var(--ac-separator)",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+          <h1 style={{ flex: 1, font: "700 22px/1.2 var(--ac-font-text)", letterSpacing: "-0.02em", color: "var(--ac-label)", margin: 0 }}>
+            How this works
+          </h1>
+          <button className="ac-btn ac-btn-gray" onClick={onClose}>
+            Done
+          </button>
+        </div>
+
+        <P>
+          You are editing the live site. Anyone in the RetroPortingToolKit
+          organisation can be here, and everything you do is a commit under your
+          own name.
+        </P>
+
+        <H>Publishing is immediate</H>
+        <P>
+          <Key>Save &amp; publish</Key> commits your change and the site rebuilds
+          straight away. It is live about a minute or two later. There is no
+          review step and no undo button, so when something is not ready, leave
+          it as a <Key>Draft</Key>.
+        </P>
+        <P>
+          A draft is written down and kept out of every listing, the feeds and
+          the sitemap. Its own address still works, so you can send someone the
+          link. Press <Key>Publish</Key> in the bar at the top of a page when it
+          is ready.
+        </P>
+
+        <H>Where a page goes</H>
+        <P>
+          Pick by what the thing is, not where you want it seen.{" "}
+          <Key>Articles</Key> are news, build logs, write-ups, videos and press
+          coverage. <Key>Games</Key> is one entry per game that has been
+          recompiled or ported. <Key>Hardware</Key> is one entry per console's
+          toolchain. Writing <em>about</em> a game is an article that links to
+          the game's page, not a second games entry.
+        </P>
+
+        <H>Writing</H>
+        <P>
+          The body is markdown. The buttons above it mark up whatever you have
+          selected, or leave the cursor between the markers if you have not
+          selected anything. The panel on the right is the real page, redrawing
+          as you type, before anything is saved.
+        </P>
+
+        <H>Images and video</H>
+        <P>
+          <Key>Upload a cover</Key> sets the picture used on the page's card
+          everywhere it appears. <Key>Add image or video to the body</Key> puts a
+          file in the page and drops it where your cursor is. Anything already
+          uploaded is listed underneath, showing whether it is used, with{" "}
+          <Key>Insert</Key> to place it again and <Key>Delete</Key> to remove it.
+        </P>
+        <P>
+          Write a real caption in the square brackets, because it renders
+          underneath the image: <code>![Tomba! running at 1440p](./shot.png)</code>.
+          A YouTube link in the same shape becomes a player. Files are capped at
+          3 MB{prod ? "" : " on the live site"}; anything larger belongs in the
+          repo.
+        </P>
+
+        <H>Renaming and deleting</H>
+        <P>
+          <Key>Change address</Key> moves the page to a new URL, and the old one
+          stops working, so links people have already shared will break.{" "}
+          <Key>Duplicate</Key> copies a page as a draft.{" "}
+          <Key>Delete</Key> removes the page and its media for good.
+        </P>
+
+        <H>House style</H>
+        <P>
+          Plain language, short sentences, no marketing voice. No em dashes or en
+          dashes anywhere: commas, colons and periods. Say "core project" or
+          "core team", never "first-party". Never "real code". Never claim
+          categorically that no emulation is involved. "Pokémon" keeps its
+          accent. Do not state a fact you cannot source; link the source instead.
+        </P>
+
+        <H>If you would rather not use this editor</H>
+        <P>
+          The repo is the other way in, and it is better for anything large: you
+          can see every existing page, run the build before publishing, and leave
+          a diff. Clone{" "}
+          <a className="cmsx-link" style={{ color: "var(--ac-accent)" }} href="https://github.com/RetroPortingToolKit/RetroPortingToolkit.com" target="_blank" rel="noreferrer">
+            RetroPortingToolkit.com
+          </a>{" "}
+          and read <code>docs/AUTHORING.md</code>. To have your own AI publish
+          here, point it at{" "}
+          <a className="cmsx-link" style={{ color: "var(--ac-accent)" }} href="/agent.md" target="_blank" rel="noreferrer">
+            /agent.md
+          </a>
+          .
+        </P>
+      </div>
+    </div>
+  );
+}
+
 function HelpIcon() {
   return (
     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

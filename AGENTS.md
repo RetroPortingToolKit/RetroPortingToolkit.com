@@ -2,13 +2,30 @@
 
 ## Scope
 
-This repo is a site template. Content lives in `data/`; brand strings live in
-`src/lib/site.ts`. Prefer changing those over hardcoding values in components.
+This repo **is** the live site at https://retroportingtoolkit.com. It began as
+a generic template and is no longer one: the content under `data/` is real and
+published, and `src/lib/site.ts` holds this site's brand. Do not treat anything
+here as placeholder, and do not change the site's name, domain or byline unless
+that is the actual request.
 
-**Adding or editing a page? Read `docs/AUTHORING.md` first.** It is the one
-description of what a page is: the three kinds, the frontmatter each takes,
-how media is embedded, and the house style. Everything below is about changing
-the site itself, which is a different job.
+Most work here is one of two jobs, and they are different:
+
+**Publishing a page** is the common one. Read `docs/AUTHORING.md` first: it is
+the one description of what a page is, covering the three kinds, the
+frontmatter each takes, how media is embedded, and the house style. The loop:
+
+```sh
+git pull                       # others publish through the CMS; start current
+                               # write or edit data/<kind>/<nn>_<slug>/index.md
+npm run build                  # fails on a referenced asset that is missing
+git add -A && git commit && git push    # this publishes it, see Releasing
+```
+
+Set `draft: true` in the frontmatter for anything not ready. It keeps the page
+out of every listing, feed and the sitemap while leaving its own URL working,
+which is how you show someone a page before it is announced.
+
+**Changing the site itself** is everything below.
 
 ## Conventions
 
