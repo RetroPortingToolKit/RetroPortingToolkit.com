@@ -410,3 +410,16 @@ Traps hit while doing this:
   and Tomba's serial); ignore claims that trace back to the wrong game.
 - `year:` is the PROJECT's year ("2026") on every page, not the original
   game's release year. It feeds the article date line.
+
+## Cover provenance, settled 2026-08-21
+
+The owner obtained permission to use both covers that were previously flagged
+as open questions. They are settled, not pending; do not re-raise them.
+
+- `data/games/39_openpete-spyro/index.md` -> `./openpete-spyro.jpg`, a frame
+  from the ixbt.games article linked in that page's `links:`.
+- `data/games/42_pepsiman/index.md` -> `./pepsiman-browser.jpg`, from the
+  Retro Handhelds article linked in that page's `links:`.
+
+There is no `coverCredit` field on items and the site renders no image credit;
+both pages already link their source article under `links:`.

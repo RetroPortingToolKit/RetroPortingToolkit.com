@@ -97,7 +97,11 @@ export function listEditable() {
       .map(({ folder, file }) => {
         const { fmText } = splitRaw(fs.readFileSync(file, "utf8"));
         const slug = (folder.match(FOLDER_RE) || [, , folder])[2];
-        return { id: `data/${dir}/${folder}/index.md`, title: mdTitle(file, fmText), sub: slug, type: "md" };
+        let draft = false;
+        try {
+          draft = (yaml.load(fmText) || {}).draft === true;
+        } catch {}
+        return { id: `data/${dir}/${folder}/index.md`, title: mdTitle(file, fmText), sub: slug, type: "md", draft };
       });
     if (items.length) groups.push({ group: label, items });
   }

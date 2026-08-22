@@ -110,6 +110,29 @@ async function isOrgMember(login: string, now = Date.now()): Promise<boolean> {
   return member;
 }
 
+/** Can the site actually ask GitHub about its own org? Reports only that, not
+    who is in it: without org read scope on GITHUB_TOKEN, every member other
+    than someone on the explicit allowlist is refused at sign-in, and the only
+    symptom is "not allowed" for people who plainly are members. */
+export async function orgReady(): Promise<boolean> {
+  const org = allowedOrg();
+  if (!org || !TOKEN) return false;
+  try {
+    const r = await fetch("https://api.github.com/user", { headers: ghHeaders() });
+    if (!r.ok) return false;
+    const scopes = r.headers.get("x-oauth-scopes");
+    // Classic OAuth tokens advertise their scopes. Fine-grained tokens and App
+    // installations do not, so fall back to trying the call we depend on.
+    if (scopes !== null) return /(^|,\s*)(read:org|write:org|admin:org)(\s*,|$)/.test(scopes);
+    const probe = await fetch(`https://api.github.com/orgs/${encodeURIComponent(org)}/members?per_page=1`, {
+      headers: ghHeaders(),
+    });
+    return probe.status === 200;
+  } catch {
+    return false;
+  }
+}
+
 /** May this GitHub login edit? Org membership or the explicit allowlist. */
 export async function mayEdit(login: string): Promise<boolean> {
   if (!login) return false;
@@ -377,6 +400,33 @@ async function ghCommit(changes: Change[], message: string, actor?: Actor | null
   return commit.sha as string;
 }
 
+/** Read many files in ONE request. The editor's list needs each page's real
+    title and whether it is a draft, which lives inside the file; over the REST
+    contents API that is a call per page, so the list either cost a hundred
+    requests or, as it did, showed a slug prettified into a fake title. GraphQL
+    aliases fetch them all at once. */
+async function ghReadMany(paths: string[]): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!paths.length) return out;
+  const fields = paths
+    .map((p, i) => `f${i}: object(expression: ${JSON.stringify(`${BRANCH}:${p}`)}) { ... on Blob { text } }`)
+    .join("\n");
+  const query = `query { repository(owner: ${JSON.stringify(OWNER)}, name: ${JSON.stringify(REPO)}) { ${fields} } }`;
+  const r = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: { ...ghHeaders(), "content-type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+  if (!r.ok) return out; // the caller falls back to what it can derive
+  const j = (await r.json()) as { data?: { repository?: Record<string, { text?: string } | null> } };
+  const repo = j.data?.repository || {};
+  paths.forEach((p, i) => {
+    const text = repo[`f${i}`]?.text;
+    if (typeof text === "string") out.set(p, text);
+  });
+  return out;
+}
+
 async function ghListTree(): Promise<{ path: string }[]> {
   const r = await fetch(`${GH}/git/trees/${BRANCH}?recursive=1`, { headers: ghHeaders() });
   if (!r.ok) throw new Error(`gh_tree_${r.status}`);
@@ -617,19 +667,34 @@ async function createEditable(payload: Record<string, unknown>, actor?: Actor | 
 
 async function listEditable() {
   const paths = (await ghListTree()).map((e) => e.path);
-  const groups: { group: string; items: { id: string; title: string; sub?: string; type: string }[] }[] = [];
+  const groups: { group: string; items: { id: string; title: string; sub?: string; type: string; draft?: boolean }[] }[] = [];
 
   const pages = [{ id: "page:home", title: "Home", sub: "hero, proof, recognition, philosophy", type: "home" }];
   groups.push({ group: "Pages", items: pages });
 
+  // One request for every page's frontmatter, so the list can show real titles
+  // and mark drafts. If it fails the list still renders, from the slug.
+  const itemPaths = paths.filter((p) => /^data\/(blog|hardware|games)\/[^/]+\/index\.md$/.test(p)).sort();
+  const texts = await ghReadMany(itemPaths);
+  const metaOf = (p: string): { title?: string; draft?: boolean } => {
+    const raw = texts.get(p);
+    if (!raw) return {};
+    try {
+      const fm = (yaml.load(splitRaw(raw).fmText) || {}) as Record<string, unknown>;
+      return { title: typeof fm.title === "string" ? fm.title : undefined, draft: fm.draft === true };
+    } catch {
+      return {};
+    }
+  };
+
   for (const kind of KINDS) {
-    const items = paths
+    const items = itemPaths
       .filter((p) => new RegExp(`^data/${kind}/[^/]+/index\\.md$`).test(p))
-      .sort()
       .map((p) => {
         const folder = p.split("/")[2];
         const slug = folder.replace(/^\d+_/, "");
-        return { id: p, title: prettify(slug), sub: slug, type: "md" };
+        const meta = metaOf(p);
+        return { id: p, title: meta.title || prettify(slug), sub: slug, type: "md", draft: !!meta.draft };
       });
     if (items.length) groups.push({ group: kind[0].toUpperCase() + kind.slice(1), items });
   }
@@ -923,6 +988,8 @@ export async function GET(req: Request): Promise<Response> {
       required: accessConfigured(),
       authed: !!actor || !accessConfigured(),
       github: !!GH_CLIENT_ID,
+      org: allowedOrg() || null,
+      orgReady: await orgReady(),
       user: actor
         ? { login: actor.login, via: actor.via, agent: actor.agent ?? null, name: actor.name ?? null, avatar: actor.avatar ?? null }
         : null,

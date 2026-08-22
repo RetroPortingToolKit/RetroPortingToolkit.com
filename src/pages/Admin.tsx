@@ -19,6 +19,8 @@ import { SpatialCard } from "@/components/SpatialCard";
 
 type DocType = "md" | "json" | "raw" | "home";
 interface ListItem {
+  /** set by the backend from the page's frontmatter */
+  draft?: boolean;
   id: string;
   title: string;
   sub?: string;
@@ -501,7 +503,7 @@ export default function Admin() {
           setSelected(item);
           setAssets([]);
           loadAssets(item.id);
-          setSelectedFolder((f) => f || folderOf(item.id));
+          setSelectedFolder((f) => folderOf(item.id) || f);
           baseSha.current = d.baseSha || "";
           setStaleBase(false);
           try {
@@ -760,12 +762,26 @@ export default function Admin() {
           return;
         }
         loadAssets(selected.id);
-        setMsg({
-          kind: "ok",
-          text: body.includes(name)
-            ? `Deleted ${name}. The body still links to it, so remove that too.`
-            : `Deleted ${name}.`,
-        });
+        // A body still pointing at a file that no longer exists renders a
+        // broken image, so offer to take the reference out with it rather than
+        // leaving that as homework.
+        if (body.includes(name)) {
+          const refs = new RegExp(`^.*!\\[[^\\]]*\\]\\((?:\\./)?${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\).*$`, "gm");
+          const hits = body.match(refs)?.length ?? 0;
+          if (
+            hits &&
+            window.confirm(
+              `Deleted ${name}.\n\nThe body embeds it ${hits === 1 ? "once" : `${hits} times`}, which will render broken. Remove ${hits === 1 ? "that line" : "those lines"} too?`,
+            )
+          ) {
+            setBody((prev) => prev.replace(refs, "").replace(/\n{3,}/g, "\n\n"));
+            setMsg({ kind: "ok", text: `Deleted ${name} and removed it from the body. Save & publish to apply.` });
+          } else {
+            setMsg({ kind: "ok", text: `Deleted ${name}. The body still links to it.` });
+          }
+        } else {
+          setMsg({ kind: "ok", text: `Deleted ${name}.` });
+        }
       } finally {
         setAssetBusy(null);
       }
@@ -1338,13 +1354,13 @@ export default function Admin() {
                               flex: "0 0 auto",
                               padding: "2px 8px",
                               borderRadius: 9,
-                              background: "rgba(210,131,20,0.14)",
-                              color: "#8a5300",
+                              background: it.draft ? "rgba(210,131,20,0.14)" : "var(--ac-fill-3)",
+                              color: it.draft ? "#8a5300" : "var(--ac-label-2)",
                               font: "600 11px/1.6 var(--ac-font-text)",
                             }}
-                            title="A draft, or created since the last build"
+                            title={it.draft ? "Not published" : "Published, but the site has not rebuilt since it changed"}
                           >
-                            Not live
+                            {it.draft ? "Draft" : "Building"}
                           </span>
                           <button
                             className="ac-btn ac-btn-plain ac-danger"
