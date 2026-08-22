@@ -565,7 +565,7 @@ function TabContent({
                   return (
                     <SpatialCard
                       key={card.page}
-                      media={{ ...media, title: card.headline ?? card.videoTitle }}
+                      media={{ ...media, title: card.headline ?? card.videoTitle, look: "game" }}
                       onOpen={onOpen}
                       still={!interactive}
                     />

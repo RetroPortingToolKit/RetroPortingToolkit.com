@@ -30,6 +30,11 @@ export interface LabMedia {
   tags?: string[];
   color: string;
   kind: LabKind;
+  /** How the card should LOOK, when that differs from what it links to. A row
+      of game cards featuring one article should not sprout a news card in the
+      middle of it: the row has one visual language, the link still goes to the
+      article. Defaults to `kind`. */
+  look?: LabKind;
   video: boolean;
   // project shelf ("side" = fun side projects, shown separately on the tab)
   group?: string;

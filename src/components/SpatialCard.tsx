@@ -251,7 +251,7 @@ export function SpatialCard({
     <button
       ref={ref}
       type="button"
-      className={`tvcard tvcard--${media.kind}${hovered ? " is-hover" : ""}`}
+      className={`tvcard tvcard--${media.look ?? media.kind}${hovered ? " is-hover" : ""}`}
       onPointerMove={onPointerMove}
       onPointerLeave={onPointerLeave}
       onClick={() => onOpen(media)}
@@ -322,7 +322,7 @@ export function SpatialCard({
           <span className="tvcard-body">
             {/* Only news cards carry the kicker chip: on game and platform
                 cards the platform is already the section heading. */}
-            {media.kind === "blog" && (
+            {(media.look ?? media.kind) === "blog" && (
               <span className="tvcard-chip" style={{ background: media.color }}>
                 {media.kicker}
               </span>
