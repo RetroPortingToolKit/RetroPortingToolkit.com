@@ -14,9 +14,16 @@ old new/read/save/upload chain and never mentioned `/api/cms/post`, the one call
 that publishes a whole page. One description, in the place agents actually read
 it, is the fix.
 
-## What stays here: minting tokens
+## Tokens are optional, and none are currently issued
 
-That is the owner's job, not an agent's, so it does not belong on the public
+Nobody needs one. A collaborator in the org pushes to this repo, or signs in at
+/admin with GitHub; both are gated on org membership and neither involves a
+secret anyone has to hand over. Tokens exist for the one case those do not
+cover: an agent publishing over HTTP from a machine with no checkout and no
+browser session.
+
+`CMS_AGENT_KEYS` is unset, so the bearer path is closed until someone sets it.
+Minting is the owner's job, not an agent's, so it does not belong on the public
 page.
 
 ```sh
