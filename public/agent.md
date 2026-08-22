@@ -3,13 +3,24 @@
 You are reading this because someone asked you to post to this site. This page
 is everything you need. Follow it exactly.
 
-## What you need
+## First, check you are on the right path
 
-A token, which the person you are working for has. It looks like `rpt_...`.
-Never print it back to them, never write it into a file, never put it in a URL.
-Send it only in an `Authorization` header.
+This page is the HTTP API, which needs a bearer token. **Tokens are not
+currently issued for this site**, so unless the person you are working for hands
+you one, you want one of these instead:
 
-If they have not given you one, stop and ask for it. Do not try to sign in.
+- **They have the repo checked out.** Work there: read `AGENTS.md` and
+  `docs/AUTHORING.md`, write the page, run `npm run build`, and push. Pushing
+  publishes. This is the better path anyway, because you can see every existing
+  page and the build catches a broken asset before anyone else does.
+- **They do not.** They can sign in at
+  https://retroportingtoolkit.com/admin with GitHub and write it there.
+
+Both are open to anyone in the RetroPortingToolKit GitHub organisation.
+
+If you *were* given a token, it looks like `rpt_...`. Never print it back to
+them, never write it into a file, never put it in a URL. Send it only in an
+`Authorization` header. Everything below is for that case.
 
 ## Post something
 
