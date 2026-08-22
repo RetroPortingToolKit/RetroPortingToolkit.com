@@ -565,10 +565,12 @@ function DefaultDetail({ item }: { item: Item }) {
             {item.kind === "blog" && <ArticleByline item={item} />}
             {/* A game article still has to answer the two questions a card
                 answers: which platform, and can I play it. Then the one link
-                that matters. */}
-            {item.kind === "game" && (
+                that matters. An article about a project, a library say, has no
+                platform and nothing to play, but the repository is still the
+                link the reader wants, so it earns the same button. */}
+            {(item.kind === "game" || item.repo) && (
               <div className="article-projectmeta blur-in" style={delayed(200)}>
-                {item.kicker && item.platform && (
+                {item.kind === "game" && item.kicker && item.platform && (
                   <SmartLink
                     className="tvcard-chip tvcard-chip--link"
                     href={`/hardware/${item.platform}`}
@@ -581,7 +583,7 @@ function DefaultDetail({ item }: { item: Item }) {
                     </span>
                   </SmartLink>
                 )}
-                {item.status && <span className="pill">{item.status}</span>}
+                {item.kind === "game" && item.status && <span className="pill">{item.status}</span>}
                 {item.repo && (
                   <a
                     className="project-cta"
