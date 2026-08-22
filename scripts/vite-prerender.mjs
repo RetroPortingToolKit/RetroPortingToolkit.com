@@ -535,6 +535,17 @@ function validateHomeMedia(items) {
       );
     }
   };
+  // "Watch it run" features whatever page carries the footage, which is not
+  // always a game: a library's own article can be the page with the video.
+  const videoPageExists = (p, what) => {
+    const m = /^\/(games|blog)\/([a-z0-9-]+)$/.exec(p);
+    need(m, `${what}: link "${p}" must be an internal /games/ or /blog/ page`);
+    if (!m) return null;
+    const kind = m[1] === "games" ? "game" : "blog";
+    const item = items.find((i) => i.kind === kind && i.slug === m[2]);
+    need(item, `${what}: no ${kind} page for "${m[2]}"`);
+    return item ?? null;
+  };
   for (const st of prose.stories) {
     checkAsset(st.image, `story "${st.title}"`);
     need(st.alt, `story "${st.title}": missing alt`);
@@ -551,11 +562,9 @@ function validateHomeMedia(items) {
   need(prose.action.length > 0 && prose.action.length <= 8, `action: expected 1-8 cards, found ${prose.action.length}`);
   for (const c of prose.action) {
     checkAsset(c.poster, `action "${c.videoTitle}"`);
-    gamePageExists(c.page, `action "${c.videoTitle}"`);
     need(c.alt, `action "${c.videoTitle}": missing alt`);
     // the internal page must carry the video so the embed and attribution live there
-    const slug = c.page.split("/").pop();
-    const item = items.find((i) => i.kind === "game" && i.slug === slug);
+    const item = videoPageExists(c.page, `action "${c.videoTitle}"`);
     need(item && item.videoUrl, `action "${c.videoTitle}": ${c.page} has no videoUrl to embed`);
   }
   if (prose.featuredPost) {
