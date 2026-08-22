@@ -42,10 +42,14 @@ npm run test
 
 ## Releasing
 
-Deploys happen when the owner asks. Do not add a scheduled job, hook, or CI
-workflow that builds, deploys, or publishes on its own.
+**A push to `main` deploys the site.** The Vercel project is connected to this
+repo and builds on every push, live a minute or two later. That is deliberate
+(owner, 2026-08-21) and is what makes the CMS work: a page written through
+`/admin` or the API is committed by the site's own token, and that commit
+publishes it. Use `draft: true` to hold something back, not an unpushed commit.
 
-Content is the exception, and it is the point of the CMS: a page written
-through `/admin` or the API is committed by the site's own token, and goes
-live on the next deploy. Prefer `draft: true` for anything not ready, rather
-than holding the commit back.
+So do not push anything you would not publish, and run the checks above first.
+
+Beyond that, deploys happen when the owner asks. Do not add a scheduled job,
+hook, or CI workflow that builds, deploys, or publishes on its own; the git
+connection above is the one exception and it already exists.
