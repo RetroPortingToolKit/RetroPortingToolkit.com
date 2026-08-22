@@ -1,7 +1,7 @@
 import { useEffect, type CSSProperties } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import type { Kind } from "@/lib/types";
-import { findItem } from "@/lib/content";
+import { IS_CMS_PREVIEW, useItem } from "@/lib/cmsPreview";
 import { ItemDetail } from "@/components/ItemDetail";
 import { SITE } from "@/lib/site";
 import { titleForItem, useDocumentTitle } from "@/lib/pageTitle";
@@ -13,7 +13,10 @@ interface Props {
 export function ItemPage({ kind }: Props) {
   const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const item = findItem(kind, slug);
+  // Draft-aware: inside the editor's preview frame this resolves from the
+  // streamed draft, so a page renders while it is being written and updates as
+  // it is typed, without a save, a commit or a build.
+  const item = useItem(kind, slug);
 
   // Matches the title scripts/vite-prerender.mjs serves for this URL, so
   // hydration does not change it.
@@ -27,13 +30,15 @@ export function ItemPage({ kind }: Props) {
     return (
       <div className="page page-missing">
         <div className="container" style={{ padding: "120px 0" }}>
-          <h1 className="hero-title">Not found</h1>
+          <h1 className="hero-title">{IS_CMS_PREVIEW ? "Loading the draft" : "Not found"}</h1>
           <p className="hero-sub" style={{ marginTop: 16 }}>
-            That page doesn't exist.
+            {IS_CMS_PREVIEW ? "This page renders here as you write it." : "That page doesn't exist."}
           </p>
-          <Link to="/" className="btn btn-secondary" style={{ marginTop: 24 }}>
-            ← Home
-          </Link>
+          {!IS_CMS_PREVIEW && (
+            <Link to="/" className="btn btn-secondary" style={{ marginTop: 24 }}>
+              ← Home
+            </Link>
+          )}
         </div>
       </div>
     );

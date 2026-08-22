@@ -29,11 +29,11 @@ import { CollectionView } from "./components/CollectionView";
 import { Footer } from "./components/Footer";
 import {
   COLLECTION_KIND,
-  findItem,
   itemsForKind,
   itemsForTopic,
 } from "./lib/content";
 import { findTopic } from "./lib/topics";
+import { IS_CMS_PREVIEW, useItem } from "./lib/cmsPreview";
 import type { Kind } from "./lib/types";
 
 interface BgState {
@@ -72,12 +72,18 @@ function ModalRoute({
   covered?: boolean;
 }) {
   const { slug = "" } = useParams<{ slug: string }>();
-  const item = findItem(kind, slug);
+  // Draft-aware: inside the editor's preview frame this resolves from the
+  // streamed draft, so a page being written renders before it is ever built.
+  const item = useItem(kind, slug);
   // Called before the early return so the hook order stays stable. This layer
   // is on top, so it owns the title: it restates what the server prerendered
   // for this URL instead of letting the tab page underneath overwrite it.
   useDocumentTitle(item ? titleForItem(item) : "", !!item);
   if (!item) {
+    // Inside the editor's preview frame, a missing item means the first draft
+    // has not arrived yet. Closing would drop the author back to the listing,
+    // which is what made a new page look like it had not been created.
+    if (IS_CMS_PREVIEW) return null;
     onClose();
     return null;
   }
