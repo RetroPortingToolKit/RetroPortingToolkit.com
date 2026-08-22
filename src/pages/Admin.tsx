@@ -762,6 +762,11 @@ export default function Admin() {
           return;
         }
         loadAssets(selected.id);
+        // The cover is a reference too, and a cover pointing at a deleted file
+        // is worse than a broken figure: it is the card the whole site shows.
+        // Nothing to decide here, so clear it rather than asking.
+        const coverPointsHere = !!q.cover && q.cover.replace(/^\.\//, "") === name;
+        if (coverPointsHere) patchScalar("cover", "");
         // A body still pointing at a file that no longer exists renders a
         // broken image, so offer to take the reference out with it rather than
         // leaving that as homework.
@@ -775,18 +780,18 @@ export default function Admin() {
             )
           ) {
             setBody((prev) => prev.replace(refs, "").replace(/\n{3,}/g, "\n\n"));
-            setMsg({ kind: "ok", text: `Deleted ${name} and removed it from the body. Save & publish to apply.` });
+            setMsg({ kind: "ok", text: `Deleted ${name}, removed it from the body${coverPointsHere ? " and cleared the cover" : ""}. Save & publish to apply.` });
           } else {
-            setMsg({ kind: "ok", text: `Deleted ${name}. The body still links to it.` });
+            setMsg({ kind: "ok", text: `Deleted ${name}${coverPointsHere ? " and cleared the cover" : ""}. The body still links to it.` });
           }
         } else {
-          setMsg({ kind: "ok", text: `Deleted ${name}.` });
+          setMsg({ kind: "ok", text: `Deleted ${name}${coverPointsHere ? " and cleared the cover" : ""}.` });
         }
       } finally {
         setAssetBusy(null);
       }
     },
-    [selected, loadAssets, body],
+    [selected, loadAssets, body, q.cover],
   );
 
   /** Change the page's address. The folder name is the URL, so this moves the
