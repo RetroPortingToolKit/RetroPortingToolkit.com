@@ -33,7 +33,11 @@ export interface LabMedia {
   /** How the card should LOOK, when that differs from what it links to. A row
       of game cards featuring one article should not sprout a news card in the
       middle of it: the row has one visual language, the link still goes to the
-      article. Defaults to `kind`. */
+      article. Defaults to `kind`.
+
+      Everything visual in SpatialCard reads `look ?? kind`: the variant class,
+      the kicker chip, and the play badge. Only navigation reads `kind`. Adding
+      a fourth appearance branch means adding it to that list. */
   look?: LabKind;
   video: boolean;
   // project shelf ("side" = fun side projects, shown separately on the tab)

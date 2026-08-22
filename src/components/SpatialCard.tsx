@@ -316,7 +316,7 @@ export function SpatialCard({
           })()}
           {/* Animated project cards are ambient motion, not click-to-play;
               a badge would promise a player that is not there. */}
-          {media.video && media.kind === "blog" && <PlayBadge />}
+          {media.video && (media.look ?? media.kind) === "blog" && <PlayBadge />}
             <span className="tvcard-sheen" aria-hidden="true" />
           </span>
           <span className="tvcard-body">
