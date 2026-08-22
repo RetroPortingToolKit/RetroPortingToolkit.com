@@ -47,6 +47,7 @@ function collectBlog() {
     const slug = (folder.match(FOLDER_RE) || [, , folder])[2];
     const { fm, body } = splitFrontmatter(fs.readFileSync(file, "utf8"));
     if (!fm.date && !fm.year) continue; // a feed entry needs a publish date
+    if (fm.draft === true) continue; // a draft is not published anywhere
     out.push({
       slug,
       url: `${SITE_URL}/blog/${slug}`,

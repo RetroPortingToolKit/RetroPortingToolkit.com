@@ -53,6 +53,9 @@ export interface Item {
   featured?: boolean;
   group?: string;
   venue?: string;
+  /** Not finished: kept out of every listing, feed and the sitemap, but still
+      reachable at its URL so the editor can preview it. */
+  draft?: boolean;
   /** Byline for this page. Falls back to the site author when absent. */
   author?: string;
   /** Avatar URL for the byline; a monogram is drawn when absent. */

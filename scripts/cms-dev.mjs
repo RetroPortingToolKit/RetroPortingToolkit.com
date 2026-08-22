@@ -243,6 +243,8 @@ function readOne(id) {
         repo: typeof fm.repo === "string" ? fm.repo : "",
         author: typeof fm.author === "string" ? fm.author : "",
         authorAvatar: typeof fm.authorAvatar === "string" ? fm.authorAvatar : "",
+        draft: fm.draft === true,
+        featured: fm.featured === true,
         tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
       };
     } catch {}
@@ -745,6 +747,62 @@ export function deleteEditable(payload) {
   return { ok: true, removed: removed.length, files: removed };
 }
 
+const folderSlugOf = (folder) => (folder.match(/^(\d+)_(.+)$/) || [, , folder])[2];
+
+function foldersOf(kind) {
+  const base = path.join(DATA_DIR, kind);
+  if (!fs.existsSync(base)) return [];
+  return fs.readdirSync(base).filter((f) => fs.existsSync(path.join(base, f, "index.md")));
+}
+
+export function renameEditable(payload) {
+  const id = String(payload?.id || "");
+  const m = id.match(ITEM_RE);
+  if (!m) return { ok: false, error: "Only content items can be renamed." };
+  const [, kind, folder] = m;
+  const slug = slugify(String(payload?.slug || ""));
+  if (!slug) return { ok: false, error: "That slug has no usable characters for a URL." };
+  if (slug === folderSlugOf(folder)) return { ok: true, id, slug, unchanged: true };
+  if (foldersOf(kind).some((f) => folderSlugOf(f) === slug)) {
+    return { ok: false, error: `"${slug}" already exists in ${kind}.` };
+  }
+  const prefix = (folder.match(/^(\d+)_/) || [])[1];
+  const source = path.join(DATA_DIR, kind, folder);
+  const targetFolder = `${prefix ? `${prefix}_` : ""}${slug}`;
+  fs.renameSync(source, path.join(DATA_DIR, kind, targetFolder));
+  return { ok: true, id: `data/${kind}/${targetFolder}/index.md`, slug };
+}
+
+export function duplicateEditable(payload) {
+  const id = String(payload?.id || "");
+  const m = id.match(ITEM_RE);
+  if (!m) return { ok: false, error: "Only content items can be duplicated." };
+  const [, kind] = m;
+  const abs = path.join(ROOT, id);
+  if (!fs.existsSync(abs)) return { ok: false, error: "not_found" };
+  const { fmText, body } = splitRaw(fs.readFileSync(abs, "utf8"));
+  let fm = {};
+  try {
+    fm = yaml.load(fmText) || {};
+  } catch {
+    return { ok: false, error: "That page's frontmatter is not valid YAML." };
+  }
+  const title = `${String(fm.title || "Untitled")} (copy)`;
+  const slug = slugify(title);
+  const folders = foldersOf(kind);
+  if (folders.some((f) => folderSlugOf(f) === slug)) {
+    return { ok: false, error: `"${slug}" already exists in ${kind}.` };
+  }
+  fm.title = title;
+  fm.draft = true;
+  fm.featured = false;
+  const order = String(Math.max(0, ...folders.map((f) => Number((f.match(/^(\d+)_/) || [])[1] || 0))) + 1).padStart(2, "0");
+  const dir = path.join(DATA_DIR, kind, `${order}_${slug}`);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "index.md"), `---\n${yaml.dump(fm).trim()}\n---\n\n${body.replace(/^\n+/, "")}`);
+  return { ok: true, id: `data/${kind}/${order}_${slug}/index.md`, slug, title };
+}
+
 // ---- middleware ----
 function send(res, status, body, headers) {
   res.statusCode = status;
@@ -875,6 +933,30 @@ export function createCmsMiddleware() {
           return send(res, 400, { ok: false, error: "bad_request" });
         }
         const r = deleteAsset(body);
+        return send(res, r.ok ? 200 : 400, r);
+      });
+    }
+    if (url === "/api/cms/rename" && req.method === "POST") {
+      return readBody(req, (raw) => {
+        let body = {};
+        try {
+          body = JSON.parse(raw || "{}");
+        } catch {
+          return send(res, 400, { ok: false, error: "bad_request" });
+        }
+        const r = renameEditable(body);
+        return send(res, r.ok ? 200 : 400, r);
+      });
+    }
+    if (url === "/api/cms/duplicate" && req.method === "POST") {
+      return readBody(req, (raw) => {
+        let body = {};
+        try {
+          body = JSON.parse(raw || "{}");
+        } catch {
+          return send(res, 400, { ok: false, error: "bad_request" });
+        }
+        const r = duplicateEditable(body);
         return send(res, r.ok ? 200 : 400, r);
       });
     }

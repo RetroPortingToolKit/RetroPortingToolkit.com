@@ -42,6 +42,10 @@ interface MdFields {
   /** blog: who wrote it, and their avatar */
   author: string;
   authorAvatar: string;
+  /** not published: kept out of every listing, feed and the sitemap */
+  draft: boolean;
+  /** promoted onto the home strips */
+  featured: boolean;
   tags: string[];
 }
 
@@ -56,6 +60,8 @@ const EMPTY_FIELDS: MdFields = {
   repo: "",
   author: "",
   authorAvatar: "",
+  draft: false,
+  featured: false,
   tags: [],
 };
 interface HomeRecGroup {
@@ -78,6 +84,13 @@ function escapeRe(s: string) {
 // value can never break the YAML), preserving every other line/comment.
 function setScalar(fm: string, key: string, value: string): string {
   const line = `${key}: ${JSON.stringify(value)}`;
+  const re = new RegExp(`^${escapeRe(key)}:.*$`, "m");
+  if (re.test(fm)) return fm.replace(re, line);
+  return fm.replace(/\s*$/, "") + `\n${line}`;
+}
+// draft/featured are YAML booleans, so they must not be written as strings.
+function setBool(fm: string, key: string, value: boolean): string {
+  const line = `${key}: ${value}`;
   const re = new RegExp(`^${escapeRe(key)}:.*$`, "m");
   if (re.test(fm)) return fm.replace(re, line);
   return fm.replace(/\s*$/, "") + `\n${line}`;
@@ -278,6 +291,9 @@ export default function Admin() {
   const [assets, setAssets] = useState<string[]>([]);
   const [assetBusy, setAssetBusy] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [slugBusy, setSlugBusy] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
+  const [rowBusy, setRowBusy] = useState<string | null>(null);
   // A page that exists in the repo but not yet in the deployed build: the
   // preview would otherwise fall back to a listing and look like the edit
   // silently did nothing.
@@ -639,6 +655,34 @@ export default function Admin() {
       .catch(() => setAssets([]));
   }, []);
 
+  /** Wrap or prefix the body's selection, the way a formatting button should:
+      with a selection it marks it up, without one it leaves the caret between
+      the markers so you can just type. */
+  const applyFormat = useCallback((before: string, after = "", blockPrefix = "") => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    setBody((prev) => {
+      const sel = prev.slice(start, end);
+      if (blockPrefix) {
+        const lineStart = prev.lastIndexOf("\n", start - 1) + 1;
+        const chunk = prev.slice(lineStart, end || start);
+        const marked = chunk
+          .split("\n")
+          .map((l) => (l.startsWith(blockPrefix) ? l.slice(blockPrefix.length) : blockPrefix + l))
+          .join("\n");
+        return prev.slice(0, lineStart) + marked + prev.slice(end || start);
+      }
+      return prev.slice(0, start) + before + sel + after + prev.slice(end);
+    });
+    window.requestAnimationFrame(() => {
+      el.focus();
+      const caret = start + before.length + (end - start);
+      el.setSelectionRange(blockPrefix ? start + blockPrefix.length : caret, blockPrefix ? end + blockPrefix.length : caret);
+    });
+  }, []);
+
   /** Put markdown at the body's cursor, or at the end when it is not focused. */
   const insertIntoBody = useCallback((markdown: string) => {
     const el = bodyRef.current;
@@ -729,28 +773,99 @@ export default function Admin() {
     [selected, loadAssets, body],
   );
 
-  /** Remove the whole item: its folder, and the preview clip keyed to it. */
-  const deleteItem = useCallback(async () => {
+  /** Change the page's address. The folder name is the URL, so this moves the
+      whole folder and the old address stops resolving. */
+  const renameSlug = useCallback(async () => {
     if (!selected) return;
-    const label = selected.title || selected.id;
-    if (!window.confirm(`Delete "${label}"?\n\nThis removes the page and its media, and cannot be undone.`)) return;
-    setDeleting(true);
+    const currentSlug = selected.id.match(/^data\/(?:blog|hardware|games)\/\d*_?([^/]+)\/index\.md$/)?.[1] || "";
+    const next = window.prompt(
+      `New address for this page.\n\nIt is live at /${selected.id.split("/")[1]}/${currentSlug} and links to the old address will stop working.`,
+      currentSlug,
+    );
+    if (next == null || !next.trim() || next.trim() === currentSlug) return;
+    setSlugBusy(true);
     try {
-      const r = await fetch("/api/cms/delete", {
+      const r = await fetch("/api/cms/rename", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: selected.id, slug: next.trim() }),
+      }).then((res) => res.json());
+      if (!r.ok) {
+        setMsg({ kind: "err", text: r.error || "Could not rename that page." });
+        return;
+      }
+      setSelected(null);
+      loadList();
+      setMsg({ kind: "ok", text: `Now at /${selected.id.split("/")[1]}/${r.slug}.` });
+    } finally {
+      setSlugBusy(false);
+    }
+  }, [selected, loadList]);
+
+  /** Start a new page from this one. The copy is a draft. */
+  const duplicateItem = useCallback(async () => {
+    if (!selected) return;
+    setDuplicating(true);
+    try {
+      const r = await fetch("/api/cms/duplicate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ id: selected.id }),
       }).then((res) => res.json());
       if (!r.ok) {
-        setMsg({ kind: "err", text: r.error || "Could not delete that item." });
+        setMsg({ kind: "err", text: r.error || "Could not duplicate that page." });
         return;
       }
-      setSelected(null);
       loadList();
+      setMsg({ kind: "ok", text: `Created "${r.title}" as a draft.` });
     } finally {
-      setDeleting(false);
+      setDuplicating(false);
     }
   }, [selected, loadList]);
+
+  /** Remove an item: its folder, and the preview clip keyed to it. Reports the
+      server's own error, because "nothing happened" is the worst outcome. */
+  const deleteById = useCallback(
+    async (item: ListItem) => {
+      const label = item.title || item.id;
+      if (!window.confirm(`Delete "${label}"?\n\nThis removes the page and its media, and cannot be undone.`)) return;
+      setRowBusy(item.id);
+      setDeleting(true);
+      try {
+        const res = await fetch("/api/cms/delete", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ id: item.id }),
+        });
+        let r: { ok?: boolean; error?: string } = {};
+        try {
+          r = await res.json();
+        } catch {
+          r = { ok: false, error: `The server answered ${res.status} with no detail.` };
+        }
+        if (!r.ok) {
+          setCreateMsg({ kind: "err", text: r.error || `Could not delete that page (${res.status}).` });
+          setMsg({ kind: "err", text: r.error || `Could not delete that page (${res.status}).` });
+          return;
+        }
+        setSelected((cur) => (cur?.id === item.id ? null : cur));
+        loadList();
+        setCreateMsg({ kind: "ok", text: `Deleted "${label}".` });
+      } catch (e) {
+        const text = `Could not reach the server: ${(e as Error).message}`;
+        setCreateMsg({ kind: "err", text });
+        setMsg({ kind: "err", text });
+      } finally {
+        setRowBusy(null);
+        setDeleting(false);
+      }
+    },
+    [loadList],
+  );
+
+  const deleteItem = useCallback(() => {
+    if (selected) deleteById(selected);
+  }, [selected, deleteById]);
 
   // Cmd/Ctrl+S to save
   useEffect(() => {
@@ -839,6 +954,14 @@ export default function Admin() {
   const patchScalar = (key: keyof MdFields, value: string) => {
     setQ((p) => ({ ...p, [key]: value }));
     setFrontmatter((fm) => setScalar(fm, key, value));
+  };
+  // What a writer actually watches while drafting.
+  const wordCount = useMemo(() => (body.trim() ? body.trim().split(/\s+/).length : 0), [body]);
+  const readMinutes = Math.max(1, Math.round(wordCount / 200));
+
+  const patchBool = (key: "draft" | "featured", value: boolean) => {
+    setQ((p) => ({ ...p, [key]: value }));
+    setFrontmatter((fm) => setBool(fm, key, value));
   };
   const patchTags = (value: string) => {
     setTagsInput(value);
@@ -1192,12 +1315,49 @@ export default function Admin() {
                     ))}
                   </div>
                 )}
-                {rowItems.map((it) => (
-                  <button key={it.id} className="ac-noterow" onClick={() => open(it)} title={it.id}>
-                    <span className="ac-noterow-title">{it.title}</span>
-                    {it.sub && <span className="ac-noterow-sub">{it.sub}</span>}
-                  </button>
-                ))}
+                {/* A row rather than a card means the site is not publishing
+                    this page: it is a draft, or it was created since the last
+                    build. Either way it is the place to offer Delete, because
+                    it is where the pages you are still working on collect. */}
+                {rowItems.map((it) => {
+                  const deletable = /^data\/(blog|hardware|games)\//.test(it.id);
+                  return (
+                    <div key={it.id} className="ac-noterow" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <button
+                        onClick={() => open(it)}
+                        title={it.id}
+                        style={{ flex: 1, minWidth: 0, border: 0, background: "transparent", padding: 0, textAlign: "left", cursor: "pointer" }}
+                      >
+                        <span className="ac-noterow-title">{it.title}</span>
+                        {it.sub && <span className="ac-noterow-sub">{it.sub}</span>}
+                      </button>
+                      {deletable && (
+                        <>
+                          <span
+                            style={{
+                              flex: "0 0 auto",
+                              padding: "2px 8px",
+                              borderRadius: 9,
+                              background: "rgba(210,131,20,0.14)",
+                              color: "#8a5300",
+                              font: "600 11px/1.6 var(--ac-font-text)",
+                            }}
+                            title="A draft, or created since the last build"
+                          >
+                            Not live
+                          </span>
+                          <button
+                            className="ac-btn ac-btn-plain ac-danger"
+                            disabled={rowBusy === it.id}
+                            onClick={() => deleteById(it)}
+                          >
+                            {rowBusy === it.id ? "..." : "Delete"}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
                 {!currentItems.length && (
                   <div style={{ ...styles.dim, padding: "24px 20px" }}>{filter ? "No matches." : "Nothing here yet."}</div>
                 )}
@@ -1216,6 +1376,49 @@ export default function Admin() {
 
                   {type === "md" && (
                     <>
+                      {openKind && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            flexWrap: "wrap",
+                            padding: "10px 12px",
+                            marginBottom: 16,
+                            borderRadius: 8,
+                            background: q.draft ? "rgba(210,131,20,0.12)" : "var(--ac-fill-4)",
+                          }}
+                        >
+                          <span
+                            style={{
+                              font: "600 12px/1 var(--ac-font-text)",
+                              letterSpacing: "0.02em",
+                              textTransform: "uppercase",
+                              color: q.draft ? "#8a5300" : "var(--ac-label-2)",
+                            }}
+                          >
+                            {q.draft ? "Draft" : "Published"}
+                          </span>
+                          <span style={{ flex: 1, minWidth: 120, font: "400 12px/1.4 var(--ac-font-text)", color: "var(--ac-label-2)" }}>
+                            {q.draft
+                              ? "Hidden from every listing, the feeds and the sitemap. Its own address still works, so you can preview it."
+                              : "Listed on the site, in the feeds and the sitemap."}
+                          </span>
+                          <button className="ac-btn ac-btn-gray" onClick={() => patchBool("draft", !q.draft)}>
+                            {q.draft ? "Publish" : "Move to draft"}
+                          </button>
+                          <label style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "400 12.5px/1 var(--ac-font-text)", color: "var(--ac-label)" }}>
+                            <input type="checkbox" checked={q.featured} onChange={(e) => patchBool("featured", e.target.checked)} style={{ width: "auto", boxShadow: "none" }} />
+                            Featured
+                          </label>
+                          <button className="ac-btn ac-btn-plain" onClick={renameSlug} disabled={slugBusy}>
+                            {slugBusy ? "..." : "Change address"}
+                          </button>
+                          <button className="ac-btn ac-btn-plain" onClick={duplicateItem} disabled={duplicating}>
+                            {duplicating ? "..." : "Duplicate"}
+                          </button>
+                        </div>
+                      )}
                       <Field label="Title">
                         <input style={styles.input} value={q.title} onChange={(e) => patchScalar("title", e.target.value)} />
                       </Field>
@@ -1424,6 +1627,32 @@ export default function Admin() {
                         </>
                       )}
                       <Field label="Body (markdown)">
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap", marginBottom: 8 }}>
+                          {(
+                            [
+                              ["Bold", "**", "**", ""],
+                              ["Italic", "_", "_", ""],
+                              ["Link", "[", "](https://)", ""],
+                              ["Code", "`", "`", ""],
+                              ["H2", "", "", "## "],
+                              ["H3", "", "", "### "],
+                              ["Quote", "", "", "> "],
+                              ["List", "", "", "- "],
+                            ] as [string, string, string, string][]
+                          ).map(([label, before, after, block]) => (
+                            <button
+                              key={label}
+                              className="ac-btn ac-btn-gray"
+                              style={{ padding: "0 9px", height: 24 }}
+                              onClick={() => applyFormat(before, after, block)}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                          <span style={{ marginLeft: "auto", font: "400 11.5px/1 var(--ac-font-text)", color: "var(--ac-label-2)" }}>
+                            {wordCount.toLocaleString()} {wordCount === 1 ? "word" : "words"} · {readMinutes} min read
+                          </span>
+                        </div>
                         <textarea
                           ref={bodyRef}
                           style={{ ...styles.input, ...styles.mono, minHeight: 320, resize: "vertical" }}

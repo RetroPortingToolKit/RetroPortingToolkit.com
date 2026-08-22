@@ -230,6 +230,7 @@ export function parseItem(path: string, raw: string): Item | null {
     meta: asStringArray(fm.meta),
     tags: asStringArray(fm.tags),
     featured: fm.featured === true,
+    draft: fm.draft === true,
     group: typeof fm.group === "string" ? fm.group : undefined,
     venue: typeof fm.venue === "string" ? fm.venue : undefined,
     author: typeof fm.author === "string" ? fm.author : undefined,
@@ -263,9 +264,12 @@ const allItems: Item[] = Object.entries(rawMd)
   .filter((x): x is Item => x !== null)
   .sort((a, b) => a.order - b.order);
 
-export const HARDWARE = allItems.filter((i) => i.kind === "hardware");
-export const GAMES = allItems.filter((i) => i.kind === "game");
-export const BLOGS = allItems.filter((i) => i.kind === "blog");
+// The published lists. A draft is deliberately absent from all three, which is
+// what keeps it off every grid, strip, feed and the sitemap; findItem() still
+// resolves it, so its own URL renders and the editor can preview it.
+export const HARDWARE = allItems.filter((i) => i.kind === "hardware" && !i.draft);
+export const GAMES = allItems.filter((i) => i.kind === "game" && !i.draft);
+export const BLOGS = allItems.filter((i) => i.kind === "blog" && !i.draft);
 
 export function findItem(kind: Kind, slug: string): Item | undefined {
   return allItems.find((i) => i.kind === kind && i.slug === slug);

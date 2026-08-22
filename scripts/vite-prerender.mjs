@@ -103,6 +103,7 @@ function collectItems() {
         : [],
       gallery,
       kicker: typeof fm.kicker === "string" ? fm.kicker : "",
+      draft: fm.draft === true,
       body: (body || "").trim(),
       links: Array.isArray(fm.links)
         ? fm.links.filter((l) => l && typeof l.href === "string")
@@ -747,7 +748,10 @@ function collectTopics() {
 // absolute for whichever host is serving (SITE.url in the build,
 // the tunnel host in dev), so shared links embed correctly everywhere.
 export function buildRouteMeta(origin) {
-  const items = collectItems();
+  const all = collectItems();
+  // Drafts keep their own route, for preview, and appear nowhere else: not in
+  // a listing, not in the counts those listings quote, not in the sitemap.
+  const items = all.filter((i) => !i.draft);
   validateHomeMedia(items);
   const out = new Map();
   const defaultImage = DEFAULT_OG ? `${origin}${DEFAULT_OG}` : undefined;
@@ -806,7 +810,7 @@ export function buildRouteMeta(origin) {
     }
   }
 
-  for (const item of items) {
+  for (const item of all) {
     const segment = KIND_SEGMENT[item.kind];
     const url = `${origin}/${segment}/${item.slug}`;
     const imgPath = itemImagePath(item);
@@ -827,6 +831,8 @@ export function buildRouteMeta(origin) {
           : "website",
       jsonLd: itemJsonLd(item, url, image),
       static: itemStaticHtml(item),
+      draft: item.draft,
+      extraHead: item.draft ? `<meta name="robots" content="noindex, nofollow">` : undefined,
     });
   }
 
@@ -930,7 +936,11 @@ function sitemapPriority(route) {
 function writeSitemap(distDir, map) {
   const skip = (r) => r.startsWith("/all/") || r === "/admin";
   const lastmod = new Date().toISOString().slice(0, 10);
-  const routes = [...map.keys()].filter((r) => !skip(r)).sort();
+  // A draft is rendered so it can be previewed, and is not offered to search.
+  const routes = [...map.entries()]
+    .filter(([r, meta]) => !skip(r) && !meta.draft)
+    .map(([r]) => r)
+    .sort();
   const urls = routes
     .map(
       (r) =>

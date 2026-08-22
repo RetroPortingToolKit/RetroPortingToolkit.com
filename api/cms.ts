@@ -423,10 +423,12 @@ function mdFields(fmText: string) {
       repo: str(fm.repo),
       author: str(fm.author),
       authorAvatar: str(fm.authorAvatar),
+      draft: fm.draft === true,
+      featured: fm.featured === true,
       tags: Array.isArray(fm.tags) ? (fm.tags as unknown[]).filter((t) => typeof t === "string") : [],
     };
   } catch {
-    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authorAvatar: "", tags: [] as string[] };
+    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authorAvatar: "", draft: false, featured: false, tags: [] as string[] };
   }
 }
 
@@ -828,6 +830,88 @@ async function deleteEditable(body: Record<string, unknown>, actor?: Actor | nul
   return { ok: true, removed: changes.length, files: [...own, ...previews] };
 }
 
+/** Every folder name in a kind, so slugs and order prefixes can be checked. */
+async function foldersOf(kind: string, paths?: string[]): Promise<string[]> {
+  const all = paths || (await ghListTree()).map((e) => e.path);
+  return all
+    .map((p) => new RegExp(`^data/${kind}/([^/]+)/index\\.md$`).exec(p)?.[1])
+    .filter(Boolean) as string[];
+}
+
+const folderSlugOf = (folder: string) => /^(\d+)_(.+)$/.exec(folder)?.[2] ?? folder;
+const nextOrder = (folders: string[]) =>
+  String(Math.max(0, ...folders.map((f) => Number(/^(\d+)_/.exec(f)?.[1] ?? 0))) + 1).padStart(2, "0");
+
+/** Change a page's address. The folder name is the URL, so this moves every
+    file in it, which is why it is one commit rather than a write and a delete. */
+async function renameEditable(body: Record<string, unknown>, actor?: Actor | null) {
+  const id = String(body.id || "");
+  const m = id.match(ITEM_RE);
+  if (!m) return { ok: false, error: "Only content items can be renamed." };
+  const [, kind, folder] = m;
+  const slug = slugify(String(body.slug || ""));
+  if (!slug) return { ok: false, error: "That slug has no usable characters for a URL." };
+  if (slug === folderSlugOf(folder)) return { ok: true, id, slug, unchanged: true };
+
+  const paths = (await ghListTree()).map((e) => e.path);
+  for (const f of await foldersOf(kind, paths)) {
+    if (folderSlugOf(f) === slug) return { ok: false, error: `"${slug}" already exists in ${kind}.` };
+  }
+
+  const prefix = /^(\d+)_/.exec(folder)?.[1];
+  const target = `data/${kind}/${prefix ? `${prefix}_` : ""}${slug}`;
+  const source = `data/${kind}/${folder}`;
+  const own = paths.filter((p) => p.startsWith(`${source}/`));
+  if (!own.length) return { ok: false, error: "not_found" };
+
+  const changes: Change[] = [];
+  for (const from of own) {
+    const file = await ghReadFile(from);
+    if (!file) continue;
+    // ghReadFile decodes as utf-8; re-encode so binaries survive the move.
+    changes.push({ path: `${target}/${from.slice(source.length + 1)}`, base64: Buffer.from(file.content, "utf8").toString("base64") });
+    changes.push({ path: from, remove: true });
+  }
+  await ghCommit(changes, `cms: rename ${source} -> ${target}`, actor);
+  return { ok: true, id: `${target}/index.md`, slug };
+}
+
+/** Start a new page from this one. The copy is a draft, so duplicating never
+    publishes anything by itself. */
+async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | null) {
+  const id = String(body.id || "");
+  const m = id.match(ITEM_RE);
+  if (!m) return { ok: false, error: "Only content items can be duplicated." };
+  const [, kind] = m;
+  const file = await ghReadFile(id);
+  if (!file) return { ok: false, error: "not_found" };
+
+  const { fmText, body: mdBody } = splitRaw(file.content);
+  let fm: Record<string, unknown> = {};
+  try {
+    fm = (yaml.load(fmText) || {}) as Record<string, unknown>;
+  } catch {
+    return { ok: false, error: "That page's frontmatter is not valid YAML." };
+  }
+  const title = `${String(fm.title || "Untitled")} (copy)`;
+  const slug = slugify(title);
+  const paths = (await ghListTree()).map((e) => e.path);
+  const folders = await foldersOf(kind, paths);
+  if (folders.some((f) => folderSlugOf(f) === slug)) {
+    return { ok: false, error: `"${slug}" already exists in ${kind}.` };
+  }
+  fm.title = title;
+  fm.draft = true;
+  fm.featured = false;
+  const target = `data/${kind}/${nextOrder(folders)}_${slug}/index.md`;
+  await ghCommit(
+    [{ path: target, text: `---\n${yaml.dump(fm).trim()}\n---\n\n${mdBody.replace(/^\n+/, "")}` }],
+    `cms: duplicate ${kind}/${slug}`,
+    actor,
+  );
+  return { ok: true, id: target, slug, title };
+}
+
 // ------------------------------------------------------------------- handlers
 export async function GET(req: Request): Promise<Response> {
   const route = sub(req);
@@ -883,6 +967,22 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "asset/delete") {
     try {
       const r = await deleteAsset(body, await actorFor(req));
+      return json(r, r.ok ? 200 : 400);
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message }, 500);
+    }
+  }
+  if (route === "rename") {
+    try {
+      const r = await renameEditable(body, await actorFor(req));
+      return json(r, r.ok ? 200 : 400);
+    } catch (e) {
+      return json({ ok: false, error: (e as Error).message }, 500);
+    }
+  }
+  if (route === "duplicate") {
+    try {
+      const r = await duplicateEditable(body, await actorFor(req));
       return json(r, r.ok ? 200 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
