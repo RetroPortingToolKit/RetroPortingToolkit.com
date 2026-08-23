@@ -1,11 +1,68 @@
-import { Children, isValidElement, useState } from "react";
+import { Children, isValidElement, useState, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeSlug from "rehype-slug";
+import type { Element, Nodes } from "hast";
 import { PreviewLink } from "./PreviewLink";
+import { CodeBlock } from "./CodeBlock";
+import { calloutKindFromLabel, parseFenceInfo, type CalloutKind } from "@/lib/markdown";
 
 interface MarkdownProps {
   children: string;
   className?: string;
+}
+
+// The text content of a hast node, which is what rehype-slug slugged and what
+// an anchor's label should say.
+function hastText(node: Nodes | null | undefined): string {
+  if (!node) return "";
+  if (node.type === "text") return node.value;
+  if ("children" in node) return node.children.map(hastText).join("");
+  return "";
+}
+
+// A callout is a blockquote whose first paragraph opens with one of the three
+// labels the writing guide allows. Everything else stays a blockquote, which
+// matters: pages quote repositories verbatim, and a quotation that happens to
+// start in bold must not be dressed up as our own aside.
+function calloutKindOf(node: Element | undefined): CalloutKind | null {
+  const first = node?.children.find(
+    (child): child is Element => child.type === "element",
+  );
+  if (!first || first.tagName !== "p") return null;
+  const lead = first.children[0];
+  if (!lead || lead.type !== "element" || lead.tagName !== "strong") return null;
+  return calloutKindFromLabel(hastText(lead));
+}
+
+// Every heading carries an id (rehype-slug, below) so it can be linked to and
+// so an on-this-page contents list has somewhere to point. The visible anchor
+// is the affordance for copying that link.
+function heading(Tag: "h2" | "h3" | "h4") {
+  return function Heading({
+    id,
+    node,
+    children,
+  }: {
+    id?: string;
+    node?: Element;
+    children?: ReactNode;
+  }) {
+    return (
+      <Tag id={id} className="md-heading">
+        {children}
+        {id && (
+          <a
+            className="md-anchor"
+            href={`#${id}`}
+            aria-label={`Link to ${hastText(node) || "this section"}`}
+          >
+            <span aria-hidden="true">#</span>
+          </a>
+        )}
+      </Tag>
+    );
+  };
 }
 
 // Poster first, player on click: an inline article embed must not autoload a
@@ -47,10 +104,59 @@ export function Markdown({ children, className }: MarkdownProps) {
     <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        // Stable, human-readable heading ids. github-slugger derives each one
+        // from that heading's own text, so adding a heading never renames
+        // another one; src/lib/toc.ts reproduces the same ids from the source.
+        rehypePlugins={[rehypeSlug]}
         // Content is first-party, so pass URLs through unchanged. This also lets
         // the custom "cite:" protocol survive sanitization.
         urlTransform={(url) => url}
         components={{
+          h2: heading("h2"),
+          h3: heading("h3"),
+          h4: heading("h4"),
+          // A fenced block becomes a figure: language label, optional filename,
+          // copy button, and the <code> react-markdown built, untouched.
+          pre: ({ node, children }) => {
+            const code = node?.children.find(
+              (child): child is Element =>
+                child.type === "element" && child.tagName === "code",
+            );
+            if (!code) return <pre className="md-code-pre">{children}</pre>;
+            const info = parseFenceInfo(code.properties?.className, code.data?.meta);
+            return (
+              <CodeBlock
+                lang={info.lang}
+                label={info.label}
+                file={info.file}
+                // The raw source, minus the newline remark-rehype appends.
+                code={hastText(code).replace(/\n+$/, "")}
+              >
+                {children}
+              </CodeBlock>
+            );
+          },
+          // A wide table scrolls inside its own box. Without the wrapper the
+          // page itself scrolls sideways on a phone, which drags every other
+          // element with it.
+          table: ({ children }) => (
+            <div className="md-table-wrap" tabIndex={0}>
+              <table className="md-table">{children}</table>
+            </div>
+          ),
+          blockquote: ({ node, children }) => {
+            const kind = calloutKindOf(node);
+            if (!kind) return <blockquote>{children}</blockquote>;
+            return (
+              <div
+                className={`md-callout md-callout--${kind}`}
+                data-callout={kind}
+                role="note"
+              >
+                {children}
+              </div>
+            );
+          },
           // The "**Lead-in.** body" flourish must only fire when the bold text
           // actually STARTS the paragraph. CSS :first-child counts element
           // children and ignores preceding text, so styling it in CSS alone

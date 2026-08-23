@@ -2,6 +2,7 @@ import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 import { renderFeeds, generateFeeds } from "./scripts/gen-feeds.mjs";
+import { renderAgentSurfaces, generateAgentSurfaces } from "./scripts/gen-llms.mjs";
 import { prerenderRoutes } from "./scripts/vite-prerender.mjs";
 import { createCmsMiddleware, startAutoPull } from "./scripts/cms-dev.mjs";
 
@@ -60,6 +61,96 @@ function feedsPlugin(): Plugin {
   };
 }
 
+// The machine-readable documentation surfaces: /llms.txt, /llms-full.txt,
+// /docs.md, a .md next to every documentation URL, and robots.txt. Emitted into
+// dist/ at build time (closeBundle), exactly like the feeds above, and served
+// on the fly in dev from the same renderer so the two cannot drift.
+//
+// ORDER MATTERS in the plugins array below. scripts/vite-prerender.mjs writes
+// its own robots.txt during ITS closeBundle, carrying the sitemap only. Both
+// closeBundle hooks are synchronous, so they run in plugin order: this plugin
+// sits after prerenderRoutes() and writes robots.txt again, last, with the
+// llms.txt references added. Move it earlier and the prerenderer's shorter
+// robots.txt is what ships.
+//
+// The .md files are emitted as real files in dist/. vercel.json rewrites every
+// unmatched path to "/", but Vercel checks the filesystem BEFORE it applies
+// rewrites, so a real dist/docs/<slug>.md is served as itself and the catch-all
+// never sees the request. That is also why the count assertion in gen-llms.mjs
+// matters: a .md that was never written would not 404, it would answer 200 with
+// the home page.
+function agentSurfacesPlugin(): Plugin {
+  const MD = "text/markdown; charset=utf-8";
+  let outDir = "dist";
+  return {
+    name: "agent-surfaces",
+    configResolved(cfg) {
+      outDir = cfg.build.outDir;
+    },
+    // build: emit alongside the bundle, after the prerenderer has run
+    closeBundle() {
+      if (process.env.VITEST) return;
+      const r = generateAgentSurfaces(outDir);
+      this.info?.(
+        `[llms] llms.txt + llms-full.txt + robots.txt + docs.md + ${r.pages} page .md ` +
+          `across ${r.sections} section(s)`,
+      );
+      if (r.missingDescription.length) {
+        this.warn?.(
+          `[llms] no summary or desc, so no description in llms.txt: ` +
+            r.missingDescription.join(", "),
+        );
+      }
+    },
+    // dev: serve the same bytes without a build. Registered here rather than in
+    // a returned function so it runs BEFORE vite's SPA fallback, which would
+    // otherwise answer these paths with index.html. Note the prerenderer's own
+    // dev meta middleware skips any path containing a dot, so it never sees a
+    // .md request and cannot inject HTML meta into one.
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = (req.originalUrl || req.url || "").split("?")[0];
+        if (
+          url !== "/llms.txt" &&
+          url !== "/llms-full.txt" &&
+          url !== "/robots.txt" &&
+          url !== "/docs.md" &&
+          !(url.startsWith("/docs/") && url.endsWith(".md"))
+        )
+          return next();
+        try {
+          const s = renderAgentSurfaces();
+          let body: string | undefined;
+          let type = MD;
+          if (url === "/llms.txt") body = s.llms;
+          else if (url === "/llms-full.txt") body = s.llmsFull;
+          else if (url === "/docs.md") body = s.docsIndex;
+          else if (url === "/robots.txt") {
+            body = s.robots;
+            type = "text/plain; charset=utf-8";
+          } else body = s.pageFiles.get(url.slice(1));
+          if (body === undefined) {
+            // A path that looks like a docs page but has none behind it. Say so
+            // rather than falling through to the SPA, which would answer 200
+            // with the app shell.
+            res.statusCode = 404;
+            res.setHeader("content-type", "text/plain; charset=utf-8");
+            res.end(`no documentation page at ${url}\n`);
+            return;
+          }
+          res.statusCode = 200;
+          res.setHeader("content-type", type);
+          res.setHeader("cache-control", "no-store");
+          res.end(body);
+        } catch (e) {
+          res.statusCode = 500;
+          res.end(`agent surfaces error: ${(e as Error).message}`);
+        }
+      });
+    },
+  };
+}
+
 // Dev-only: the content editor (/admin) backend. Mounts the CMS read/list/save
 // API only under `vite` (apply: "serve"), so it never exists on the static prod
 // build. On prod, api/cms.ts serves the same routes as a Vercel function. See
@@ -110,7 +201,9 @@ function cmsDevApi(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), prerenderRoutes(), feedsPlugin(), cmsDevApi()],
+  // agentSurfacesPlugin() must stay AFTER prerenderRoutes(): both write
+  // robots.txt at closeBundle and the last one wins. See its comment.
+  plugins: [react(), prerenderRoutes(), feedsPlugin(), agentSurfacesPlugin(), cmsDevApi()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),

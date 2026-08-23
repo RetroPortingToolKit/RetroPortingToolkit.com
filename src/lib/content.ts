@@ -1,5 +1,13 @@
 import yaml from "js-yaml";
-import type { About, GalleryItem, Item, Kind, LinkRef, Topic } from "./types";
+import type {
+  About,
+  DocsPageType,
+  GalleryItem,
+  Item,
+  Kind,
+  LinkRef,
+  Topic,
+} from "./types";
 import { LQIP } from "@/generated/lqip";
 
 const rawMd = import.meta.glob("/data/**/index.md", {
@@ -183,6 +191,7 @@ function kindFromPath(path: string): Kind | null {
   if (path.startsWith("/data/hardware/")) return "hardware";
   if (path.startsWith("/data/games/")) return "game";
   if (path.startsWith("/data/blog/")) return "blog";
+  if (path.startsWith("/data/docs/")) return "docs";
   return null;
 }
 
@@ -190,20 +199,72 @@ function kindFromPath(path: string): Kind | null {
 // slug part is what's exposed in URLs.
 const FOLDER_RE = /^(\d+)_(.+)$/;
 
-function folderInfo(path: string): { order: number; slug: string } {
-  const parts = path.split("/");
-  const folder = parts[parts.length - 2] ?? "";
+function segmentInfo(folder: string): { order: number; slug: string } {
   const m = folder.match(FOLDER_RE);
   if (!m) return { order: 999, slug: folder };
   return { order: parseInt(m[1], 10), slug: m[2] };
 }
 
+// How deep a kind's folders may nest under data/<kind>/. Docs are the only kind
+// with sections: data/docs/<NN>_<section>/<NN>_<page>/index.md is a page and
+// data/docs/<NN>_<section>/index.md is that section's own page. Everything
+// else is exactly one folder deep. Anything outside this (a stray
+// data/docs/index.md, a third level) is DROPPED rather than published at a URL
+// the router cannot match. scripts/vite-prerender.mjs carries the same table:
+// the two walks decide independently which pages exist and must agree, or the
+// prerendered HTML and the client disagree about what the site has.
+const MAX_DEPTH: Record<Kind, number> = {
+  hardware: 1,
+  game: 1,
+  blog: 1,
+  docs: 2,
+};
+
+interface FolderInfo {
+  order: number;
+  slug: string;
+  section?: string;
+  sectionOrder?: number;
+}
+
+// The folder path under data/<kind>/ is the item's identity: every segment is
+// `NN_<slug>` and the slugs, joined, are the URL. For the three flat kinds that
+// is one segment and behaves exactly as it always has; for docs it is what
+// makes /docs/<section>/<page> a real address rather than a flattened one.
+function folderInfo(path: string, kind: Kind): FolderInfo | null {
+  // "/data/docs/01_start/01_quickstart/index.md" -> ["01_start", "01_quickstart"]
+  const segments = path.split("/").slice(3, -1);
+  if (segments.length < 1 || segments.length > MAX_DEPTH[kind]) return null;
+  const parts = segments.map(segmentInfo);
+  const leaf = parts[parts.length - 1];
+  return {
+    order: leaf.order,
+    slug: parts.map((p) => p.slug).join("/"),
+    section: kind === "docs" ? parts[0].slug : undefined,
+    sectionOrder: kind === "docs" ? parts[0].order : undefined,
+  };
+}
+
+const DOCS_PAGE_TYPES = ["concept", "guide", "reference", "project"] as const;
+
+function asPageType(v: unknown): DocsPageType | undefined {
+  return (DOCS_PAGE_TYPES as readonly string[]).includes(v as string)
+    ? (v as DocsPageType)
+    : undefined;
+}
+
 export function parseItem(path: string, raw: string): Item | null {
   const kind = kindFromPath(path);
   if (!kind) return null;
-  const { order, slug } = folderInfo(path);
+  const folder = folderInfo(path, kind);
+  if (!folder) return null;
+  const { slug, section, sectionOrder } = folder;
   const { fm, body } = splitFrontmatter(raw);
   const baseDir = dirOf(path);
+  // Order comes from the folder's numeric prefix, but a docs tree is reordered
+  // often enough that renaming folders (and so every URL) to move one page is a
+  // bad trade. An explicit `order:` wins where it is set.
+  const order = typeof fm.order === "number" ? fm.order : folder.order;
 
   const coverM = resolveMedia(asString(fm.cover) || undefined, baseDir);
   const coverCaption = asString(fm.coverCaption) || undefined;
@@ -256,6 +317,11 @@ export function parseItem(path: string, raw: string): Item | null {
     maturity: asString(fm.maturity) || undefined,
     added: asString(fm.added) || undefined,
     updated: asString(fm.updated) || undefined,
+    section,
+    sectionOrder,
+    sectionTitle: asString(fm.sectionTitle) || undefined,
+    summary: asString(fm.summary) || undefined,
+    pageType: asPageType(fm.pageType),
   };
 }
 
@@ -270,15 +336,78 @@ const allItems: Item[] = Object.entries(rawMd)
 export const HARDWARE = allItems.filter((i) => i.kind === "hardware" && !i.draft);
 export const GAMES = allItems.filter((i) => i.kind === "game" && !i.draft);
 export const BLOGS = allItems.filter((i) => i.kind === "blog" && !i.draft);
+// Docs pages, section index pages included. `slug` is the full path under
+// /docs (a section index is "start", a page is "start/quickstart"), so this
+// list is flat and DOCS_SECTIONS below is the shape a sidebar wants.
+export const DOCS = allItems.filter((i) => i.kind === "docs" && !i.draft);
 
 export function findItem(kind: Kind, slug: string): Item | undefined {
   return allItems.find((i) => i.kind === kind && i.slug === slug);
 }
 
+/** True for a docs section's own page (data/docs/<NN>_<section>/index.md),
+    which is the one docs item whose slug has no section prefix. */
+export function isDocsSectionIndex(item: Item): boolean {
+  return item.kind === "docs" && !item.slug.includes("/");
+}
+
+export interface DocsSection {
+  /** URL segment, and the first segment of every page slug inside it */
+  slug: string;
+  /** "/docs/<slug>" */
+  path: string;
+  title: string;
+  summary: string;
+  order: number;
+  /** the section's own page, when it has one */
+  index?: Item;
+  /** published pages in the section, in sidebar order */
+  pages: Item[];
+}
+
+// The docs tree: one entry per section, each with its own page and its pages.
+// Built from the PUBLISHED list, never from allItems, so a draft page stays out
+// of navigation while its own URL keeps working (the draft rule the three lists
+// above implement). This is what a sidebar, a breadcrumb, and prev/next links
+// should read; nothing else needs to know how the folders nest.
+export const DOCS_SECTIONS: DocsSection[] = (() => {
+  const sections = new Map<string, DocsSection>();
+  const bySlug = (slug: string, order: number): DocsSection => {
+    let s = sections.get(slug);
+    if (!s) {
+      // A section with no index page of its own still has to be nameable, so
+      // the slug is titled until one exists.
+      const title = slug.replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase());
+      s = { slug, path: `/docs/${slug}`, title, summary: "", order, pages: [] };
+      sections.set(slug, s);
+    }
+    return s;
+  };
+  for (const item of DOCS) {
+    if (!item.section) continue;
+    const s = bySlug(item.section, item.sectionOrder ?? 999);
+    if (isDocsSectionIndex(item)) {
+      s.index = item;
+      s.title = item.sectionTitle || item.title;
+      s.summary = item.summary || item.desc;
+      // The index page's own order IS the section's order, including an
+      // explicit `order:` override in its frontmatter.
+      s.order = item.order;
+    } else {
+      s.pages.push(item);
+    }
+  }
+  const byOrder = (a: { order: number; slug: string }, b: { order: number; slug: string }) =>
+    a.order - b.order || a.slug.localeCompare(b.slug);
+  for (const s of sections.values()) s.pages.sort(byOrder);
+  return [...sections.values()].sort(byOrder);
+})();
+
 const PATH_SEGMENT: Record<Kind, string> = {
   hardware: "hardware",
   game: "games",
   blog: "blog",
+  docs: "docs",
 };
 
 export function pathFor(kind: Kind, slug: string): string {
@@ -293,18 +422,35 @@ export function topicPath(topicId: string): string {
   return `/topic/${topicId}`;
 }
 
-export const COLLECTION_KIND: Record<string, Kind> = {
-  hardware: "hardware",
-  games: "game",
-  blog: "blog",
+// The inverse of PATH_SEGMENT, derived rather than restated: a hand-written
+// copy is a Record<string, Kind>, so TypeScript cannot tell when it falls one
+// kind behind and /all/<segment> silently resolves to nothing.
+export const COLLECTION_KIND: Record<string, Kind> = Object.fromEntries(
+  (Object.keys(PATH_SEGMENT) as Kind[]).map((k) => [PATH_SEGMENT[k], k]),
+);
+
+// Keyed by Kind, so adding a fifth kind fails `npm run typecheck` here instead
+// of silently serving the wrong list. This was a ternary chain ending in BLOGS,
+// which meant any kind that was not hardware or game got the blog's items:
+// prev/next on a docs page would have paged through the blog, and nothing in
+// the type system objected.
+const PUBLISHED: Record<Kind, Item[]> = {
+  hardware: HARDWARE,
+  game: GAMES,
+  blog: BLOGS,
+  docs: DOCS,
 };
 
 export function itemsForKind(kind: Kind): Item[] {
-  return kind === "hardware" ? HARDWARE : kind === "game" ? GAMES : BLOGS;
+  return PUBLISHED[kind];
 }
 
 function itemMatchesTopic(item: Item, topic: Topic): boolean {
   if (topic.kinds && !topic.kinds.includes(item.kind)) return false;
+  // A docs page is reference material, not an entry in a curated card set, so
+  // it joins a topic only when the topic asks for docs by kind or names the
+  // page outright (itemsForTopic's `items` path never reaches here).
+  if (item.kind === "docs" && !topic.kinds?.includes("docs")) return false;
   const haystack = [
     item.title,
     item.kicker,

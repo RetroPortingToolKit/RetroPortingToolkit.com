@@ -13,7 +13,7 @@ links:
 ---
 
 - segagenesisrecomp: [https://github.com/mstan/segagenesisrecomp](https://github.com/mstan/segagenesisrecomp)
-- Sonic runner: [https://github.com/mstan/SonicTheHedgehogRecom](https://github.com/mstan/SonicTheHedgehogRecomp)
+- Sonic runner: [https://github.com/mstan/SonicTheHedgehogRecomp](https://github.com/mstan/SonicTheHedgehogRecomp)
 
 [Watch: 2026 03 26 genesisrecomp Sonic the Hedgehog Tech Demo 2](https://www.youtube.com/watch?v=IINTsq1JBg8)
 

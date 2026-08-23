@@ -44,6 +44,12 @@ interface MdFields {
   /** blog: who wrote it, and their avatar */
   author: string;
   authorAvatar: string;
+  /** docs: the sentence under the H1 */
+  summary: string;
+  /** docs: concept | guide | reference | project */
+  pageType: string;
+  /** docs section pages: the section's name in navigation */
+  sectionTitle: string;
   /** not published: kept out of every listing, feed and the sitemap */
   draft: boolean;
   /** promoted onto the home strips */
@@ -62,6 +68,9 @@ const EMPTY_FIELDS: MdFields = {
   repo: "",
   author: "",
   authorAvatar: "",
+  summary: "",
+  pageType: "",
+  sectionTitle: "",
   draft: false,
   featured: false,
   tags: [],
@@ -124,28 +133,50 @@ const recTextToItems = (text: string) =>
 // Sidebar folder label -> the data/ directory a new item goes in. Folders not
 // listed here (Pages, Sources) are not collections you add to from the editor.
 
-const ITEM_ID_RE = /^data\/(blog|hardware|games)\/\d*_?([^/]+)\/index\.md$/;
+// data/<kind>/<folder>/index.md, and for docs one level deeper:
+// data/docs/<section>/<page>/index.md. Every folder segment drops its numeric
+// prefix and the rest, joined, is the public path, so a docs page previews at
+// its real nested address instead of its section's.
+const ITEM_ID_RE = /^data\/(blog|hardware|games|docs)\/(.+)\/index\.md$/;
 const KIND_OF_DIR: Record<string, LabMedia["kind"]> = { blog: "blog", hardware: "hardware", games: "game" };
+
+function itemIdParts(id: string): { dir: CmsKind; folders: string[]; slug: string } | null {
+  const m = id.match(ITEM_ID_RE);
+  if (!m) return null;
+  const folders = m[2].split("/");
+  return {
+    dir: m[1] as CmsKind,
+    folders,
+    slug: folders.map((f) => f.replace(/^\d+_/, "")).join("/"),
+  };
+}
+
+/** True for any content item, which is what the toolbar, the delete button and
+    the asset panel are for. */
+function isItemId(id: string | undefined): boolean {
+  return !!id && !!itemIdParts(id);
+}
 
 const MEDIA_BY_KEY = new Map<string, LabMedia>();
 for (const k of ["hardware", "game", "blog"] as const) {
   for (const m of labAll[k]) MEDIA_BY_KEY.set(`${m.kind}-${m.slug}`, m);
 }
 
-/** The published card for an editable item, when it has one. */
+/** The published card for an editable item, when it has one. Docs have no
+    card, so this is null for them and they list as rows. */
 function mediaForItem(id: string): LabMedia | null {
-  const m = id.match(ITEM_ID_RE);
-  if (!m) return null;
-  const kind = KIND_OF_DIR[m[1]];
-  return (kind && MEDIA_BY_KEY.get(`${kind}-${m[2]}`)) || null;
+  const parts = itemIdParts(id);
+  if (!parts) return null;
+  const kind = KIND_OF_DIR[parts.dir];
+  return (kind && MEDIA_BY_KEY.get(`${kind}-${parts.slug}`)) || null;
 }
 
 function previewFor(id: string): string {
-  let m: RegExpMatchArray | null;
   if (id === "page:home") return "/";
-  if ((m = id.match(/^data\/(blog|hardware|games)\/\d*_?([^/]+)\/index\.md$/)))
-    return `/${m[1]}/${m[2]}`;
-  if ((m = id.match(/^data\/sources\/(.+)\.md$/))) return `/source/${m[1]}`;
+  const parts = itemIdParts(id);
+  if (parts) return `/${parts.dir}/${parts.slug}`;
+  const m = id.match(/^data\/sources\/(.+)\.md$/);
+  if (m) return `/source/${m[1]}`;
   return "/"; // home copy files render on the home page
 }
 
@@ -250,6 +281,8 @@ export default function Admin() {
   const [creating, setCreating] = useState(false);
   const [createMsg, setCreateMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  // Docs only: which section a new page joins ("" makes a new section).
+  const [newSection, setNewSection] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [envKnown, setEnvKnown] = useState(false);
   // On the live site (prod), every save COMMITS via the serverless backend (rebuild
@@ -799,9 +832,13 @@ export default function Admin() {
       whole folder and the old address stops resolving. */
   const renameSlug = useCallback(async () => {
     if (!selected) return;
-    const currentSlug = selected.id.match(/^data\/(?:blog|hardware|games)\/\d*_?([^/]+)\/index\.md$/)?.[1] || "";
+    const parts = itemIdParts(selected.id);
+    if (!parts) return;
+    // Only the LAST segment is editable: a docs page keeps its section, and
+    // renaming a section carries its pages with it.
+    const currentSlug = parts.slug.split("/").pop() || "";
     const next = window.prompt(
-      `New address for this page.\n\nIt is live at /${selected.id.split("/")[1]}/${currentSlug} and links to the old address will stop working.`,
+      `New address for this page.\n\nIt is live at ${previewFor(selected.id)} and links to the old address will stop working.`,
       currentSlug,
     );
     if (next == null || !next.trim() || next.trim() === currentSlug) return;
@@ -1003,8 +1040,7 @@ export default function Admin() {
 
   /** The kind of the open item, which decides which fields it should show. */
   const openKind = useMemo<CmsKind | null>(() => {
-    const m = selected?.id.match(/^data\/(blog|hardware|games)\//);
-    return m ? (m[1] as CmsKind) : null;
+    return selected ? (itemIdParts(selected.id)?.dir ?? null) : null;
   }, [selected]);
 
   /** Platforms a game can sit on, read from the Hardware folder rather than
@@ -1032,6 +1068,21 @@ export default function Admin() {
   // Home doc, which is not a collection you add to.
   const newKind = selectedFolder ? FOLDER_KIND[selectedFolder] : undefined;
 
+  /** The docs sections a new page can go in, read from the Docs folder's own
+      items so a section is selectable as soon as it exists. An empty choice
+      creates a SECTION (/docs/<slug>) instead of a page inside one. */
+  const docsSections = useMemo(() => {
+    const g = groups?.find((gr) => gr.group === "Docs");
+    const out = new Map<string, string>();
+    for (const it of g?.items || []) {
+      const [section, page] = (it.sub || "").split("/");
+      if (!section) continue;
+      if (!page) out.set(section, it.title);
+      else if (!out.has(section)) out.set(section, section);
+    }
+    return [...out].map(([slug, title]) => ({ slug, title }));
+  }, [groups]);
+
   const createItem = useCallback(async () => {
     if (!newKind) return;
     const title = newTitle.trim();
@@ -1045,7 +1096,8 @@ export default function Admin() {
       const r = await fetch("/api/cms/new", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ kind: newKind, title }),
+        // `section` is read for docs only, and an empty one creates a section.
+        body: JSON.stringify({ kind: newKind, title, section: newSection }),
       });
       const d = await r.json();
       if (!d.ok) {
@@ -1068,7 +1120,7 @@ export default function Admin() {
     } finally {
       setCreating(false);
     }
-  }, [newKind, newTitle, loadList, open, prod]);
+  }, [newKind, newTitle, newSection, loadList, open, prod]);
 
   // Default the selected folder once the list loads (to the open doc's folder if
   // one is restored, else the first folder).
@@ -1201,7 +1253,7 @@ export default function Admin() {
                 {publishing ? "Publishing..." : "Publish"}
               </button>
             )}
-            {selected && /^data\/(blog|hardware|games)\//.test(selected.id) && (
+            {isItemId(selected?.id) && (
               <button
                 className="ac-btn ac-btn-plain ac-danger"
                 onClick={deleteItem}
@@ -1287,6 +1339,21 @@ export default function Admin() {
                 </div>
                 {newKind && (
                   <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+                    {newKind === "docs" && (
+                      <select
+                        style={{ ...styles.input, width: 190, padding: "6px 10px", font: "400 13px/1.3 var(--ac-font-text)" }}
+                        value={newSection}
+                        onChange={(e) => setNewSection(e.target.value)}
+                        aria-label="Section for the new docs page"
+                      >
+                        <option value="">New section</option>
+                        {docsSections.map((s) => (
+                          <option key={s.slug} value={s.slug}>
+                            In {s.title}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                     <input
                       style={{ ...styles.input, width: 220, padding: "6px 10px", font: "400 13px/1.3 var(--ac-font-text)" }}
                       value={newTitle}
@@ -1349,7 +1416,7 @@ export default function Admin() {
                     build. Either way it is the place to offer Delete, because
                     it is where the pages you are still working on collect. */}
                 {rowItems.map((it) => {
-                  const deletable = /^data\/(blog|hardware|games)\//.test(it.id);
+                  const deletable = isItemId(it.id);
                   return (
                     <div key={it.id} className="ac-noterow" style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <button
@@ -1487,7 +1554,43 @@ export default function Admin() {
                         </Field>
                       )}
 
-                      {openKind !== "blog" && (
+                      {openKind === "docs" && (
+                        <>
+                          <Field label="Summary (the sentence under the title)">
+                            <textarea
+                              style={{ ...styles.input, minHeight: 56, resize: "vertical" }}
+                              value={q.summary}
+                              onChange={(e) => patchScalar("summary", e.target.value)}
+                            />
+                          </Field>
+                          <div style={{ display: "flex", gap: 14 }}>
+                            <Field label="Page type" grow>
+                              <select
+                                style={styles.input}
+                                value={q.pageType}
+                                onChange={(e) => patchScalar("pageType", e.target.value)}
+                              >
+                                <option value="">Choose a type</option>
+                                <option value="concept">Concept (explains an idea)</option>
+                                <option value="guide">Guide (numbered steps)</option>
+                                <option value="reference">Reference (tables)</option>
+                                <option value="project">Project (one toolchain)</option>
+                              </select>
+                            </Field>
+                            {/* A section's own page names the section in the
+                                sidebar; a page inside one leaves this empty. */}
+                            <Field label="Section name (section pages only)" grow>
+                              <input
+                                style={styles.input}
+                                value={q.sectionTitle}
+                                onChange={(e) => patchScalar("sectionTitle", e.target.value)}
+                              />
+                            </Field>
+                          </div>
+                        </>
+                      )}
+
+                      {(openKind === "hardware" || openKind === "games") && (
                         <div style={{ display: "flex", gap: 14 }}>
                           <Field label="Status" grow>
                             <input
@@ -1543,7 +1646,7 @@ export default function Admin() {
                       <Field label="Tags (comma-separated)">
                         <input style={styles.input} value={tagsInput} onChange={(e) => patchTags(e.target.value)} />
                       </Field>
-                      {selected && /^data\/(blog|hardware|games)\//.test(selected.id) && (
+                      {isItemId(selected?.id) && (
                         <>
                           <input
                             ref={fileInputRef}
@@ -1922,8 +2025,16 @@ function HelpSheet({ onClose, prod }: { onClose: () => void; prod: boolean }) {
           <Key>Articles</Key> are news, build logs, write-ups, videos and press
           coverage. <Key>Games</Key> is one entry per game that has been
           recompiled or ported. <Key>Hardware</Key> is one entry per console's
-          toolchain. Writing <em>about</em> a game is an article that links to
+          toolchain. <Key>Docs</Key> is the documentation tree: concepts,
+          guides and reference that explain the whole toolkit rather than one
+          project. Writing <em>about</em> a game is an article that links to
           the game's page, not a second games entry.
+        </P>
+        <P>
+          A docs page lives in a section, and its address is both:{" "}
+          <Key>/docs/start/quickstart</Key> is the "quickstart" page in the
+          "start" section. A page created without a section is the section's
+          own page, at <Key>/docs/start</Key>.
         </P>
 
         <H>Writing</H>

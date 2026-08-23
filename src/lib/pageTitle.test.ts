@@ -8,7 +8,7 @@ import {
   titleForItem,
   titleForTopic,
 } from "./pageTitle";
-import { BLOGS, HARDWARE, GAMES } from "./content";
+import { BLOGS, HARDWARE, GAMES, DOCS } from "./content";
 import { TOPICS } from "./topics";
 import type { Item } from "./types";
 
@@ -37,6 +37,7 @@ describe("client titles match the prerendered titles", () => {
     ["/hardware", "hardware"],
     ["/games", "game"],
     ["/blog", "blog"],
+    ["/docs", "docs"],
   ] as const)("collection %s", (route, kind) => {
     expect(served(route)).toBe(titleForCollection(kind));
   });
@@ -49,6 +50,9 @@ describe("client titles match the prerendered titles", () => {
     ...HARDWARE.map((i) => [`/hardware/${i.slug}`, i] as [string, Item]),
     ...GAMES.map((i) => [`/games/${i.slug}`, i] as [string, Item]),
     ...BLOGS.map((i) => [`/blog/${i.slug}`, i] as [string, Item]),
+    // Nested: a docs slug carries its section, so this also asserts the two
+    // content walks derive the same address for the same folder.
+    ...DOCS.map((i) => [`/docs/${i.slug}`, i] as [string, Item]),
   ];
 
   it("has items to check", () => {

@@ -49,7 +49,7 @@ describe("read -> save is idempotent for every real content file (no drift)", ()
   // bytes that, read + saved again, are unchanged. So the editor can never
   // slowly corrupt content across successive saves. (A FIRST save may normalize
   // pre-existing frontmatter spacing; what must never happen is continued drift.)
-  const dirs = ["blog", "hardware", "games"];
+  const dirs = ["blog", "hardware", "games", "docs"];
   const ids = [];
   for (const kind of dirs) {
     const base = path.join(ROOT, "data", kind);
@@ -57,6 +57,14 @@ describe("read -> save is idempotent for every real content file (no drift)", ()
     for (const folder of fs.readdirSync(base)) {
       const rel = `data/${kind}/${folder}/index.md`;
       if (fs.existsSync(path.join(ROOT, rel))) ids.push(rel);
+      // Docs nest: a section folder holds its own index.md and one folder per
+      // page, and every one of those is an editable doc.
+      const section = path.join(ROOT, "data", kind, folder);
+      if (kind !== "docs" || !fs.statSync(section).isDirectory()) continue;
+      for (const page of fs.readdirSync(section)) {
+        const nested = `data/${kind}/${folder}/${page}/index.md`;
+        if (fs.existsSync(path.join(ROOT, nested))) ids.push(nested);
+      }
     }
   }
   it(`found content files to check (${ids.length})`, () => {

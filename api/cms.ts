@@ -435,13 +435,52 @@ async function ghListTree(): Promise<{ path: string }[]> {
 }
 
 // ---------------------------------------------------------------- content model
-export const KINDS = ["blog", "hardware", "games"] as const;
+export const KINDS = ["blog", "hardware", "games", "docs"] as const;
+
+// An item is a folder holding index.md. Docs are the one kind that nests:
+// data/docs/<NN>_<section>/index.md is a section's own page and
+// data/docs/<NN>_<section>/<NN>_<page>/index.md is a page inside it, so a docs
+// id carries one or two folder segments where every other kind carries exactly
+// one. Everything that takes an id apart goes through itemParts(), so the rule
+// lives in one place here and in one place in scripts/cms-dev.mjs.
+const ITEM_RE = /^data\/(blog|hardware|games|docs)\/([^/]+(?:\/[^/]+)?)\/index\.md$/;
+const MAX_FOLDER_DEPTH: Record<string, number> = { blog: 1, hardware: 1, games: 1, docs: 2 };
+const folderSlugOf = (folder: string) => /^(\d+)_(.+)$/.exec(folder)?.[2] ?? folder;
+
+interface ItemParts {
+  /** the data/ directory: "blog" | "hardware" | "games" | "docs" */
+  kind: string;
+  /** every folder segment under data/<kind>/, e.g. "01_start/01_quickstart" */
+  folder: string;
+  /** the folder segments above the item's own, "" at the top of a kind */
+  parent: string;
+  /** the item's own folder segment, e.g. "01_quickstart" */
+  leaf: string;
+  /** the public path under the kind's segment, e.g. "start/quickstart" */
+  slug: string;
+}
+
+function itemParts(id: string): ItemParts | null {
+  const m = typeof id === "string" ? id.match(ITEM_RE) : null;
+  if (!m) return null;
+  const [, kind, folder] = m;
+  const segments = folder.split("/");
+  if (segments.length > (MAX_FOLDER_DEPTH[kind] ?? 1)) return null;
+  return {
+    kind,
+    folder,
+    parent: segments.slice(0, -1).join("/"),
+    leaf: segments[segments.length - 1],
+    slug: segments.map(folderSlugOf).join("/"),
+  };
+}
+
 function isAllowed(id: string): boolean {
   if (typeof id !== "string" || id.includes("..") || id.includes("\0")) return false;
   if (id === "page:home") return true;
   if (id === "data/about.md" || id === "data/home.json") return true;
   if (/^data\/sources\/[^/]+\.md$/.test(id)) return true;
-  if (/^data\/(blog|hardware|games)\/[^/]+\/index\.md$/.test(id)) return true;
+  if (itemParts(id)) return true;
   return false;
 }
 function typeOf(id: string): "md" | "json" | "home" {
@@ -473,12 +512,15 @@ function mdFields(fmText: string) {
       repo: str(fm.repo),
       author: str(fm.author),
       authorAvatar: str(fm.authorAvatar),
+      summary: str(fm.summary),
+      pageType: str(fm.pageType),
+      sectionTitle: str(fm.sectionTitle),
       draft: fm.draft === true,
       featured: fm.featured === true,
       tags: Array.isArray(fm.tags) ? (fm.tags as unknown[]).filter((t) => typeof t === "string") : [],
     };
   } catch {
-    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authorAvatar: "", draft: false, featured: false, tags: [] as string[] };
+    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, tags: [] as string[] };
   }
 }
 
@@ -587,7 +629,13 @@ async function writeEditable(id: string, payload: Record<string, unknown>, actor
 // against the repo tree instead of the local filesystem. Keep the two in step:
 // the same editor UI calls whichever backend is serving.
 // Reads naturally in the stub description: "this post", not "this blog".
-const KIND_NOUN: Record<string, string> = { blog: "article", hardware: "platform", games: "game" };
+// Mirrored in scripts/cms-dev.mjs; cmsKinds.test.ts holds the two to each other.
+export const KIND_NOUN: Record<string, string> = {
+  blog: "article",
+  hardware: "platform",
+  games: "game",
+  docs: "docs page",
+};
 
 function slugify(title: string): string {
   return String(title)
@@ -604,9 +652,18 @@ function slugify(title: string): string {
     .slice(0, 60);
 }
 
-function stubFrontmatter(kind: string, title: string, actor?: Actor | null): string {
+// The frontmatter a new item needs to render, per kind. Mirrored line for line
+// in scripts/cms-dev.mjs: the two used to disagree (prod wrote author and
+// platform, dev wrote neither), which meant a page created on dev and a page
+// created on prod were not the same page.
+function stubFrontmatter(
+  kind: string,
+  title: string,
+  actor?: Actor | null,
+  section?: string,
+): string {
   const today = new Date().toISOString().slice(0, 10);
-  const esc = (s: string) => s.replace(/"/g, '\\"');
+  const esc = (s: string) => String(s).replace(/"/g, '\\"');
   const lines = [
     `title: "${esc(title)}"`,
     `kicker: "New"`,
@@ -614,7 +671,14 @@ function stubFrontmatter(kind: string, title: string, actor?: Actor | null): str
     `featured: false`,
     `desc: "One line describing this ${KIND_NOUN[kind]}."`,
   ];
-  if (kind === "blog") {
+  if (kind === "docs") {
+    // A docs page has no date, no year and no repository of its own. It leads
+    // with the sentence under its H1 and says which quadrant it is in.
+    lines.push(`summary: "One sentence telling a reader what this page answers."`);
+    lines.push(`pageType: "concept"`);
+    // A section's own page names the section in navigation.
+    if (!section) lines.push(`sectionTitle: "${esc(title)}"`);
+  } else if (kind === "blog") {
     lines.push(`date: "${today}"`);
     // A post is bylined to whoever created it, not to the site's default
     // author, which is how someone else's name ends up on your writing.
@@ -641,28 +705,28 @@ async function createEditable(payload: Record<string, unknown>, actor?: Actor | 
   if (!slug) return { ok: false, error: "That title has no usable characters for a URL." };
 
   const paths = (await ghListTree()).map((e) => e.path);
-  const folders = paths
-    .map((p) => new RegExp(`^data/${kind}/([^/]+)/index\\.md$`).exec(p)?.[1])
-    .filter(Boolean) as string[];
+  // Docs pages live inside a section, so a new one has to say which. No section
+  // means the new page IS a section: it lands at data/docs/<NN>_<slug>/index.md
+  // and is what /docs/<slug> serves.
+  const section = kind === "docs" ? slugify(String(payload.section || "")) : "";
+  const parent = section ? sectionFolder(section, paths) : "";
+  if (section && !parent) return { ok: false, error: `There is no "${section}" section in docs.` };
+  const where = section ? `${kind}/${section}` : kind;
+
+  const folders = foldersOf(kind, parent, paths);
 
   // A duplicate slug would collide on the public URL even though the folder
   // names differ by their order prefix, so check the slug, not the folder.
   for (const folder of folders) {
-    const existing = /^(\d+)_(.+)$/.exec(folder)?.[2] ?? folder;
-    if (existing === slug) return { ok: false, error: `"${slug}" already exists in ${kind}.` };
+    if (folderSlugOf(folder) === slug) return { ok: false, error: `"${slug}" already exists in ${where}.` };
   }
 
-  let max = 0;
-  for (const folder of folders) {
-    const n = Number(/^(\d+)_/.exec(folder)?.[1] ?? 0);
-    if (n > max) max = n;
-  }
-  const id = `data/${kind}/${String(max + 1).padStart(2, "0")}_${slug}/index.md`;
+  const id = `data/${kind}/${parent ? `${parent}/` : ""}${nextOrder(folders)}_${slug}/index.md`;
   if (!isAllowed(id)) return { ok: false, error: "refused" };
 
   const body = "Write the post here. This body renders as markdown on the item page.\n";
-  await ghWriteFile(id, `---\n${stubFrontmatter(kind, title, actor)}\n---\n\n${body}`, `cms: add ${kind}/${slug}`, actor);
-  return { ok: true, id, slug, kind };
+  await ghWriteFile(id, `---\n${stubFrontmatter(kind, title, actor, section)}\n---\n\n${body}`, `cms: add ${where}/${slug}`, actor);
+  return { ok: true, id, slug, kind, section };
 }
 
 async function listEditable() {
@@ -674,7 +738,7 @@ async function listEditable() {
 
   // One request for every page's frontmatter, so the list can show real titles
   // and mark drafts. If it fails the list still renders, from the slug.
-  const itemPaths = paths.filter((p) => /^data\/(blog|hardware|games)\/[^/]+\/index\.md$/.test(p)).sort();
+  const itemPaths = paths.filter((p) => !!itemParts(p)).sort();
   const texts = await ghReadMany(itemPaths);
   const metaOf = (p: string): { title?: string; draft?: boolean } => {
     const raw = texts.get(p);
@@ -689,10 +753,11 @@ async function listEditable() {
 
   for (const kind of KINDS) {
     const items = itemPaths
-      .filter((p) => new RegExp(`^data/${kind}/[^/]+/index\\.md$`).test(p))
+      .filter((p) => itemParts(p)?.kind === kind)
       .map((p) => {
-        const folder = p.split("/")[2];
-        const slug = folder.replace(/^\d+_/, "");
+        // For docs this is the full path under /docs ("start/quickstart"), so
+        // the list shows which section a page is in and stays sorted by it.
+        const slug = itemParts(p)!.slug;
         const meta = metaOf(p);
         return { id: p, title: meta.title || prettify(slug), sub: slug, type: "md", draft: !!meta.draft };
       });
@@ -813,7 +878,7 @@ async function githubCallback(req: Request): Promise<Response> {
 // An item is a folder: index.md plus whatever images and videos it embeds.
 // Everything here works on that folder, and nothing outside it.
 
-const ITEM_RE = /^data\/(blog|hardware|games)\/([^/]+)\/index\.md$/;
+// ITEM_RE and itemParts() are up with the content model, next to isAllowed().
 const ASSET_EXT = /\.(png|jpe?g|webp|gif|avif|svg|mp4|webm|mov)$/i;
 // Vercel caps a serverless request body at 4.5 MB and base64 costs a third on
 // top, so the file itself has to stay under that with room to spare.
@@ -821,18 +886,18 @@ const MAX_ASSET_BYTES = 3 * 1024 * 1024;
 
 /** The folder an item lives in, or null if the id is not an item. */
 function itemFolder(id: string): string | null {
-  const m = typeof id === "string" ? id.match(ITEM_RE) : null;
-  return m ? `data/${m[1]}/${m[2]}` : null;
+  const parts = itemParts(id);
+  return parts ? `data/${parts.kind}/${parts.folder}` : null;
 }
 
 /** The URL segment for an item id: data/games/... is served at /games/... */
 function kindSegment(id: string): string {
-  return id.match(ITEM_RE)?.[1] ?? "";
+  return itemParts(id)?.kind ?? "";
 }
 
+/** The public path under the kind's segment. Nested for docs. */
 function itemSlug(id: string): string | null {
-  const m = typeof id === "string" ? id.match(ITEM_RE) : null;
-  return m ? m[2].replace(/^\d+_/, "") : null;
+  return itemParts(id)?.slug ?? null;
 }
 
 /** A safe leaf filename: no separators, no traversal, known media extension. */
@@ -912,15 +977,26 @@ async function deleteEditable(body: Record<string, unknown>, actor?: Actor | nul
   return { ok: true, removed: changes.length, files: [...own, ...previews] };
 }
 
-/** Every folder name in a kind, so slugs and order prefixes can be checked. */
-async function foldersOf(kind: string, paths?: string[]): Promise<string[]> {
-  const all = paths || (await ghListTree()).map((e) => e.path);
-  return all
-    .map((p) => new RegExp(`^data/${kind}/([^/]+)/index\\.md$`).exec(p)?.[1])
-    .filter(Boolean) as string[];
+/** The folder names an item at data/<kind>/<parent>/ sits beside, so slugs and
+    order prefixes can be checked against its real siblings. A docs section
+    counts as a folder at the top of the kind as soon as it holds a page, even
+    before it has an index.md of its own. */
+function foldersOf(kind: string, parent: string, paths: string[]): string[] {
+  const out = new Set<string>();
+  for (const p of paths) {
+    const parts = itemParts(p);
+    if (!parts || parts.kind !== kind) continue;
+    if (parts.parent === parent) out.add(parts.leaf);
+    else if (!parent && parts.parent) out.add(parts.parent.split("/")[0]);
+  }
+  return [...out];
 }
 
-const folderSlugOf = (folder: string) => /^(\d+)_(.+)$/.exec(folder)?.[2] ?? folder;
+/** The docs section folder ("01_start") for a section slug ("start"). */
+function sectionFolder(section: string, paths: string[]): string {
+  return foldersOf("docs", "", paths).find((f) => folderSlugOf(f) === section) ?? "";
+}
+
 const nextOrder = (folders: string[]) =>
   String(Math.max(0, ...folders.map((f) => Number(/^(\d+)_/.exec(f)?.[1] ?? 0))) + 1).padStart(2, "0");
 
@@ -928,20 +1004,24 @@ const nextOrder = (folders: string[]) =>
     file in it, which is why it is one commit rather than a write and a delete. */
 async function renameEditable(body: Record<string, unknown>, actor?: Actor | null) {
   const id = String(body.id || "");
-  const m = id.match(ITEM_RE);
-  if (!m) return { ok: false, error: "Only content items can be renamed." };
-  const [, kind, folder] = m;
+  const parts = itemParts(id);
+  if (!parts) return { ok: false, error: "Only content items can be renamed." };
+  const { kind, folder, parent, leaf } = parts;
   const slug = slugify(String(body.slug || ""));
   if (!slug) return { ok: false, error: "That slug has no usable characters for a URL." };
-  if (slug === folderSlugOf(folder)) return { ok: true, id, slug, unchanged: true };
+  if (slug === folderSlugOf(leaf)) return { ok: true, id, slug, unchanged: true };
 
   const paths = (await ghListTree()).map((e) => e.path);
-  for (const f of await foldersOf(kind, paths)) {
+  for (const f of foldersOf(kind, parent, paths)) {
     if (folderSlugOf(f) === slug) return { ok: false, error: `"${slug}" already exists in ${kind}.` };
   }
 
-  const prefix = /^(\d+)_/.exec(folder)?.[1];
-  const target = `data/${kind}/${prefix ? `${prefix}_` : ""}${slug}`;
+  // Only this folder's own segment changes; a docs page keeps its section, and
+  // renaming a SECTION moves every page under it, because the whole subtree is
+  // collected below.
+  const prefix = /^(\d+)_/.exec(leaf)?.[1];
+  const base = `data/${kind}${parent ? `/${parent}` : ""}`;
+  const target = `${base}/${prefix ? `${prefix}_` : ""}${slug}`;
   const source = `data/${kind}/${folder}`;
   const own = paths.filter((p) => p.startsWith(`${source}/`));
   if (!own.length) return { ok: false, error: "not_found" };
@@ -962,9 +1042,9 @@ async function renameEditable(body: Record<string, unknown>, actor?: Actor | nul
     publishes anything by itself. */
 async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | null) {
   const id = String(body.id || "");
-  const m = id.match(ITEM_RE);
-  if (!m) return { ok: false, error: "Only content items can be duplicated." };
-  const [, kind] = m;
+  const parts = itemParts(id);
+  if (!parts) return { ok: false, error: "Only content items can be duplicated." };
+  const { kind, parent } = parts;
   const file = await ghReadFile(id);
   if (!file) return { ok: false, error: "not_found" };
 
@@ -978,14 +1058,15 @@ async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | 
   const title = `${String(fm.title || "Untitled")} (copy)`;
   const slug = slugify(title);
   const paths = (await ghListTree()).map((e) => e.path);
-  const folders = await foldersOf(kind, paths);
+  const folders = foldersOf(kind, parent, paths);
   if (folders.some((f) => folderSlugOf(f) === slug)) {
     return { ok: false, error: `"${slug}" already exists in ${kind}.` };
   }
   fm.title = title;
   fm.draft = true;
   fm.featured = false;
-  const target = `data/${kind}/${nextOrder(folders)}_${slug}/index.md`;
+  // The copy joins its original's neighbours: a docs page stays in its section.
+  const target = `data/${kind}${parent ? `/${parent}` : ""}/${nextOrder(folders)}_${slug}/index.md`;
   await ghCommit(
     [{ path: target, text: `---\n${yaml.dump(fm).trim()}\n---\n\n${mdBody.replace(/^\n+/, "")}` }],
     `cms: duplicate ${kind}/${slug}`,
@@ -1000,7 +1081,11 @@ async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | 
 // gets to fumble at each one. This takes the whole post, media included, and
 // writes it as a single commit.
 
-const PUBLISH_FIELDS = [
+// The frontmatter keys /post copies straight through from its payload. The same
+// list is exported from scripts/cms-dev.mjs and cmsKinds.test.ts compares them,
+// because two hand-maintained copies of one list is exactly the divergence that
+// has bitten this CMS before.
+export const PUBLISH_FIELDS = [
   "kicker",
   "desc",
   "date",
@@ -1014,6 +1099,9 @@ const PUBLISH_FIELDS = [
   "authorAvatar",
   "authorBio",
   "venue",
+  "summary",
+  "pageType",
+  "sectionTitle",
 ] as const;
 
 async function postItem(payload: Record<string, unknown>, actor?: Actor | null) {
@@ -1027,12 +1115,16 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
   if (!slug) return { ok: false, error: "That title has no usable characters for a URL." };
 
   const paths = (await ghListTree()).map((e) => e.path);
-  const folders = await foldersOf(kind, paths);
+  // Docs pages live inside a section; no section means the post IS a section.
+  const section = kind === "docs" ? slugify(String(payload.section || "")) : "";
+  const parent = section ? sectionFolder(section, paths) : "";
+  if (section && !parent) return { ok: false, error: `There is no "${section}" section in docs.` };
+  const folders = foldersOf(kind, parent, paths);
   if (folders.some((f) => folderSlugOf(f) === slug)) {
     return { ok: false, error: `"${slug}" already exists in ${kind}. Use /save to change it, or pass a different slug.` };
   }
 
-  const folder = `data/${kind}/${nextOrder(folders)}_${slug}`;
+  const folder = `data/${kind}${parent ? `/${parent}` : ""}/${nextOrder(folders)}_${slug}`;
   const changes: Change[] = [];
   const media = Array.isArray(payload.media) ? (payload.media as Record<string, unknown>[]) : [];
   let cover = typeof payload.cover === "string" ? payload.cover : "";
@@ -1067,7 +1159,11 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
     fm.tags = (payload.tags as unknown[]).filter((t): t is string => typeof t === "string");
   }
   if (!fm.desc) fm.desc = `One line describing this ${KIND_NOUN[kind]}.`;
-  if (kind === "blog") {
+  if (kind === "docs") {
+    // No date and no year: a docs page is maintained, not published on a day.
+    if (!fm.summary) fm.summary = String(fm.desc);
+    if (!fm.pageType) fm.pageType = "concept";
+  } else if (kind === "blog") {
     if (!fm.date) fm.date = today;
     if (!fm.author && (actor?.name || actor?.login)) fm.author = actor.name || actor.login;
     if (!fm.authorAvatar && actor?.avatar) fm.authorAvatar = actor.avatar;
@@ -1091,8 +1187,11 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
     id: `${folder}/index.md`,
     slug,
     kind,
+    section,
     draft: fm.draft === true,
-    url: `/${kind === "games" ? "games" : kind}/${slug}`,
+    // The kind IS the URL segment for all four kinds, and a docs page's address
+    // carries its section: /docs/<section>/<slug>.
+    url: `/${kind}/${section ? `${section}/` : ""}${slug}`,
     media: attached,
   };
 }

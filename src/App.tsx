@@ -13,6 +13,7 @@ import {
 import { useEffect, useRef } from "react";
 import Home from "./pages/Home";
 import { ItemPage } from "./pages/ItemPage";
+import { DocsPage } from "./pages/DocsPage";
 // Admin is a static import (NOT lazy): a React.lazy route remounts on every
 // Fast Refresh, which would drop editor focus mid-edit.
 import Admin from "./pages/Admin";
@@ -266,6 +267,15 @@ function AppRoutes() {
             <Route path="/blog/:slug" element={<ItemPage kind="blog" />} />
             <Route path="/hardware/:slug" element={<ItemPage kind="hardware" />} />
             <Route path="/games/:slug" element={<ItemPage kind="game" />} />
+            {/* Documentation is the one nested section: /docs/<section>/<page>.
+                A `:slug` param matches exactly one segment, so the splat is
+                what makes the second one reachable. Both are registered
+                because the splat form is what carries the path, and the bare
+                /docs is the section index. Docs never open as a modal: they
+                are pages with their own navigation, so they are deliberately
+                absent from MODALISH_RE and the modal layers below. */}
+            <Route path="/docs" element={<DocsPage />} />
+            <Route path="/docs/*" element={<DocsPage />} />
             <Route path="/all/:segment" element={<Home />} />
             <Route path="/topic/:topicId" element={<Home />} />
             <Route path="*" element={<NotFound />} />

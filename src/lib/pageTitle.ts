@@ -15,6 +15,7 @@ export const COLLECTION_TITLE: Record<Kind, string> = {
   hardware: "Platforms",
   game: "Games",
   blog: "News and coverage",
+  docs: "Documentation",
 };
 
 export function titleForHome(): string {

@@ -322,6 +322,7 @@ const ADJ_NOUN: Record<string, string> = {
   hardware: "platform",
   game: "project",
   blog: "article",
+  docs: "page",
 };
 
 function AdjacentItemLink({
