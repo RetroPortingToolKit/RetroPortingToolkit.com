@@ -31,7 +31,7 @@ function MenuIcon() {
 interface Props {
   /** full slug of the page being read; undefined on the /docs landing */
   currentSlug?: string;
-  /** the right rail (the on-this-page TOC), omitted on the landing */
+  /** the right rail (the on-this-page TOC); may render nothing */
   rail?: ReactNode;
   children: ReactNode;
 }
@@ -39,6 +39,11 @@ interface Props {
 export function DocsShell({ currentSlug, rail, children }: Props) {
   const isNarrow = useMobile(NARROW);
   const [navOpen, setNavOpen] = useState(false);
+  // The landing is a hub and uses the rail's width for its card grid. Every
+  // real page keeps the three column grid whether or not it has enough
+  // headings for a contents list, so the reading measure does not change from
+  // one page to the next.
+  const isLanding = currentSlug === undefined;
 
   return (
     <div className="page page-fade docs-page">
@@ -71,7 +76,7 @@ export function DocsShell({ currentSlug, rail, children }: Props) {
       </header>
 
       <main className="page-main docs-main">
-        <div className={"docs-layout" + (rail ? "" : " docs-layout--norail")}>
+        <div className={"docs-layout" + (isLanding ? " docs-layout--norail" : "")}>
           {!isNarrow && <DocsSidebar currentSlug={currentSlug} />}
           <div className="docs-column">{children}</div>
           {rail}

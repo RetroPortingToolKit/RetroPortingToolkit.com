@@ -4,7 +4,7 @@ import { DOCS_SECTIONS, isDocsSectionIndex } from "@/lib/content";
 import { IS_CMS_PREVIEW, useItem } from "@/lib/cmsPreview";
 import { Markdown } from "@/components/Markdown";
 import { DocsShell } from "@/components/DocsShell";
-import { DocsToc, TOC_MIN, useDocsHeadings } from "@/components/DocsToc";
+import { DocsToc, useDocsHeadings } from "@/components/DocsToc";
 import {
   DOCS_QUICK_LINKS,
   entriesInSection,
@@ -177,10 +177,18 @@ function Pager({ slug }: { slug: string }) {
   );
 }
 
-function SectionContents({ slug }: { slug: string }) {
-  const section = DOCS_SECTIONS.find((s) => s.slug === slug);
-  const pages = section ? entriesInSection(section).filter((e) => !e.isSectionIndex) : [];
+function SectionContents({ item }: { item: Item }) {
+  const section = DOCS_SECTIONS.find((s) => s.slug === item.slug);
+  const pages = section
+    ? entriesInSection(section).filter((e) => !e.isSectionIndex)
+    : [];
   if (pages.length === 0) return null;
+  // A section index usually walks its own pages in prose, and printing the
+  // same list again under it is just noise. So this is the fallback for a
+  // section index that does not: if the body already links most of the
+  // section, the body IS the contents.
+  const linked = pages.filter((p) => item.body.includes(p.path)).length;
+  if (linked * 2 >= pages.length) return null;
   return (
     <section className="docs-contents">
       <h2 className="docs-contents-title">In this section</h2>
@@ -250,13 +258,7 @@ function DocsItem({ slug }: { slug: string }) {
   return (
     <DocsShell
       currentSlug={item.slug}
-      // Omitted, not rendered empty: a page with nothing to navigate keeps the
-      // reading column where the third column would have been.
-      rail={
-        headings.length >= TOC_MIN ? (
-          <DocsToc headings={headings} variant="rail" />
-        ) : undefined
-      }
+      rail={<DocsToc headings={headings} variant="rail" />}
     >
       <article
         className="docs-article"
@@ -275,7 +277,7 @@ function DocsItem({ slug }: { slug: string }) {
             <Markdown className="modal-content docs-prose">{item.body}</Markdown>
           </div>
         )}
-        {isIndex && <SectionContents slug={item.slug} />}
+        {isIndex && <SectionContents item={item} />}
         <Pager slug={item.slug} />
       </article>
     </DocsShell>

@@ -22,10 +22,10 @@ Nearly every toolchain here wants the same five things.
 
 | Thing | Version | Why |
 |---|---|---|
-| `git` | any recent | Frameworks and the shared launcher are submodules, so you will need `--recurse-submodules` or `git submodule update --init --recursive` |
+| `git` | any recent | In a game repository the framework and the shared launcher are submodules, so you will need `--recurse-submodules` or `git submodule update --init --recursive` |
 | A C and C++ compiler | C11 and C++20 between them | Recompilers are C11 or C++20; runtimes are C99, C11 or C++17 depending on the project |
 | CMake | 3.20 or newer | Every toolchain configures with it. gbrecompiled asks only for 3.15 |
-| Ninja | any recent | The generator the documented commands use on macOS and Linux, and the fastest on Windows |
+| Ninja | any recent | The generator the documented commands use on macOS and Linux, and one of two options on Windows alongside Visual Studio 17 2022 |
 | Python 3 | 3.9 or newer, 3.12 where a CLI zip is built | Drives regeneration wrappers, co-simulation coordinators and packaging |
 
 Plus SDL for anything that opens a window. Most runners want SDL2; psxrecomp defaults to SDL3 with an SDL2 fallback, and snesrecomp does the same.
@@ -59,7 +59,7 @@ The install lines below are the ones psxrecomp's [`docs/BUILDING.md`](https://gi
 
 ### Windows
 
-Two toolchains work, and which one is not always your choice. MSVC builds several projects, but psxrecomp's own instructions assume an MSYS2 MinGW64 shell, and gbarecomp must be built with MSYS2 MinGW rather than MSVC because `bios_hle.cpp` uses `__builtin_clz`, which MSVC does not have. In an MSYS2 MinGW64 shell:
+Two toolchains are in play, and which one you use is not always your choice. MSVC builds several of these projects, but psxrecomp's own instructions assume an MSYS2 MinGW64 shell, and gbarecomp must be built with MSYS2 MinGW rather than MSVC because `bios_hle.cpp` uses `__builtin_clz`, which MSVC does not have. In an MSYS2 MinGW64 shell:
 
 ```sh
 pacman -S --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake \
@@ -106,7 +106,7 @@ This site does not describe how to obtain any of these files and does not reprod
 
 ## What you do not need
 
-- **A BIOS on the NES.** nesrecomp's packaged CLI needs only your own `.nes` file. Its README says it in four words: "No BIOS file is needed."
+- **A BIOS on the NES.** nesrecomp's packaged CLI needs only your own `.nes` file. Its README is blunt: "No BIOS file is needed."
 - **A PlayStation BIOS dump, to get started.** psxrecomp bundles OpenBIOS, which is MIT licensed and redistributable, and its build notes say "OpenBIOS alone is enough to build and boot". A retail dump is optional, and only some titles require one, because a title whose configuration sets `openbios = false` needs a retail image instead.
 - **A game file to build and test a framework.** psxrecomp's test suite runs with "no BIOS dump, no disc image, and no generated code". That is what makes the [quickstart](/docs/start/quickstart) possible without any file of yours.
 - **The submodules, always.** psxrecomp says "A plain clone is enough to build the recompiler and the runtime", and asks for `--recurse-submodules` only if you want the launcher or netplay. Game repositories are the opposite: their framework is a pinned submodule and a clone without it cannot build.

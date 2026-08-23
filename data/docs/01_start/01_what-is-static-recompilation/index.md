@@ -51,7 +51,7 @@ From [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob
             break;
 ```
 
-One guest load becomes an assignment to `g_cpu.A`, a call to `nes_read` for the address, and a flag update, with the instruction's address and opcode left in a comment so the output can be read against a disassembly. Multiply that by every instruction in the cartridge and you have the program. [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime) covers the other half, the library that implements `nes_read` and everything like it.
+One guest load becomes an assignment to `g_cpu.A`, a call to `nes_read` for the address, and a flag update, with the instruction's address and opcode left in a comment so the output can be read against a disassembly. Multiply that by every instruction in the cartridge and you have the program. [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime) covers the other half, the library that implements `nes_read` and everything like it, and [NES](/docs/platforms/nes) is this toolchain in full.
 
 A Virtual Boy port states the whole technique in four sentences, from a player-facing README.
 
@@ -61,9 +61,9 @@ From [`README.md`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/mas
 
 ## Why not just interpret it
 
-An interpreter is the classic emulator CPU core. It holds the guest program counter, fetches the instruction there, decodes it, does what it says, and repeats, for every instruction, every time it executes. A loop body that runs a billion times a minute pays the fetch and decode cost a billion times.
+An interpreter is the classic emulator CPU core. It holds the guest program counter, fetches the instruction there, decodes it, does what it says, and repeats, for every instruction, every time that instruction executes. An inner loop the game runs a million times pays the fetch and decode cost a million times.
 
-Static recompilation moves that work to build time. Each instruction in the ROM is decoded once, ever, and what it does is written down as C. At run time there is no fetch and no decode, only compiled code. [nesrecomp](https://github.com/mstan/nesrecomp) puts it in four words in its [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md): "**Static recompiler.** 6502 binary → C → native x64. No interpreter loop."
+Static recompilation moves that work to build time. Each instruction in the ROM is decoded once, ever, and what it does is written down as C. At run time there is no fetch and no decode, only compiled code. [nesrecomp](https://github.com/mstan/nesrecomp) puts it in one line in its [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md): "**Static recompiler.** 6502 binary → C → native x64. No interpreter loop."
 
 ## Why not translate while the game runs
 
@@ -85,7 +85,7 @@ The boundary is less tidy in practice, and this site would rather say so. [psxre
 
 **Telling code from data.** A cartridge dump is one flat block of bytes with no symbols and nothing marking where a function begins. Getting that wrong is the central difficulty of the whole technique, and it has its own page: [telling code from data](/docs/concepts/code-discovery).
 
-**No guarantee for any particular game.** psxrecomp's own README calls a generated project "a practical starting point, not a promise that every game works without game-specific fixes", and nesrecomp says of its output "This builds a static library. It does not create a playable game by itself." Whether a given title works is a question about that title, answered on its own page.
+**No guarantee for any particular game.** psxrecomp's own README calls a generated project "a practical starting point, not a promise that every game works without game-specific fixes", and nesrecomp says of its output "This builds a static library. It does not create a playable game by itself." Whether a given title works is a question about that title, and the hedged words the projects answer it with are unpacked in the [status vocabulary](/docs/reference/status-vocabulary).
 
 > **You provide this.** Nothing here ships a game. Every port needs a cartridge dump, disc image or system ROM that you supply from your own media, and the runtime checks it before it starts. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the full contract.
 
@@ -108,4 +108,4 @@ That is a real question with a real answer, and it differs per project. [Is this
 - [How a port is made](/docs/start/how-a-port-is-made) is the same idea as a pipeline, stage by stage, and names the vocabulary the rest of this site uses.
 - [Is this emulation](/docs/start/is-this-emulation) is the honest answer to the question this page deliberately left open.
 - [Telling code from data](/docs/concepts/code-discovery) is the hard part, explained on one console.
-- [Quickstart](/docs/start/quickstart) runs a recompiler yourself in about half an hour, and [the glossary](/docs/concepts/glossary) defines every term above.
+- [Quickstart](/docs/start/quickstart) has you run a recompiler over a real binary, and [the glossary](/docs/concepts/glossary) defines every term above.

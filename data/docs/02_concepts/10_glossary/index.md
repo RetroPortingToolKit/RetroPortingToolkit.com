@@ -1,6 +1,6 @@
 ---
 title: "Glossary"
-summary: "Forty terms this fleet uses as if they were common knowledge, each defined the way the repositories actually use it, with the places the fleet contradicts itself marked rather than smoothed over."
+summary: "Forty-one terms this fleet uses as if they were common knowledge, each defined the way the repositories actually use it, with the places the fleet contradicts itself marked rather than smoothed over."
 section: "concepts"
 sectionTitle: "Concepts"
 pageType: "reference"
@@ -21,7 +21,7 @@ repos:
 updated: "2026-08-23"
 ---
 
-The repositories in this fleet use about forty technical terms as though everyone already knows them, and define almost none of them anywhere a newcomer would look. This page is that missing definition list. Each entry is the meaning the repositories actually attach to the word, not a textbook meaning, with a link to the page or the repository that treats it properly. Where the fleet uses one word for two things, the entry says so, because a reader who has spotted the inconsistency is reading correctly.
+The repositories in this fleet use the forty-one terms below as though everyone already knows them, and define almost none of them anywhere a newcomer would look. This page is that missing definition list. Each entry is the meaning the repositories actually attach to the word, not a textbook meaning, with a link to the page or the repository that treats it properly. Where the fleet uses one word for two things, the entry says so, because a reader who has spotted the inconsistency is reading correctly.
 
 Terms are alphabetical and every one has its own anchor, so a page can link straight to a definition.
 
@@ -55,7 +55,7 @@ The user's own dump of the original cartridge, which the project does not ship a
 
 ### Burndown
 
-A living per-console accuracy scorecard, kept as a markdown file in the toolchain repository, listing fixed axes and giving each one a status, an external comparison and a validation method. Six repositories carry one, all modelled on psxrecomp's template. It is a tracking method, not a claim: an axis stays amber until it passes its [gate](#gate). See [What correct enough means](/docs/concepts/accuracy-and-burndowns).
+A living per-console accuracy scorecard, kept as a markdown file in the toolchain repository, listing fixed axes and giving each one a status, an external comparison and a validation method. Six repositories carry one, all modelled on psxrecomp's template. It is a tracking method, not a claim: an axis does not count as done until it passes its [gate](#gate). See [What correct enough means](/docs/concepts/accuracy-and-burndowns).
 
 ### Canon path
 
@@ -71,7 +71,7 @@ The static analysis that decides which bytes of a game binary are executable cod
 
 ### Combined work
 
-A licensing term the fleet needs because several runners link code under a stronger license than the project's own. ndsrecomp is MIT, but its runner links vendored melonDS sources, so the shipped `nds_runner` executable is a combined work that must be distributed under GPL-3.0-or-later while the recompiler, the generated banks and the oracle-independent tooling stay MIT. See [Licenses](/docs/fleet/licenses).
+A licensing term this fleet needs because a runner can link code under a stronger license than the project's own. ndsrecomp is MIT, but its runner links vendored melonDS sources, so the shipped `nds_runner` executable is a combined work that must be distributed under GPL-3.0-or-later while the recompiler, the generated banks and the oracle-independent tooling stay MIT. See [Licenses](/docs/fleet/licenses).
 
 ### Co-simulation
 

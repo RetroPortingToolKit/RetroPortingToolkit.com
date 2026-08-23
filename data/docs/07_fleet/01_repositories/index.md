@@ -18,13 +18,13 @@ repos:
 updated: "2026-08-23"
 ---
 
-This is the index the rest of this wiki hangs off. The fleet is 87 repositories: twelve console toolchains, seven shared components, 64 game ports and four upstream projects it takes its ideas from. Every one is listed here with its role and the toolchain it belongs to, because that attribution is the fact you usually need first and no single repository states it. If you are looking for what a console's toolchain does rather than where it lives, the [platform pages](/docs/platforms/playstation) are the technical write-ups and these are the addresses.
+This is the index the rest of this wiki hangs off. The fleet is 87 repositories: twelve per-console projects, seven shared components, 64 game ports and four upstream projects it takes its ideas from. Every one is listed here with its role and the toolchain it belongs to, because that attribution is the fact you usually need first and no single repository states it. If you are looking for what a console's toolchain does rather than where it lives, the [platform pages](/docs/platforms) are the technical write-ups and these are the addresses.
 
 ## The count
 
 | Group | Repositories |
 |---|---|
-| Console toolchains | 12 |
+| Per-console projects | 12 |
 | Shared components consumed as submodules | 7 |
 | Game ports | 64 |
 | Upstream projects | 4 |
@@ -34,9 +34,9 @@ Three of the 87 turned up only by resolving relative submodule URLs: `m68k-recom
 
 > **Note.** Default branches vary. Of these 87 repositories, 48 default to `main`, 38 to `master`, and one, Zelda64Recomp, to `dev`. A `blob/main` file URL is wrong for 39 of them.
 
-## Console toolchains
+## Per-console projects
 
-The recompiler and runtime pair for one machine. A game port is a thin repository on top of one of these. Status wording is each project's own.
+Eleven of these are a recompiler and runtime pair for one machine, and a game port is a thin repository on top of one of them. The twelfth, `xboxlle-probe`, is an instrument rather than a toolchain and runs no games at all. Status wording is each project's own, never upgraded.
 
 | Repository | Console | What it is | Status in its own words |
 |---|---|---|---|

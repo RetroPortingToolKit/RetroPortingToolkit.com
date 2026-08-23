@@ -9,7 +9,8 @@ import { headingsInElement, type DocsHeading } from "./docsHeadings";
 const ACTIVE_OFFSET = 140;
 
 /** Below this many headings there is nothing to navigate and no TOC is drawn.
-    Callers use it to decide whether to give the rail a column at all. */
+    The rail keeps its grid column either way, so the reading measure does not
+    change between a page that has a contents list and one that does not. */
 export const TOC_MIN = 2;
 
 /**

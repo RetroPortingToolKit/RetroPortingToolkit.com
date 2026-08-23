@@ -65,6 +65,12 @@ function heading(Tag: "h2" | "h3" | "h4") {
   };
 }
 
+// Built once: a component identity created inside render would remount every
+// heading on every keystroke in the CMS preview.
+const H2 = heading("h2");
+const H3 = heading("h3");
+const H4 = heading("h4");
+
 // Poster first, player on click: an inline article embed must not autoload a
 // third-party player for every image slot on the page.
 function MarkdownYouTube({ id, title }: { id: string; title: string }) {
@@ -112,9 +118,9 @@ export function Markdown({ children, className }: MarkdownProps) {
         // the custom "cite:" protocol survive sanitization.
         urlTransform={(url) => url}
         components={{
-          h2: heading("h2"),
-          h3: heading("h3"),
-          h4: heading("h4"),
+          h2: H2,
+          h3: H3,
+          h4: H4,
           // A fenced block becomes a figure: language label, optional filename,
           // copy button, and the <code> react-markdown built, untouched.
           pre: ({ node, children }) => {

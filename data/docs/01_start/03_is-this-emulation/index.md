@@ -20,7 +20,7 @@ Partly, and which parts is the interesting question. In every project on this si
 
 The claims are strong and they are all about the CPU.
 
-[nesrecomp](https://github.com/mstan/nesrecomp) puts both halves in one paragraph of its [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md), which is the most useful sentence in this whole argument:
+[nesrecomp](https://github.com/mstan/nesrecomp) puts both halves in one paragraph of its [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md), and it is the most useful paragraph in this whole argument:
 
 > **This is NOT an emulator.** Each 6502 instruction is translated to equivalent C code at build time. JSR becomes a direct C function call, branches become gotos, and the NES hardware (PPU, APU, mapper) is simulated by the runner library.
 
@@ -46,7 +46,7 @@ That is the line that actually divides the two. Ahead of time means a program re
 | [psxrecomp](https://github.com/mstan/psxrecomp) | the game's MIPS R3000A code and a whole PS1 BIOS image | GPU, SPU, CD-ROM, MDEC and XA, interrupts, COP0, timers, the GTE, controllers, memory cards | one basic block at a time, only for addresses on pages written since boot |
 | [nesrecomp](https://github.com/mstan/nesrecomp) | the cartridge's 6502 code | PPU, APU, mapper, input | a fallback tier that shares the recompiler's own decode table, entered on a dispatch miss |
 | [snesrecomp](https://github.com/mstan/snesrecomp) | 65816 code that whole-program analysis could resolve | PPU, APU, DSP, DMA, cartridge mapping, enhancement chips | `interp816`, which must stay available for every reachable address |
-| [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) | 68000 code, and optionally the sound Z80 | VDP, mixer, Z80 scheduling | a clean-room interpreter capsule, per missed instruction |
+| [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) | 68000 code, and optionally the sound Z80 | VDP, mixer, Z80 scheduling | clean-room capsules: one Z80 instruction on a miss, plus a 68000 Tier-3 floor that is off by default, per game |
 | [gbrecompiled](https://github.com/mstan/gbrecompiled) | the cartridge's LR35902 code | the console hardware around the CPU | `gb_interpret`, logged to `interp_fallbacks.log` |
 | [vbrecomp](https://github.com/mstan/vbrecomp) | the cart's V810 code | VIP renderer, VSU audio, interrupt controller, timer, input, MMIO bus | nothing. There is no V810 interpreter in the project |
 
@@ -85,7 +85,7 @@ void sms_dispatch_miss(uint16_t addr)
 }
 ```
 
-Registers are mirrored into an interpreter, one instruction is stepped, the result is mirrored back. For that instruction, this is an emulator. The counters exist because the projects treat interpreted execution as a measurable quantity to drive toward zero, not as a permanent design.
+Registers are mirrored into an interpreter, one instruction is stepped, the result is mirrored back. For that instruction, this is an emulator. The counters at the bottom are the point: interpreted execution is a measured quantity here rather than an assumed background. psxrecomp lists its interpreter failover as "being compiled away by sharding", and gbrecompiled folds its fallback log back into the next build as recompiler seeds.
 
 psxrecomp's interpreter is the narrowest in the fleet and the reasoning is worth borrowing. It runs only for program counters on pages that have been written since boot, which means code installed while the console is running, and never on the BIOS or the main executable path. [`CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) separates it from the thing people assume it is:
 
@@ -93,7 +93,7 @@ psxrecomp's interpreter is the narrowest in the fleet and the reasoning is worth
 > we synthesize X ourselves and skip the program's code.' This rule is the
 > opposite: we run the program's code, exactly as the BIOS author wrote it."
 
-[vbrecomp](https://github.com/mstan/vbrecomp) is the one project with no interpreted surface at all. Its [`CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md) says "There is **no V810 interpreter** in this project. Not as a fallback." The hardware around the CPU is still modelled, so this is not a project without emulation in it. It is a project where every guest instruction that executes was translated ahead of time.
+[vbrecomp](https://github.com/mstan/vbrecomp) takes the hardest line of any project here and keeps no interpreted surface at all. Its [`CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md) says "There is **no V810 interpreter** in this project. Not as a fallback." The hardware around the CPU is still modelled, so the runtime is doing what a runtime does everywhere else here. What is different is that every guest instruction which executes was translated ahead of time.
 
 ## The firmware question
 
@@ -117,7 +117,7 @@ If you are writing about these projects, or answering for them, these statements
 - A port accepts one game, in one revision, verified by hash. It is not a general machine for running that console's library.
 - Whether firmware is executed or reimplemented depends on the project, and sometimes on a setting.
 
-And one that does not hold: that no emulation is involved. Every project here ships hardware models, most ship an interpreter tier, and several link a third-party emulator core into development builds. The projects' own claims are about the CPU, and they are worth repeating as they are written, attributed, and not stretched further.
+And one claim to avoid, because it is false in every project here: the categorical one, that emulation plays no part. Every project ships hardware models, most ship an interpreter tier, and several link a third-party emulator core into development builds. The projects' own wording is about the CPU, and it is worth repeating as written, attributed to them, and not stretched further.
 
 ## Source
 
@@ -130,6 +130,6 @@ And one that does not hold: that no emulation is involved. Every project here sh
 ## Next
 
 - [High level and low level](/docs/concepts/hle-and-lle) is where the firmware disagreement is argued properly.
-- [Proving it with co-simulation](/docs/concepts/co-simulation) is the emulator that runs beside the port in development.
-- [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) explains the code psxrecomp's interpreter exists for.
+- [PlayStation](/docs/platforms/playstation) and [NES](/docs/platforms/nes) show the two ends of this table in detail, tier by tier.
+- [Proving it with co-simulation](/docs/concepts/co-simulation) is the emulator that runs beside the port in development, and [code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) explains what psxrecomp's interpreter exists for.
 - [What static recompilation is](/docs/start/what-is-static-recompilation) if you arrived here first, and [the glossary](/docs/concepts/glossary) for LLE, HLE, oracle and dispatch miss.

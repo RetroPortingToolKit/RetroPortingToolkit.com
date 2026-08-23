@@ -193,6 +193,12 @@ span.docs-nav-section-title {
   --article-accent: var(--accent);
   padding-bottom: 8px;
 }
+/* The reading measure. The grid column already lands near this, so the cap is
+   what holds the line length steady at the odd viewport width in between the
+   breakpoints. The landing is a card grid and takes the full column. */
+.docs-article:not(.docs-landing) {
+  max-width: 720px;
+}
 
 .docs-breadcrumb {
   margin: 0 0 14px;
@@ -257,11 +263,12 @@ span.docs-nav-section-title {
   color: var(--ink-2);
   /* Reference prose is full of paths, flags and identifiers with no space to
      break at. Without this a single `recompiler/src/full_function_emitter.cpp`
-     pushes the whole page wider than a phone screen. */
+     pushes the whole page wider than a phone screen.
+     Deliberately break-word and not anywhere: anywhere also shrinks
+     min-content, which squeezed a reference table's first column and split
+     `format_version` across three lines inside its own code background. This
+     breaks a word only when it would otherwise overflow its line. */
   overflow-wrap: break-word;
-}
-.docs-prose :not(pre) > code {
-  overflow-wrap: anywhere;
 }
 .docs-prose > p,
 .docs-prose > ul,
