@@ -9,7 +9,6 @@ status: "Partial"
 availability: "Public build"
 provenance: "community"
 platform: "playstation"
-repo: "https://github.com/TechnicallyComputers/Crash-Team-Racing-Recomp"
 group: "PlayStation"
 verified: "2026-08-20"
 updated: "2026-08-18"
@@ -39,4 +38,4 @@ Underneath, the pipeline is the standard one: 986 seed functions taken from the 
 
 ## Sources
 
-- [Crash-Team-Racing-Recomp README, project files and releases (GitHub)](https://github.com/TechnicallyComputers/Crash-Team-Racing-Recomp)
+- The Crash-Team-Racing-Recomp repository is no longer publicly available on GitHub, checked 2026-08-24. This page describes the project as it stood when the repository was public.

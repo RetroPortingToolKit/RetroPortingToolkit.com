@@ -9,7 +9,6 @@ status: "Partial"
 availability: "Public build"
 provenance: "community"
 platform: "playstation"
-repo: "https://github.com/TechnicallyComputers/Crash-Bash-Recomp"
 group: "PlayStation"
 verified: "2026-08-20"
 updated: "2026-08-18"
@@ -43,4 +42,4 @@ The symbol map records the same findings in place, with the GPU submit function 
 
 ## Sources
 
-- [Crash-Bash-Recomp README, pause probe and releases (GitHub)](https://github.com/TechnicallyComputers/Crash-Bash-Recomp)
+- The Crash-Bash-Recomp repository is no longer publicly available on GitHub, checked 2026-08-24. This page describes the project as it stood when the repository was public.

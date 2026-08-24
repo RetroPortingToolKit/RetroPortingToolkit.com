@@ -26,7 +26,7 @@ Seven core-team PlayStation games are playable today, and the same framework pow
 
 The core titles ship as standalone builds with their own launchers: [Tomba!](/games/tomba), [Tomba! 2](/games/tomba-2), [Ape Escape](/games/ape-escape), [Mega Man X4](/games/mega-man-x4), [Mega Man X5](/games/mega-man-x5), [Mega Man X6](/games/mega-man-x6), and [Tsumu Light](/games/tsumu-light). Community projects extend the list: [OpenPete (Spyro the Dragon)](/games/openpete-spyro), [Xenogears](/games/xenogears), [Pepsiman](/games/pepsiman), [Twisted Metal 4](/games/twisted-metal-4), and [Street Fighter Alpha 3](/games/street-fighter-alpha-3).
 
-No BIOS dump is needed to play: builds boot the bundled open-source OpenBIOS by default, and a retail BIOS dump can be selected instead. The project is careful to note that a playable catalog is not a promise that any game works without game-specific fixes, and the Vulkan renderer is experimental.
+Most builds boot the bundled open-source OpenBIOS by default, with a retail BIOS dump as an option; a few titles, [Mega Man X4](/games/mega-man-x4) and [Tsumu Light](/games/tsumu-light) among them, need a retail BIOS dump you provide. The project is careful to note that a playable catalog is not a promise that any game works without game-specific fixes, and the Vulkan renderer is experimental.
 
 ## What the recomp adds
 

@@ -29,7 +29,7 @@ This is a developer snapshot, not a product: there are no turnkey game builds fr
 
 ## Technical details
 
-ndsrecomp recompiles both CPUs to C: the ARM946E-S main processor and the ARM7TDMI, which shares its core family with the GBA and started as a port of gbarecomp's ARM implementation. A dual-CPU, event-aligned scheduler interleaves them over shared memory, and a bounded interpreter tier handles code the guest copies into RAM. BIOS and firmware dumps are user-supplied and hash-verified, with an opt-in FreeBIOS path for a no-dump boot; the online-play plumbing builds on melonDS's Wi-Fi work, and melonDS also serves as the accuracy oracle with DeSmuME as a secondary cross-check. The top and bottom screens can render as one stacked window or two independent ones. The project's own source is MIT licensed.
+ndsrecomp recompiles both CPUs to C: the ARM946E-S main processor and the ARM7TDMI, which shares its core family with the GBA and started as a port of gbarecomp's ARM implementation. A dual-CPU, event-aligned scheduler interleaves them over shared memory, and a bounded interpreter tier handles code the guest copies into RAM. BIOS and firmware dumps are user-supplied and hash-verified, with an opt-in FreeBIOS path for a no-dump boot; the online-play plumbing builds on melonDS's Wi-Fi work, and melonDS also serves as the accuracy oracle with DeSmuME as a secondary cross-check. The top and bottom screens can render as one stacked window or two independent ones. The recompiler, the generated code, and the project's own tooling are MIT licensed; because the runner links that vendored melonDS code, the project's own attribution notices state that the runner binary is a combined work whose distribution must comply with GPL-3.0-or-later.
 
 ## Sources
 
