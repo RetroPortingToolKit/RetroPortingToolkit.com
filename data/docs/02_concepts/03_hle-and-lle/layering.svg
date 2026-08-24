@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 392" role="img" aria-label="Three projects on the same low level baseline, each allowing a high level replacement to attach at a different height above it.">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: #7c7c82; }
+    .h { font-size: 13.5px; font-weight: 600; }
+    .s { font-size: 12.5px; font-weight: 600; }
+    .m { font-size: 11px; }
+    .box { fill: none; stroke: #7c7c82; stroke-width: 1.25; }
+    .ln { fill: none; stroke: #7c7c82; stroke-width: 1.25; }
+  </style>
+  <defs>
+    <marker id="ar" viewBox="0 0 8 8" refX="6.8" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 L6.6 4 L1 7" fill="none" stroke="#7c7c82" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <line class="ln" x1="8" y1="318" x2="8" y2="72" marker-end="url(#ar)"/>
+  <g transform="rotate(-90 24 196)">
+    <text class="m" x="24" y="196" text-anchor="middle">how high above the floor</text>
+  </g>
+
+  <text class="h" x="145" y="28" text-anchor="middle">psxrecomp</text>
+  <text class="m" x="145" y="46" text-anchor="middle">six B0 event calls, default on</text>
+  <rect class="box" x="38" y="74" width="214" height="78"/>
+  <text class="s" x="50" y="96">at the BIOS entry vector</text>
+  <text class="m" x="50" y="114">one function pointer, consulted</text>
+  <text class="m" x="50" y="130">before the recompiled BIOS runs;</text>
+  <text class="m" x="50" y="146">a zero return falls through</text>
+  <line class="ln" x1="145" y1="152" x2="145" y2="322"/>
+
+  <text class="h" x="367" y="28" text-anchor="middle">ndsrecomp</text>
+  <text class="m" x="367" y="46" text-anchor="middle">promoted only after measurement</text>
+  <rect class="box" x="260" y="164" width="214" height="78"/>
+  <text class="s" x="272" y="186">at an exact function start</text>
+  <text class="m" x="272" y="204">no hook at the BIOS SWI vector;</text>
+  <text class="m" x="272" y="220">a replacement sits above an LLE</text>
+  <text class="m" x="272" y="236">body that stays linked</text>
+  <line class="ln" x1="367" y1="242" x2="367" y2="322"/>
+
+  <text class="h" x="589" y="28" text-anchor="middle">vbrecomp</text>
+  <text class="m" x="589" y="46" text-anchor="middle">off by default, reverts loudly</text>
+  <rect class="box" x="482" y="250" width="214" height="62"/>
+  <text class="s" x="494" y="272">nowhere above the floor</text>
+  <text class="m" x="494" y="290">no HLE layer, and no interpreter</text>
+  <text class="m" x="494" y="306">a shadow runs beside it, diffed</text>
+  <line class="ln" x1="589" y1="312" x2="589" y2="322"/>
+
+  <rect class="box" x="16" y="322" width="688" height="52"/>
+  <text class="s" x="360" y="346" text-anchor="middle">the LLE baseline: the console's own instructions, recompiled or interpreted</text>
+  <text class="m" x="360" y="364" text-anchor="middle">all three are low level first by constitution, and none of them has conceded</text>
+</svg>

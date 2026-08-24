@@ -24,6 +24,8 @@ A linear sweep decodes an instruction, advances by its length, and repeats. Thre
 
 Discovery is a search, not a parse.
 
+![Above: one byte of misalignment turns a load and a store into two plausible subroutine calls, and nothing in the byte stream says which reading is right. Below: the walk out of the vectors is its own evidence, while everything the scanners guess has to survive the predicate before it counts as a function.](./discovery.svg)
+
 ## Starting from the three addresses the hardware guarantees
 
 `rom_parse` reads the iNES header, the mapper number and the NMI, RESET and IRQ vectors out of the last PRG bank. Those three are the only entry points the console itself will ever jump to, and they are the seeds. `function_finder_run` walks breadth first from there: decode forward, and every `JSR` target, `JMP` target and branch target becomes a new entry to visit. What the walk reaches carries the finder's strongest provenance, `FUNCTION_SOURCE_CONTROL`.

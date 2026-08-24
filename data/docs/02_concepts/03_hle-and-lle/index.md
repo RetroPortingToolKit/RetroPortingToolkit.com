@@ -104,6 +104,8 @@ Its one carve-out is a verified-enhancement shadow, a higher fidelity implementa
 
 None of the three has conceded, and this page is not going to award the point.
 
+![The floor is identical in all three, so the disagreement is about height rather than kind. psxrecomp allows a replacement at the BIOS entry vector and ships it on by default, ndsrecomp forbids exactly that and allows one only at a function start above a body that stays linked, and vbrecomp allows nothing above the floor at all.](./layering.svg)
+
 ## What a permitted replacement looks like in practice
 
 [snesrecomp](https://github.com/mstan/snesrecomp) shows the shape at cartridge scale. Its analysis contract puts the interpreter, not the compiled output, in charge of meaning:

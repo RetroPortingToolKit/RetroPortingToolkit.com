@@ -26,6 +26,8 @@ A static recompiler turns a game's machine code into C, and nothing about the re
 > deterministically from boot, and halts at the **first** state that differs. Whatever
 > it halts on *is* the first divergence; there is no hypothesis that can be "wrong."
 
+![The rungs are guest cycles, not wall clock time. At each one both sides hash everything that can influence what happens next and fold that hash into a running chain, so the first chain that differs is the first divergence, and the first subsystem hash under it names where the two implementations split.](./lockstep.svg)
+
 ## Two pairings, two different proofs
 
 Every project runs the comparison in two configurations that prove different things. Pairing 1 compares the recompiled code against the project's own interpreter backend, showing the recompiler agrees with the project's own model of the machine. Pairing 2 compares against an independently authored emulator, and is the only configuration that can arbitrate a shared mistake. [`nesrecomp`](https://github.com/mstan/nesrecomp) opens its scorecard with the reason, in [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md):

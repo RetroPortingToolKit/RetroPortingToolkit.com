@@ -103,6 +103,8 @@ Read the comment at the top as the design rule. One guest address holds several 
 
 A mismatch is not an error. It drops that address to the interpreter, which runs the code correctly and more slowly, and the capture path notices the new bytes. That is the bias the whole tier is built on, and [PlayStation](/docs/platforms/playstation) has the full dispatch order: nothing that might be compiled wrong is ever dispatched, so the failure direction is always speed.
 
+![Read the fall-through arrows down and the dashed path back up. Reaching the interpreter is not a failure, it is what feeds capture and compilation, and the same address dispatches to the cache the next time its bytes still match.](./tiers.svg)
+
 ## Two persisted artefacts, and why the difference matters
 
 These are easy to collapse into one thing, and doing so will confuse you the first time a cache misbehaves.
