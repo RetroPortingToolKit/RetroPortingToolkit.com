@@ -8,6 +8,35 @@ This page tells you which port to copy, what the per game input is called on tha
 console, and what you have to change. It is derived from reading the real
 repositories, and each row names the one it was read from so you can go and look.
 
+## The trap: `build` is not a port
+
+Read this before you run anything, because it is the mistake that costs the most
+time and it looks exactly like success.
+
+Most of these toolchains ship a `build` subcommand. `nesrecomp build --output`
+and `gbarecomp build --output` both run cleanly, print no errors, and leave you a
+folder with generated C and a `CMakeLists.txt`. It is easy to conclude you have
+made a port. You have not. Both build a **static library**.
+
+The frameworks say so themselves, in the output they generate. nesrecomp's
+generated README:
+
+> This confirms that the generated source compiles; it is not a complete playable
+> port by itself.
+
+And gbarecomp's README:
+
+> The CLI generates a recompilation project; it does not turn an arbitrary ROM
+> into a finished playable port by itself.
+
+What that subcommand does not write is the glue: the pinned submodules, a
+`CMakeLists.txt` that pulls in the framework's runner, the source implementing
+the runner's hook interface, and the per game recompiler input. That glue is what
+you are copying from a working port, and it is the whole job.
+
+If you are an agent, this matters twice over: a clean exit from `build` is not
+evidence of a working port, and reporting one on that basis would be wrong.
+
 ## What every port has in common
 
 Whichever console you are on, a port repository is thin glue around a pinned

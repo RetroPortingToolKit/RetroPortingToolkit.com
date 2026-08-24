@@ -41,6 +41,14 @@ copy the shape of an existing port by hand. `other-consoles/` in this repository
 tells you which port to copy and what to change. It is slower and it is more
 manual, and you should tell your user that up front rather than after an hour.
 
+**On those eight, do not mistake `build` for a port.** Several of them ship a
+`build` subcommand that exits cleanly and leaves generated C and a
+`CMakeLists.txt`, and it builds a static library rather than a playable port. The
+frameworks say so in the output they generate: nesrecomp's says "it is not a
+complete playable port by itself", gbarecomp's says "it does not turn an
+arbitrary ROM into a finished playable port by itself". A clean exit there is not
+evidence of anything, and reporting success on it would be wrong.
+
 Do not tell a user that a Genesis port will be running in five minutes. It will
 not.
 

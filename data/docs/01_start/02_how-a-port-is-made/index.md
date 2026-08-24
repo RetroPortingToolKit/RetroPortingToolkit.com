@@ -28,6 +28,8 @@ One thing happens before stage one: the toolchain for your console has to exist 
 | 5. Verification | that executable and an oracle | a clean run, or a first divergence | [proving it with co-simulation](/docs/concepts/co-simulation) |
 | 6. Enhancement | a port that already works | opt-in, default-off features | [write a mod](/docs/guides/write-a-mod) |
 
+![Each stage hands the next one an artefact, so the pipeline is a chain rather than a list of steps. The dashed return is where the time goes: a dispatch miss found at stage 5 goes back in as a discovery seed at stage 2.](./pipeline.svg)
+
 ## The file you supply
 
 Nothing starts until you have the game. The port repository does not contain it, and most ports will not run on a file they do not recognise.
