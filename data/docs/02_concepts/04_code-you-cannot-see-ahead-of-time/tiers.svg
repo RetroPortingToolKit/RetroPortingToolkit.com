@@ -52,7 +52,7 @@
   <line class="ln" x1="459" y1="356" x2="481" y2="356" marker-end="url(#ar)"/>
   <text class="s" x="579" y="360" text-anchor="middle">cached by address and CRC</text>
 
-  <path class="dl" d="M690 334 L690 175 L526 175" marker-end="url(#ar)"/>
+  <path class="dl" d="M704 334 L704 175 L526 175" marker-end="url(#ar)"/>
 
   <text class="m" x="360" y="402" text-anchor="middle">the failure direction is always speed</text>
 </svg>

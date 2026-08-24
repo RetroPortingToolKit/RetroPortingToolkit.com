@@ -90,7 +90,7 @@ Four things cross:
 
 N64Recomp's README states the contract in one sentence: "The output is expected to be used with a runtime that can provide the necessary functionality and macro implementations to run it."
 
-![Every arrow crosses in the same direction. The recompiler emits all four and implements none of them, which is what makes one header the entire interface between a program that runs once on a build machine and a library that runs on a player's machine every frame.](./boundary.svg)
+![Every arrow crosses in the same direction: the recompiler emits all four and implements none of them. That is what makes one header the whole interface between a program that runs once and a library that runs every frame.](./boundary.svg)
 
 ## What the runtime owns
 
