@@ -20,9 +20,9 @@ Three of the features players most want from a recompiled port turn out to be th
 
 ## What a snapshot has to contain
 
-A recompiled port has no emulator core object to hand to a serializer. What it has is the runtime's device models, guest RAM, and the CPU state struct the generated C threads through every function. A save state therefore serializes the runtime, and the first rule is completeness.
+A recompiled port has no emulator core object to hand to a serializer. What it has is the runtime's device models, guest RAM, and the CPU state struct the generated C threads through every function. A save state therefore serializes the runtime, on every console here, and the first rule is completeness.
 
-From [`runtime/include/boot_state.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/boot_state.h) in [psxrecomp](https://github.com/mstan/psxrecomp):
+The clearest statement of that rule belongs to one project and is written as one project's house rule, so read the version number and the subsystem list as PlayStation specifics. From [`runtime/include/boot_state.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/boot_state.h) in [psxrecomp](https://github.com/mstan/psxrecomp):
 
 ```c title="runtime/include/boot_state.h"
  * Completeness is mandatory (v4 no-stub rule): a partial capture that leaves a
@@ -40,7 +40,7 @@ Restoring is correspondingly not a memcpy. On load, psxrecomp clamps long CD-ROM
 
 ## Where a port is allowed to stop
 
-An interpreter can be stopped between any two instructions. A recompiled port cannot, because it is executing compiled C, not stepping a loop. So the projects pick legal boundaries and stage requests until they arrive.
+An interpreter can be stopped between any two instructions. A recompiled port cannot, because it is executing compiled C, not stepping a loop. That much is true everywhere. Which boundary counts as legal is a per console answer, because it depends on what the machine gives a runtime to synchronise on, so the projects each pick their own and stage requests until one arrives.
 
 From [`runtime/src/savestate.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/savestate.c):
 
@@ -54,7 +54,7 @@ From [`runtime/src/savestate.c`](https://github.com/mstan/psxrecomp/blob/master/
  * restores the full machine then unwinds to the scheduler and re-dispatches. */
 ```
 
-[nesrecomp](https://github.com/mstan/nesrecomp) does the same thing at NMI boundaries, and its version 5 state struct appends `resume_pc`, `resume_pc_valid` and `resume_tick_charged` for "Exact interrupted guest continuation". This is a place where static recompilation genuinely costs more than interpretation, and it is worth saying plainly rather than claiming the technique makes determinism free.
+psxrecomp's boundary is a block leader with no exception in flight, where `cpu->pc` is a valid resume address. [nesrecomp](https://github.com/mstan/nesrecomp) uses NMI boundaries instead, and its version 5 state struct appends `resume_pc`, `resume_pc_valid` and `resume_tick_charged` for "Exact interrupted guest continuation". Two consoles, two different definitions of a safe place to stop, and neither transfers. This is a place where static recompilation genuinely costs more than interpretation, and it is worth saying plainly rather than claiming the technique makes determinism free.
 
 Rewind is then save states in a ring plus a policy. psxrecomp's rewind captures by calling the same serializer, densifies its capture interval during depth24, MDEC or XA activity but "never sparser than the user pick", and is disabled while netplay is active. DKC2 states the same machinery in player terms: one complete in-memory state every three console frames, bounded to 300 snapshots, about fifteen seconds, lost when the application closes. The ring itself is shared code: it is [retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine)'s `snap_ring`, the same module the netplay path uses, which is what makes rewind and rollback one piece of engineering rather than two.
 
@@ -74,7 +74,7 @@ Because the digests must agree, a lot of nice things have to be fenced off. psxr
 
 ## A recompiled port is not deterministic for free
 
-Two recorded failures make the point better than any argument. On NES, Mega Man 3's coroutine scheduler runs on host fibers, so its scheduler zero page "is not bit-faithful" and the attract sequence drifts from the emulator oracle over time. The response in the SNES Mega Man X port was not a runtime detector: it made [LLE](/docs/concepts/hle-and-lle) the default and demoted the host-fiber scheduler to "an explicit, deprecated compatibility/performance override". And on GameCube, floating point: "Vulkan FDiv is ~2.5 ULP; x86 divss is correctly rounded. A 1-ULP reciprocal difference flipped an s17.7 texel index and moved the XFB chain".
+Two recorded failures make the point better than any argument, and neither is a property of a console: both are choices a port made that a host detail then punished. On NES, Mega Man 3's coroutine scheduler runs on host fibers, so its scheduler zero page "is not bit-faithful" and the attract sequence drifts from the emulator oracle over time. The response in the SNES Mega Man X port was not a runtime detector: it made [LLE](/docs/concepts/hle-and-lle) the default and demoted the host-fiber scheduler to "an explicit, deprecated compatibility/performance override". And on GameCube, floating point: "Vulkan FDiv is ~2.5 ULP; x86 divss is correctly rounded. A 1-ULP reciprocal difference flipped an s17.7 texel index and moved the XFB chain".
 
 Losing determinism announces itself late and bluntly. In recomp-net, a mismatched `INPUT_CONFIRM` hash latches a desync, admission then stalls permanently for that session, and the documented reading is that the cause is a host determinism bug rather than a library one. Offline, the symptom is quieter: DKC2's input recordings "do not encode host rewind or save-state save/load actions", so a route that rewinds cannot be reproduced from its recording, and its testing guide tells testers not to rewind during a recorded drill.
 

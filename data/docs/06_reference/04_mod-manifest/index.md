@@ -12,7 +12,6 @@ repos:
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/TombaRecomp"
   - "https://github.com/N64Recomp/N64Recomp"
-  - "https://github.com/Zelda64Recomp/Zelda64Recomp"
   - "https://github.com/mstan/PokemonStadiumRecomp"
 updated: "2026-08-23"
 ---
@@ -324,9 +323,7 @@ N64 mods are compiled code, which makes this a different design in kind rather t
 
 [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) describes the same shape as its plan: "Modding will follow the N64Recomp four-tool pattern: mod manifest schema (`mod.json`), RecompModTool (mod ELF → symbol tables), OfflineModRecomp (mod recompiler), RecompModMerger (multi-mod conflict resolution)." Its own status is "**Status: deferred.** Modding is intentionally out of scope until the base game boots and is playable."
 
-Player-facing, [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp) mods are `.nrm` files installed by dragging onto the window and distributed through Thunderstore, and built-in mods can be overridden by dropping a newer `.nrm` into the appdata mods folder.
-
-> **Note.** N64Recomp and Zelda64Recomp prohibit AI-generated contributions. This page documents their manifest shape as published; it is not an invitation to open a pull request against them.
+> **Note.** N64Recomp prohibits AI-generated contributions. This page documents its manifest shape as published; it is not an invitation to open a pull request against it.
 
 ### The file-drop layer
 
@@ -345,7 +342,7 @@ Some NES ports predate packages entirely and still document a manifest-free path
 - [xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp): [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md) and [`MODS.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MODS.md).
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`docs/MOD_PACKAGES.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MOD_PACKAGES.md) and [`MODDING.md`](https://github.com/mstan/nesrecomp/blob/master/MODDING.md). [snesrecomp](https://github.com/mstan/snesrecomp): [`README.md`](https://github.com/mstan/snesrecomp/blob/main/README.md).
 - [TombaRecomp](https://github.com/mstan/TombaRecomp): the shipped manifests under [`mods/preloaded/packages/`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages).
-- [N64Recomp](https://github.com/N64Recomp/N64Recomp): [`RecompModTool/main.cpp`](https://github.com/N64Recomp/N64Recomp/blob/main/RecompModTool/main.cpp). [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp): [`README.md`](https://github.com/Zelda64Recomp/Zelda64Recomp/blob/dev/README.md). [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): [`MODDING.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/MODDING.md).
+- [N64Recomp](https://github.com/N64Recomp/N64Recomp): [`RecompModTool/main.cpp`](https://github.com/N64Recomp/N64Recomp/blob/main/RecompModTool/main.cpp). [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): [`MODDING.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/MODDING.md).
 
 ## Next
 

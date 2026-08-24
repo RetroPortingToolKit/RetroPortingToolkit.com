@@ -28,15 +28,19 @@ A static recompiler turns a game's machine code into C, and nothing about the re
 
 ![The rungs are guest cycles, not wall clock time. Both sides hash everything that can influence what happens next and fold it into a running chain, so the first chain that differs is the first divergence and the first sub-hash under it names the subsystem.](./lockstep.svg)
 
+Four things on this page are the shared design, meaning every project that has co-simulation does them: the two pairings, the clock-keyed ruler, a whole-machine hash with per-subsystem sub-hashes, and the self-check gates. Two things are not shared and must be read per project: which implementations are on each side, and what a project does when it cannot park both of them. The sections below mark which is which as they go.
+
 ## Two pairings, two different proofs
 
-Every project runs the comparison in two configurations that prove different things. Pairing 1 compares the recompiled code against the project's own interpreter backend, showing the recompiler agrees with the project's own model of the machine. Pairing 2 compares against an independently authored emulator, and is the only configuration that can arbitrate a shared mistake. [`nesrecomp`](https://github.com/mstan/nesrecomp) opens its scorecard with the reason, in [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md):
+The pairings are shared design. Every project runs the comparison in two configurations that prove different things. Pairing 1 compares the recompiled code against the project's own interpreter backend, showing the recompiler agrees with the project's own model of the machine. Pairing 2 compares against an independently authored emulator, and is the only configuration that can arbitrate a shared mistake. [`nesrecomp`](https://github.com/mstan/nesrecomp) opens its scorecard with the reason, in [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md):
 
 > **Self-agreement is NOT accuracy.** "The recompiled C agrees with our own runner's
 > interpreter / our own APU" proves *backend equivalence*, not *correctness*; both can be
 > identically wrong.
 
 [`gbrecompiled`](https://github.com/mstan/gbrecompiled) names the mechanism: the recompiler and the interpreter share `gb_timing.h`, so a bug in that table diverges from hardware identically in both and passes pairing 1. [`segagenesisrecomp`](https://github.com/mstan/segagenesisrecomp) says pairing 1 "is BLIND to the runner", because VDP, Z80 scheduling, mixer and timing are shared code on both sides.
+
+What fills the two columns is per project, and nothing in one row generalises to another.
 
 | Project | Pairing 1, recompiler correctness | Pairing 2, independent oracle |
 |---|---|---|
@@ -53,22 +57,22 @@ Pairing 2 means several projects link a third-party emulator core into developme
 
 ## The ruler both sides advance
 
-The two sides must be at the same guest moment when compared, so each project keys checkpoints on a quantity both implementations advance identically: `psx_cycle_count` on PlayStation, the 32 bit T-cycle counter `ctx->cycles` on Game Boy, the ARM7 master cycle on GBA. Comparison is clock-keyed and never block-keyed: the recompiler's blocks come from a build-time control flow graph and the interpreter's from single instructions, so a block-leader hash sequence would never line up.
+Shared design: the two sides must be at the same guest moment when compared, and comparison is clock-keyed and never block-keyed, because the recompiler's blocks come from a build-time control flow graph and the interpreter's from single instructions, so a block-leader hash sequence would never line up. Which quantity is the clock is per console, and each project picks one both of its implementations advance identically: `psx_cycle_count` on PlayStation, the 32 bit T-cycle counter `ctx->cycles` on Game Boy, the ARM7 master cycle on GBA.
 
-segagenesisrecomp needs two clocks. Its recompiled code fast-forwards the `WaitForVBlank` spin that a pure interpreter actually spins through, so the instruction axis drifts between backends and only the raster-driven `master_cycle`, advanced by the scanline loop rather than by CPU execution, is a valid cross-backend ruler.
+Two consoles could not use the obvious quantity, and both reasons are specific to the machine. segagenesisrecomp needs two clocks. Its recompiled code fast-forwards the `WaitForVBlank` spin that a pure interpreter actually spins through, so the instruction axis drifts between backends and only the raster-driven `master_cycle`, advanced by the scanline loop rather than by CPU execution, is a valid cross-backend ruler.
 
 nesrecomp derives its video frame index from the cycle ruler rather than counting NMIs, and that choice is sharper than it looks. A frame per NMI stalls when a game suppresses the NMI: one side stops counting, every later comparison is off by a frame, and the run reports a phase shift that is really bookkeeping. Deriving `g_cosim_vframe` from cycles keeps both sides naming the same frame across NMI-off scene transitions. The cost is that one derived frame can receive two emitted rows at such a transition, so the coordinator deduplicates last-wins per frame before it compares. [`/docs/platforms/nes`](/docs/platforms/nes) covers the rest of that toolchain.
 
 ## What gets hashed, and what is deliberately left out
 
-Every project hashes the whole machine and keeps per-subsystem sub-hashes alongside, so a mismatch localises before anyone diffs a byte: 13 sub-hashes on PlayStation, 14 on Game Boy, 10 each on Genesis, SNES and NES. One rule governs what goes in, from [`runtime/include/cosim_state.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/cosim_state.h):
+Shared design again. Every project hashes the whole machine and keeps per-subsystem sub-hashes alongside, so a mismatch localises before anyone diffs a byte, and how many sub-hashes there are follows the console: 13 on PlayStation, 14 on Game Boy, 10 each on Genesis, SNES and NES. One rule governs what goes in. It was written for psxrecomp and every other project in the fleet works to it, from [`runtime/include/cosim_state.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/cosim_state.h):
 
 > The single correctness rule: this hash must cover EVERY piece of state that can
 > influence future guest execution, and NOTHING that is host-only (pointers, padding,
 > jmpbufs, fiber/malloc addresses). A missed execution-relevant field is a blind spot
 > (false "no divergence"); an included host-only field is a false positive.
 
-The most copied consequence is that the program counter is excluded from the compared hash. The comment explaining it carries the measurement that settled the argument.
+The most copied consequence is that the program counter is excluded from the compared hash. That exclusion is now shared design, but it is not an axiom: the comment below is psxrecomp's, and it carries the measurement on one PlayStation run that settled the argument. A project on another console adopting the rule is adopting a conclusion someone else's evidence supports.
 
 From [`runtime/src/cosim_state.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/cosim_state.c):
 
@@ -95,7 +99,7 @@ Two other exclusions recur. Backend bookkeeping that legitimately differs stays 
 
 ## The deterministic park
 
-The lockstep itself is small. At each checkpoint the guest hashes its state, folds the hash into a running chain, stamps a ring row, then blocks until the coordinator grants more budget.
+The lockstep itself is small. Shared design is the four steps at each checkpoint: hash the state, fold the hash into a running chain, stamp a ring row, then block until the coordinator grants more budget. Whether a project can perform the fourth step at all is per project, and one of them cannot. The implementation below is psxrecomp's.
 
 From [`runtime/src/cosim.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/cosim.c):
 
@@ -123,11 +127,11 @@ static void cosim_record_checkpoint(uint64_t cycle, uint32_t pc) {
 
 The comment is the load-bearing part. An earlier design let both sides free-run and stopped them asynchronously; the two processes noticed the stop flag at different wall-times and parked at different cycles, which is harness nondeterminism wearing the costume of a guest bug. The stride is fixed from the environment at launch, before either process executes an instruction. Once a divergence window is known, shrinking the stride toward one inside that window and re-running reproduces the same divergence, because the run is deterministic.
 
-nesrecomp cannot park at all: the libretro ABI gives it no way to stop Mesen mid-frame. It free-runs both sides and aligns offline, comparing frame `N` against oracle frame `N + offset`. When trajectories drift it uses adaptive offset search and a scroll-phase classifier to decide which residual it has: "a discrete shift that recovers a high match = alignment; a match that stays low = a genuine divergence or phase desync". That is a classifier, not a fudge factor, which is what keeps the numbers honest.
+nesrecomp cannot park at all, for a reason that belongs to its oracle rather than to its console: the libretro ABI gives it no way to stop Mesen mid-frame. It free-runs both sides and aligns offline, comparing frame `N` against oracle frame `N + offset`. When trajectories drift it uses adaptive offset search and a scroll-phase classifier to decide which residual it has: "a discrete shift that recovers a high match = alignment; a match that stays low = a genuine divergence or phase desync". That is a classifier, not a fudge factor, which is what keeps the numbers honest.
 
 ## The gates that check the checker
 
-No result is believed until a set of self-checks passes, and this is the most interesting idea here: a test that proves the test works. The canonical set is gbrecompiled's.
+No result is believed until a set of self-checks passes, and this is the most interesting idea here: a test that proves the test works. The four gates are shared design; the canonical write-up of them is gbrecompiled's, and the numbering is not shared at all, as the note at the end of this section records.
 
 1. **Recomp against recomp must be zero divergence** across the run, which proves the coordinator is deterministic, the hashing is stable, and no host-only state leaked in. It also assumes the build is deterministic to begin with, which is a property in its own right: see [`/docs/concepts/determinism`](/docs/concepts/determinism).
 2. **Interpreter against interpreter must be zero**, and oracle against oracle when an external emulator is in play.

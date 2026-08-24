@@ -8,8 +8,8 @@ tags: ["Architecture", "Recompiler", "Runtime"]
 repos:
   - "https://github.com/N64Recomp/N64Recomp"
   - "https://github.com/N64Recomp/N64ModernRuntime"
-  - "https://github.com/Zelda64Recomp/Zelda64Recomp"
-updated: "2026-08-23"
+  - "https://github.com/mstan/psxrecomp"
+updated: "2026-08-24"
 ---
 
 A static recompilation project is two programs that are only useful together. The **recompiler** runs at build time on a developer's machine: it reads the game's machine code and writes C source. The **runtime** is a library that the generated C links against, standing in for the console's memory, operating system, saves, controllers and sound. Neither half stands alone. The recompiler emits calls it never implements, and the runtime implements calls that nothing makes until a recompiler has run. It is the first structure to learn here, because every toolchain in the fleet repeats it.
@@ -126,17 +126,28 @@ It also decides where a fact about the hardware is recorded. Instruction set qui
 
 ## Where the seam is visible
 
-A finished port is where the two meet. [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp) carries `lib/N64ModernRuntime` and `lib/rt64` as submodules and supplies the configuration and symbol tables the recompiler needs. With the recompiler binaries copied next to those configs, its build guide runs three passes:
+A finished port is where the two meet, and a port's build order draws the line better than any diagram does. A [psxrecomp](https://github.com/mstan/psxrecomp) game repository does not vendor the framework: it carries it as a submodule at `psxrecomp/` and supplies its own `game.toml`, seeds and generated C. The build guide then runs the recompiler and the runtime as two separate groups of commands.
 
-From [`BUILDING.md`](https://github.com/Zelda64Recomp/Zelda64Recomp/blob/dev/BUILDING.md):
+From [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md):
 
 ```sh
-./N64Recomp us.rev1.toml
-./RSPRecomp aspMain.us.rev1.toml
-./RSPRecomp njpgdspMain.us.rev1.toml
+# Extract the game's PS-X EXE from your disc (helper included in the game repo):
+python3 tools/extract_psx_exe.py tomba/tomba.bin SCUS_942.36 tomba/SCUS_942.36
+
+# Regenerate the game's C from the disc/EXE. The framework is a submodule at
+# psxrecomp/ inside the game repo, so build its recompiler once, then run it.
+# [snip] the guide also names the regen.sh and regen.ps1 wrappers here
+cmake -S psxrecomp/recompiler -B psxrecomp/recompiler/build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build psxrecomp/recompiler/build
+psxrecomp/recompiler/build/psxrecomp-game --config game.toml
+
+# Configure + build the game runtime:
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target psx-runtime
+./build/psx-runtime --game game.toml --disc tomba/tomba.cue
 ```
 
-Only then does CMake compile the generated C against the runtime. When you are unsure which side of the line a problem sits on, ask whether re-running those commands could change it.
+The first group builds a compiler and runs it once to produce text. The second group compiles that text against the runtime and starts it. When you are unsure which side of the line a problem sits on, ask whether re-running the first group could change it.
 
 ## The same shape across the fleet
 
@@ -148,7 +159,7 @@ That repetition is inherited as a design, not as code: two repositories here bui
 
 - [N64Recomp](https://github.com/N64Recomp/N64Recomp): [`include/recomp.h`](https://github.com/N64Recomp/N64Recomp/blob/main/include/recomp.h), [`src/cgenerator.cpp`](https://github.com/N64Recomp/N64Recomp/blob/main/src/cgenerator.cpp), [`src/recompilation.cpp`](https://github.com/N64Recomp/N64Recomp/blob/main/src/recompilation.cpp), [`src/operations.cpp`](https://github.com/N64Recomp/N64Recomp/blob/main/src/operations.cpp), and the [README](https://github.com/N64Recomp/N64Recomp/blob/main/README.md).
 - [N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime): its [README](https://github.com/N64Recomp/N64ModernRuntime/blob/main/README.md) and [`librecomp/src/overlays.cpp`](https://github.com/N64Recomp/N64ModernRuntime/blob/main/librecomp/src/overlays.cpp).
-- [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp): [`BUILDING.md`](https://github.com/Zelda64Recomp/Zelda64Recomp/blob/dev/BUILDING.md) and [`us.rev1.toml`](https://github.com/Zelda64Recomp/Zelda64Recomp/blob/dev/us.rev1.toml).
+- [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) for the two build groups, and [`runtime/runtime.cmake`](https://github.com/mstan/psxrecomp/blob/master/runtime/runtime.cmake) for how the generated C is handed to the runtime build.
 
 ## Next
 

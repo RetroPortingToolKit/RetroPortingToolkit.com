@@ -38,9 +38,11 @@ The axes are the same on NES, SNES, GBA, Virtual Boy and Master System:
 
 That fixed shape is what makes two consoles comparable at all. It also means an axis cannot quietly disappear because nobody worked on it; it sits there with a status.
 
+The shape is where the sharing stops. Every row under those axes is one console's measurement against one console's reference, taken under one console's scope, and axis 2 in particular is not a common yardstick: a project pursuing cycle exactness and a project running a whole frame as a few calls both have an axis 2, and the numbers in them are not the same kind of number. [Timing models](/docs/concepts/timing-models) maps which console made which choice, and is worth reading before comparing two rows.
+
 ## What makes an item done
 
-Each axis carries a status, the external comparative it is cross-referenced against, and a validation method. The bar for the top status is two independent conditions, not one, and the burndown says so in the strongest terms it has:
+Each axis carries a status, the external comparative it is cross-referenced against, and a validation method. The bar for the top status is two independent conditions, not one. The rule is fleet-wide; the wording below is gbarecomp's, and the parenthesis in it is a GBA reference list, so read the named documents and emulators as that console's version of condition (a) rather than as the fleet's:
 
 > Every item gets: **status**, the **external comparative(s)** to cross-reference
 > it against, and a **validation method**. "Looks good" is NOT a status

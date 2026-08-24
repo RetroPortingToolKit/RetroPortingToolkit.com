@@ -163,9 +163,19 @@ describe("the shipped index", () => {
   });
 
   it("finds a second table-only term, in a different section", () => {
-    const results = searchDocs(index, "ubuntu-latest");
+    // Same assertion as above, on a page outside Platforms: "--psxrecomp-ref"
+    // appears once in the documentation, in a flag table on the "recomp your
+    // own game" page. If this term moves, repoint the test at another one that
+    // lives only inside a table cell; do not delete the case.
+    const term = "psxrecomp-ref";
+    const page = DOCS.find((d) => d.slug === "start/recomp-your-own-game")!;
+    const rows = page.body.split("\n").filter((line) => line.includes(term));
+    expect(rows.length).toBe(1);
+    expect(rows[0].startsWith("|")).toBe(true);
+
+    const results = searchDocs(index, term);
     expect(results.length).toBeGreaterThan(0);
-    expect(results.map((r) => r.slug)).toContain("start/what-you-need");
+    expect(results.map((r) => r.slug)).toContain("start/recomp-your-own-game");
   });
 });
 

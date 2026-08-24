@@ -15,15 +15,15 @@ repos:
 updated: "2026-08-23"
 ---
 
-**Low level emulation** means executing the console's own instructions: its firmware, recompiled or interpreted, running over a model of the hardware underneath. **High level emulation** means reimplementing what that code would have done, so a routine's result comes from host code instead of from the guest's own instructions. Every toolchain in this fleet takes the low level path as its baseline, so the argument here is not which one wins. It is what the word HLE may cover, and whether a high level shortcut may ever be what a player gets by default. Two projects have answered that in opposite directions, and neither has conceded.
+**Low level emulation** means executing the console's own instructions: its firmware, recompiled or interpreted, running over a model of the hardware underneath. **High level emulation** means reimplementing what that code would have done, so a routine's result comes from host code instead of from the guest's own instructions. Those two definitions hold on every console. Everything after them is a per-project position, and this page keeps the two apart, because the fleet's most quoted rules on this subject are one repository's rules and are written in the vocabulary of one machine. Every toolchain here takes the low level path as its baseline, so the argument is not which one wins. It is what the word HLE may cover, and whether a high level shortcut may ever be what a player gets by default. Two projects have answered that in opposite directions, and neither has conceded.
 
-## The rule everybody starts from
+## The rule everybody starts from, as gcnlle writes it
 
-[gcnlle](https://github.com/mstan/gcnlle) states it as an ordering rather than a preference:
+The baseline is common ground across the fleet. The clearest written statement of it belongs to one project, [gcnlle](https://github.com/mstan/gcnlle), which states it as an ordering rather than a preference:
 
 > "**LLE / static recompilation / native execution is the baseline.** Architect as much of the system that way as you can, and on platforms that recompile their own firmware/BIOS, run that recompiled firmware."
 
-High level emulation is then permitted in exactly one position: as "a **deliberate subsystem replacement**" sitting on a proven low level baseline. It is forbidden as "the **starting point / sole implementation**", which the same document calls "the historical failure mode: it leaves *half an ecosystem*". The banned form has a name, "load-bearing HLE that fakes the answer", glossed as "synthesizing a specific result so a milestone *looks* done ("deliver this event so the screen unlocks"), with no faithful path beneath it and no oracle check."
+In gcnlle's document, high level emulation is then permitted in exactly one position: as "a **deliberate subsystem replacement**" sitting on a proven low level baseline. It is forbidden as "the **starting point / sole implementation**", which the same document calls "the historical failure mode: it leaves *half an ecosystem*". The banned form has a name, "load-bearing HLE that fakes the answer", glossed as "synthesizing a specific result so a milestone *looks* done ("deliver this event so the screen unlocks"), with no faithful path beneath it and no oracle check." Note the clause about firmware: it is conditional on the platform. A console whose firmware a project can recompile gets a different baseline from one whose cartridges carry no firmware at all, which is why the sections below sort by project rather than by principle.
 
 ## Why the rule exists
 
@@ -35,11 +35,11 @@ Its README repeats it: "psxrecomp showed that stubbing the BIOS leads to silent 
 
 ## Where the projects actually disagree
 
-All of them are low level first by constitution. What differs is what the high level tier is allowed to be.
+All of them are low level first by constitution. What differs is what the high level tier is allowed to be, and the answers track projects and consoles rather than one fleet-wide law. Read each of the four below as one console's position, not as the rule with three exceptions.
 
 [psxrecomp](https://github.com/mstan/psxrecomp) started with a ban. Its constitution document still says, in its opening section, "There is **no HLE BIOS layer** in v4. No `bios.c` with case branches intercepting A0/B0/C0 vectors." That text was then amended three times. An amendment dated 2026-06-29 permits a faithful HLE subsystem replacement where the low level path has a genuine landmine, provided it is general, operates on real guest structures, and is continuously validated against an independent oracle. Amendments dated 2026-07-02 and 2026-07-06 go further: HLE becomes "a standing, swappable TIER", and as of the later date it is **the default** for the BIOS, opted out per game with `[runtime] bios_hle = false` or per launch with `PSX_BIOS_HLE=0`. The justification is boot convenience: "HLE boot is THE boot-skip mechanism", and "HLE-default is the shipping convenience". The document carries no version marker saying which passage is current, so anyone reading the opening section alone will state the opposite of the shipped architecture.
 
-The mechanism is narrower than the policy language suggests. The tier is one nullable function pointer consulted at the top of the emitted dispatch loop, where a nonzero return means the service completed against guest state and zero falls through to the recompiled BIOS.
+The mechanism is narrower than the policy language suggests, and it is shaped by one console: the PlayStation kernel is entered through three fixed vectors, so a hook has somewhere obvious to sit. psxrecomp's tier is one nullable function pointer consulted at the top of its emitted dispatch loop, where a nonzero return means the service completed against guest state and zero falls through to the recompiled BIOS.
 
 From [`runtime/src/bios_hle.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/bios_hle.c):
 
@@ -76,7 +76,7 @@ The word HLE is then reserved for something else entirely:
 > above that floor. A replacement may become the default path after promotion;
 > it never deletes its LLE body or changes a miss into a Tier-3 interpreter call."
 
-A replacement is keyed by content and bank identity rather than by address, because generated banks call each other directly and one address can hold several overlay generations, so a table keyed by program counter alone "can therefore miss calls or select the wrong routine". The specified shape keeps the original body and consults a selector only at an exact function start.
+A replacement is keyed by content and bank identity rather than by address, and the reason is a DS fact rather than a general one: ndsrecomp's generated banks call each other directly, and one guest address can hold several overlay generations over a session, so a table keyed by program counter alone "can therefore miss calls or select the wrong routine". The specified shape keeps the original body and consults a selector only at an exact function start.
 
 From [`HLE_ARCHITECTURE.md`](https://github.com/mstan/ndsrecomp/blob/main/HLE_ARCHITECTURE.md):
 
@@ -115,7 +115,7 @@ None of the three has conceded, and this page is not going to award the point.
 > AOT bodies and HLE handlers are optional materializations selected only after
 > analysis stabilizes; neither is allowed to define game semantics."
 
-Two cfg directives, `hle_func` and `hle_dispatch`, let a port replace one recompiled function or one dispatch site with hand written C, under the rule that "Disabling the overlay must expose the correct underlying implementation." The project also has a case study in why the ordering matters. Its Cx4 coprocessor began as a command level model taken from an existing emulator and was replaced the same day by an instruction level core, which revealed that a register everyone had treated as a command port "is not a command register", it is the chip's program counter, and that the earlier source "has no data ROM at all, so it was fabricating every one of those values". The notes file tells anyone tempted to redo the shortcut to "do not author a future Cx4 HLE from it", and to work from the low level core's observed behaviour instead. See [SNES](/docs/platforms/snes) for how that floor is wired into dispatch.
+This is also where a third layer appears, below the console. Two snesrecomp cfg directives, `hle_func` and `hle_dispatch`, let one port replace one recompiled function or one dispatch site with hand written C, under the rule that "Disabling the overlay must expose the correct underlying implementation." psxrecomp's tier has the same per-game control from the other direction, opted out with `[runtime] bios_hle = false`. So a claim about high level emulation here has three scopes to check before it means anything: the fleet's baseline, one toolchain's policy, and what one game's configuration turned on. The project also has a case study in why the ordering matters. Its Cx4 coprocessor began as a command level model taken from an existing emulator and was replaced the same day by an instruction level core, which revealed that a register everyone had treated as a command port "is not a command register", it is the chip's program counter, and that the earlier source "has no data ROM at all, so it was fabricating every one of those values". The notes file tells anyone tempted to redo the shortcut to "do not author a future Cx4 HLE from it", and to work from the low level core's observed behaviour instead. See [SNES](/docs/platforms/snes) for how that floor is wired into dispatch.
 
 ## The names do not track the distinction
 

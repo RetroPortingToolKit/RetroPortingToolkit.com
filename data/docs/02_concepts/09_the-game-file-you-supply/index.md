@@ -16,10 +16,13 @@ updated: "2026-08-23"
 
 Nothing in this fleet plays a game on its own. Every port is a program that
 needs a file you already have: a disc image, a cartridge dump, or a console
-system ROM, depending on the console. The repositories do not contain that file,
-the release archives do not contain it, and the runtime checks the one you give
-it before it will start. This page states that contract once, in the projects'
-own words, so the rest of the wiki can link here instead of restating it.
+system ROM, depending on the console. The repositories do not contain that
+file, and the release archives do not contain it. That much is the same
+everywhere. What differs by console is which files you need and how many, and
+what differs by port is what the runner does when the one you gave it is
+wrong, which is usually to refuse to start. This page states the shared
+contract once, in the projects' own words, then lists the per console shape, so
+the rest of the wiki can link here instead of restating it.
 
 > **You provide this.** Every port in this fleet needs a game file you supply
 > from your own media. No repository here ships one.
@@ -150,8 +153,9 @@ stock base.
 
 ## How the file is checked
 
-The identity records are `DISC.md` on the PlayStation ports and `baserom.md` on
-the Game Boy Advance ports. Each pairs a hash table with a do-not-commit rule,
+Verification is a per port arrangement rather than one mechanism, and it lives
+in a per console file. The identity records are `DISC.md` on the PlayStation
+ports and `baserom.md` on the Game Boy Advance ports. Each pairs a hash table with a do-not-commit rule,
 and each names a specific region and revision rather than a game in general: a
 USA revision 0 release, a US v1.0 ROM, a v1.0 that is not the v1.1. Recompiled C
 is keyed to exact bytes at exact addresses, so a near miss is not a near miss,
@@ -210,12 +214,16 @@ are in
 
 ## What happens when the file is wrong
 
-The projects treat refusal as the correct behaviour, not a rough edge.
-BoktaiRecomp's `baserom.md` states that the runner refuses to launch unless both
-the ROM and the BIOS verify, and its `README.md` adds that "You supply your own
-legally-dumped copy, and the runner refuses to launch on anything else."
+Where a port states what it does, it treats refusal as the correct behaviour
+rather than a rough edge. BoktaiRecomp's `baserom.md` states that the runner
+refuses to launch unless both the ROM and the BIOS verify, and its `README.md`
+adds that "You supply your own legally-dumped copy, and the runner refuses to
+launch on anything else." That is one port's statement about one game and it is
+quoted as such; it is not a guarantee this site can make on behalf of every
+build in the fleet.
 
-The same instinct shows up below the file level. snesrecomp's Cx4 firmware
+The same instinct shows up below the file level, and there it is SNES specific.
+snesrecomp's Cx4 firmware
 loader "reports loudly rather than silently computing on zeros" when no firmware
 is present, and its DSP-1 high level fallback stops rather than fabricating
 output if it meets a command it has not verified. A wrong or missing input
@@ -239,10 +247,11 @@ game data is included in this repository." Each asserts what the repository
 lacks and what the user must supply, and stops. This documentation matches that
 restraint deliberately.
 
-> **Note.** Not every repository in the fleet words this the same way, and one
-> upstream project states no condition at all. Zelda64Recomp's `README.md` only
-> tells the player to provide their copy of the North American version in the
-> main menu. Where projects differ, [Licenses](/docs/fleet/licenses) and
+> **Note.** Not every repository words this the same way, and a few attach no
+> condition at all. MarioTennisVirtualBoyRecomp's
+> [`README.md`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/README.md)
+> is the shortest of those: "Provide your own cart dump." Where projects differ,
+> [Licenses](/docs/fleet/licenses) and
 > [Lineage and credit](/docs/fleet/lineage-and-credit) record the difference
 > rather than averaging it.
 
@@ -260,6 +269,7 @@ restraint deliberately.
 - [mstan/PokemonYellowRecomp](https://github.com/mstan/PokemonYellowRecomp): [`README.md`](https://github.com/mstan/PokemonYellowRecomp/blob/main/README.md)
 - [mstan/vbrecomp](https://github.com/mstan/vbrecomp): [`LICENSE`](https://github.com/mstan/vbrecomp/blob/master/LICENSE)
 - [mstan/MetroidNESRecomp](https://github.com/mstan/MetroidNESRecomp): [`README.md`](https://github.com/mstan/MetroidNESRecomp/blob/main/README.md)
+- [mstan/MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp): [`README.md`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/README.md)
 - [TechnicallyComputers/Klonoa-Door-to-Phantomile](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile): [`README.md`](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile/blob/master/README.md)
 
 ## Next

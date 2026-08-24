@@ -33,7 +33,7 @@ To be transparent: I’m not trained in compilers, MIPS assembly, or GPU renderi
 - **[Ship of Harkinian](https://www.shipofharkinian.com/)**
 - **[Super Mario 64 PC port](https://github.com/n64decomp/sm64)**
 
-Both projects painstakingly decompiled games by hand to run natively on PC. Later tools like [**n64recomp**](https://github.com/N64Recomp/N64Recomp) pushed the idea further by going from decompilation to recompilation. That tool dramatically accelerated ports like *[Majora’s Mask](https://github.com/Zelda64Recomp/Zelda64Recomp)*.
+Both projects painstakingly decompiled games by hand to run natively on PC. Later tools like [**n64recomp**](https://github.com/N64Recomp/N64Recomp) pushed the idea further by going from decompilation to recompilation.
 
 The Nintendo 64 and the PlayStation share a useful property: their games were typically **compiler-generated**, not hand-written assembly. That makes them good candidates for static recompilation.
 

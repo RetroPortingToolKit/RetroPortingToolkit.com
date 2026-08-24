@@ -1,6 +1,6 @@
 ---
 title: "Glossary"
-summary: "Forty-one terms this fleet uses as if they were common knowledge, each defined the way the repositories actually use it, with the places the fleet contradicts itself marked rather than smoothed over."
+summary: "Forty-three terms this fleet uses as if they were common knowledge, each defined the way the repositories actually use it, with the console-specific ones named as such and the places the fleet contradicts itself marked rather than smoothed over."
 section: "concepts"
 sectionTitle: "Concepts"
 pageType: "reference"
@@ -21,7 +21,9 @@ repos:
 updated: "2026-08-23"
 ---
 
-The repositories in this fleet use the forty-one terms below as though everyone already knows them, and define almost none of them anywhere a newcomer would look. This page is that missing definition list. Each entry is the meaning the repositories actually attach to the word, not a textbook meaning, with a link to the page or the repository that treats it properly. Where the fleet uses one word for two things, the entry says so, because a reader who has spotted the inconsistency is reading correctly.
+The repositories in this fleet use the forty-three terms below as though everyone already knows them, and define almost none of them anywhere a newcomer would look. This page is that missing definition list. Each entry is the meaning the repositories actually attach to the word, not a textbook meaning, with a link to the page or the repository that treats it properly. Where the fleet uses one word for two things, the entry says so, because a reader who has spotted the inconsistency is reading correctly.
+
+Some of these words describe hardware only one console has. Those entries name the console, because a term appearing here does not make it fleet-wide.
 
 Terms are alphabetical and every one has its own anchor, so a page can link straight to a definition.
 
@@ -47,7 +49,7 @@ In [ndsrecomp](https://github.com/mstan/ndsrecomp) a bank is a unit of staticall
 
 ### Bank switching
 
-Guest hardware mapping different parts of a cartridge into the same CPU address range at different times, so one address does not identify one piece of code. On banked NES cartridges the last 16 KB of program ROM is permanently mapped at `$C000` to `$FFFF` while `$8000` to `$BFFF` holds whichever bank the mapper last selected, which nesrecomp records in [`EXTRACTION.md`](https://github.com/mstan/nesrecomp/blob/master/EXTRACTION.md). It is one of the reasons [code discovery](#code-discovery) is hard: the recompiler has to know which bank was live to know what an address meant.
+Guest hardware mapping different parts of a cartridge into the same CPU address range at different times, so one address does not identify one piece of code. The hardware that does it is a [mapper](#mapper). On banked NES cartridges the last 16 KB of program ROM is permanently mapped at `$C000` to `$FFFF` while `$8000` to `$BFFF` holds whichever bank the mapper last selected, which nesrecomp records in [`EXTRACTION.md`](https://github.com/mstan/nesrecomp/blob/master/EXTRACTION.md). Those are NES addresses and another banked console has its own windows. It is one of the reasons [code discovery](#code-discovery) is hard: the recompiler has to know which bank was live to know what an address meant.
 
 ### Baserom
 
@@ -67,7 +69,7 @@ A cumulative fold of every checkpoint's state hash across a whole [co-simulation
 
 ### Code discovery
 
-The static analysis that decides which bytes of a game binary are executable code and where each function starts. In nesrecomp it is a breadth-first walk from the interrupt vectors plus several heuristic scanners for dispatch tables, implemented in `recompiler/src/function_finder.c`, and the fleet also calls it the function finder. Discovery that misses code produces a [dispatch miss](#dispatch-miss) at run time. See [Telling code from data](/docs/concepts/code-discovery).
+The static analysis that decides which bytes of a game binary are executable code and where each function starts, also called the function finder. The five step shape is fleet-wide: seed, walk, guess, validate, catch the rest at run time. What a seed is, and what makes one address ambiguous, is not. In nesrecomp it is a walk from the interrupt vectors plus heuristic scanners, in `recompiler/src/function_finder.c`; on SNES an entry is keyed by address and [mode flags](#mode-flags) together; on Game Boy Advance by address and instruction set, see [interworking](#interworking); on PlayStation the seeds come off the disc. Discovery that misses code produces a [dispatch miss](#dispatch-miss) at run time. See [Telling code from data](/docs/concepts/code-discovery).
 
 ### Combined work
 
@@ -105,7 +107,7 @@ The earliest checkpoint at which the two implementations differ. Every debugging
 
 ### Flat step
 
-An emission mode that produces one host function executing exactly one decoded guest instruction from an explicit program counter and returning, so the host scheduler regains control at every instruction boundary. smsggrecomp's `--flat-step` exists so a Z80 recompiled by one toolchain can run as the sound coprocessor inside another toolchain's scheduler. It is the slowest and most preemptible point on the [timing model](/docs/concepts/timing-models) spectrum. See [Master System and Game Gear](/docs/platforms/master-system-game-gear).
+An emission mode that produces one host function executing exactly one decoded guest instruction from an explicit program counter and returning, so the host scheduler regains control at every instruction boundary. smsggrecomp's `--flat-step` exists so a Z80 recompiled by one toolchain can run as the sound coprocessor inside another toolchain's scheduler, segagenesisrecomp's being the one it was built for. It is the slowest and most preemptible point on the [timing model](/docs/concepts/timing-models) spectrum. See [Master System and Game Gear](/docs/platforms/master-system-game-gear).
 
 ### Gate
 
@@ -114,6 +116,10 @@ A pass or fail precondition that must hold before a measurement is believed. The
 ### Ground truth
 
 Behaviour recorded from a mature emulator and fed back into static analysis as seeds. In gbrecompiled it is a trace of every executed bank and address pair, captured with PyBoy and used as recompiler roots. It improves [coverage](#coverage) and proves nothing about correctness, which is what separates it from [co-simulation](#co-simulation).
+
+### GTE (geometry transformation engine)
+
+The PlayStation's COP2: the fixed point geometry coprocessor a PS1 game uses for vertex transformation and perspective projection. It has no counterpart on any other console here, so a sentence about the GTE is never a sentence about the fleet. psxrecomp emits each GTE command as one runtime call, `gte_execute(cpu, cmd)`, and its registers cross the recompiler and runtime boundary as `cpu->gte_data[]` and `cpu->gte_ctrl[]`. See [PlayStation](/docs/platforms/playstation).
 
 ### HLE (high level emulation)
 
@@ -126,6 +132,10 @@ An ARM7TDMI switching between the 32-bit ARM and 16-bit Thumb instruction sets w
 ### LLE (low level emulation)
 
 Executing the console's own instructions, including its firmware or BIOS where the platform allows it, over a model of the hardware underneath. gcnlle's [`PRINCIPLES.md`](https://github.com/mstan/gcnlle/blob/master/PRINCIPLES.md) states it as an ordering rather than a preference: low level emulation, static recompilation and native execution are the baseline, and as much of the system as possible is architected that way. In snesrecomp the interpreter is called the correctness floor and the authority, not a fallback of last resort.
+
+### Mapper
+
+Cartridge hardware that swaps which part of the game ROM appears in the CPU's address window, so one address does not name one piece of code. It is what performs [bank switching](#bank-switching). The word is used here mostly about the NES, where the iNES header carries a mapper number and nesrecomp's runner implements NROM, MMC1, UxROM, MMC3, mapper 40 and GxROM. That numbering is the NES's and means nothing elsewhere: smsggrecomp models the Sega and Codemasters mappers, and the SNES equivalent is the LoROM, HiROM and FastROM mapping snesrecomp detects automatically. See [NES](/docs/platforms/nes).
 
 ### Mod manifest
 
@@ -143,7 +153,7 @@ A **pairing 1** oracle is the project's own interpreter backend, which proves th
 
 ### Overlay
 
-A chunk of game code streamed from disc into a fixed RAM window at run time and later overwritten by the next one. Because it does not exist in the executable at build time, an ahead-of-time recompiler cannot see it, which is what [runtime recompilation](#runtime-recompilation) exists to solve. ndsrecomp uses the same word for RAM-resident code that can hold several generations at one address. See [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time).
+On PlayStation, a chunk of game code streamed from disc into a fixed RAM window at run time and later overwritten by the next one. Because it does not exist in the executable at build time, an ahead-of-time recompiler cannot see it, which is what [runtime recompilation](#runtime-recompilation) exists to solve. Two other consoles borrow the word: ndsrecomp for RAM-resident code holding several generations at one address, gbarecomp for the runtime healed native cache between its static table and its interpreter bridge. Check the console before reading the word. See [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time).
 
 ### Pairing
 
@@ -201,7 +211,7 @@ Simulated behaviour standing in for real guest code. Forbidden in every toolchai
 
 ### Tier
 
-A dispatch level. The numbering is close enough across projects to be useful and not identical, so read the project's own table. Broadly, tier 1 is statically recompiled native code, tier 2 is code compiled at run time and cached, and tier 3 is an interpreter. A transfer down a tier is evidence, not noise: snesrecomp records every one in a gap manifest and splits them into clean hits, safe to promote, and bail hits, which are bug leads.
+A dispatch level, and one of the least portable words on this page. The ladder the phrase usually describes is psxrecomp's: tier 1 is statically recompiled native code, tier 2 is code compiled at run time and cached, tier 3 is an interpreter. It does not hold on SNES, where snesrecomp deliberately did not port the runtime-compiled tiers, so tier 2 is an interpreter fallback plus a manifest feedback loop and nothing sits between native code and the interpreter. Read the project's own table before reading a tier number. A transfer down a tier is evidence, not noise: snesrecomp records every one in a gap manifest and splits them into clean hits, safe to promote, and bail hits, which are bug leads.
 
 ## Where the fleet's own words disagree
 
@@ -215,6 +225,8 @@ A reader who notices these is not misreading anything. They are real, and this w
 
 **One word, opposite architectures.** [HLE](#hle-high-level-emulation) in psxrecomp names a swappable BIOS tier that has become the shipping default, and in ndsrecomp names a performance replacement forbidden from ever deleting the faithful implementation beneath it. Both projects are low level first, they disagree about what the high level tier may be, and neither has conceded.
 
+**One mechanism, one console.** Several entries describe hardware only one machine here has, and reading them as fleet-wide is the commonest way to be wrong about this material. [Mode flags](#mode-flags) are a 65816 property. [Interworking](#interworking) is an ARM7TDMI property. A [mapper](#mapper) number is an NES number. The [GTE](#gte-geometry-transformation-engine) is a PlayStation coprocessor. Even the ladder behind [tier](#tier) is one project's. Each of those names its console; a definition that names none is meant to hold everywhere.
+
 **A term this wiki coined and withdrew.** Deferred recompilation was our phrase, not the fleet's, and appears nowhere in any repository here or upstream. The mechanism is [runtime recompilation](#runtime-recompilation).
 
 ## Source
@@ -222,8 +234,8 @@ A reader who notices these is not misreading anything. They are real, and this w
 Every definition above comes from a repository that uses the word seriously.
 These are the files to open.
 
-- psxrecomp: [`PRINCIPLES.md`](https://github.com/mstan/psxrecomp/blob/master/PRINCIPLES.md), [`docs/EXECUTION_MODEL.md`](https://github.com/mstan/psxrecomp/blob/master/docs/EXECUTION_MODEL.md), [`SPLITGEN_MIGRATION.md`](https://github.com/mstan/psxrecomp/blob/master/SPLITGEN_MIGRATION.md)
-- nesrecomp: [`EXTRACTION.md`](https://github.com/mstan/nesrecomp/blob/master/EXTRACTION.md), [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md), `recompiler/src/function_finder.c`
+- psxrecomp: [`PRINCIPLES.md`](https://github.com/mstan/psxrecomp/blob/master/PRINCIPLES.md), [`docs/EXECUTION_MODEL.md`](https://github.com/mstan/psxrecomp/blob/master/docs/EXECUTION_MODEL.md), [`SPLITGEN_MIGRATION.md`](https://github.com/mstan/psxrecomp/blob/master/SPLITGEN_MIGRATION.md), [`runtime/src/gte.cpp`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/gte.cpp) for the GTE
+- nesrecomp: [`EXTRACTION.md`](https://github.com/mstan/nesrecomp/blob/master/EXTRACTION.md), [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md), [`runner/src/mapper.c`](https://github.com/mstan/nesrecomp/blob/master/runner/src/mapper.c) for the mapper list, `recompiler/src/function_finder.c`
 - snesrecomp: [`docs/LLE_FIRST_ANALYSIS.md`](https://github.com/mstan/snesrecomp/blob/main/docs/LLE_FIRST_ANALYSIS.md), [`docs/MULTI_TIER.md`](https://github.com/mstan/snesrecomp/blob/main/docs/MULTI_TIER.md), `runner/src/cpu_state.h`
 - gbarecomp: [`PRINCIPLES.md`](https://github.com/mstan/gbarecomp/blob/main/PRINCIPLES.md)
 - gbrecompiled: [`COSIM_ORACLE.md`](https://github.com/mstan/gbrecompiled/blob/master/COSIM_ORACLE.md), [`GROUND_TRUTH_WORKFLOW.md`](https://github.com/mstan/gbrecompiled/blob/master/GROUND_TRUTH_WORKFLOW.md), [`CYCLE_EXACT_INITIATIVE.md`](https://github.com/mstan/gbrecompiled/blob/master/CYCLE_EXACT_INITIATIVE.md)

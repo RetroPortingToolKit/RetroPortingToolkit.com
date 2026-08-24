@@ -23,7 +23,7 @@ Three reasons, and they are the reasons to trust the commands below.
 - **It has a verification step with a stated expected result.** Most repositories tell you to build. This one tells you what passing looks like.
 - **It needs nothing from you.** The BIOS it recompiles is OpenBIOS, the PCSX-Redux project's from-scratch, MIT-licensed PS1 BIOS, which is redistributable and is checked into the repository. Nearly every other route here needs a file you supply, and the one exception is at the end of this page.
 
-At the end you will have: the recompiler binaries, C source translated from a real MIPS R3000A binary that you can open and read, a native runtime compiled from that C, and a passing test suite.
+At the end you will have: the recompiler binaries, C source translated from a real PlayStation binary that you can open and read, a native runtime compiled from that C, and a passing test suite.
 
 ## Before you start
 

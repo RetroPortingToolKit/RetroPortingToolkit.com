@@ -28,8 +28,8 @@ itself.
 
 | Measure | Count |
 |---|---|
-| Repositories surveyed | 87 |
-| Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | 39 |
+| Repositories surveyed | 86 |
+| Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | 38 |
 | Carrying no license file at all | 48 |
 | Distinct license identities found | 5 |
 
@@ -60,7 +60,6 @@ copyright holder.
 |---|---|---|---|
 | [N64Recomp/N64Recomp](https://github.com/N64Recomp/N64Recomp) | MIT | [`LICENSE`](https://github.com/N64Recomp/N64Recomp/blob/main/LICENSE) | `Copyright (c) 2024 Wiseguy` |
 | [N64Recomp/N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime) | GNU GPL v3 | [`COPYING`](https://github.com/N64Recomp/N64ModernRuntime/blob/main/COPYING) | Carries no project copyright line |
-| [Zelda64Recomp/Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp) | GNU GPL v3 | [`COPYING`](https://github.com/Zelda64Recomp/Zelda64Recomp/blob/dev/COPYING) | Carries no project copyright line |
 | [rt64/rt64](https://github.com/rt64/rt64) | MIT | [`LICENSE`](https://github.com/rt64/rt64/blob/main/LICENSE) | `Copyright (c) 2024 RT64 Contributors`. Its texture tooling is not uniformly MIT: one shipped tool is GPL |
 | [TechnicallyComputers/recomp-net](https://github.com/TechnicallyComputers/recomp-net) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/recomp-net/blob/main/LICENSE) | |
 | [TechnicallyComputers/recomp-net-server](https://github.com/TechnicallyComputers/recomp-net-server) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/LICENSE) | |
@@ -100,7 +99,7 @@ owner.
 
 ## Repositories with no license file
 
-48 of the 87. This site does not state or imply a license for any of them.
+48 of the 86. This site does not state or imply a license for any of them.
 
 **mstan, Game Boy Advance (11).** `DragonBallZLegacyOfGokuRecomp`,
 `DragonBallZLegacyofGokuIIRecomp`, `EmeraldRecomp`, `FireRedLeafGreenRecomp`,
@@ -473,7 +472,7 @@ this census read repositories rather than built packages.
 - [mstan/SonicBlastGGRecomp](https://github.com/mstan/SonicBlastGGRecomp): [`README.md`](https://github.com/mstan/SonicBlastGGRecomp/blob/main/README.md)
 - [mstan/StarFoxSNESRecomp](https://github.com/mstan/StarFoxSNESRecomp): [`README.md`](https://github.com/mstan/StarFoxSNESRecomp/blob/main/README.md)
 - The shared components: [`m68k-recomp-core/LICENSE`](https://github.com/mstan/m68k-recomp-core/blob/main/LICENSE), [`z80-recomp-core/LICENSE`](https://github.com/mstan/z80-recomp-core/blob/main/LICENSE), [`recomp-ui/LICENSE`](https://github.com/mstan/recomp-ui/blob/master/LICENSE)
-- [N64Recomp/N64Recomp](https://github.com/N64Recomp/N64Recomp), [N64Recomp/N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime), [Zelda64Recomp/Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp), [rt64/rt64](https://github.com/rt64/rt64)
+- [N64Recomp/N64Recomp](https://github.com/N64Recomp/N64Recomp), [N64Recomp/N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime), [rt64/rt64](https://github.com/rt64/rt64)
 
 ## Next
 

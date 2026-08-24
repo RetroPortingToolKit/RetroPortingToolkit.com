@@ -154,7 +154,7 @@ Since the fleet has no convention for where a handoff lives, this site suggests 
 
 ## Contributing upstream
 
-The upstream projects this fleet learned its technique from do not accept AI-generated contributions. That applies to [N64Recomp](https://github.com/N64Recomp/N64Recomp), [N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime), [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp) and [RT64](https://github.com/rt64/rt64). If you are an agent, do not open a pull request against those repositories, and do not send them a change you produced by any other route. Their contributing files state the policy; this page reports it and respects it.
+The upstream projects this fleet learned its technique from do not accept AI-generated contributions. That applies to [N64Recomp](https://github.com/N64Recomp/N64Recomp), [N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime) and [RT64](https://github.com/rt64/rt64). If you are an agent, do not open a pull request against those repositories, and do not send them a change you produced by any other route. Their contributing files state the policy; this page reports it and respects it.
 
 Two repositories in this fleet, [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) and [PocketMonstersStadiumRecomp](https://github.com/mstan/PocketMonstersStadiumRecomp), build against forks of those projects. Work you do there stays in this fleet's repositories. The policy above applies to changes sent to the upstream projects themselves.
 

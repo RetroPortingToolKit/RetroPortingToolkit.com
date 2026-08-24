@@ -1,6 +1,6 @@
 ---
 title: "Every repository"
-summary: "All 87 repositories in the fleet, grouped by role, each linked and each attributed to the toolchain it belongs to, plus the dependency map showing which shared component is consumed by which project."
+summary: "All 86 repositories in the fleet, grouped by role, each linked and each attributed to the toolchain it belongs to, plus the dependency map showing which shared component is consumed by which project."
 section: "fleet"
 sectionTitle: "Fleet"
 pageType: "reference"
@@ -18,7 +18,7 @@ repos:
 updated: "2026-08-23"
 ---
 
-This is the index the rest of this wiki hangs off. The fleet is 87 repositories: twelve per-console projects, seven shared components, 64 game ports and four upstream projects it takes its ideas from. Every one is listed here with its role and the toolchain it belongs to, because that attribution is the fact you usually need first and no single repository states it. If you are looking for what a console's toolchain does rather than where it lives, the [platform pages](/docs/platforms) are the technical write-ups and these are the addresses.
+This is the index the rest of this wiki hangs off. The fleet is 86 repositories: twelve per-console projects, seven shared components, 64 game ports and three upstream projects it takes its ideas from. Every one is listed here with its role and the toolchain it belongs to, because that attribution is the fact you usually need first and no single repository states it. If you are looking for what a console's toolchain does rather than where it lives, the [platform pages](/docs/platforms) are the technical write-ups and these are the addresses.
 
 ## The count
 
@@ -27,12 +27,12 @@ This is the index the rest of this wiki hangs off. The fleet is 87 repositories:
 | Per-console projects | 12 |
 | Shared components consumed as submodules | 7 |
 | Game ports | 64 |
-| Upstream projects | 4 |
-| **Total** | **87** |
+| Upstream projects | 3 |
+| **Total** | **86** |
 
-Three of the 87 turned up only by resolving relative submodule URLs: `m68k-recomp-core`, `z80-recomp-core` and `recomp-ui`. No listing in the fleet surfaces them, and nothing else on this site links to them, which is why they get their own group below rather than a footnote. `recomp-ui` in particular is a substantial shared component pinned by 58 of the 64 game ports.
+Three of the 86 turned up only by resolving relative submodule URLs: `m68k-recomp-core`, `z80-recomp-core` and `recomp-ui`. No listing in the fleet surfaces them, and nothing else on this site links to them, which is why they get their own group below rather than a footnote. `recomp-ui` in particular is a substantial shared component pinned by 58 of the 64 game ports.
 
-> **Note.** Default branches vary. Of these 87 repositories, 48 default to `main`, 38 to `master`, and one, Zelda64Recomp, to `dev`. A `blob/main` file URL is wrong for 39 of them.
+> **Note.** Default branches vary. Of these 86 repositories, 48 default to `main` and 38 to `master`. A `blob/main` file URL is wrong for 38 of them.
 
 ## Per-console projects
 
@@ -188,20 +188,19 @@ Three repositories, all pinning gbrecompiled at path `gb-recompiled` over an SSH
 
 ## Upstream projects
 
-Four repositories this fleet learned from. Only the two N64 ports above contain any of their code; everywhere else the relationship is conceptual. See [Lineage and credit](/docs/fleet/lineage-and-credit) for exactly where that line falls.
+Three repositories this fleet learned from. Only the two N64 ports above contain any of their code; everywhere else the relationship is conceptual. See [Lineage and credit](/docs/fleet/lineage-and-credit) for exactly where that line falls.
 
 | Repository | What it is | License |
 |---|---|---|
 | [N64Recomp/N64Recomp](https://github.com/N64Recomp/N64Recomp) | "a tool to statically recompile N64 binaries into C code that can be compiled for any platform". Ships a runtime recompilation backend as well as the ahead-of-time one | MIT |
 | [N64Recomp/N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime) | The runtime half of the same pair, which the generated C links against | GPL-3.0 |
-| [Zelda64Recomp/Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp) | The port that demonstrated the model end to end. Default branch is `dev`, not `main` | GPL-3.0 |
 | [rt64/rt64](https://github.com/rt64/rt64) | The renderer those ports use. Its texture tooling is not uniformly MIT: one shipped tool is GPL | MIT |
 
-> **Warning.** All four ship an identical `CONTRIBUTING.md` whose first line is "AI must not be used to generate code for contributions to this project." This documentation is agent-facing and this fleet is built with AI assistance, so that policy is stated here plainly rather than left for an agent to discover after opening a pull request. Compare psxrecomp, which welcomes them. See [Contributing as an agent](/docs/agents/contributing-as-an-agent).
+> **Warning.** All three ship an identical `CONTRIBUTING.md` whose first line is "AI must not be used to generate code for contributions to this project." This documentation is agent-facing and this fleet is built with AI assistance, so that policy is stated here plainly rather than left for an agent to discover after opening a pull request. Compare psxrecomp, which welcomes them. See [Contributing as an agent](/docs/agents/contributing-as-an-agent).
 
 ## What consumes what
 
-Reading every `.gitmodules` file and every gitlink in the fleet turns up 165 submodule references spread over 71 of the 87 repositories. Fifteen repositories declare none. This table is the dependency graph collapsed to one row per shared component: it is what tells you how far a change to a shared repository actually reaches.
+Reading every `.gitmodules` file and every gitlink in the fleet turns up 158 submodule references spread over 70 of the 86 repositories. Fifteen repositories declare none. This table is the dependency graph collapsed to one row per shared component: it is what tells you how far a change to a shared repository actually reaches.
 
 | Component | Consumers | Who |
 |---|---|---|
@@ -219,8 +218,6 @@ Reading every `.gitmodules` file and every gitlink in the fleet turns up 165 sub
 | [vbrecomp](https://github.com/mstan/vbrecomp) | 1 | The Virtual Boy port |
 | [retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | 1 | psxrecomp, at `lib/retcomm-rbengine` |
 | [N64Recomp](https://github.com/N64Recomp/N64Recomp) | 1 | N64ModernRuntime |
-| [N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime) | 1 | Zelda64Recomp, at `lib/N64ModernRuntime` |
-| [rt64](https://github.com/rt64/rt64) | 1 | Zelda64Recomp, at `lib/rt64` |
 
 Three details from that survey are worth knowing before you assume a shared component is uniform across its consumers.
 
@@ -240,7 +237,7 @@ Three details from that survey are worth knowing before you assume a shared comp
 - The dependency map comes from every `.gitmodules` file and every gitlink in the fleet, read together.
 - Status quotations come from the README of the repository being quoted. Toolchain READMEs: [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/README.md), [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/README.md), [snesrecomp](https://github.com/mstan/snesrecomp/blob/main/README.md), [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/README.md), [gbrecompiled](https://github.com/mstan/gbrecompiled/blob/master/README.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/README.md), [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/README.md), [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/README.md), [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/README.md), [cdirecomp](https://github.com/mstan/cdirecomp/blob/master/README.md), [gcnlle](https://github.com/mstan/gcnlle/blob/master/README.md), [xboxlle-probe](https://github.com/mstan/xboxlle-probe/blob/main/README.md).
 - Shared component descriptions: [`m68k-recomp-core/README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md), [`recomp-net/README.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/README.md), [`recomp-net-server/README.md`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).
-- The upstream contribution policy: [`CONTRIBUTING.md`](https://github.com/N64Recomp/N64Recomp/blob/main/CONTRIBUTING.md), and its identical siblings in N64ModernRuntime, [Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp/blob/dev/CONTRIBUTING.md) and [rt64](https://github.com/rt64/rt64/blob/main/CONTRIBUTING.md).
+- The upstream contribution policy: [`CONTRIBUTING.md`](https://github.com/N64Recomp/N64Recomp/blob/main/CONTRIBUTING.md), and its identical siblings in N64ModernRuntime and [rt64](https://github.com/rt64/rt64/blob/main/CONTRIBUTING.md).
 
 ## Next
 
