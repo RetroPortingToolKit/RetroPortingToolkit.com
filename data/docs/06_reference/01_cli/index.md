@@ -203,7 +203,7 @@ The fourth binary in the CLI package. It analyses a PS-X EXE and generates a com
 
 ### psx-runtime
 
-The runtime binary, which is what a player actually launches.
+The runtime binary, which is what a player actually launches. The invocation below is the framework's own documented example. One naming caveat, established by building it: `psx-runtime` is the CMake target, and the executable on disk carries a derived name, `PSXRecomp` for the framework's own build and a name derived from the game's title in a game repository. Substitute the file that is actually in your build directory.
 
 ```sh
 ./build/psx-runtime --game game.toml --disc tomba/tomba.cue

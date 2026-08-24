@@ -33,9 +33,10 @@ You need a C and C++ toolchain, CMake 3.20 or newer, Ninja, and Python 3. [What 
 
 ```sh
 git clone https://github.com/mstan/psxrecomp.git && cd psxrecomp
+git submodule update --init --recursive
 ```
 
-No `--recurse-submodules`. The repository is explicit that "A plain clone is enough to build the recompiler and the runtime", and the submodules are only for the launcher and netplay, neither of which this page builds.
+The submodule line was not always here. The repository's own build document says "A plain clone is enough to build the recompiler and the runtime", but running this page start to finish on a clean machine on 2026-08-24 says otherwise: the runtime configure stops with a fatal error unless the `lib/retcomm-rbengine` submodule is present, because rewind support defaults to on. The error message offers `-DPSX_REWIND=OFF` as the alternative if you would rather skip rewind than fetch submodules. This page follows the path that matches how shipped ports are built, and treats the build document's sentence as not yet caught up with the build.
 
 ## 2. Build the recompiler
 
@@ -75,9 +76,9 @@ cmake -S runtime -B runtime/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPSX_RECO
 cmake --build runtime/build --target psx-runtime
 ```
 
-`PSX_RECOMP_UI` is ON by default and wires in the shared launcher, which lives in a submodule your plain clone does not have. With it ON and the submodule missing, configure stops with a fatal error, so turn it off here.
+`PSX_RECOMP_UI` is ON by default and wires in the shared launcher. This page turns it off because the quickstart needs no launcher and builds faster without it. Rewind support stays on, which is why step 1 initialised submodules: without `lib/retcomm-rbengine` this configure stops with a fatal error whose message offers `-DPSX_REWIND=OFF` as the opt out.
 
-**You should now see** `runtime/build/psx-runtime`, or `psx-runtime.exe` on Windows. That binary contains the recompiled BIOS as native code, plus the runtime that simulates the console's hardware around it.
+**You should now see** `runtime/build/PSXRecomp`, or `PSXRecomp.exe` on Windows. The CMake target is named `psx-runtime` and the executable it produces is named `PSXRecomp`, which is worth knowing before you go looking for a file with the target's name. That binary contains the recompiled BIOS as native code, plus the runtime that simulates the console's hardware around it.
 
 ## 5. Verify
 
@@ -93,14 +94,16 @@ cd recompiler/build && ctest --output-on-failure
 > no disc image, and no generated code** — a plain recompiler build is enough. This
 > is the check to run before opening a PR.
 
-Anything other than `0 tests failed` is a real failure worth reading, and `--output-on-failure` has already printed why. `ctest -N` lists the tests without running them, and `ctest -R <name> --output-on-failure` runs one.
+The suite has grown since that sentence was written. Running this page start to finish on 2026-08-24 counted 51 tests, finishing in about five seconds on a modest two core machine.
+
+One honesty note from that same run: on a headless machine with no GPU, four tests failed, two of them Vulkan dependent and two asserting on lock timing. If you are building in a container or on a machine with no graphics driver, read the failures before concluding the tree is broken; a Vulkan test cannot pass where Vulkan does not exist. On an ordinary desktop, anything other than `0 tests failed` is a real failure worth reading, and `--output-on-failure` has already printed why. `ctest -N` lists the tests without running them, and `ctest -R <name> --output-on-failure` runs one.
 
 Note what this suite proves and what it does not. It is hermetic by design, which is why it needs nothing from you, and by the same construction it cannot tell you a game still runs. The repository keeps a separate per-game regression checklist for that: the game boots, the attract demo plays, a save can be created, a save can be loaded, and gameplay is reachable after saving and loading.
 
 ## 6. Run what you built
 
 ```sh
-./runtime/build/psx-runtime
+./runtime/build/PSXRecomp
 ```
 
 With no arguments it uses the bundled OpenBIOS. This repository's own release is exactly this binary, described in its README as booting on the bundled OpenBIOS and being useful for "**memory-card management**". There is no game in this build and no disc to give it. `--headless` skips the window and audio entirely, and `--renderer software|opengl|vulkan` overrides the renderer if OpenGL is a problem on your machine; the full flag list is in the [command line reference](/docs/reference/cli).
