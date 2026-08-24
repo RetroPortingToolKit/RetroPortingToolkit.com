@@ -60,6 +60,23 @@
   white-space: nowrap;
 }
 
+/* In the sidebar. The docs section no longer has a bar of its own (the site's
+   shared nav bar is the only bar on the page), so above 900px the trigger sits
+   at the head of the navigation rail, full width, the way a documentation
+   search usually does. Below that DocsShell puts it in the narrow-screen
+   toolbar instead, where the rule above is already the right shape. */
+.docs-sidebar .docs-search-trigger {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  margin: 0 0 18px;
+}
+.docs-sidebar .docs-search-trigger-label {
+  flex: 1;
+  text-align: left;
+  padding-right: 8px;
+}
+
 /* -------------------------------- the dialog ------------------------------ */
 
 .docs-search-overlay {
@@ -265,50 +282,20 @@
 
 /* --------------------------------- narrow --------------------------------- */
 
-/* The bar has room for a back link, a theme control and the site name, so on a
-   phone the trigger keeps only its icon. The shortcut still works, and so does
-   tapping the icon, which is the affordance that matters on a touch screen. */
-@media (max-width: 899px) {
-  /* The bar was already close to full on a phone: a menu button, a theme
-     control and the site name. Adding a third control to it overflowed the
-     viewport by 24px and gave the whole page a sideways scroll, so the bar's
-     own padding and gaps give that width back. Scoped to .docs-bar, so no
-     other page-bar on the site is touched.
+/* Below 900px the trigger lives in the docs toolbar (12-docs.css), a row of its
+   own with only the sheet button beside it, so the word "Search" fits and stays.
+   The shortcut hint is what goes: a phone has no Cmd-K.
 
-     The two rules under it are the safety net rather than the fix: below about
-     380px the row runs out of room again (it did before this file existed
-     too), and a truncated menu label is a better failure than a page that
-     scrolls sideways. */
-  .docs-bar .page-bar-inner {
-    padding-left: 12px;
-    padding-right: 12px;
-    gap: 10px;
-  }
-  /* The wordmark is the widest thing in the row and the only one that can give
-     width back without losing a word: both halves stay, one step smaller, in
-     the docs bar on a phone only. Nothing about the brand STRING changes, it
-     still comes from src/lib/site.ts. */
-  .docs-bar .page-home {
-    font-size: 13px;
-  }
-  .docs-bar .page-back {
-    min-width: 0;
-  }
-  .docs-bar .page-back > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .docs-bar-right {
-    gap: 2px;
-  }
-  .docs-search-trigger {
-    padding: 0 6px;
-    gap: 0;
-  }
-  .docs-search-trigger-label,
+   This block used to spend most of its length clawing width back for the docs
+   section's own bar, which had a menu button, a theme control, the wordmark AND
+   this trigger in one 52px row. That bar is gone; the site's shared nav bar is
+   the only bar on a docs page now, and it carries none of these. */
+@media (max-width: 899px) {
   .docs-search-trigger-kbd {
     display: none;
+  }
+  .docs-search-trigger-label {
+    padding-right: 2px;
   }
   .docs-search-overlay {
     padding: 12px 12px 16px;

@@ -11,6 +11,13 @@ import { ThemeToggle } from "./ThemeToggle";
 
 export type TabId = "home" | "hardware" | "game" | "blog";
 
+/**
+ * What the bar shows as current. Every tab, plus "docs": the Documentation
+ * entry is a link rather than a tab (see the call site below), but it is still
+ * a place you can BE, and the bar has to say so on every /docs URL.
+ */
+export type NavActive = TabId | "docs";
+
 interface TabDef {
   id: TabId;
   label: string;
@@ -19,7 +26,7 @@ interface TabDef {
 }
 
 interface TabsProps {
-  active: TabId;
+  active: NavActive;
   onChange: (id: TabId) => void;
   tabsRef: RefObject<HTMLDivElement>;
   tabs: TabDef[];
@@ -77,6 +84,9 @@ export function Tabs({
     // snap=true repositions without easing (layout shifts: resize, font load)
     const position = (snap = false) => {
       const tabEls = Array.from(row.querySelectorAll<HTMLElement>(".tab"));
+      // -1 on a /docs URL: the current thing is the Documentation link, which
+      // is not a .tab and carries its own static capsule (12-docs.css). The
+      // sliding pill stays at width 0, i.e. invisible.
       const activeIdx = tabs.findIndex((t) => t.id === active);
       if (activeIdx < 0 || !tabEls[activeIdx]) return;
 
@@ -123,7 +133,12 @@ export function Tabs({
   useEffect(() => {
     const row = tabsRowRef.current;
     if (!row) return;
-    const activeEl = row.querySelector<HTMLElement>(".tab.active");
+    // The Documentation link is the last thing in the row and is the current
+    // item on every /docs URL, so it is exactly the one a phone would leave
+    // off-screen; it counts here as much as a tab does.
+    const activeEl = row.querySelector<HTMLElement>(
+      ".tab.active, .tabs-doclink.is-current",
+    );
     if (!activeEl) return;
     const rowRect = row.getBoundingClientRect();
     const elRect = activeEl.getBoundingClientRect();
@@ -187,8 +202,14 @@ export function Tabs({
               deliberately NOT class="tab" - the sliding pill measures
               querySelectorAll(".tab") against the tabs array by index, and an
               extra .tab would make a swipe past the last tab scrub the pill
-              onto this link. Styled to match a tab in 12-docs.css. */}
-          <Link to="/docs" className="tabs-doclink">
+              onto this link. Styled to match a tab in 12-docs.css, including
+              the active capsule: this bar renders on /docs too, so the link
+              has to be able to read as the current place. */}
+          <Link
+            to="/docs"
+            className={"tabs-doclink" + (active === "docs" ? " is-current" : "")}
+            aria-current={active === "docs" ? "page" : undefined}
+          >
             {COLLECTION_TITLE.docs}
           </Link>
           {/* On mobile this sits inline at the end of the tab row so it

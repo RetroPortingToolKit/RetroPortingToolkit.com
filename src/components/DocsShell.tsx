@@ -1,16 +1,24 @@
-import { useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { SITE } from "@/lib/site";
+import { useRef, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { COLLECTION_TITLE } from "@/lib/pageTitle";
 import { useMobile } from "@/lib/useMobile";
-import { ThemeToggle } from "./ThemeToggle";
+import { Tabs } from "./Tabs";
+import { NAV_TABS, TAB_PATH } from "./navTabs";
 import { DocsSidebar, DocsNavSheet } from "./DocsSidebar";
 import { DocsSearch } from "./DocsSearch";
 
-// The frame every documentation URL renders inside: the bar, the persistent
-// sidebar, the reading column, and an optional right rail.
+// The frame every documentation URL renders inside: the SITE's navigation bar,
+// the persistent sidebar, the reading column, and an optional right rail.
 //
-// Below 900px the sidebar is not a rail, it is a sheet opened from the bar,
+// The bar is the shared <Tabs> component in the same subpage form the Games and
+// Platforms pages use ("home-next-page is-subpage", 03-nav.css), with
+// Documentation marked current. This section used to render a bar of its own -
+// a breadcrumb on the left, the wordmark on the right - and crossing into /docs
+// therefore swapped the whole chrome, which read as leaving the site. The
+// docs-only furniture (sidebar, search, breadcrumbs, on-this-page) all sits
+// BELOW the shared bar now, so there is exactly one bar on the page.
+//
+// Below 900px the sidebar is not a rail, it is a sheet opened from the toolbar,
 // which is the pattern this site already uses for navigation on a narrow screen
 // (vaul, as in CollectionView and ItemView).
 const NARROW = "(max-width: 899px)";
@@ -40,6 +48,8 @@ interface Props {
 export function DocsShell({ currentSlug, rail, children }: Props) {
   const isNarrow = useMobile(NARROW);
   const [navOpen, setNavOpen] = useState(false);
+  const navigate = useNavigate();
+  const tabsRef = useRef<HTMLDivElement>(null);
   // The landing is a hub and uses the rail's width for its card grid. Every
   // real page keeps the three column grid whether or not it has enough
   // headings for a contents list, so the reading measure does not change from
@@ -47,41 +57,43 @@ export function DocsShell({ currentSlug, rail, children }: Props) {
   const isLanding = currentSlug === undefined;
 
   return (
-    <div className="page page-fade docs-page">
-      <header className="page-bar docs-bar">
-        <div className="page-bar-inner">
-          {isNarrow ? (
-            <button
-              type="button"
-              className="page-back docs-menu-btn"
-              onClick={() => setNavOpen(true)}
-              aria-haspopup="dialog"
-              aria-expanded={navOpen}
-            >
-              <MenuIcon />
-              <span>{COLLECTION_TITLE.docs}</span>
-            </button>
-          ) : (
-            <Link to="/docs" className="page-back docs-bar-back">
-              <span>{COLLECTION_TITLE.docs}</span>
-            </Link>
-          )}
-          <span className="docs-bar-right">
-            {/* Mounted on every /docs URL, so the shortcut works wherever the
-                reader is in the section, not only where a box is visible. */}
-            <DocsSearch />
-            <ThemeToggle />
-            <Link to="/" className="page-home">
-              {SITE.name}
-              <span className="dot">{SITE.nameSuffix}</span>
-            </Link>
-          </span>
-        </div>
-      </header>
+    <div className="home-next-page is-subpage docs-page">
+      {/* Docs are not one of the home pager's panes, so a tab click here is a
+          plain navigation rather than a page-turn gesture. Everything else
+          about the bar - brand, pill row, theme toggle, scrolled contraction -
+          is the site's, unchanged. */}
+      <Tabs
+        active="docs"
+        onChange={(id) => navigate(TAB_PATH[id])}
+        tabsRef={tabsRef}
+        tabs={NAV_TABS}
+      />
 
       <main className="page-main docs-main">
         <div className={"docs-layout" + (isLanding ? " docs-layout--norail" : "")}>
-          {!isNarrow && <DocsSidebar currentSlug={currentSlug} />}
+          {isNarrow ? (
+            // No rail at this width, so the sheet trigger and the search need
+            // somewhere of their own. One slim row above the article, not a
+            // second bar.
+            <div className="docs-toolbar">
+              <button
+                type="button"
+                className="docs-menu-btn"
+                onClick={() => setNavOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={navOpen}
+              >
+                <MenuIcon />
+                <span>{COLLECTION_TITLE.docs}</span>
+              </button>
+              {/* Exactly one DocsSearch is mounted at any width (it registers
+                  the Cmd-K / "/" shortcut), so the trigger moves between the
+                  toolbar and the sidebar rather than existing in both. */}
+              <DocsSearch />
+            </div>
+          ) : (
+            <DocsSidebar currentSlug={currentSlug} />
+          )}
           <div className="docs-column">{children}</div>
           {rail}
         </div>

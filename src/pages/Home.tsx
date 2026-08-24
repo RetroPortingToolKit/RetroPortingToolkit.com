@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, type TabId } from "@/components/Tabs";
+// The bar's contents live outside this file: the documentation shell renders
+// the SAME bar, and a nav that differed from one section to the next is the
+// defect this shared module exists to stop.
+import { NAV_TABS, TAB_ORDER, TAB_PATH } from "@/components/navTabs";
 import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
@@ -32,20 +36,6 @@ import {
   SECTION_TITLES,
   renderSegments,
 } from "@/lib/homeContent";
-
-const TAB_PATH: Record<TabId, string> = {
-  home: "/",
-  hardware: "/hardware",
-  game: "/games",
-  blog: "/blog",
-};
-const TAB_ORDER: TabId[] = ["home", "hardware", "game", "blog"];
-const NAV_TABS = [
-  { id: "home" as TabId, label: "Home", path: "/" },
-  { id: "hardware" as TabId, label: "Platforms", path: "/hardware" },
-  { id: "game" as TabId, label: "Games", path: "/games" },
-  { id: "blog" as TabId, label: "News", path: "/blog" },
-];
 
 // Must equal what scripts/vite-prerender.mjs serves for each tab's route, so
 // hydration does not replace the served title with a different one. Built from

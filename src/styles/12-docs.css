@@ -13,6 +13,46 @@
 
 /* ---------------------------------- shell --------------------------------- */
 
+/* The page carries `home-next-page is-subpage` so the site's navigation bar
+   renders here exactly as it does on Games and Platforms: same floating pill
+   above 761px, same fixed placement, same contraction on scroll (03-nav.css).
+   Two things have to be taken back from those classes.
+
+   1. The background. `.home-next-page` paints --bg-soft, which is what code
+      blocks, the inline contents box and the search trigger's hover use, so on
+      it every one of them would vanish. Documentation reads on --bg.
+   2. overflow-x. `.home-next-page` uses `hidden`, which makes the block axis a
+      scroll container and silently kills `position: sticky` - and the sidebar
+      and the on-this-page rail are both sticky. `clip` prevents the same
+      sideways scroll without becoming a scroll container. */
+.docs-page {
+  background: var(--bg);
+  overflow-x: clip;
+
+  /* Height of the fixed navigation bar, which everything below has to clear:
+     the reading column's top padding, both sticky offsets, and the scroll
+     landing of an in-page anchor. Measured in the browser at every breakpoint
+     the bar itself changes at: above 761px it is the floating pill and adds
+     its own 12px of top padding, and 06-responsive.css retunes the tab metrics
+     at 880px and again at 560px. */
+  --docs-bar-h: 64px;
+}
+@media (max-width: 899px) {
+  .docs-page {
+    --docs-bar-h: 61px;
+  }
+}
+@media (max-width: 760px) {
+  .docs-page {
+    --docs-bar-h: 47px;
+  }
+}
+
+.docs-main {
+  /* Clears the fixed bar. `.page-main` supplies the 32px of breathing room. */
+  padding-top: calc(var(--docs-bar-h) + 32px);
+}
+
 .docs-layout {
   --docs-rail: 236px;
   --docs-toc: 208px;
@@ -37,34 +77,63 @@
   padding-top: 4px;
 }
 
-/* The bar is the one from 05-detail.css; docs only add the theme control and
-   the sheet trigger to it. The toggle is absolutely placed inside the tab bar
-   on the home page, so it is pinned back into the flex row here. */
-.docs-bar-right {
+/* The narrow-screen toolbar: the sheet trigger and the search, one slim row
+   above the article. It exists only below 900px, where there is no sidebar to
+   put them in. Deliberately in the page flow rather than in a bar of its own -
+   the whole point of this change is that the page has ONE bar. */
+.docs-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 22px;
+}
+.docs-menu-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 15px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease);
 }
-.docs-bar .theme-toggle {
-  position: static;
-  transform: none;
+.docs-menu-btn:hover {
+  color: var(--ink);
+  /* a tint of --ink, not --bg-soft: --bg-soft is near black in the dark
+     palette and would darken the control instead of lifting it */
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.docs-menu-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.docs-menu-btn > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .docs-menu-icon {
   width: 15px;
   height: 15px;
-}
-.docs-bar-back {
-  padding-left: 14px;
+  flex: none;
 }
 
 /* --------------------------------- sidebar -------------------------------- */
 
 .docs-sidebar {
   position: sticky;
-  /* clears the 52px sticky page bar */
-  top: 52px;
+  /* clears the fixed site bar, plus a little air */
+  top: calc(var(--docs-bar-h) + 12px);
   align-self: start;
-  max-height: calc(100vh - 52px);
+  max-height: calc(100vh - var(--docs-bar-h) - 24px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -291,8 +360,8 @@ span.docs-nav-section-title {
 .docs-prose h3,
 .docs-prose h4 {
   color: var(--ink);
-  /* an in-page anchor must not land under the sticky bar */
-  scroll-margin-top: 84px;
+  /* an in-page anchor must not land under the fixed bar */
+  scroll-margin-top: calc(var(--docs-bar-h) + 26px);
 }
 /* The heading permalink (.md-anchor) used to be styled here, scoped to
    .docs-prose. The renderer puts it on every heading of every kind, so a blog
@@ -430,9 +499,9 @@ span.docs-nav-section-title {
 
 .docs-toc--rail {
   position: sticky;
-  top: 52px;
+  top: calc(var(--docs-bar-h) + 12px);
   align-self: start;
-  max-height: calc(100vh - 52px);
+  max-height: calc(100vh - var(--docs-bar-h) - 24px);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -752,10 +821,19 @@ a.docs-card-link:hover {
 
 /* --------------------------- docs link in the nav -------------------------- */
 /* Deliberately not .tab: see the comment in Tabs.tsx. Matched to a tab's
-   metrics so the row still reads as one strip. */
+   metrics so the row still reads as one strip - INCLUDING the current state,
+   because this bar renders on the documentation pages too and the reader has
+   to be able to see where they are.
+
+   A tab's active capsule is the shared sliding .tab-pill, which indexes the
+   .tab elements and so cannot land here. This draws the same capsule as a
+   ::before instead: identical height, radius and tint to .tab::before and
+   .tab-pill (03-nav.css). Nothing slides, and nothing needs to: the bar is
+   freshly mounted when a docs URL loads, there is no gesture to track. */
 
 .tabs-doclink {
   position: relative;
+  z-index: 0;
   padding: 14px;
   font-size: 14px;
   font-weight: 450;
@@ -764,12 +842,64 @@ a.docs-card-link:hover {
   white-space: nowrap;
   flex-shrink: 0;
   align-self: center;
+  border-radius: 999px;
   transition: color 0.2s ease-in-out;
   -webkit-tap-highlight-color: transparent;
+}
+.tabs-doclink::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 34px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+.tabs-doclink.is-current {
+  color: var(--ink);
+  font-weight: 600;
+}
+.tabs-doclink.is-current::before {
+  opacity: 1;
+}
+.tabs-doclink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 @media (hover: hover) {
   .tabs-doclink:hover {
     color: var(--ink);
+  }
+  .tabs-doclink:hover::before {
+    opacity: 1;
+  }
+}
+/* 06-responsive.css retunes .tab at three widths and the link is not a .tab,
+   so it has to follow by hand or the last item in the row sits at a different
+   size and rhythm from the four beside it. Same breakpoints, same values. */
+@media (max-width: 880px) {
+  .tabs-doclink {
+    padding: 12px 14px;
+    letter-spacing: 3px;
+    font-size: 15px;
+  }
+}
+@media (max-width: 560px) {
+  .tabs-doclink {
+    padding: 12px 12px;
+    letter-spacing: 2px;
+    font-size: 14px;
+  }
+}
+@media (max-width: 380px) {
+  .tabs-doclink {
+    padding: 12px 10px;
+    letter-spacing: 1.5px;
   }
 }
 
