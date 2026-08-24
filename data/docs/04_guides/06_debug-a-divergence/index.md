@@ -35,7 +35,7 @@ The same class of bug hides in the hasher, and the guard against it is five line
 
 From [`tools/nes_cosim.py`](https://github.com/mstan/nesrecomp/blob/master/tools/nes_cosim.py):
 
-```python
+```python title="tools/nes_cosim.py"
 def assert_hash_nonnull(rows, label):
     """Guard against a silently-blind hasher: the sub-hashes must not all be a
     single constant across the run (a constant hasher passes A-vs-A trivially)."""
@@ -56,7 +56,7 @@ The psxrecomp coordinator now refuses to continue when it cannot parse a chain: 
 
 Before symptom-specific work, all the DEBUG documents run one loop. psxrecomp's is the terse original, from [`DEBUG.md`](https://github.com/mstan/psxrecomp/blob/master/DEBUG.md):
 
-```text
+```text title="DEBUG.md"
 0. Tool validation (first use only)
 1. Sync state (NOT frame number)
 2. Dump full state (native + oracle) via TCP debug server
@@ -84,7 +84,7 @@ Three rules inside it are stated in nearly every repository and are the ones peo
 
 Check this before anything else, every run, in every toolchain that has it. From gbarecomp's [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md):
 
-```text
+```text title="DEBUG.md"
 # RULE 0a — DISPATCH MISS CHECK (every run, before any debugging)
 
 Before anything else, read `dispatch_misses.log` next to the game
@@ -104,7 +104,7 @@ vbrecomp, smsggrecomp and cdirecomp state the same rule for their own dispatcher
 
 A black screen is almost never a renderer bug. From PokemonStadiumRecomp's [`DEBUG.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/DEBUG.md):
 
-```text
+```text title="DEBUG.md"
 ## First-divergence rule
 
 Always find the **first** divergence, not a downstream symptom.
@@ -135,7 +135,7 @@ Examples of FALSE success:
 
 Classify the corruption before you pick a memory region. From YoshiNESRecomp's [`DEBUG.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/DEBUG.md):
 
-```text
+```text title="DEBUG.md"
 ## TITLE SCREEN TRIAGE
 
 Before deep debugging, classify the corruption:

@@ -43,7 +43,7 @@ The head of the shipped file, showing how a platform default is written.
 
 From [`index.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/index.json):
 
-```json
+```json title="index.json"
 {
   "schema_version": 1,
   "name": "RetComM supported titles",
@@ -166,7 +166,7 @@ The head of a shipped manifest, verbatim. The file continues to line 75 with `no
 
 From [`titles/tomba-psx.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/titles/tomba-psx.json):
 
-```json
+```json title="titles/tomba-psx.json"
 {
   "id": "tomba-psx",
   "name": "Tomba!",
@@ -192,7 +192,7 @@ From [`titles/tomba-psx.json`](https://github.com/TechnicallyComputers/retcomm-c
 
 And the `netplay` object from the same file:
 
-```json
+```json title="titles/tomba-psx.json"
   "netplay": {
     "supported": true,
     "stack": "recomp-net",
@@ -208,7 +208,7 @@ The schema asks authors to ship every identity key even when it is empty, and pu
 
 From [`SCHEMA.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/SCHEMA.md):
 
-```json
+```json title="SCHEMA.md"
 "rom_identity": {
   "crc32": [],
   "md5": [],

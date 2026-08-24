@@ -72,7 +72,7 @@ Stages 2 through 5 are a cycle you go round hundreds of times. A dispatch miss f
 
 From [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md):
 
-```text
+```text title="CLAUDE.md"
 1. BUILD recompiler     →  NESRecomp.exe  (only when recompiler src changes)
 2. RUN recompiler       →  generates <game>_full.c in game project's generated/
 3. BUILD game project   →  GameName.exe  (after runner or game changes)

@@ -66,7 +66,7 @@ an interpreter would.
 
 From [`runner/glue.c`](https://github.com/mstan/smsggrecomp/blob/main/runner/glue.c):
 
-```c
+```c title="runner/glue.c"
 void sms_set_sync_deadline(void){
     g_sync_deadline = vdp_irq_asserted() ? g_z80.cyc + 1 : g_next_line_cyc;
 }
@@ -112,7 +112,7 @@ explicitly.
 
 From [`recompiler/src/code_generator.c`](https://github.com/mstan/smsggrecomp/blob/main/recompiler/src/code_generator.c):
 
-```c
+```c title="recompiler/src/code_generator.c"
 static void emit_flat_body(FILE *o, const Z80Insn *in, uint16_t addr)
 {
     uint16_t next = (uint16_t)(addr + in->length);
@@ -137,7 +137,7 @@ live bytes first.
 
 From [`recompiler/src/code_generator.c`](https://github.com/mstan/smsggrecomp/blob/main/recompiler/src/code_generator.c):
 
-```c
+```c title="recompiler/src/code_generator.c"
 static void emit_flat_match(FILE *o, const Z80Insn *in, uint16_t addr)
 {
     fprintf(o, "        if (");

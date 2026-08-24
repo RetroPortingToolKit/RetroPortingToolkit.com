@@ -5,6 +5,7 @@ import { COLLECTION_TITLE } from "@/lib/pageTitle";
 import { useMobile } from "@/lib/useMobile";
 import { ThemeToggle } from "./ThemeToggle";
 import { DocsSidebar, DocsNavSheet } from "./DocsSidebar";
+import { DocsSearch } from "./DocsSearch";
 
 // The frame every documentation URL renders inside: the bar, the persistent
 // sidebar, the reading column, and an optional right rail.
@@ -66,6 +67,9 @@ export function DocsShell({ currentSlug, rail, children }: Props) {
             </Link>
           )}
           <span className="docs-bar-right">
+            {/* Mounted on every /docs URL, so the shortcut works wherever the
+                reader is in the section, not only where a box is visible. */}
+            <DocsSearch />
             <ThemeToggle />
             <Link to="/" className="page-home">
               {SITE.name}

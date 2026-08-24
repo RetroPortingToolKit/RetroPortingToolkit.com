@@ -67,7 +67,7 @@ raster constants.
 
 From [`runner/video/genesis_machine.c`](https://github.com/mstan/segagenesisrecomp/blob/master/runner/video/genesis_machine.c):
 
-```c
+```c title="runner/video/genesis_machine.c"
 /* NTSC raster timing. */
 #define LINES_TOTAL     262
 #define MASTER_PER_LINE 3420u
@@ -81,7 +81,7 @@ interrupts and renders. That is the whole interleave.
 
 From [`runner/video/genesis_machine.c`](https://github.com/mstan/segagenesisrecomp/blob/master/runner/video/genesis_machine.c):
 
-```c
+```c title="runner/video/genesis_machine.c"
     for (int line = 0; line < LINES_TOTAL; line++) {
         unsigned irq = gvdp_begin_scanline(&m->vdp, line);
         g_snd_line = (unsigned)line;   /* [SND-TRACE] */
@@ -112,7 +112,7 @@ bank register, the PSG, and a 32 KB window onto the 68K bus.
 
 From [`runner/video/genesis_bus.c`](https://github.com/mstan/segagenesisrecomp/blob/master/runner/video/genesis_bus.c):
 
-```c
+```c title="runner/video/genesis_bus.c"
 uint8_t gbus_z80_read(GenesisBus *b, uint16_t addr)
 {
     if (addr < 0x4000u) return b->z80_ram[addr & 0x1FFFu];         /* RAM+mirror */
@@ -173,7 +173,7 @@ because level event triggers wait for the camera to reach it and shrinking it
 
 From [`sonicthehedgehog2/game.toml`](https://github.com/mstan/segagenesisrecomp/blob/master/sonicthehedgehog2/game.toml):
 
-```toml
+```toml title="sonicthehedgehog2/game.toml"
 addr = 0x1C56A            # Tails_LevelBound: move.w (Tails Min copy).w,d0
 kind = "addmem"
 base = 2

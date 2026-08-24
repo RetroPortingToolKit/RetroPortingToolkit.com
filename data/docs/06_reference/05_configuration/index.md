@@ -32,7 +32,7 @@ Build-time settings do not participate. A BIOS profile is read only by the recom
 
 A profile describes one BIOS image: where it loads, where it starts, and every bulk copy the boot code makes out of ROM into RAM. From [`bios/SCPH1001.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/SCPH1001.toml):
 
-```toml
+```toml title="bios/SCPH1001.toml"
 [program]
 name         = "Sony SCPH-1001 BIOS"
 id           = "SCPH-1001"
@@ -60,6 +60,8 @@ shell_entry_phys  = "0x00030000"
 deliver_event_ret = "0x80001720"
 ```
 
+### `[program]`
+
 | key | type | default | meaning |
 |---|---|---|---|
 | `program.name` | string | required | Display name |
@@ -71,10 +73,20 @@ deliver_event_ret = "0x80001720"
 | `program.image.sha256` | hex string | `""`, unchecked | Pins the exact image; the recompiler refuses a mismatched ROM |
 | `program.image.license` | string | absent | Informational |
 | `program.image.redistributable` | bool | `false` | `true` means the BIOS ships with the build, and the runtime hides any requirement to supply one |
+
+### `[recompiler]` in a BIOS profile
+
+| key | type | default | meaning |
+|---|---|---|---|
 | `recompiler.seeds` | path | required | Function-start seed file |
 | `recompiler.out_dir` | path | `generated` | Output directory |
 | `recompiler.out_stem` | string | derived from the filename | Output stem, giving `<out_stem>_full.c` and `<out_stem>_dispatch.c` |
 | `recompiler.strict` | bool | `true` | Strict translation. The schema notes it is currently always true |
+
+### `[recompiler.address_model]`
+
+| key | type | default | meaning |
+|---|---|---|---|
 | `recompiler.address_model.normalize_mask` | hex string | `"0x1FFFFFFF"` | KSEG mask. The loader rejects any other value |
 | `[[recompiler.address_model.copy]].name` | string | required | Comment label emitted into the generated C |
 | `[[recompiler.address_model.copy]].rom_lo` | hex string | required | Physical range start |
@@ -83,19 +95,34 @@ deliver_event_ret = "0x80001720"
 | `[[recompiler.address_model.copy]].runtime_base` | hex string | required | Virtual address the CPU executes the copy at |
 | `[[recompiler.address_model.copy]].dispatch_key` | `"ram"` or `"rom"` | required | Which side of the copy owns the dispatch key. `ram` folds ROM to RAM, `rom` folds the RAM alias back to ROM |
 | `[[recompiler.address_model.copy]].kernel_bless` | bool | `false` | The runtime may byte-verify the window and then run native code for it |
-| `[[recompiler.install_slots]].ram_addr` | hex string | none | A kernel-RAM PC the BIOS overwrites with a runtime stub. The emitter plants a dirty-check hook there |
-| `recompiler.runtime_exports.shell_entry_phys` | hex string | absent, meaning 0 | Boot-skip anchor. 0 means structurally unavailable on this image, not address zero |
-| `recompiler.runtime_exports.deliver_event_ret` | hex string | absent, meaning 0 | Kernel-call HLE anchor. 0 means that tier cannot be turned on for this image |
-| `[[recompiler.bios_vectors]]` | table array | none | A0/B0/C0 table descriptors: `ram_addr`, `index_reg`, `table_rom_addr`, `table_count`, `table_ram_addr` |
-| `[[recompiler.bios_aliases]]` | table array | none | Maps `ram_addr` to a `target_key` alias for a runtime trampoline |
 
 Semantic invariants are enforced at load and a violation refuses to build: copy windows must be disjoint, fold outputs must not intersect fold inputs, and there may be only one blessed window.
+
+### `[[recompiler.install_slots]]`
+
+| key | type | default | meaning |
+|---|---|---|---|
+| `[[recompiler.install_slots]].ram_addr` | hex string | none | A kernel-RAM PC the BIOS overwrites with a runtime stub. The emitter plants a dirty-check hook there |
+
+### `[recompiler.runtime_exports]`
+
+| key | type | default | meaning |
+|---|---|---|---|
+| `recompiler.runtime_exports.shell_entry_phys` | hex string | absent, meaning 0 | Boot-skip anchor. 0 means structurally unavailable on this image, not address zero |
+| `recompiler.runtime_exports.deliver_event_ret` | hex string | absent, meaning 0 | Kernel-call HLE anchor. 0 means that tier cannot be turned on for this image |
+
+### `[[recompiler.bios_vectors]]` and `[[recompiler.bios_aliases]]`
+
+| key | type | default | meaning |
+|---|---|---|---|
+| `[[recompiler.bios_vectors]]` | table array | none | A0/B0/C0 table descriptors: `ram_addr`, `index_reg`, `table_rom_addr`, `table_count`, `table_ram_addr` |
+| `[[recompiler.bios_aliases]]` | table array | none | Maps `ram_addr` to a `target_key` alias for a runtime trampoline |
 
 ## Game config: `game.toml`
 
 One file per title. The scaffold writes a starting point with the optional keys commented out. From [`tools/new_project_layout/templates/game.toml.in`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/templates/game.toml.in), where `@NAME@` tokens are substituted by the scaffold script:
 
-```toml
+```toml title="tools/new_project_layout/templates/game.toml.in"
 [game]
 name = "@GAME_NAME@"
 # id = "SLUS-XXXXX"
@@ -127,9 +154,7 @@ strict = true
 | `game.text_size` | hex string | the header value | Bounds main-executable analysis and establishes the overlay floor. A bound smaller than the header's must be verified non-code and 4 KiB aligned |
 | `game.stack_base` | hex string | required | Initial `$sp` |
 
-### `[recompiler]` and `[[data_shards]]`
-
-`[[data_shards]]` is a top-level table array, not nested under `[recompiler]`.
+### `[recompiler]` in `game.toml`
 
 | key | type | default | meaning |
 |---|---|---|---|
@@ -139,6 +164,13 @@ strict = true
 | `recompiler.bios_config` | path | the SCPH1001 profile | The BIOS profile whose address model game codegen folds RAM aliases through. This does not choose the player's runtime BIOS |
 | `recompiler.discovery` | `"whole-image"` or `"reachable"` | `"whole-image"` | `reachable` starts at the entry point plus evidence-backed seeds and follows direct `jal` targets only. Unresolved indirect targets fail closed to interpretation |
 | `[[recompiler.patch]]` | table array | none | `id`, `address`, `expected`, `replacement`, optional `note`. Replaces one exact 32-bit word before discovery. Generation fails if the word is not `expected` |
+
+### `[[data_shards]]`
+
+`[[data_shards]]` is a top-level table array, not nested under `[recompiler]`.
+
+| key | type | default | meaning |
+|---|---|---|---|
 | `[[data_shards]].funcs` | array of hex strings | none | Functions given a `psx_datashard_enter` memoization hook |
 
 ### `[runtime]`
@@ -163,7 +195,7 @@ strict = true
 | `runtime.fast_boot` | bool | `false` | Deprecated. See below |
 | `runtime.turbo_loads`, `runtime.offer_turbo_loads` | bool | ignored | Deprecated. See below |
 
-### `[video]` and `[audio]`
+### `[video]`
 
 | key | type | default | meaning |
 |---|---|---|---|
@@ -175,9 +207,14 @@ strict = true
 | `video.geometry_correction` | bool | `false` | Present in the config loader but not reachable. See the unreachable keys section below |
 | `video.auto_skip_fmv` | bool | `false` | Legacy Settings default for skipping FMVs |
 | `video.offer_skip_fmv` | bool | `true` | Launcher visibility for the above |
+
+### `[audio]`
+
+| key | type | default | meaning |
+|---|---|---|---|
 | `audio.buffer_ms` | int, 30 to 500 | `180` | Host playback cushion. A per-game developer choice, and deliberately not read from `settings.toml` |
 
-### `[pgo]`, `[netplay]` and `[audit]`
+### `[pgo]`
 
 | key | type | default | meaning |
 |---|---|---|---|
@@ -186,10 +223,20 @@ strict = true
 | `pgo.train_runs` | int | `2` when enabled | Number of training runs. `--train-runs` overrides |
 | `pgo.mute_host_audio` | bool | `true` when enabled | Mute host speakers during training |
 | `pgo.hide_video` | bool | `true` when enabled | Train headless, with no on-screen video |
+
+### `[netplay]`
+
+| key | type | default | meaning |
+|---|---|---|---|
 | `netplay.require_cue` | bool | `false` | Reject a bare `.bin` mount |
 | `netplay.required_tracks` | int | `0` | Exact `iso_track_count` when greater than 0 |
 | `netplay.required_leadout_lba` | int | unset | Exact lead-out LBA |
 | `netplay.required_disc_fp` | hex string | `""` | Exact lowercase SHA-256 TOC fingerprint |
+
+### `[audit]`
+
+| key | type | default | meaning |
+|---|---|---|---|
 | `[audit]` | table | none | Audit regions and address normalisation for `tools/audit_config.py` |
 
 A `[prepare_disc]` section also exists and drives disc preparation, whose digest verification `psxrecomp_cli.py generate --skip-hash-check` skips. Its individual keys are not covered here.
@@ -198,7 +245,7 @@ A `[prepare_disc]` section also exists and drives disc preparation, whose digest
 
 Every key is optional and the block is inert if absent. It is read by `psxrecomp-game`, so changing a key that affects emitted code needs a regeneration. From [`WIDESCREEN.md`](https://github.com/mstan/psxrecomp/blob/master/WIDESCREEN.md):
 
-```toml
+```toml title="WIDESCREEN.md"
 [video]
 aspect_ratio = "16:9"   # "4:3" (default/identity) | "16:9" | "21:9" | any "W:H"
                         # in [4:3, 32:9]. Wider than 4:3 engages the hack.

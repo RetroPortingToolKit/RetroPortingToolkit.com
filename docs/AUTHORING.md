@@ -102,6 +102,27 @@ of a static cover. Those are produced locally by `scripts/gen-previews.mjs`;
 
 Do not put media in a clump. Each figure sits next to the sentence it supports.
 
+## Code blocks
+
+Every fenced block declares its language. A block that quotes a real file also
+names that file in the info string, and the name renders as a label on the block
+itself:
+
+````
+```toml title="bios/SCPH1001.toml"
+name = "SCPH1001"
+load_addr = 0x1FC00000
+```
+````
+
+Use the same path the sentence above the block already cites, so the label and
+the caption agree. Do not invent one: a block showing an example that exists
+nowhere, or a sequence of commands a reader is meant to run, gets no filename.
+
+`file="..."` and `filename="..."` are accepted spellings of the same thing, and
+a bare path as the whole info string works when the block has no language
+(```` ```Makefile.local ````). Prefer `title=`.
+
 ## House style
 
 - Plain language, concrete, short sentences. No hype, no marketing voice.

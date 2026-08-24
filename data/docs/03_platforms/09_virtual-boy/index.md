@@ -40,7 +40,7 @@ Two of those facts show up directly in generated code. Every Format I arithmetic
 
 From [`recompiler/v810/emitter.py`](https://github.com/mstan/vbrecomp/blob/master/recompiler/v810/emitter.py):
 
-```python
+```python title="recompiler/v810/emitter.py"
     if op == 0x01:  # ADD
         body = (f"uint32_t _a=cpu->gpr[{r2}], _b=cpu->gpr[{r1}]; "
                 f"uint32_t _r=_a+_b; "
@@ -75,7 +75,7 @@ The project defines the word precisely, in [`STUBS_TO_FIX.md`](https://github.co
 
 From [`runtime/src/stub_abort.c`](https://github.com/mstan/vbrecomp/blob/master/runtime/src/stub_abort.c):
 
-```c
+```c title="runtime/src/stub_abort.c"
 void vb_stub_abort(const char* what, uint32_t pc, uint32_t addr) {
     vb_print_banner(what, pc, addr);
     /* Dump rings if the crash module is linked. The Phase 1 skeleton's
@@ -103,7 +103,7 @@ Concretely: the window defaults to one eye, eye 0, the left. Passing `--stereo` 
 
 From [`runtime/src/main.cpp`](https://github.com/mstan/vbrecomp/blob/master/runtime/src/main.cpp):
 
-```cpp
+```cpp title="runtime/src/main.cpp"
             const bool recolor = vb_recolor_active();
             if (recolor) {
                 vb_vip_render_framebuffer_recolored(0, &tex_pixels[0]);

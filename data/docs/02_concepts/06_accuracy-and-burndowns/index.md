@@ -108,7 +108,7 @@ A passing run is then pinned so it cannot silently regress.
 
 From [`tools/cosim_baselines.tsv`](https://github.com/mstan/gbrecompiled/blob/master/tools/cosim_baselines.tsv):
 
-```text
+```text title="tools/cosim_baselines.tsv"
 # Pinned co-simulation A-vs-B (recomp vs interpreter) baselines — the ratchet.
 # The chain hash is the cumulative FNV fold of context-A's full-state hash at
 # every T-cycle checkpoint. A recompiler/runtime change that alters guest

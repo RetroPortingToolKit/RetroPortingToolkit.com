@@ -35,7 +35,7 @@ Two more rules shape the code. The runner provides a generic, inert-by-default c
 
 **Squash and stretch**, for a 3D game with a projection to interfere with. From [psxrecomp](https://github.com/mstan/psxrecomp)'s [`WIDESCREEN.md`](https://github.com/mstan/psxrecomp/blob/master/WIDESCREEN.md):
 
-```text
+```text title="WIDESCREEN.md"
 This is the DuckStation/Beetle "widescreen hack" (squash the GTE projection,
 present stretched to the wide aspect → wider field of view), but implemented
 in our GTE library + GPU so it covers generated code, the interpreter, and
@@ -47,7 +47,7 @@ overlay DLLs uniformly — and extended well past what emulators ship with
 
 **Neither applies to a 2D sprite engine.** [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp) opens its [`WIDESCREEN.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/WIDESCREEN.md) by correcting exactly that premise. One bullet about a debug command is elided, marked in place:
 
-```text
+```text title="WIDESCREEN.md"
 An earlier handoff claimed MMX6 "over-draws" the world to X=512 and we just had to
 **reveal** the GPU-clipped overscan. **That is false.** Proven 2026-06-20 with pixels:
 [snip: lines 42-47, the wide_full debug-command bullet]
@@ -79,7 +79,7 @@ Do not hand-patch the immediates. Configure the recompiler with a list of `(addr
 
 Every widened comparison, in generated code, in the interpreter and in overlay code alike, reads one function. From [`runtime/src/gpu.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/gpu.c):
 
-```c
+```c title="runtime/src/gpu.c"
 int psx_ws_x_margin(void) {
     if (ws_margin_override >= 0) return ws_margin_override;
     /* Native-wide: widen the world-space draw cull by the per-side reveal
@@ -163,7 +163,7 @@ The NES sidecar shows the discipline: it recomputes the true 16-bit value at the
 
 Spawning is where widescreen touches simulation, and the NES answer is not to. From [SuperMarioBrosNESRecomp](https://github.com/mstan/SuperMarioBrosNESRecomp)'s [`WIDESCREEN.md`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/WIDESCREEN.md):
 
-```text
+```text title="WIDESCREEN.md"
 Enemies spawn on the **vanilla 4:3 timeline and position**, not at the
 widened 16:9 edge. The earlier "widen the spawn window too" approach
 caused serious spawn-area bugs — frenzy/group spawners derive an enemy's
@@ -180,7 +180,7 @@ is the intended, accepted behavior.
 
 Then the failure nobody expects. Keeping a margin enemy on screen for rendering also makes the game build a collision box for it, and that box is 8-bit screen relative, so it wraps and becomes a phantom hitbox the player can stomp. The fix reports margin enemies as offscreen at exactly one program counter, so the game's own offscreen-box routine parks the box at `$FF,$FF`. From [`extras.c`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/extras.c):
 
-```c
+```c title="extras.c"
     case 0xE268: {
         int slot  = g_cpu.X;
         int world = ((int)g_ram[(0x6E + slot) & 0xFF] << 8) | g_ram[(0x87 + slot) & 0xFF];
@@ -220,7 +220,7 @@ Yes on PlayStation, as a claim about **output** rather than about the generated 
 
 1. **The squash factor reduces to 1/1, and the squash is guarded on inequality rather than on a flag.** `gte_set_display_aspect(4, 3)` computes 12 and 12, divides by the greatest common divisor, and stores 1 and 1. The projection step tests `do_squash = (s_ws_xnum != s_ws_xden) && ...`, so at 4:3 the multiply and divide do not execute at all. From [`runtime/src/gte.cpp`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/gte.cpp):
 
-```cpp
+```cpp title="runtime/src/gte.cpp"
 extern "C" void gte_set_display_aspect(int num, int den) {
     if (num <= 0 || den <= 0) { s_ws_xnum = s_ws_xden = 1; return; }
     // squash = (4/3) / (num/den) = (4*den) / (3*num); identity for 4:3.
@@ -259,7 +259,7 @@ Three qualifications belong with the claim.
 | Frame rate collapses and the GPU timers look bad | Not necessarily the GPU. A native-wide collapse from 60 fps to 12 fps was stack-sampled to an instruction classifier whose 256-slot direct-mapped cache thrashed. The recorded lesson: "treat GL timer numbers on a CPU-bound frame as suspect" |
 | Stale margins after toggling widescreen mid-level | Expected on Genesis: they "heal as each strip's seam next advances over them (one scroll)" |
 
-## Status, in the projects' own words
+## Known limits, in the projects' own words
 
 Do not read the sections above as descriptions of finished features.
 

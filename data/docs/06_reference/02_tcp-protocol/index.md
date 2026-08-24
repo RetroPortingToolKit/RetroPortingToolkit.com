@@ -45,7 +45,7 @@ What diverges is the command set, and it diverges by console rather than by whim
 
 The clearest single statement of the rules is nesrecomp's, and the other documents restate it. From [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp:
 
-```text
+```text title="TCP.md"
 - TCP over `127.0.0.1`
 - Single-threaded, non-blocking, polled once per NES frame on the runner
   side. Do not expect sub-frame latency.
@@ -64,7 +64,7 @@ The clearest single statement of the rules is nesrecomp's, and the other documen
 
 [psxrecomp](https://github.com/mstan/psxrecomp) states the three shapes most compactly, and gcnlle copies them verbatim. From [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp:
 
-```text
+```text title="TCP_COMMANDS.md"
 Protocol: **JSON over newline**, one object per line, responses on same connection.
 
 - Request shape: `{"id": N, "cmd": "<command>", ...params}`
@@ -289,7 +289,7 @@ The DS and Virtual Boy cases point in opposite directions, and that is the usefu
 
 Four repositories state the same procedure and psxrecomp adds a step. Verbatim, from [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md) in gbarecomp:
 
-```text
+```text title="TCP.md"
 1. Add a handler in `src/debug/tcp_debug_server.cpp` — or, for
    `rdb_*`, in `src/debug/reverse_debug.cpp`.
 2. Register it in the dispatch table.
@@ -308,7 +308,7 @@ Step 6 is not advisory. psxrecomp states it as an absolute rule of the codebase:
 
 A minimal client is 15 lines. Verbatim, from [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp:
 
-```python
+```python title="TCP.md"
 import socket, json
 
 def send_cmd(cmd, port=4370):

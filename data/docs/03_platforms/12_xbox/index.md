@@ -58,7 +58,7 @@ The second is an address allowlist, which decides what may be read at all. Its o
 
 From [`src/main.c`](https://github.com/mstan/xboxlle-probe/blob/main/src/main.c):
 
-```c
+```c title="src/main.c"
 // v0.2 guard retained from the hardware-tested ancestor. This is a crash-reduction measure,
 // not a promise that every allowed read is harmless on every Xbox revision.
 static int addr_readable(uint32_t address, uint32_t len) {

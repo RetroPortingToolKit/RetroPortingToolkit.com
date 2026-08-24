@@ -137,7 +137,7 @@ Hints tell the recompiler what it cannot derive from the bytes. Faxanadu declare
 
 From [`game.toml`](https://github.com/mstan/FaxanaduRecomp/blob/master/game.toml):
 
-```toml
+```toml title="game.toml"
 # ── Bank-switch trampolines ──────────────────────────────────────────────────
 # JSR $F859 is followed by 3 inline data bytes (bank, addr_lo, addr_hi).
 # $CC1A is the MMC1 PRG bank-switch function in the fixed bank.
@@ -155,7 +155,7 @@ A `[[ram_read_hook]]` routes reads of a named RAM address through a game callbac
 
 From [`game.toml`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/game.toml):
 
-```toml
+```toml title="game.toml"
 # Widescreen: route screen-edge reads ($071A-$071D ScreenEdge PageLoc/X_Pos)
 # through game_ram_read_hook so extras.c can widen spawn/despawn/draw-cull
 # decisions at specific PCs.  `indexed = true` on the two base addresses

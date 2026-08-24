@@ -1,6 +1,7 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { DOCS_SECTIONS, isDocsSectionIndex } from "@/lib/content";
+import DOCS_UPDATED from "virtual:docs-updated";
+import { DOCS_SECTIONS, formatArticleDate, isDocsSectionIndex } from "@/lib/content";
 import { IS_CMS_PREVIEW, useItem } from "@/lib/cmsPreview";
 import { Markdown } from "@/components/Markdown";
 import { DocsShell } from "@/components/DocsShell";
@@ -208,6 +209,27 @@ function SectionContents({ item }: { item: Item }) {
   );
 }
 
+// The last-updated stamp. The date is decided at BUILD time by
+// scripts/gen-docs-dates.mjs: the page's own `updated:` frontmatter where it
+// has one, and otherwise the date of the last commit that touched its
+// index.md. A page with neither shows nothing rather than a made up date.
+//
+// It sits at the foot of the article on purpose. A reader wants it when they
+// are deciding whether to trust what they have just read, not before they have
+// read it, and this file's H1 already has a summary competing for that space.
+function LastUpdated({ slug }: { slug: string }) {
+  const entry = DOCS_UPDATED[slug];
+  if (!entry) return null;
+  return (
+    <p className="docs-updated">
+      Last updated{" "}
+      <time dateTime={entry.date} className="docs-updated-date">
+        {formatArticleDate(entry.date)}
+      </time>
+    </p>
+  );
+}
+
 function DocsMissing() {
   return (
     <DocsShell>
@@ -242,9 +264,18 @@ function DocsItem({ slug }: { slug: string }) {
 
   useEffect(() => {
     // A link into a heading owns the scroll position; only a plain navigation
-    // resets to the top.
-    if (hash) return;
+    // resets to the top. The browser handles a same-document fragment on its
+    // own, but a client-side navigation carrying one (a search result opening
+    // the heading it matched) has to be scrolled here, once the body exists.
+    if (hash) {
+      const id = decodeURIComponent(hash.slice(1));
+      const jump = () => document.getElementById(id)?.scrollIntoView();
+      jump();
+      const raf = requestAnimationFrame(jump);
+      return () => cancelAnimationFrame(raf);
+    }
     window.scrollTo({ top: 0, behavior: "auto" });
+    return undefined;
   }, [slug, hash]);
 
   // A slug that resolves to nothing is a real miss, not a redirect: the
@@ -278,6 +309,9 @@ function DocsItem({ slug }: { slug: string }) {
           </div>
         )}
         {isIndex && <SectionContents item={item} />}
+        <footer className="docs-article-foot">
+          <LastUpdated slug={item.slug} />
+        </footer>
         <Pager slug={item.slug} />
       </article>
     </DocsShell>

@@ -120,7 +120,7 @@ One block per selectable value, for `type = "choice"`.
 
 Typed options exist because an activation callback takes no arguments. The runtime header states the reasoning directly, from [`runtime/include/mod_plugins.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/mod_plugins.h):
 
-```c
+```c title="runtime/include/mod_plugins.h"
 /*
  * Why this exists: the manifest schema already carries typed, validated,
  * launcher-rendered, persisted options ([[option]] boolean/choice/integer), but
@@ -209,7 +209,7 @@ An active `[[indexed_file]]` plan cannot be combined with `disc_raw` or `disc_us
 
 Tomba's frame-interpolation package, shipped in [TombaRecomp](https://github.com/mstan/TombaRecomp). The header and target, from [`mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml):
 
-```toml
+```toml title="mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml"
 format_version = 5
 id = "tomba.enhancement.frame-interpolation"
 version = "1.0.0"
@@ -226,7 +226,7 @@ disc_sha256 = "25ada3dd51e70eb9f9218cd83fb02d73139750229fb44b012d62d183ab32eb13"
 
 The single feature and its choice option, from the same file:
 
-```toml
+```toml title="mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml"
 # Presentation only: this does NOT change machine speed. The distinct
 # native-VBlank-rate mechanism does, and is deliberately not exposed here.
 [[feature]]
@@ -252,7 +252,7 @@ label = "Display refresh"
 
 And the remaining choices and the plugin selector that closes the file:
 
-```toml
+```toml title="mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml"
 [[option.choice]]
 value = "90"
 label = "90 FPS"
@@ -282,7 +282,7 @@ id = "tomba.frame-interpolation"
 
 The companion file, written by the launcher, holding selected package versions separately from per-feature enabled state and values. Format 2, from [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md):
 
-```toml
+```toml title="docs/MOD_PACKAGES.md"
 format_version = 2
 
 [[package]]

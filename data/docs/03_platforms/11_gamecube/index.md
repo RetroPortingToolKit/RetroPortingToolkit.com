@@ -50,7 +50,7 @@ Being exact about what the toolchain does with that matters more here than enthu
 
 From [`recompiler/src/frontend/decoder.c`](https://github.com/mstan/gcnlle/blob/master/recompiler/src/frontend/decoder.c):
 
-```c
+```c title="recompiler/src/frontend/decoder.c"
         default: {
             u32 psxo = xo & 0x3Fu;
             switch (psxo) {
@@ -79,7 +79,7 @@ The runtime implements the quantized loads rather than treating them as plain fl
 
 From [`runtime/src/cpu_glue.c`](https://github.com/mstan/gcnlle/blob/master/runtime/src/cpu_glue.c):
 
-```c
+```c title="runtime/src/cpu_glue.c"
 static bool psq_access_is_valid(CPUState* cpu, u8 type, u32 ea, u32 cia) {
     if (psq_type_size(type) == 0) {
         ppc_program_exception(cpu, PPC_PROGRAM_ILLEGAL, cia);

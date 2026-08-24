@@ -124,6 +124,25 @@ A YouTube link in the body embeds as a player:
 Limits: `png jpg jpeg webp gif avif svg mp4 webm mov`, **3 MB per file**. If a
 video is bigger, link to it instead of attaching it.
 
+## Code blocks
+
+Give every fenced block a language. When the block quotes a real file, name that
+file in the info string too, and the site renders the name as a label on the
+block:
+
+````
+```toml title="bios/SCPH1001.toml"
+name = "SCPH1001"
+load_addr = 0x1FC00000
+```
+````
+
+Use the same path the sentence above the block cites, so the label and the
+caption agree. Do not invent one: a block showing an example that exists
+nowhere, or commands a reader is meant to run, gets no filename. `file="..."`
+and `filename="..."` mean the same thing, and a bare path as the whole info
+string works when there is no language.
+
 ## Drafts
 
 `"draft": true` (the default) writes the page but keeps it out of every listing,

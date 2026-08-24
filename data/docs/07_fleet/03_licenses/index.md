@@ -28,8 +28,8 @@ itself.
 
 | Measure | Count |
 |---|---|
-| Repositories surveyed | 84 |
-| Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | 36 |
+| Repositories surveyed | 87 |
+| Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | 39 |
 | Carrying no license file at all | 48 |
 | Distinct license identities found | 5 |
 
@@ -66,6 +66,9 @@ copyright holder.
 | [TechnicallyComputers/recomp-net-server](https://github.com/TechnicallyComputers/recomp-net-server) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/LICENSE) | |
 | [TechnicallyComputers/retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/LICENSE) | |
 | [TechnicallyComputers/retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog) | **None** | no license file | No README license section either |
+| [mstan/m68k-recomp-core](https://github.com/mstan/m68k-recomp-core) | PolyForm Noncommercial 1.0.0 | [`LICENSE`](https://github.com/mstan/m68k-recomp-core/blob/main/LICENSE) | Holder `Copyright (c) 2026 Matthew Stan`. Appended paragraph |
+| [mstan/z80-recomp-core](https://github.com/mstan/z80-recomp-core) | PolyForm Noncommercial 1.0.0 | [`LICENSE`](https://github.com/mstan/z80-recomp-core/blob/main/LICENSE) | Appended paragraph. Also carries `LICENSES/SUPERZAZU-MIT.txt` for the Z80 core it derives from |
+| [mstan/recomp-ui](https://github.com/mstan/recomp-ui) | MIT | [`LICENSE`](https://github.com/mstan/recomp-ui/blob/master/LICENSE) | Holder `Copyright (c) 2026 Matthew Stanley` |
 
 ## Game repositories that carry a license file
 
@@ -97,7 +100,7 @@ owner.
 
 ## Repositories with no license file
 
-48 of the 84. This site does not state or imply a license for any of them.
+48 of the 87. This site does not state or imply a license for any of them.
 
 **mstan, Game Boy Advance (11).** `DragonBallZLegacyOfGokuRecomp`,
 `DragonBallZLegacyofGokuIIRecomp`, `EmeraldRecomp`, `FireRedLeafGreenRecomp`,
@@ -134,7 +137,7 @@ quotes the project rather than asserting it.
 
 From [`README.md`](https://github.com/mstan/SonicBlastGGRecomp/blob/main/README.md):
 
-```text
+```text title="README.md"
 ## License
 
 Not yet declared. Code in this repo is original. The *Sonic Blast* ROM and any
@@ -144,7 +147,7 @@ redistribution.
 
 From [`README.md`](https://github.com/mstan/StarFoxSNESRecomp/blob/main/README.md):
 
-```text
+```text title="README.md"
 ## License
 
 Not yet declared. Original project code and vendored dependencies retain their
@@ -172,7 +175,7 @@ whole tree or the shipped binary.
 
 **ndsrecomp.** From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md):
 
-```text
+```text title="THIRD_PARTY_ATTRIBUTION.md"
 The MIT grant covers this project's own source. It does not and cannot relicense
 the third-party code described below, and it does not make every build artifact
 redistributable under MIT terms. In particular, the native runner links vendored
@@ -185,7 +188,7 @@ outside that boundary and are distributable under MIT alone.
 
 **MarioTennisVirtualBoyRecomp.** From [`LICENSE.md`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/LICENSE.md):
 
-```text
+```text title="LICENSE.md"
 This licence covers ONLY the build glue + per-game CMake wiring + this
 repo's documentation. It does NOT cover:
 
@@ -203,7 +206,7 @@ repo's documentation. It does NOT cover:
 
 **DKC2Recomp.** From [`README.md`](https://github.com/mstan/DKC2Recomp/blob/main/README.md):
 
-```text
+```text title="README.md"
 ## License
 
 Project-owned source is available under the [MIT License](LICENSE). Vendored
@@ -274,7 +277,7 @@ The file also states that the developer-only label is not a waiver.
 
 From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/snesrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md):
 
-```text
+```text title="THIRD_PARTY_ATTRIBUTION.md"
 The `tools/snesref/.gitignore` rules exclude SDL packages and binaries,
 `snesref.exe`, and `*_libretro.dll`. A developer-only label does not waive a
 dependency's terms if someone distributes it; downstream packages must either
@@ -338,7 +341,7 @@ Its compliance notes are the fleet's clearest statement of the whole model.
 
 From [`THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/THIRD-PARTY-LICENSES.md):
 
-```text
+```text title="THIRD-PARTY-LICENSES.md"
 ## Compliance notes
 
 - Native release binaries contain no AGPL code. Release packaging must still
@@ -385,7 +388,7 @@ MegaManX6Recomp states the packaging consequence of its one GPL tool.
 
 From [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/THIRD-PARTY-LICENSES/README.md):
 
-```text
+```text title="THIRD-PARTY-LICENSES/README.md"
 - Because it is a **separate process**, its GPL terms do **not** extend to this
   project's PolyForm-NC code. If a release ships the error_recalc binary before
   the replacement below lands, that release must also make the error_recalc
@@ -407,12 +410,13 @@ From [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/MegaManX6Recomp
 
 ## Deviations and open questions
 
-**The appended PolyForm paragraph.** Twenty license files in the fleet append
-this to the end of the stock PolyForm Noncommercial 1.0.0 text.
+**The appended PolyForm paragraph.** Twenty-two license files in the fleet
+append this to the end of the stock PolyForm Noncommercial 1.0.0 text, two of
+them in the shared CPU cores added to the census above.
 
 From [`LICENSE`](https://github.com/mstan/psxrecomp/blob/master/LICENSE):
 
-```text
+```text title="LICENSE"
 For the avoidance of doubt, the licensor's intent is to restrict uses where
 profit is derived from this software. Non-profit personal, educational,
 or community use is welcome regardless of organizational context.
@@ -468,6 +472,7 @@ this census read repositories rather than built packages.
 - [mstan/MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp): [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/THIRD-PARTY-LICENSES/README.md)
 - [mstan/SonicBlastGGRecomp](https://github.com/mstan/SonicBlastGGRecomp): [`README.md`](https://github.com/mstan/SonicBlastGGRecomp/blob/main/README.md)
 - [mstan/StarFoxSNESRecomp](https://github.com/mstan/StarFoxSNESRecomp): [`README.md`](https://github.com/mstan/StarFoxSNESRecomp/blob/main/README.md)
+- The shared components: [`m68k-recomp-core/LICENSE`](https://github.com/mstan/m68k-recomp-core/blob/main/LICENSE), [`z80-recomp-core/LICENSE`](https://github.com/mstan/z80-recomp-core/blob/main/LICENSE), [`recomp-ui/LICENSE`](https://github.com/mstan/recomp-ui/blob/master/LICENSE)
 - [N64Recomp/N64Recomp](https://github.com/N64Recomp/N64Recomp), [N64Recomp/N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime), [Zelda64Recomp/Zelda64Recomp](https://github.com/Zelda64Recomp/Zelda64Recomp), [rt64/rt64](https://github.com/rt64/rt64)
 
 ## Next

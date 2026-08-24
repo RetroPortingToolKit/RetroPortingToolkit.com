@@ -40,7 +40,7 @@ The 65816 carries two status bits no 6502 had. **M** selects an 8-bit or 16-bit 
 
 From [`recompiler/snes65816.py`](https://github.com/mstan/snesrecomp/blob/main/recompiler/snes65816.py):
 
-```python
+```python title="recompiler/snes65816.py"
     m_dep = [(0xA9,'LDA'),(0x09,'ORA'),(0x29,'AND'),(0x49,'EOR'),
              (0x69,'ADC'),(0xE9,'SBC'),(0xC9,'CMP'),(0x89,'BIT')]
     x_dep = [(0xA2,'LDX'),(0xA0,'LDY'),(0xE0,'CPX'),(0xC0,'CPY')]
@@ -62,7 +62,7 @@ _OPCODES = _build_opcode_table()
 
 From [`recompiler/v2/decoder.py`](https://github.com/mstan/snesrecomp/blob/main/recompiler/v2/decoder.py):
 
-```python
+```python title="recompiler/v2/decoder.py"
 Worklist-driven 65816 decoder keyed by (PC, M, X) entry state.
 
 REPLACES THE V1 DECODE BUG: v1's `decode_func` (recomp.py:52-354) tracks
@@ -89,7 +89,7 @@ Code is emitted once per surviving `(m, x)` combination with an `_M<m>X<x>` suff
 
 From [`runner/src/cpu_state.h`](https://github.com/mstan/snesrecomp/blob/main/runner/src/cpu_state.h):
 
-```c
+```c title="runner/src/cpu_state.h"
 typedef struct DispatchEntry {
     uint32 pc24;
     /* Indexed by ((m_flag & 1) << 1) | (x_flag & 1):
@@ -123,7 +123,7 @@ Time is accounted per basic block: one constant add for CPU cycles, and a second
 
 From [`recompiler/v2/emit_function.py`](https://github.com/mstan/snesrecomp/blob/main/recompiler/v2/emit_function.py):
 
-```python
+```python title="recompiler/v2/emit_function.py"
         _cyc_const = _block_cycle_const(block_per_insn_ir.get(key, []))
         if _cyc_const:
             src.append(f'    cpu->cycles += {_cyc_const};')

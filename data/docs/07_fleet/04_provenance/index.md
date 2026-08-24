@@ -29,7 +29,7 @@ The file opens by saying what it covers and by drawing one line.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
-```text
+```text title="PROVENANCE.md"
 # Source provenance
 
 This record covers the source that builds `CdiRuntime` and the author-owned
@@ -52,7 +52,7 @@ evidence that the result is right. Three of its rows:
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
-```text
+```text title="PROVENANCE.md"
 | Component | Independent implementation basis | Project evidence |
 |---|---|---|
 | 68000 decode, code generation, and interpreter | Author-owned `segagenesisrecomp` frontend ancestry; Motorola 68000 architecture and SCC68070 timing/exception documentation | `recompiler/PROVENANCE.txt`, `runner/tests/m68k_arith_test.c`, generated-code differential tests |
@@ -71,7 +71,7 @@ documents by URL rather than by name.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
-```text
+```text title="PROVENANCE.md"
 Specification locations used during the rewrite:
 
 - SCC68070 User Manual: <https://d-nb.info/880525312/04>
@@ -85,7 +85,7 @@ Three sentences carry the weight of the whole document.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
-```text
+```text title="PROVENANCE.md"
 The device implementations above were rewritten without copying third-party
 emulator source. Optional emulators may be run as black-box behavioral
 comparators; their output is test evidence, not implementation authority.
@@ -101,7 +101,7 @@ number it got.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
-```text
+```text title="PROVENANCE.md"
 The 2026-07-14 final audit found no exact sequence of 24 or more code tokens
 shared between project source and either local third-party checkout. Validation
 aligned 659,998 near-full-boot instruction transitions with zero skips,
@@ -115,7 +115,7 @@ The comparator is named, and the file states where it is not.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
-```text
+```text title="PROVENANCE.md"
 ## Excluded third-party tools
 
 CeDImu is an optional, git-ignored local oracle checkout. Its source, local
@@ -134,7 +134,7 @@ commit. This project says what it did about that.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
-```text
+```text title="PROVENANCE.md"
 The formerly vendored AGPL clown68000/clowncommon trees and their cycle-probe
 adapter were removed on 2026-07-14. Neither `CdiRuntime` nor `CdiRecomp` now
 includes, links, or requires them. Local historical checkouts remain ignored.
@@ -155,7 +155,7 @@ copied, and the date.
 
 From [`recompiler/PROVENANCE.txt`](https://github.com/mstan/cdirecomp/blob/master/recompiler/PROVENANCE.txt):
 
-```text
+```text title="recompiler/PROVENANCE.txt"
 Ancestor: F:\Projects\segagenesisrecomp\SonicTheHedgehogRecomp\segagenesisrecomp
 Branch:   dev
 Commit:   5aa0c4f (sonic3: add Sonic 3 (USA) standalone mode)
@@ -173,7 +173,7 @@ yet, which is the part that makes it a discipline rather than a description.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
-```text
+```text title="PROVENANCE.md"
 ## Audit rule
 
 Any future production implementation must cite a hardware specification,
@@ -205,7 +205,7 @@ reason was recorded next to the one chosen instead.
 
 From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md):
 
-```text
+```text title="THIRD_PARTY_ATTRIBUTION.md"
 **xBRZ was rejected on licensing grounds.** DeSmuME's texture upscaling
 vendors Zenju's xBRZ (`desmume/src/filter/xbrz.cpp`), which carries
 `GNU General Public License: http://www.gnu.org/licenses/gpl-3.0` with no
@@ -227,7 +227,7 @@ said what it does not establish.
 
 From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md):
 
-```text
+```text title="THIRD_PARTY_ATTRIBUTION.md"
 The native implementation uses melonDS as a behavioral and timing reference.
 An audit before the first public release found no exact normalized six-line
 code block shared between the tracked native recompiler/runtime sources and
@@ -240,7 +240,7 @@ The same file carries a dated self-correction naming a notice that was missing.
 
 From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md):
 
-```text
+```text title="THIRD_PARTY_ATTRIBUTION.md"
   Correction, 2026-08-16: this section previously listed all seven of
   those files as byte-identical to upstream. They were not — the adaptive
   widescreen work modified them without recording a change notice. The
@@ -257,7 +257,7 @@ it did not prove.
 
 From [`BIOS-CLOSEOUT.md`](https://github.com/mstan/cdirecomp/blob/master/BIOS-CLOSEOUT.md):
 
-```text
+```text title="BIOS-CLOSEOUT.md"
 ## What moves to the next chapter
 
 The closeout does not claim that every SCC68070 facility or every possible ROM
@@ -283,7 +283,7 @@ enters the repository from an open decompilation project.
 
 From [`README.md`](https://github.com/mstan/MinishCapRecomp/blob/main/README.md):
 
-```text
+```text title="README.md"
 Only **symbol metadata** (function names, addresses, sizes) from the
 [`zeldaret/tmc`](https://github.com/zeldaret/tmc) decompilation enters this repo —
 never its C source, PC-port runner, or toolchain. **The ROM is never
@@ -297,7 +297,7 @@ license.
 
 From [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/THIRD-PARTY-LICENSES/README.md):
 
-```text
+```text title="THIRD-PARTY-LICENSES/README.md"
 **That repository publishes no license.** Verified 2026-08-07 via the GitHub
 API (`license: null`); the repository root carries no license file. For the
 initial Captain Falcon release, the project owner has directed this project to
@@ -336,7 +336,7 @@ than a dump.
 
 From [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md):
 
-```text
+```text title="docs/BIOS_SELECTION.md"
 A PlayStation game needs a BIOS. PSXRecomp can supply one — **OpenBIOS**, an
 MIT-licensed, from-scratch PS1 BIOS from the PCSX-Redux project that we are
 allowed to redistribute — so a player can be handed a build and a disc image and
@@ -364,7 +364,7 @@ rather than asserted in prose.
 
 From [`bios/OpenBIOS.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/OpenBIOS.toml):
 
-```toml
+```toml title="bios/OpenBIOS.toml"
 [program.image]
 sha256          = "fabe498fbf224e4721f12f31b6f5fe0659205e341dc4e5c5f91b9bd1a1011c57"
 license         = "MIT"
@@ -378,7 +378,7 @@ required and the player is prompted for one.
 
 From [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md):
 
-```text
+```text title="docs/BIOS_SELECTION.md"
 Set `openbios = false` only for a title with a **verified** OpenBIOS
 incompatibility. Per-title compatibility is not implied by the framework
 supporting OpenBIOS — verify a title before shipping it that way.
@@ -389,7 +389,7 @@ the one that the notice and the image travel together.
 
 From [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md):
 
-```text
+```text title="docs/BIOS_SELECTION.md"
 ## Attribution
 
 OpenBIOS is MIT-licensed. Its notice is vendored at `bios/OpenBIOS.LICENSE`,
@@ -426,7 +426,7 @@ real BIOS rather than stubbing it.
 
 From [`bios/README.md`](https://github.com/mstan/gbarecomp/blob/main/bios/README.md):
 
-```text
+```text title="bios/README.md"
 Drop your own dump of the GBA BIOS here as `gba_bios.bin`. The binary
 **is not in git** (it's copyrighted Nintendo code) but the `.toml` /
 `.md` / `.sym` files in this folder ARE tracked, so the path layout
@@ -444,7 +444,7 @@ ndsrecomp offers both, and is explicit about which is authoritative.
 
 From [`README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md):
 
-```text
+```text title="README.md"
 An opt-in no-dump path also exists (`--freebios --generated-firmware
 --boot direct`): the recompiled [FreeBIOS](https://github.com/mstan/freebios)
 (the DraStic BIOS replacement, BSD-2-Clause, vendored as the
@@ -457,7 +457,7 @@ The vendored notice states the limit of that path.
 
 From [`vendor/freebios/README.md`](https://github.com/mstan/ndsrecomp/blob/main/vendor/freebios/README.md):
 
-```text
+```text title="vendor/freebios/README.md"
 FreeBIOS can only pair with `--boot direct` (it cannot boot the firmware
 menu), and the retail-dump path remains the default and the oracle-diffed
 source of truth.

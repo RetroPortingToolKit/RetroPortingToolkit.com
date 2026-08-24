@@ -58,7 +58,7 @@ What that costs is worth seeing. This is segagenesisrecomp handing the machine t
 
 From [`runner/z80_recomp.c`](https://github.com/mstan/segagenesisrecomp/blob/master/runner/z80_recomp.c):
 
-```c
+```c title="runner/z80_recomp.c"
 void sms_dispatch_miss(uint16_t addr)
 {
     z80 *fallback = &g_machine.z80;

@@ -44,7 +44,7 @@ At the other end, [`snesrecomp`](https://github.com/mstan/snesrecomp) runs each 
 
 From [`FRAME_MODEL_TIMING.md`](https://github.com/mstan/snesrecomp/blob/main/FRAME_MODEL_TIMING.md):
 
-```text
+```text title="FRAME_MODEL_TIMING.md"
 RtlRunFrame:
   run_frame()      = I_NMI()  then  scheduler (MmxSchedulerTick HLE / $8099 LLE)
   draw_ppu_frame() = PPU line render + HDMA + raster-IRQ sim (I_IRQ at scanline vTimer)
@@ -86,7 +86,7 @@ One instruction, one register read, one cycle of error, and a game that polls th
 
 From [`runtime/src/interpreter.c`](https://github.com/mstan/gbrecompiled/blob/master/runtime/src/interpreter.c):
 
-```c
+```c title="runtime/src/interpreter.c"
         /* Sub-instruction memory timing: for marked load/store/IO/ALU-(HL)
          * opcodes, advance the clock for the whole instruction BEFORE the inline
          * bus access so it samples PPU/timer state at the final M-cycle (the tail

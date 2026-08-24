@@ -43,7 +43,7 @@ The table-run scanner shows the shape of all of them. This loop runs over every 
 
 From [`recompiler/src/function_finder.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/function_finder.c):
 
-```c
+```c title="recompiler/src/function_finder.c"
             while (off <= 0x3FFD && run_len < 256) {
                 uint16_t a = 0x8000 + off;
                 if (is_data_region(cfg, b, a)) break;
@@ -74,7 +74,7 @@ Every weak candidate passes through one function. It accepts an address if the s
 
 From [`recompiler/src/function_finder.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/function_finder.c):
 
-```c
+```c title="recompiler/src/function_finder.c"
 static bool validate_code_target(const NESRom *rom, int bank,
                                  uint16_t addr, int min_valid) {
     uint8_t first = rom_read(rom, bank, addr);
@@ -121,7 +121,7 @@ No scanner finds an address that exists only as a value computed at runtime. Han
 
 From [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/code_generator.c):
 
-```c
+```c title="recompiler/src/code_generator.c"
     /* Extra_label secondary entries — add dispatch cases for their ROM addresses */
     if (rom->mapper == 4 || rom->mapper == 40)
         fprintf(f,

@@ -32,7 +32,7 @@ Both instruction sets share one address space, so an address alone does not name
 
 From [`src/armv4t/runtime_arm.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/armv4t/runtime_arm.cpp#L781-L784):
 
-```cpp
+```cpp title="src/armv4t/runtime_arm.cpp"
     for (unsigned i = lo; i < len && table[i].addr == pc; ++i) {
         if ((table[i].thumb != 0) == thumb) return &table[i];
     }
@@ -43,7 +43,7 @@ The entry point that reaches that lookup after a branch and exchange is short en
 
 From [`src/armv4t/runtime_arm.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/armv4t/runtime_arm.cpp#L836-L842):
 
-```cpp
+```cpp title="src/armv4t/runtime_arm.cpp"
 extern "C" void runtime_dispatch_with_exchange(uint32_t target_pc) {
     // Bit 0 of target indicates THUMB.
     if (target_pc & 1u) g_cpu.cpsr |= CPSR_T_BIT;
@@ -59,7 +59,7 @@ This is the detail worth carrying away. Emitting a `BX` means doing three things
 
 From [`src/armv4t/arm_codegen.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/armv4t/arm_codegen.cpp#L708-L741):
 
-```cpp
+```cpp title="src/armv4t/arm_codegen.cpp"
         case IrOp::BX: {
             std::string sfx = uniq_suffix(ins);
             std::string target_var = "_bxt" + sfx;

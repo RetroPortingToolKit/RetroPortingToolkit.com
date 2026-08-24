@@ -82,7 +82,7 @@ The same document gives PowerShell equivalents, for example `.\build-win\Xenogea
 
 A source package is the manifest plus payloads, nothing else. From [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md):
 
-```text
+```text title="MOD_AUTHORING.md"
 my-xenogears-mod/
 |-- manifest.toml
 |-- README.txt
@@ -94,7 +94,7 @@ my-xenogears-mod/
 
 `manifest.toml` must be at the archive root, and payload paths are relative to that root and must stay inside it. Installed packages land in an executable-relative catalog, one directory per version, so several versions of a package can coexist and the player picks one. [nesrecomp](https://github.com/mstan/nesrecomp) states the shape most compactly in [`docs/MOD_PACKAGES.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MOD_PACKAGES.md):
 
-```text
+```text title="docs/MOD_PACKAGES.md"
 mods/
   state.toml
   packages/
@@ -111,7 +111,7 @@ A game may also ship reviewed, default-disabled packages already unpacked at `mo
 
 Start from the minimal complete skeleton and replace every placeholder. The header identifies the package and pins the target. From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
 
-```toml
+```toml title="README.md"
 format_version = 1
 id = "example.quick-start"
 version = "1.0.0"
@@ -167,7 +167,7 @@ Two rules catch people out. Guard the whole MIPS instruction rather than only it
 
 A feature that ships one patch per possible value is the wrong shape. Declare a bounded option and drive the bytes from it. From [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md):
 
-```toml
+```toml title="MOD_AUTHORING.md"
 [[option]]
 feature = "battle-tuning"
 id = "starting-ap"
@@ -222,7 +222,7 @@ Install through the launcher's Mods page. "Do not ask players to rename it to `.
 
 The publication checklist, verbatim from [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md):
 
-```text
+```text title="MOD_AUTHORING.md"
 - The package installs from a clean launcher state.
 - Every feature defaults to the intended state.
 - All features disabled produce stock behavior.
@@ -247,7 +247,7 @@ With one warning attached: "For gameplay changes, test farther than the first vi
 
 Tomba's frame-interpolation package is shipped in [TombaRecomp](https://github.com/mstan/TombaRecomp) and exercises everything a modder needs: a hash-pinned target, one feature, a typed choice option, and a plugin selector. The header, from [`mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml):
 
-```toml
+```toml title="mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml"
 format_version = 5
 id = "tomba.enhancement.frame-interpolation"
 version = "1.0.0"
@@ -296,7 +296,7 @@ id = "tomba.frame-interpolation"
 
 And the implementation that id resolves to is 42 lines in total. From [`src/mods/tomba_frame_interpolation_plugin.c`](https://github.com/mstan/TombaRecomp/blob/master/src/mods/tomba_frame_interpolation_plugin.c):
 
-```c
+```c title="src/mods/tomba_frame_interpolation_plugin.c"
 static void tomba_frame_interpolation_activate(void) {
     char rate[16];
     unsigned long fps = 0ul;   /* 0 = follow measured display refresh */
@@ -366,7 +366,7 @@ FaxanaduRecomp.exe --tile-dump
 
 Edit the PNGs in `tiles/` using the fixed four-colour grayscale palette, where `#000000`, `#555555`, `#AAAAAA` and `#FFFFFF` map to palette indices 0 to 3. Hot reload works here: "Edit a PNG while the game is running and save -- the change appears within ~1 second." Do not delete the companion `.bin` files, which carry the partial-tile lead and trail bytes a PNG cannot represent. Text overrides are a JSON array, from [`MODDING.md`](https://github.com/mstan/FaxanaduRecomp/blob/master/MODDING.md):
 
-```json
+```json title="MODDING.md"
 [
   {
     "bank": 12,
@@ -393,7 +393,11 @@ From [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/mast
 | Plugin is unavailable | The ID is not registered in this build. A package cannot provide the implementation. |
 | Option cannot be enabled | Bounds, step, or an ordered constraint is invalid. |
 
-Two things this table cannot tell you. Mod support is not on everywhere: on NES it is off at the framework level and is a per-game build opt-in, and SNES is the same. And the documented operations are ahead of what is demonstrably in use. Every mod manifest present in the surveyed clone of the fleet, three psxrecomp builtins and five TombaRecomp preloaded packages, is `format_version = 5` and uses only `[[plugin]]`. The integer, sparse-field and overlay examples in the specifications are explicitly placeholders, so treat those paths as documented rather than as proven by a shipped package.
+## Known limits
+
+Three things a package cannot express at all, collected here because the steps above state them in passing. A package carries data only: it "cannot ship DLLs, shared objects, scripts or arbitrary native code, and it cannot select a symbol by name", and "The package archive supplies no native code", so a `[[plugin]]` entry can only switch on behaviour that is already statically linked into the game. Adding a new plugin id, or a `builtin:` resolver, "is a source change to XenogearsRecomp, requires project review", which puts it outside what an ordinary author can ship. And option encoding is deliberately narrow: "There is deliberately no host-endian encoding, signed inference, mask, shift, scale, expression language, or partial-field merge."
+
+Two more things the troubleshooting table cannot tell you. Mod support is not on everywhere: on NES it is off at the framework level and is a per-game build opt-in, and SNES is the same. And the documented operations are ahead of what is demonstrably in use. Every mod manifest present in the surveyed clone of the fleet, three psxrecomp builtins and five TombaRecomp preloaded packages, is `format_version = 5` and uses only `[[plugin]]`. The integer, sparse-field and overlay examples in the specifications are explicitly placeholders, so treat those paths as documented rather than as proven by a shipped package.
 
 ## Source
 

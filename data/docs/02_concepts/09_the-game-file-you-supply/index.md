@@ -35,7 +35,7 @@ states it for both the disc and the BIOS.
 
 From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
 
-```text
+```text title="README.md"
 Use only disc and retail BIOS files you obtained legally. PSXRecomp does not
 include those copyrighted files; it includes only the redistributable OpenBIOS
 image. Generated game and retail BIOS source is derived from your files, so do
@@ -48,7 +48,7 @@ paragraph as each other, adding the rule that the disc image is ignored by Git.
 
 From [`README.md`](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile/blob/master/README.md):
 
-```text
+```text title="README.md"
 ## Legal
 
 You must own the original game. Disc images under `disc/` are gitignored and
@@ -61,7 +61,7 @@ only the trademark sentence changed.
 
 From [`README.md`](https://github.com/mstan/MinishCapRecomp/blob/main/README.md):
 
-```text
+```text title="README.md"
 ## Legal
 
 This project contains **no copyrighted ROM data, no Nintendo BIOS, and no decomp
@@ -76,7 +76,7 @@ section heading, and names both files a CD-i title needs.
 
 From [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md):
 
-```text
+```text title="README.md"
 ## What you must supply
 
 cdirecomp ships **no copyrighted material** — no BIOS ROM, no disc images, and
@@ -92,7 +92,7 @@ the things a careless commit could add later.
 
 From [`README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md):
 
-```text
+```text title="README.md"
 This repository intentionally contains no Nintendo BIOS, firmware, ROM, save
 data, generated recompiled code, or binary embedding those materials. The
 checked-in showcase images are manually selected demonstration screenshots;
@@ -104,7 +104,7 @@ every other repository in the fleet, and the difference is worth noticing.
 
 From [`THIRD_PARTY_NOTICES.md`](https://github.com/mstan/gcnlle/blob/master/THIRD_PARTY_NOTICES.md):
 
-```text
+```text title="THIRD_PARTY_NOTICES.md"
 ## User-supplied data
 
 Nintendo GameCube firmware, DSP ROMs, games, save files, generated IPL source,
@@ -170,7 +170,7 @@ Several ports state the rejection list explicitly, and it is more specific than
 
 From [`baserom.md`](https://github.com/mstan/MinishCapRecomp/blob/main/baserom.md):
 
-```text
+```text title="baserom.md"
 ## What we don't accept
 
 - Trimmed ROMs (header pad removed). The original cartridge image is
@@ -188,7 +188,7 @@ something real when it is ignored, and records the debugging time it spent.
 
 From [`baserom.md`](https://github.com/Shy/BoktaiRecomp/blob/main/baserom.md):
 
-```text
+```text title="baserom.md"
 ### Use a clean dump — this matters more for Boktai than for most games
 
 Two kinds of patched Boktai ROM circulate widely, and both break this project:

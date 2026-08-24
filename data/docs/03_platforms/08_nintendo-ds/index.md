@@ -41,7 +41,7 @@ Each round runs the ARM9 first, up to a target in ARM9 cycles, and deliberately 
 
 From [`runner/src/scheduler.cpp`](https://github.com/mstan/ndsrecomp/blob/main/runner/src/scheduler.cpp):
 
-```cpp
+```cpp title="runner/src/scheduler.cpp"
     // Rendezvous = ARM9's ACTUAL (possibly overshot) timestamp, normalized to
     // system cycles. The ARM7 catches up to THIS, not to `planned`.
     const uint64_t rendezvous = g_slot[0].cycles >> kArm9ClockShift;
@@ -67,7 +67,7 @@ The recompiler emits `generated/<bank>.c`, a header and a per-CPU dispatch table
 
 From [`docs/dispatch_architecture.md`](https://github.com/mstan/ndsrecomp/blob/main/docs/dispatch_architecture.md):
 
-```text
+```text title="docs/dispatch_architecture.md"
 Tier 1  recompiled native C    — statically recompiled banks (BIOSes, fw parts)
    │ (miss: no static fn for this PC)
 Tier 2  dirty-RAM JIT shard    — code copied into RAM at boot, JIT-compiled on miss
@@ -96,7 +96,7 @@ Touch is an ARM7 concern, because the touchscreen is a TSC on SPI device 2 where
 
 From [`runner/src/io.cpp`](https://github.com/mstan/ndsrecomp/blob/main/runner/src/io.cpp):
 
-```cpp
+```cpp title="runner/src/io.cpp"
 void nds_set_touch(uint16_t x, uint16_t y, bool down) {
     if (!down) {
         g_tsc_x = 0x000u;
@@ -131,13 +131,13 @@ The second is the renderer seam. `NDS_3D_RENDERER` is read by the runner, and th
 
 > "framebuffer output is not parity-safe: early title samples differed on the 3D screen by 54--56 pixels, and castle-route samples differed by 1,144--7,311 3D-screen pixels with maximum channel deltas up to 243; the bottom screen remained exact in those samples"
 
-### The selector the architecture specifies, and does not ship
+### Roadmap: the selector the architecture specifies, and does not ship
 
 The same document specifies the mechanism that would let a measured replacement run: a generated wrapper that keeps the LLE body and consults a selector only on an exact function-start PC. It argues that a plain PC-keyed hook table is not enough, since generated banks call each other directly and a validated RAM bank can hold several overlay generations at one address, so "A PC-only table can therefore miss calls or select the wrong routine." It names a policy vocabulary of `off`, `on`, `force`, `verify` and `auto`, and the controls `NDS_HLE` and `NDS_HLE_MATH`.
 
 From [`HLE_ARCHITECTURE.md`](https://github.com/mstan/ndsrecomp/blob/main/HLE_ARCHITECTURE.md), which is a design document, not a description of the build:
 
-```c
+```c title="HLE_ARCHITECTURE.md"
 static void title_routine_lle(void) {
     /* the existing generated body, unchanged */
 }

@@ -43,7 +43,7 @@ The mechanism is narrower than the policy language suggests. The tier is one nul
 
 From [`runtime/src/bios_hle.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/bios_hle.c):
 
-```c
+```c title="runtime/src/bios_hle.c"
 static int bios_hle_dispatch(struct CPUState* cpu, uint32_t phys)
 {
     if (phys == 0xB0u) {
@@ -80,7 +80,7 @@ A replacement is keyed by content and bank identity rather than by address, beca
 
 From [`HLE_ARCHITECTURE.md`](https://github.com/mstan/ndsrecomp/blob/main/HLE_ARCHITECTURE.md):
 
-```c
+```c title="HLE_ARCHITECTURE.md"
 static void title_routine_lle(void) {
     /* the existing generated body, unchanged */
 }

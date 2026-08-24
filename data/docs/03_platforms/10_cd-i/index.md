@@ -54,7 +54,7 @@ Two consequences run through the code. Unimplemented things stop the world rathe
 
 From [`runner/src/runtime.c`](https://github.com/mstan/cdirecomp/blob/master/runner/src/runtime.c):
 
-```c
+```c title="runner/src/runtime.c"
 void genesis_log_dispatch_miss(uint32_t addr) {
     g_miss_count_any++;
     g_miss_last_addr  = addr;
@@ -105,7 +105,7 @@ This is the part of cdirecomp worth copying. Because it recompiles firmware and 
 
 From [`runner/src/mcd212_video.c`](https://github.com/mstan/cdirecomp/blob/master/runner/src/mcd212_video.c):
 
-```c
+```c title="runner/src/mcd212_video.c"
 /*
  * MCD212 scanline decoder and compositor.
  *

@@ -153,7 +153,7 @@ python psxrecomp_cli.py ensure-emitters --project-root . --force
 
 The game emitter. Usage, verbatim from [`recompiler/src/main_psx.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/main_psx.cpp):
 
-```text
+```text title="recompiler/src/main_psx.cpp"
 Usage: {} --config <game.toml>
        {} <PS1-EXE file> [--seeds <file>] [--out-dir <dir>] [--strict] [--inspect]
 Example: {} SCUS_942.36 --seeds seeds/functions.txt --out-dir generated --strict
@@ -294,12 +294,29 @@ A separate scaffolding and operations CLI for game repositories, at `tools/new_p
 
 Four binaries, driven positionally. Both harnesses also accept `--stop-frame N`, which parks immediately after publishing field N for deterministic frame-domain comparison, and `--stop-seq`.
 
+### CdiRecompBios
+
 | Command | What it does |
 |---|---|
 | `CdiRecompBios.exe bios/cdi490a.rom --emit` | Recompile the CD-RTOS system ROM to C |
+
+### CdiRecomp
+
+| Command | What it does |
+|---|---|
 | `CdiRecomp.exe "path/to/Game (Region).cue"` | Inventory a CD-i disc: tracks, volume descriptor, OS-9 modules |
+
+### CdiRuntime
+
+| Command | What it does |
+|---|---|
 | `CdiRuntime.exe bios/cdi490a.rom` | Boot the system ROM you supply to the player shell |
 | `CdiRuntime.exe bios/cdi490a.rom --disc "path/to/Game.cue"` | Boot with a Mode-2 disc mounted |
+
+### CdiOracle
+
+| Command | What it does |
+|---|---|
 | `CdiOracle.exe bios/cdi490a.rom --steps 100000 --hold` | Run the CeDImu oracle |
 
 ## gbarecomp
@@ -331,7 +348,7 @@ The Python wrapper around the emitter.
 
 The native emitter, with two mutually exclusive modes. `--rom` and `--bios` are rejected together. `--config` is repeatable: the first is the base config and each later one is a supplemental overlay merged on top, and the base wins every conflict. Usage, verbatim from [`tools/gba_recompile/main.cpp`](https://github.com/mstan/gbarecomp/blob/main/tools/gba_recompile/main.cpp):
 
-```text
+```text title="tools/gba_recompile/main.cpp"
 gba_recompile --rom <path> [--entry HEX] [--symbols TSV]
               [--data-symbols TSV] [--config TOML]...
               [--out DIR] [--rom-base HEX]
@@ -465,7 +482,7 @@ The Python wrapper, version 0.3.0 in this checkout.
 
 The native emitter, which writes `generated/<prefix>_full.c` and `generated/<prefix>_dispatch.c`. Usage, verbatim from [`recompiler/src/main_nes.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/main_nes.c):
 
-```text
+```text title="recompiler/src/main_nes.c"
 Usage:
   NESRecomp <rom.nes>                        Recompile ROM to C
   NESRecomp <rom.nes> --game <game.toml>     Recompile with game config
@@ -487,7 +504,7 @@ Options:
 
 Usage, verbatim from [`recompiler/src/main_genesis.c`](https://github.com/mstan/segagenesisrecomp/blob/master/recompiler/src/main_genesis.c):
 
-```text
+```text title="recompiler/src/main_genesis.c"
 Usage: GenesisRecomp <rom.md|rom.bin> [--game <path/to/game.toml>] [--output-dir <directory>] [--reverse-debug] [--fail-on-unsupported]
 ```
 
@@ -544,7 +561,7 @@ The allowlist packager. Flags and the compliance rules behind them are on [relea
 
 Usage, verbatim from [`recompiler/src/main_sms.c`](https://github.com/mstan/smsggrecomp/blob/main/recompiler/src/main_sms.c):
 
-```text
+```text title="recompiler/src/main_sms.c"
 usage: SmsRecomp [<rom>] --game <game.toml> [--flat-step [--flat-step-variant <image>]...]
 ```
 

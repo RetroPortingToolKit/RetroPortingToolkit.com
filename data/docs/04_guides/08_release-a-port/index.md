@@ -23,7 +23,7 @@ A release in this fleet is one archive per platform, built by a script, containi
 
 Every packaging document in the fleet is built around the same negative constraint. gbarecomp states the reasoning most directly, in [`packaging/README.md`](https://github.com/mstan/gbarecomp/blob/main/packaging/README.md):
 
-```text
+```text title="packaging/README.md"
 ## What is never packaged
 
 The ROM and the BIOS. A recompiled binary already embeds translated ROM code, so
@@ -44,7 +44,7 @@ Where a game binary is published, three more things stay out. FaxanaduRecomp: th
 
 The rule against zipping a build folder exists because somebody did. From segagenesisrecomp's [`RELEASING.md`](https://github.com/mstan/segagenesisrecomp/blob/master/RELEASING.md):
 
-```text
+```text title="RELEASING.md"
 ## Do it mechanically — never zip a build folder by hand
 
 The CMake copies the ROM (`sonic*.bin`) next to the exe, so zipping a build
@@ -57,7 +57,7 @@ The tool that replaced hand-zipping is an allowlist packager, and its design is 
 
 From [`tools/package_release.py`](https://github.com/mstan/segagenesisrecomp/blob/master/tools/package_release.py):
 
-```python
+```python title="tools/package_release.py"
 # Forbidden in a release zip. NOTE: ".md" is intentionally NOT here — README.md
 # is markdown. Genesis ROMs in this project are *.bin, covered below.
 FORBIDDEN = [

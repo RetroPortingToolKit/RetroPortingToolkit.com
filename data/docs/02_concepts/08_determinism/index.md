@@ -24,7 +24,7 @@ A recompiled port has no emulator core object to hand to a serializer. What it h
 
 From [`runtime/include/boot_state.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/boot_state.h) in [psxrecomp](https://github.com/mstan/psxrecomp):
 
-```
+```c title="runtime/include/boot_state.h"
  * Completeness is mandatory (v4 no-stub rule): a partial capture that leaves a
  * subsystem at reset while CPU/RAM assume it was configured is a latent stub.
  * Every mutable hardware subsystem gets a section here, and the capture is
@@ -44,7 +44,7 @@ An interpreter can be stopped between any two instructions. A recompiled port ca
 
 From [`runtime/src/savestate.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/savestate.c):
 
-```
+```c title="runtime/src/savestate.c"
 /* savestate.c — user save states. The runtime UI opens from the save-state menu.
  * See savestate.h.
  *

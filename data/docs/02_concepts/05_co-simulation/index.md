@@ -70,7 +70,7 @@ The most copied consequence is that the program counter is excluded from the com
 
 From [`runtime/src/cosim_state.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/cosim_state.c):
 
-```c
+```c title="runtime/src/cosim_state.c"
 static uint64_t hash_cpu(const CPUState *c) {
     uint64_t h = FNV_OFF;
     uint32_t gte_data[32];
@@ -97,7 +97,7 @@ The lockstep itself is small. At each checkpoint the guest hashes its state, fol
 
 From [`runtime/src/cosim.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/cosim.c):
 
-```c
+```c title="runtime/src/cosim.c"
 static void cosim_record_checkpoint(uint64_t cycle, uint32_t pc) {
     uint64_t h = cosim_state_hash(NULL);
     uint64_t cp = ++g_cp;
@@ -136,7 +136,7 @@ Gate 3 is the one to understand. Gates 1 and 2 are satisfied trivially by a brok
 
 From [`tools/nes_cosim.py`](https://github.com/mstan/nesrecomp/blob/master/tools/nes_cosim.py):
 
-```python
+```python title="tools/nes_cosim.py"
 def cmd_gate3(exe, rom, frames):
     inj_frame = max(5, frames // 2)
     print(f"[Gate 3] fault injection at frame {inj_frame} ({frames} frames)")
@@ -158,7 +158,7 @@ The gate is not theoretical. A stride-2 parser in the PlayStation coordinator mi
 
 From [`tools/cosim.py`](https://github.com/mstan/psxrecomp/blob/master/tools/cosim.py):
 
-```python
+```python title="tools/cosim.py"
 def kv(resp):
     """parse a reply into {key: next_token} for every token that is followed by
     another token. Robust to a leading bare status word (e.g. 'parked cp N cycle M

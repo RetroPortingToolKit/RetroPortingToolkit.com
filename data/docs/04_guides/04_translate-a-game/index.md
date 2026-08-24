@@ -50,7 +50,7 @@ The design document describes capture, table and apply. In the shipped code the 
 
 Layer 1 is the whole capture-and-substitute mechanism, and it is short. From [`runtime/src/text_xlate.cpp`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/text_xlate.cpp):
 
-```cpp
+```cpp title="runtime/src/text_xlate.cpp"
     uint32_t* argregs[4] = { &cpu->gpr[4], &cpu->gpr[5], &cpu->gpr[6], &cpu->gpr[7] };
     for (int a = 0; a < 4; ++a) {
         uint32_t va = *argregs[a];
@@ -66,7 +66,7 @@ Layer 1 is the whole capture-and-substitute mechanism, and it is short. From [`r
 
 One multilingual TOML file per title, under `translations/` in the port repository. Every `translations/*.toml` under the project root is read at startup. The shipped table for [TsumuLightRecomp](https://github.com/mstan/TsumuLightRecomp) is 1990 lines. Its header and two real message entries, from [`translations/tsumu.toml`](https://github.com/mstan/TsumuLightRecomp/blob/master/translations/tsumu.toml):
 
-```toml
+```toml title="translations/tsumu.toml"
 # Tsumu Light (SLPS-02253) - English translations. Framework: docs/STRING_TRANSLATION.md
 # Non-glyphed string-pointer message text (in-EXE message table, LE Shift-JIS).
 # Keyed by FNV-1a64 of the exact source-record bytes. \n=line break, \f=page, \r=prompt.
@@ -154,7 +154,7 @@ Start a fresh run with capture enabled and drive every screen, menu, tutorial, d
 
 Re-run with the table in place and the hook substitutes. The project's instruction is specific about what counts as verification, from [`docs/STRING_TRANSLATION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/STRING_TRANSLATION.md):
 
-```text
+```text title="docs/STRING_TRANSLATION.md"
 3. **Apply + verify.** Re-run with the table; the hook substitutes. **Verify
    visually** (screenshot both windows — never infer from a counter), per the
    project's verification rules.

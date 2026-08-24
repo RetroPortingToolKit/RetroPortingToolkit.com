@@ -74,7 +74,7 @@ Cached native code is safe only while the RAM it was compiled from still holds t
 
 From [`runtime/src/overlay_loader.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/overlay_loader.c):
 
-```c
+```c title="runtime/src/overlay_loader.c"
     /* A reused address can have several range-owning variants. Select the
      * one whose compiled code bytes match live RAM instead of returning the
      * first range hit and letting one stale variant mask every later match. */

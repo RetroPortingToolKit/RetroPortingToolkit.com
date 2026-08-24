@@ -23,7 +23,7 @@ The tool that does the translating is called the recompiler, and its output is t
 
 From [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/code_generator.c):
 
-```c
+```c title="recompiler/src/code_generator.c"
     /* Label for branch targets.
      * Emit maybe_trigger_vblank(2) at every instruction boundary — on real
      * 6502, NMI is only sampled between instructions, never mid-instruction.

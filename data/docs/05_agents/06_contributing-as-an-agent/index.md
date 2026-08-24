@@ -44,7 +44,7 @@ Several repositories open with a session start ritual, and they mean it literall
 
 The whole of [`AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md) in nesrecomp is about this one question, and it is short enough to quote entire:
 
-```text
+```text title="AGENTS.md"
 # Repository Agent Notes
 
 ## Validation before commit claims
@@ -81,7 +81,7 @@ This boundary is the most consistent rule in the fleet after "never edit generat
 
 **Rules from another repository.** The fleet disagrees with itself on pausing the runtime, on print debugging, on whether unit tests come before or after running the game, on `game.cfg` against `game.toml`, and on how a dispatch miss may be resolved. [`CLAUDE.md`](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md) in gbrecompiled puts the general form of the rule in a list of things not to do:
 
-```text
+```text title="CLAUDE.md"
 - Do not pre-emptively fix hardware behavior "just in case"
 - Do not read large sections of bank_*.c for "context"
 - Do not guess what GB code does — Ghidra it

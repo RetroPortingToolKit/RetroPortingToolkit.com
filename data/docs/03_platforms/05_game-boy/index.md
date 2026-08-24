@@ -27,7 +27,7 @@ What is not simple here is time. The programme rests on one claim: "Every remain
 
 From [`recompiler/src/codegen/c_emitter.cpp`](https://github.com/mstan/gbrecompiled/blob/master/recompiler/src/codegen/c_emitter.cpp):
 
-```cpp
+```cpp title="recompiler/src/codegen/c_emitter.cpp"
     // (HL) read-modify-write emitter. When `split` (cycle-accurate RMW timing),
     // the read and write are separated by a gb_tick so the read samples one
     // M-cycle (4 T) before the write (Gekkio SM83; runtime/include/gb_timing.h);
@@ -65,7 +65,7 @@ The hashed surface is split into fourteen named sub hashes, so a mismatch names 
 
 From [`runtime/include/cosim_state.h`](https://github.com/mstan/gbrecompiled/blob/master/runtime/include/cosim_state.h):
 
-```c
+```c title="runtime/include/cosim_state.h"
 typedef struct {
     uint64_t cpu;      /* GPRs + flags + IME/HALT/STOP/HALT-bug/double-speed latches (NOT pc) */
     uint64_t timer;    /* div_counter + tima_reload_pending */
@@ -102,7 +102,7 @@ Gate 3 is the one to understand. If the comparator quietly stops comparing anyth
 
 From [`runtime/include/gbrt.h`](https://github.com/mstan/gbrecompiled/blob/master/runtime/include/gbrt.h):
 
-```c
+```c title="runtime/include/gbrt.h"
 /* Gate-3 fault-injection target: after checkpoint `inject_at_checkpoint`, one
  * field in context A is perturbed so the tool MUST halt at ~that checkpoint and
  * name the owning subsystem. Proves the tool is not silently blind. */

@@ -294,31 +294,10 @@ span.docs-nav-section-title {
   /* an in-page anchor must not land under the sticky bar */
   scroll-margin-top: 84px;
 }
-/* The permalink the renderer hangs off each heading (.md-anchor, from
-   Markdown.tsx). Quiet until the heading is hovered or the link is focused, so
-   it is available without punctuating every heading. Scoped to .docs-prose:
-   if the markdown layer grows its own stylesheet, that one owns it. */
-.docs-prose .md-anchor {
-  margin-left: 0.35em;
-  color: var(--muted);
-  border-bottom: 0;
-  font-weight: 400;
-  opacity: 0;
-  transition: opacity 0.15s var(--ease);
-}
-.docs-prose .md-heading:hover .md-anchor,
-.docs-prose .md-anchor:focus-visible {
-  opacity: 1;
-}
-.docs-prose .md-anchor:hover {
-  color: var(--ink);
-}
-@media (hover: none) {
-  /* No hover to reveal it, so it simply stays visible and quiet. */
-  .docs-prose .md-anchor {
-    opacity: 0.45;
-  }
-}
+/* The heading permalink (.md-anchor) used to be styled here, scoped to
+   .docs-prose. The renderer puts it on every heading of every kind, so a blog
+   post showed a bare "#" after each one; the rules now live unscoped in
+   14-markdown.css, which owns the markdown layer's hooks site-wide. */
 .docs-prose h2 {
   font-family: var(--article-display);
   font-weight: 600;
@@ -874,4 +853,30 @@ a.docs-card-link:hover {
   a.docs-card-link:hover {
     transform: none;
   }
+}
+
+/* ------------------------------ article foot ------------------------------ */
+
+/* The last-updated stamp. Deliberately the quietest thing on the page: a
+   reader wants it when they are deciding whether to trust what they just read,
+   so it sits under the body and above prev/next, at caption weight. The date
+   itself is decided at build time (scripts/gen-docs-dates.mjs) and rendered by
+   formatArticleDate, which is hand rolled so Node and the browser agree. */
+.docs-article-foot {
+  margin-top: 48px;
+}
+.docs-article-foot:empty {
+  margin-top: 0;
+}
+.docs-updated {
+  margin: 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.docs-updated-date {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
 }

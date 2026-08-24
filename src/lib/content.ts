@@ -23,7 +23,7 @@ const aboutMd = import.meta.glob("/data/about.md", {
 }) as Record<string, string>;
 
 const assetUrls = import.meta.glob(
-  "/data/**/*.{jpg,jpeg,png,webp,gif,avif,mp4,webm,mov}",
+  "/data/**/*.{jpg,jpeg,png,webp,svg,gif,avif,mp4,webm,mov}",
   { eager: true, query: "?url", import: "default" },
 ) as Record<string, string>;
 

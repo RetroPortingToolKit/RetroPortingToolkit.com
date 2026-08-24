@@ -18,7 +18,7 @@ You have been asked to change something in one of these repositories. This page 
 
 ## What this fleet is
 
-It is a set of static recompilation toolchains, one per console, plus a much larger set of per-game repositories that consume them. A toolchain repository owns the recompiler and the runtime; a game repository owns its config, its game-specific hooks and its regenerated C, and owns no framework code, which is why [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) states flatly that "The recompiler and runner are the source of truth." Correctness is established by running a reference implementation, called the oracle, beside the recompiled build and comparing state, not by looking at the screen and forming an opinion. Of the 84 repositories surveyed, 34 carry an agent instruction file, and every one of those 34 is in the [mstan](https://github.com/mstan) organisation. Work moves between sessions and between agents through markdown committed to the repository, so what you write down is as much the deliverable as the code is.
+It is a set of static recompilation toolchains, one per console, plus a much larger set of per-game repositories that consume them. A toolchain repository owns the recompiler and the runtime; a game repository owns its config, its game-specific hooks and its regenerated C, and owns no framework code, which is why [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) states flatly that "The recompiler and runner are the source of truth." Correctness is established by running a reference implementation, called the oracle, beside the recompiled build and comparing state, not by looking at the screen and forming an opinion. Of the 87 repositories surveyed, 34 carry an agent instruction file, and every one of those 34 is in the [mstan](https://github.com/mstan) organisation. Work moves between sessions and between agents through markdown committed to the repository, so what you write down is as much the deliverable as the code is.
 
 ## The repository you are in
 
@@ -45,7 +45,7 @@ Do not reconstruct the missing rules by guessing. [Rules of the codebase](/docs/
 
 ### If there is no agent file at all
 
-Only 34 of the 84 repositories have one, all 34 in the mstan organisation; no repository outside it carries either file. In the other 50 there are no local rules and these pages are what you have. Apply them as defaults, say in your report that you did so, and do not invent a house style the repository has never stated.
+Only 34 of the 87 repositories have one, all 34 in the mstan organisation; no repository outside it carries either file. In the other 53 there are no local rules and these pages are what you have. Apply them as defaults, say in your report that you did so, and do not invent a house style the repository has never stated.
 
 ## What you must not break
 
@@ -70,7 +70,7 @@ Every framework file describes the same four beats: build the recompiler, regene
 
 From [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) in nesrecomp, lines 73 to 84:
 
-```text
+```text title="CLAUDE.md"
 1. BUILD recompiler     →  NESRecomp.exe  (only when recompiler src changes)
 2. RUN recompiler       →  generates <game>_full.c in game project's generated/
 3. BUILD game project   →  GameName.exe  (after runner or game changes)

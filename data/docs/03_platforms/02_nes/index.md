@@ -58,7 +58,7 @@ MMC3 shows why banked dispatch cannot be resolved at build time. The generated d
 
 From [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/code_generator.c):
 
-```c
+```c title="recompiler/src/code_generator.c"
     if (rom->mapper == 4) {
         fprintf(f,
             "    extern int g_mmc3_win_bank8k[4];\n"
@@ -83,7 +83,7 @@ The other half of mapper handling is per-game configuration. Bank switches usual
 
 From [`game.toml`](https://github.com/mstan/FaxanaduRecomp/blob/master/game.toml) in FaxanaduRecomp, the repository's designated boilerplate:
 
-```toml
+```toml title="game.toml"
 # game.toml — Faxanadu (NES, Mapper 1 / MMC1, 16 PRG banks, CHR RAM)
 
 [game]
@@ -173,7 +173,7 @@ Four places had drifted when this page was written. None is a fault in the toolc
 
 From [`tests/codegen.test.ts`](https://github.com/mstan/nesrecomp/blob/master/tests/codegen.test.ts):
 
-```ts
+```ts title="tests/codegen.test.ts"
     const rom = new RomBuilder()
       .org(0xc000)
       .jmpInd(0xdeff)

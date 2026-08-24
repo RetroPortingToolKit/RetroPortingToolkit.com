@@ -41,7 +41,7 @@ One structure is the whole boundary. Generated C never touches host memory. It r
 
 A single load shows what translation costs. From [`recompiler/src/strict_translator.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/strict_translator.cpp):
 
-```cpp
+```cpp title="recompiler/src/strict_translator.cpp"
     // LW rt, simm16(rs) -- 32-bit word load (addr must be 4-aligned)
     if (opcode == 0x23) {
         const uint8_t rs = (d.raw >> 21) & 0x1F;
@@ -72,7 +72,7 @@ Two emitter decisions shape everything downstream. The game is written as a shar
 
 From [`recompiler/src/full_function_emitter.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/full_function_emitter.cpp), the last two rungs, emitted as text into the generated dispatcher:
 
-```cpp
+```cpp title="recompiler/src/full_function_emitter.cpp"
     out += "        /* Static dispatch miss.  Self-modifying / install-at-runtime RAM\n";
     out += "         * (CLAUDE.md Rule 18): the BIOS writes dispatch stubs into kernel\n";
     out += "         * RAM at runtime.  If the target page has been written-to since\n";
@@ -117,7 +117,7 @@ COP2 is the geometry transform engine, and the recompiler funnels every GTE comm
 
 From [`recompiler/src/strict_translator.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/strict_translator.cpp):
 
-```cpp
+```cpp title="recompiler/src/strict_translator.cpp"
         if (cop_op & 0x10) { // GTE command (bit 25 set)
             uint32_t gte_cmd = d.raw & 0x1FFFFFF;
             r.supported = true;
@@ -149,7 +149,7 @@ Widescreen lives in psxrecomp's own GTE and GPU rather than in a renderer, so it
 
 From [`runtime/src/gte.cpp`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/gte.cpp):
 
-```cpp
+```cpp title="runtime/src/gte.cpp"
 extern "C" void gte_set_display_aspect(int num, int den) {
     if (num <= 0 || den <= 0) { s_ws_xnum = s_ws_xden = 1; return; }
     // squash = (4/3) / (num/den) = (4*den) / (3*num); identity for 4:3.

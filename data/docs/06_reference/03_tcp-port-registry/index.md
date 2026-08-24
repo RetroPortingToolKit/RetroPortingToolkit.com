@@ -129,7 +129,7 @@ Every project has a documented override. Use it rather than closing whichever se
 
 vbrecomp's example configuration is the clearest illustration of a two-process pair, because it sets both halves in one file. Verbatim, from [`debug.ini.example`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/debug.ini.example) in MarioTennisVirtualBoyRecomp:
 
-```ini
+```ini title="debug.ini.example"
 [runtime]
 debug_port = 4390
 window_title = "vbrecomp - runtime"

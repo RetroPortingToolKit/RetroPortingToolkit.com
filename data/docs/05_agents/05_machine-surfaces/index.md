@@ -91,7 +91,7 @@ Ports are assigned per project and they collide: 4380 is claimed by the psx-beet
 
 From [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp:
 
-```python
+```python title="TCP.md"
 import socket, json
 
 def send_cmd(cmd, port=4370):
@@ -190,7 +190,7 @@ GameRecomp.exe rom.nes --script C:/temp/session.txt > C:/temp/stdout.txt 2>&1
 
 Note one interaction with [how changes go wrong here](/docs/agents/failure-modes): `TURBO ON` can change what you measure, so a script used to reproduce a divergence should not use it. The button bitmask, for setting input over TCP rather than by script, is documented in [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp:
 
-```text
+```text title="TCP.md"
 0x01 = Right    0x08 = Up
 0x02 = Left     0x04 = Down
 0x10 = Start    0x20 = Select
@@ -210,7 +210,7 @@ Four `.mcp.json` files exist in the fleet. All four are Ghidra over SSE, and all
 
 The complete file, from [`.mcp.json`](https://github.com/mstan/psxrecomp/blob/master/.mcp.json) in psxrecomp:
 
-```json
+```json title=".mcp.json"
 {
   "mcpServers": {
     "ghidra": {
@@ -242,7 +242,7 @@ Nothing in this fleet watches your change on your behalf. Four repositories carr
 
 The psxrecomp workflow explains its own deliberate absence from pull requests, and the reasoning is worth reading before you propose adding a check anywhere in this fleet. From [`.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml):
 
-```yaml
+```yaml title=".github/workflows/cli-release.yml"
 # Release packaging ONLY. Deliberately does NOT run on pull_request or on
 # pushes to master.
 #

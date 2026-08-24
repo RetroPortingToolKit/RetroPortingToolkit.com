@@ -35,13 +35,13 @@ Everything below is declared in `include/recomp_net/`. A host includes the umbre
 
 Three compile-time constants bound everything: `RNET_MAX_SLOTS` is 8, `RNET_INPUT_MAX` is 32 bytes per pad sample, and `RNET_HISTORY_LENGTH` is 128 ring rows.
 
-## What a port implements
+## What a port implements: `RNetHostVTable`
 
 Four function pointers. `sample_local` and `publish` are mandatory. `now_ms` is optional and falls back to platform monotonic milliseconds. `on_signal` is optional and may be NULL for a LAN-only host.
 
 From [`include/recomp_net/session.h`](https://github.com/TechnicallyComputers/recomp-net/blob/main/include/recomp_net/session.h):
 
-```c
+```c title="include/recomp_net/session.h"
 typedef struct RNetHostVTable
 {
     /* Fill local pad sample for the given sim tick (called during try_admit). */
@@ -66,7 +66,7 @@ An engine facade implements the two mandatory callbacks once for every title on 
 
 From [`runner/src/netplay/snes_netplay.c`](https://github.com/mstan/snesrecomp/blob/main/runner/src/netplay/snes_netplay.c):
 
-```c
+```c title="runner/src/netplay/snes_netplay.c"
 static void host_sample_local(rnet_u32 tick, RNetInputSample *out, void *ctx)
 {
     NetplayState *st = (NetplayState *)ctx;
@@ -96,7 +96,7 @@ static void host_publish(rnet_u32 tick, const RNetInputSample *by_slot, int slot
 
 A game repository on top of that engine writes far less: a hooks struct with a pad capture function and two timeouts, plus one line of CMake. [`MetalWarriorsSNESRecomp`](https://github.com/TechnicallyComputers/MetalWarriorsSNESRecomp) enables the whole stack with `snesrecomp_enable_recomp_net(MetalWarriorsSNESRecomp)`. The library README prescribes that split: the library owns session, ICE, TURN fallback, bundle size and protocol; the engine facade owns barrier admit, starvation latch, catch-up budget and soft exit; the title owns identity, the pad sample hook and the connect-timeout modal.
 
-## Session configuration
+## Session configuration: `RNetConfig`
 
 `RNetConfig` is read by `rnet_session_create`. `rnet_config_init_defaults` fills every field, so nothing is strictly required of a host that takes the defaults. What matters is agreement: five of these fields must be identical on every peer, `local_slot` is the one that differs, and the documented rule does not mention `occupied_mask` either way.
 
@@ -145,7 +145,7 @@ This is the complete host loop from the shipped two-peer example. Nothing else i
 
 From [`examples/lan_delay_2p/main.c`](https://github.com/TechnicallyComputers/recomp-net/blob/main/examples/lan_delay_2p/main.c):
 
-```c
+```c title="examples/lan_delay_2p/main.c"
     while (ctx.published_count < (int)target_ticks && wait_iters < 60000U)
     {
         rnet_session_pump(session);
@@ -224,6 +224,8 @@ Three ways to start a session. The library deliberately ships no lobby of its ow
 
 Online lobbies always use the server's UDP SFU: "Online WebSocket lobbies always dial the lobby server's UDP SFU on `start`. Every peer sends to one advertise endpoint; the server fans out opaque datagrams (magic + `session_id`) to every other registered seat. There is no guest to guest mesh." The relay reads exactly one byte of a packet body, only to learn which seat sent it, and never decodes a pad.
 
+### `RNetIceConfig`
+
 `RNetIceConfig` is read by `rnet_session_start_ice`, `rnet_ice_rtt_open` and `rnet_ice_xfer_open`; `rnet_ice_config_init_defaults` fills it.
 
 | Field | Type | Required | Default | Meaning |
@@ -236,6 +238,8 @@ Online lobbies always use the server's UDP SFU: "Online WebSocket lobbies always
 | `bind_port` | `rnet_u16` | No | 0 | Local bind port |
 | `controlling` | `rnet_u8` | No | 1 | "Non-zero = offerer: gather immediately. Zero = answerer: wait for remote SDP." |
 | `force_relay` | `rnet_u8` | No | 0 | "Non-zero = only use typ relay candidates (requires TURN in this config)." |
+
+### ICE relay fallback variables
 
 Four environment variables tune the automatic relay fallback, and they are the only environment variables recomp-net reads.
 
@@ -252,6 +256,8 @@ Read this section knowing one thing first. [`docs/rollback.md`](https://github.c
 
 `RNetRbSession` "owns the episode FSM (`Live → SealInputs → AwaitingBaseline → Replay → Verify → Commit|Abort`), the correction tuple, the sealed input table, and the resolved-through (shared frontier) watermark. The host owns snapshots, the deterministic sim step, state digests, and the wire transport."
 
+### `RNetRbConfig`
+
 `RNetRbConfig` is read by `rnet_rb_create`.
 
 | Field | Type | Required | Default | Meaning |
@@ -264,11 +270,13 @@ Read this section knowing one thing first. [`docs/rollback.md`](https://github.c
 | `tip_seal_slack` | `uint32_t` | No | becomes 2 when `tip_runway > 0` | Set `UINT32_MAX` to force zero slack |
 | `light_tip_max_depth` | `uint32_t` | No | 0 becomes 16 | "Clamped like tip_runway (max 32)." |
 
+### `RNetRollbackVTable`
+
 The vtable is six callbacks plus one optional gate set, and the comments are the specification.
 
 From [`include/recomp_net/rollback.h`](https://github.com/TechnicallyComputers/recomp-net/blob/main/include/recomp_net/rollback.h):
 
-```c
+```c title="include/recomp_net/rollback.h"
 typedef struct RNetRollbackVTable
 {
     void *ctx;
@@ -303,6 +311,8 @@ Pacing policy is deliberately not here. [`retcomm-rbengine`](https://github.com/
 
 Little endian throughout. Every packet ends with a 32 bit FNV-1a checksum over all preceding bytes. The common header is `magic:u32`, `type:u16`, `session_id:u32`, which is the 10 bytes the relay parses.
 
+### Packet types
+
 | Id | Packet | Payload |
 |---|---|---|
 | 1 | `HELLO` | `local_slot:u8`, `slot_count:u8`, `delay:u8`, `pad:u8` |
@@ -324,6 +334,8 @@ Little endian throughout. Every packet ends with a 32 bit FNV-1a checksum over a
 
 Opcodes 20 to 25 are an additive range that delay-sync hosts never emit or parse.
 
+### Protocol limits
+
 | Limit | Value | Why |
 |---|---|---|
 | `RNET_MAX_PACKET` | 1200 | Datagram ceiling with ICE and TURN framing headroom |
@@ -332,11 +344,13 @@ Opcodes 20 to 25 are an additive range that delay-sync hosts never emit or parse
 | `RNET_STATE_MAX` | 8 MiB | Largest blob a state transfer may carry |
 | `RNET_RB_PEER_SEAL_MASK_BITS` | 64 | Hard ceiling on a tip-extended span regardless of `seal_max_span` |
 
+### `rnet_proto_checksum`
+
 `INPUT_CONFIRM.input_hash` is exactly specified as "`rnet_proto_checksum` over `sim_tick` (LE u32) followed by each slot's `size` (LE u16) and `bytes`". That checksum is the one function the entire protocol depends on, and a port that reimplements it has to match byte for byte.
 
 From [`src/protocol/rnet_protocol.c`](https://github.com/TechnicallyComputers/recomp-net/blob/main/src/protocol/rnet_protocol.c):
 
-```c
+```c title="src/protocol/rnet_protocol.c"
 rnet_u32 rnet_proto_checksum(const rnet_u8 *data, size_t len)
 {
     rnet_u32 sum = 0x811c9dc5u;
