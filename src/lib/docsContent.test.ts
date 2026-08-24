@@ -132,10 +132,25 @@ describe("docs routes", () => {
 
   it("keeps docs out of the blog feeds", () => {
     // A wiki edit is not a news item. gen-feeds.mjs reads data/blog only, and
-    // this is what stops someone widening it by accident.
+    // this is what stops someone widening it by accident. The check is on each
+    // entry's own identifier, not on the rendered body: a blog post is free to
+    // link into /docs/, and the tutorials do it heavily.
     const feeds = renderFeeds();
-    for (const body of [feeds.rss, feeds.atom, feeds.json]) {
-      expect(body).not.toContain("/docs/");
+    const rssIds = [...feeds.rss.matchAll(/<guid[^>]*>([^<]+)<\/guid>/g)].map(
+      (m) => m[1],
+    );
+    const atomIds = [...feeds.atom.matchAll(/<id>([^<]+)<\/id>/g)].map(
+      (m) => m[1],
+    );
+    const json = JSON.parse(feeds.json) as {
+      items: { id: string; url: string }[];
+    };
+    const jsonIds = json.items.flatMap((i) => [i.id, i.url]);
+    expect(rssIds.length).toBeGreaterThan(0);
+    expect(atomIds.length).toBeGreaterThan(0);
+    expect(jsonIds.length).toBeGreaterThan(0);
+    for (const id of [...rssIds, ...atomIds, ...jsonIds]) {
+      expect(id).not.toContain("/docs/");
     }
     expect(typeof generateFeeds).toBe("function");
   });

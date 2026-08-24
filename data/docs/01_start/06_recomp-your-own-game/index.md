@@ -106,10 +106,17 @@ sh tools/new_project_layout/setup_project.sh \
 ```
 
 One detail matters more than it looks. `--yes` requires `--name` and `--disc`,
-and in that mode **every yes or no option defaults to off**. So `--generate` and
+and in that mode **the yes or no options default to off**. So `--generate` and
 `--enable-build` have to be passed explicitly, or the scaffold writes the tree
 and stops. That single line is the difference between an agent that finishes and
 one that appears to succeed and produces nothing runnable.
+
+Two caveats, because "everything defaults off" is not literally true. The setup
+wizard defaults on when the launcher interface is enabled, so
+`--yes --enable-recomp-ui` turns the wizard on with it. And the command above
+gives you no launcher interface, no wizard and no netplay: the right shape for a
+first build, not the shape a shipping port has. Add them back deliberately once
+the game boots.
 
 The flags worth knowing:
 
@@ -121,7 +128,7 @@ The flags worth knowing:
 | `--players N` | Default 2, maximum 8. Pass `1` and netplay turns itself off |
 | `--bios PATH` | Optional retail BIOS |
 | `--generate` | Build the emitters and translate the game to C |
-| `--enable-build` | Configure and build afterwards |
+| `--enable-build` | Configure and build afterwards. Forces generate on, warning as it does so, but pass both so the command reads honestly |
 | `--no-github` | Do not create a remote repository |
 | `--psxrecomp-ref` | Pin a specific framework revision |
 
@@ -172,7 +179,7 @@ repository layout and the mechanisms for expressing per game fixes.
 | Symptom | Cause | Fix |
 |---|---|---|
 | `Cannot find source file: generated/OpenBIOS_full.c` | The BIOS C was never generated | Run generate before configuring CMake |
-| `dispatch_misses.log` is not empty | Code the analysis did not find | A real bug, not noise. Add the address as a seed and regenerate |
+| `dispatch_miss_total` is above zero | Code the analysis did not find | A real bug, not noise. Add the address to the dispatch miss seeds and regenerate. PlayStation reports this through the debug server's `dispatch_stats` command; the cartridge toolchains write a `dispatch_misses.log` file instead |
 | Compiler exits with no message, code -1 | Out of memory | Lower parallelism, `-j2` rather than `-j"$(nproc)"` |
 | MinGW reports `too many sections` | COFF section limit | Add `-Wa,-mbig-obj` |
 

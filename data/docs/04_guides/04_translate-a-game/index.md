@@ -86,7 +86,7 @@ en = "Clear stages to unlock\nmore to choose from.\nAim for S rank!"
 
 A `[[glyph_label]]` entry carries the fixed address and the exact slot width it may overwrite. `src_jp` is documentation for the human reading the file and is never used for matching:
 
-```toml
+```toml title="translations/tsumu.toml"
 [[glyph_label]]
 addr    = 0x80070300
 width   = 26
@@ -97,7 +97,7 @@ en = "TUTORIAL 1"
 
 A `[[vram_patch]]` entry is a rectangle plus expected and replacement pixels. The two pixel-hex strings are about 900 characters each and are elided here:
 
-```toml
+```toml title="translations/tsumu.toml"
 # hud_stage: "STAGE" over the JP HUD label strip (game compose-blit unit)
 [[vram_patch]]
 x = 834

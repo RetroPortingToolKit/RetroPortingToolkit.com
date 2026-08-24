@@ -129,7 +129,7 @@ disc_sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
 
 The rest of the same file declares one feature and the single guarded write it owns. Note that `expected` is a complete instruction, not just the byte being changed:
 
-```toml
+```toml title="README.md"
 [[feature]]
 id = "quick-start"
 name = "Quick Start"
@@ -179,7 +179,7 @@ step = 1
 default = 4
 ```
 
-```toml
+```toml title="MOD_AUTHORING.md"
 format_version = 2
 
 [[patch]]
@@ -264,7 +264,7 @@ disc_sha256 = "25ada3dd51e70eb9f9218cd83fb02d73139750229fb44b012d62d183ab32eb13"
 
 The feature and its option follow. Five more `[[option.choice]]` blocks after this one give 90, 120, 144, 165 and 240 FPS:
 
-```toml
+```toml title="mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml"
 [[feature]]
 id = "frame-interpolation"
 name = "Frame Interpolation"
@@ -288,7 +288,7 @@ label = "Display refresh"
 
 The last three lines of the manifest are the only link to code:
 
-```toml
+```toml title="mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml"
 [[plugin]]
 feature = "frame-interpolation"
 id = "tomba.frame-interpolation"

@@ -83,10 +83,18 @@ sh tools/new_project_layout/setup_project.sh \
   --no-github
 ```
 
-`--yes` requires `--name` and `--disc`. Every yes or no option defaults to OFF in
-this mode, so anything you want must be passed explicitly. That is why
+`--yes` requires `--name` and `--disc`. In this mode the yes or no options
+default to off, so anything you want must be passed explicitly. That is why
 `--generate` and `--enable-build` are listed above: without them the scaffold
-stops after writing the tree.
+stops after writing the tree, and reports success having produced nothing
+runnable.
+
+Two caveats on that, because "everything defaults off" is not literally true.
+The setup wizard defaults ON when the launcher interface is enabled, so
+`--yes --enable-recomp-ui` quietly turns the wizard on as well. And the command
+above produces a build with no launcher interface, no wizard and no netplay,
+which is the right shape for a first build but not the shape a shipping port
+has. Add those back deliberately once the game boots.
 
 The flags you will actually reach for:
 
@@ -98,7 +106,7 @@ The flags you will actually reach for:
 | `--players N` | Default 2, maximum 8. Pass `1` for a single player game: netplay then turns itself off with no prompting. |
 | `--bios PATH` | Optional retail BIOS, only used if generate runs. |
 | `--generate` / `--no-generate` | Build the emitters and translate the game to C. |
-| `--enable-build` / `--no-build` | Configure and build after generate. Only meaningful with `--generate`. |
+| `--enable-build` / `--no-build` | Configure and build afterwards. This forces generate on: passing it without `--generate` prints `warning: --enable-build requires Generate` and enables it for you. Pass both anyway, so the command says what it does. |
 | `--no-github` | Do not create a remote repository. Always pass this unless your user explicitly asked for a remote. |
 | `--enable-recomp-ui` / `--no-recomp-ui` | The launcher interface. Off means no wizard and no netplay. |
 | `--enable-netplay` / `--no-netplay` | Rollback netplay. Automatically off when `--players 1`. |
@@ -156,7 +164,7 @@ Be honest with your user at these points rather than looping.
 | Symptom | Cause | What to do |
 |---|---|---|
 | `Cannot find source file: generated/OpenBIOS_full.c` | The BIOS C was never generated | Run the generate step before configuring CMake |
-| `dispatch_misses.log` is not empty after a run | Code the analysis did not find | Treat as a real bug, not noise. Each miss is a game breaking gap. Add the address as a seed and regenerate |
+| `dispatch_miss_total` is above zero | Code the analysis did not find | Treat as a real bug, not noise. Each miss is a game breaking gap. Add the address to the dispatch miss seeds and regenerate. On PlayStation you read this from the debug server's `dispatch_stats` command; the cartridge toolchains write a `dispatch_misses.log` instead |
 | Compiler exits with no diagnostic, code -1 | Out of memory | Lower the parallelism: `-j2` rather than `-j"$(nproc)"` |
 | `ninja: GetLastError() = 2`, or a cache load failure | You built a directory that never configured | Fix the real configure error rather than retrying the build |
 | MinGW says `too many sections` | COFF section limit | Add `-Wa,-mbig-obj` |

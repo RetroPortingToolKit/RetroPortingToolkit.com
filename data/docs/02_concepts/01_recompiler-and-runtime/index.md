@@ -22,7 +22,7 @@ The C backend writes the same prologue every time, so these four functions tell 
 
 From [`src/cgenerator.cpp`](https://github.com/N64Recomp/N64Recomp/blob/main/src/cgenerator.cpp):
 
-```cpp
+```cpp title="src/cgenerator.cpp"
 void N64Recomp::CGenerator::emit_function_start(const std::string& function_name, size_t func_index) const {
     (void)func_index;
     fmt::print(output_file,
@@ -54,7 +54,7 @@ The boundary is one header, `include/recomp.h`: the recompiler ships it, the run
 
 From [`include/recomp.h`](https://github.com/N64Recomp/N64Recomp/blob/main/include/recomp.h):
 
-```c
+```c title="include/recomp.h"
 // The function signature for all recompiler output functions.
 typedef void (recomp_func_t)(uint8_t* rdram, recomp_context* ctx);
 // The function signature for special functions that need a third argument.
@@ -98,7 +98,7 @@ Here is the runtime holding up its end. Loading a code section at run time is tw
 
 From [`librecomp/src/overlays.cpp`](https://github.com/N64Recomp/N64ModernRuntime/blob/main/librecomp/src/overlays.cpp):
 
-```cpp
+```cpp title="librecomp/src/overlays.cpp"
 void load_overlay(size_t section_table_index, int32_t ram) {
     const SectionTableEntry& section = sections_info.code_sections[section_table_index];
 
