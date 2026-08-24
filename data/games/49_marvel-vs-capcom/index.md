@@ -14,6 +14,7 @@ group: "PlayStation"
 verified: "2026-08-20"
 updated: "2026-08-18"
 added: "2026-08-07"
+cover: "./boxart.png"
 ---
 
 A static recompilation of Capcom's 1999 crossover fighter, built on [PSXRecomp](/hardware/playstation) by TechnicallyComputers. The disc it works from is already a compromise: the PlayStation port could not hold two full characters per side in memory, so it demoted the second fighter to an assist and dropped on-the-fly switching altogether.

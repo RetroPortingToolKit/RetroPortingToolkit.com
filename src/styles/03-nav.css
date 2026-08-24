@@ -116,8 +116,10 @@
 }
 .tabs {
   margin: 0;
-  /* padding clears the flush-left avatar + name and flush-right theme toggle */
-  padding: 0 64px 0 200px;
+  /* padding clears the flush-left avatar + name and flush-right theme toggle.
+     Left was 200px, which left the first pill 7px off the wordmark; measured
+     in the browser, the brand's right edge sits 294px into the bar. */
+  padding: 0 64px 0 228px;
   display: flex;
   justify-content: flex-start;
   gap: 12px;

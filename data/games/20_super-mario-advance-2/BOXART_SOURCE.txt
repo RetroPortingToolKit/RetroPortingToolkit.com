@@ -1,0 +1,4 @@
+Box art sourced from libretro-thumbnails (Named_Boxarts).
+Matched name: Super Mario Advance 2 - Super Mario World (USA, Australia)
+URL: https://raw.githubusercontent.com/libretro-thumbnails/Nintendo_-_Game_Boy_Advance/master/Named_Boxarts/Super%20Mario%20Advance%202%20-%20Super%20Mario%20World%20%28USA%2C%20Australia%29.png
+https://github.com/libretro-thumbnails/libretro-thumbnails

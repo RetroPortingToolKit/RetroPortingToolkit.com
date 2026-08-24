@@ -14,6 +14,7 @@ group: "Game Boy Advance"
 verified: "2026-08-18"
 updated: "2026-08-03"
 added: "2026-07-31"
+cover: "./boxart.png"
 ---
 
 Super Mario Advance 4: Super Mario Bros. 3 is the Game Boy Advance release of Super Mario Bros. 3, recompiled as a core project in the [Game Boy Advance lineup](/hardware/game-boy-advance). The original GBA code runs as a native Windows application wrapped in a modern launcher, with controller support, fullscreen display, audio settings, and save states.

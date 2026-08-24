@@ -14,6 +14,7 @@ group: "Game Boy Advance"
 verified: "2026-08-18"
 updated: "2026-08-03"
 added: "2026-07-30"
+cover: "./boxart.png"
 ---
 
 Super Mario Advance 2: Super Mario World is the Game Boy Advance release of Super Mario World, recompiled as a core project in the [Game Boy Advance lineup](/hardware/game-boy-advance). Its standout feature is Adaptive Widescreen, an optional mode that fills a wide monitor with more of the level instead of stretching the picture. It also pairs neatly with the [SNES Super Mario World recomp](/games/super-mario-world): the same game, recompiled from two different consoles.

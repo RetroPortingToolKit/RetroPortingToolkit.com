@@ -1,0 +1,4 @@
+Box art sourced from libretro-thumbnails (Named_Boxarts).
+Matched name: Xenogears (USA) (Disc 1)
+URL: https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Xenogears%20%28USA%29%20%28Disc%201%29.png
+https://github.com/libretro-thumbnails/libretro-thumbnails

@@ -1,0 +1,4 @@
+Box art sourced from libretro-thumbnails (Named_Boxarts).
+Matched name: Marvel vs. Capcom - Clash of Super Heroes (USA)
+URL: https://raw.githubusercontent.com/libretro-thumbnails/Sony_-_PlayStation/master/Named_Boxarts/Marvel%20vs.%20Capcom%20-%20Clash%20of%20Super%20Heroes%20%28USA%29.png
+https://github.com/libretro-thumbnails/libretro-thumbnails

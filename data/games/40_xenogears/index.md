@@ -14,6 +14,7 @@ group: "PlayStation"
 verified: "2026-08-18"
 updated: "2026-08-19"
 added: "2026-07-22"
+cover: "./boxart.png"
 ---
 
 XenogearsRecomp is an independent community project by OpokXeno that rebuilds Xenogears (USA, Disc 1) as a native PC application. It uses [PSXRecomp](/hardware/playstation) as its recompilation framework rather than reimplementing that layer, one of the clearest signs of the toolkit being picked up outside the core team. Its most unusual trait: the game literally speeds itself up as you play, compiling more of itself to native code in the background.
