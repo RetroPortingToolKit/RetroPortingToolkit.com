@@ -15,5 +15,6 @@ If you have just arrived, read this section in order. It assumes nothing: not th
 - [Is this emulation](/docs/start/is-this-emulation). The honest answer, and the page that keeps this wiki from overclaiming. Read it before you repeat anything you read on the other two.
 - [What you need](/docs/start/what-you-need). Prerequisites per toolchain, and the one thing no project supplies: the game file, which you provide yourself.
 - [Quickstart](/docs/start/quickstart). The shortest real path from nothing to something running, on one console, with a check at the end that tells you whether it worked.
+- [Recomp your own game](/docs/start/recomp-your-own-game). You have a game you own and want a port of it. Start here, and hand this page to an agent if one is doing the work.
 
 When you want the ideas underneath, go to [Concepts](/docs/concepts). When you want your console, go to [Platforms](/docs/platforms).

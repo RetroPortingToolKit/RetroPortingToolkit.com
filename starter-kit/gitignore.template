@@ -1,0 +1,12 @@
+disc/
+generated/
+build*/
+*.bin
+*.cue
+*.iso
+*.nes
+*.sfc
+*.gba
+*.gb
+*.md5
+.DS_Store
