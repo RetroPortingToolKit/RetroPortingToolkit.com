@@ -17,6 +17,18 @@
     {
       "source": "/(atom|atom\\.xml)",
       "headers": [{ "key": "Content-Type", "value": "application/atom+xml; charset=utf-8" }]
+    },
+    {
+      "source": "/(llms\\.txt|llms-full\\.txt)",
+      "headers": [{ "key": "Content-Type", "value": "text/markdown; charset=utf-8" }]
+    },
+    {
+      "source": "/(docs\\.md|agent\\.md)",
+      "headers": [{ "key": "Content-Type", "value": "text/markdown; charset=utf-8" }]
+    },
+    {
+      "source": "/docs/(.*\\.md)",
+      "headers": [{ "key": "Content-Type", "value": "text/markdown; charset=utf-8" }]
     }
   ]
 }

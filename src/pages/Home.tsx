@@ -4,7 +4,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Tabs, type TabId } from "@/components/Tabs";
 import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
-import type { Kind } from "@/lib/types";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { HeroReel } from "@/components/HeroReel";
 import {
@@ -93,8 +92,10 @@ function homeCard(
       show, where motion would contradict the copy */
   forceStill = false,
   /** "Watch it run" features whatever carries the video, which is not always
-      a game: a library's own article can be the page that has the footage. */
-  kind: Kind = "game",
+      a game: a library's own article can be the page that has the footage.
+      LabKind, not Kind: this builds a card, and only the kinds that HAVE a card
+      belong on the home page (docs are a page tree, not a poster). */
+  kind: LabKind = "game",
 ): LabMedia | null {
   const item = findItem(kind, slug);
   if (!item) return null;
@@ -558,7 +559,7 @@ function TabContent({
               <div className="home-strip">
                 {ACTION.map((card) => {
                   const slug = card.page.split("/").pop() ?? "";
-                  const kind: Kind = card.page.startsWith("/blog/") ? "blog" : "game";
+                  const kind: LabKind = card.page.startsWith("/blog/") ? "blog" : "game";
                   const media = homeCard(slug, card.blurb, card.poster, false, kind);
                   if (!media) return null;
                   // The video's title leads here, since this row is coverage.

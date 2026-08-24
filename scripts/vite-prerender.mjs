@@ -25,12 +25,16 @@ const KIND_SEGMENT = {
   hardware: "hardware",
   game: "games",
   blog: "blog",
+  docs: "docs",
 };
 
+// Keyed by URL SEGMENT here, by kind in src/lib/pageTitle.ts. The two are
+// compared by src/lib/pageTitle.test.ts, so they cannot drift.
 const COLLECTION_TITLE = {
   hardware: "Platforms",
   games: "Games",
   blog: "News and coverage",
+  docs: "Documentation",
 };
 
 const IMG_EXT = /\.(jpe?g|png|webp|gif|avif)$/i;
@@ -56,6 +60,7 @@ function kindFromPath(rel) {
   if (rel.startsWith("hardware/") || rel.startsWith("hardware\\")) return "hardware";
   if (rel.startsWith("games/") || rel.startsWith("games\\")) return "game";
   if (rel.startsWith("blog/") || rel.startsWith("blog\\")) return "blog";
+  if (rel.startsWith("docs/") || rel.startsWith("docs\\")) return "docs";
   return null;
 }
 
@@ -63,6 +68,28 @@ const FOLDER_RE = /^(\d+)_(.+)$/;
 function folderSlug(folder) {
   const m = folder.match(FOLDER_RE);
   return m ? m[2] : folder;
+}
+
+// How deep a kind's folders may nest under data/<kind>/. Mirrors MAX_DEPTH in
+// src/lib/content.ts: this walk and that one decide independently which pages
+// the site has, and a disagreement means the prerendered HTML and the client
+// disagree about which URLs exist. Docs are the only nested kind
+// (data/docs/<section>/<page>/index.md, plus the section's own
+// data/docs/<section>/index.md).
+const MAX_DEPTH = { hardware: 1, game: 1, blog: 1, docs: 2 };
+
+// The folder path under data/<kind>/ is the item's identity: one `NN_<slug>`
+// segment per level, and the slugs joined by "/" are the URL. Returns null for
+// anything outside the kind's depth, which is what keeps a stray
+// data/docs/index.md or a third level from being published at an address the
+// router cannot match.
+function folderPathOf(rel, kind) {
+  const segments = rel.split("/").slice(0, -1).slice(1);
+  if (segments.length < 1 || segments.length > (MAX_DEPTH[kind] ?? 1)) return null;
+  return {
+    slug: segments.map(folderSlug).join("/"),
+    section: kind === "docs" ? folderSlug(segments[0]) : "",
+  };
 }
 
 function collectItems() {
@@ -73,8 +100,9 @@ function collectItems() {
     const rel = path.relative(DATA_DIR, file).replaceAll("\\", "/");
     const kind = kindFromPath(rel);
     if (!kind) continue;
-    const folder = path.basename(path.dirname(file));
-    const slug = folderSlug(folder);
+    const folders = folderPathOf(rel, kind);
+    if (!folders) continue;
+    const { slug, section } = folders;
     const raw = fs.readFileSync(file, "utf8");
     const { fm, body } = splitFrontmatter(raw);
     const gallery = Array.isArray(fm.gallery)
@@ -87,9 +115,11 @@ function collectItems() {
     items.push({
       kind,
       slug,
+      section,
       dir: path.dirname(file),
       title: typeof fm.title === "string" ? fm.title : slug,
       desc: typeof fm.desc === "string" ? fm.desc : "",
+      summary: typeof fm.summary === "string" ? fm.summary : "",
       cover: typeof fm.cover === "string" ? fm.cover : "",
       poster: typeof fm.poster === "string" ? fm.poster : "",
       venue: typeof fm.venue === "string" ? fm.venue : "",
@@ -165,19 +195,18 @@ function escapeAttr(s) {
 // ---- og assets: everything resolves to PUBLIC paths, so the exact same
 // URLs work on prod, on the dev tunnel, and in the dev middleware below. The
 // audit guarantees every item has a public poster (previews/ or lab-media/).
-const LAB_DIR = { hardware: "hardware", game: "game", blog: "blog" };
+const LAB_DIR = { hardware: "hardware", game: "game", blog: "blog", docs: "docs" };
 
 function itemImagePath(item) {
   const prev = path.join(PUBLIC_DIR, "previews", `${item.slug}.webp`);
   if (fs.existsSync(prev)) return `/previews/${item.slug}.webp`;
-  const still = path.join(
-    PUBLIC_DIR,
-    "lab-media",
-    LAB_DIR[item.kind],
-    `${item.slug}.webp`,
-  );
-  if (fs.existsSync(still))
-    return `/lab-media/${LAB_DIR[item.kind]}/${item.slug}.webp`;
+  // A kind with no lab-media directory has no still to find. Without this
+  // guard path.join() is handed undefined and THROWS, which is how adding a
+  // kind used to take the whole build down on its first page.
+  const dir = LAB_DIR[item.kind];
+  if (!dir) return null;
+  const still = path.join(PUBLIC_DIR, "lab-media", dir, `${item.slug}.webp`);
+  if (fs.existsSync(still)) return `/lab-media/${dir}/${item.slug}.webp`;
   return null;
 }
 
@@ -228,6 +257,20 @@ function pageLd(type, name, description, url) {
 
 function itemJsonLd(item, url, image) {
   const date = ldDate(item);
+  // Documentation is technical reference, not news: TechArticle is what tells a
+  // crawler (and an assistant citing it) which of the two it has found.
+  if (item.kind === "docs") {
+    return {
+      "@type": "TechArticle",
+      headline: item.title,
+      description: item.summary || item.desc || item.title,
+      url,
+      image,
+      author: AUTHOR,
+      publisher: SITE_ENTITY,
+      ...(date ? { datePublished: date } : {}),
+    };
+  }
   if (item.kind === "blog") {
     return {
       "@type": "Article",
@@ -294,13 +337,92 @@ function mdInline(text) {
       const safe = escapeAttr(href);
       return `<a href="${safe}">${t}</a>`;
     })
+    // Code spans, before the emphasis rules: a reference table is mostly
+    // `--flags` and paths, and literal backticks read badly as plain text.
+    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/(^|\s)\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, "$1<em>$2</em>");
 }
 
-function mdToHtml(md) {
-  if (!md) return "";
-  const blocks = md.replace(/\r\n/g, "\n").split(/\n{2,}/);
+// A table row's cells, on unescaped pipes, with the optional outer pipes gone.
+function tableCells(line) {
+  const s = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+  const cells = [];
+  let cur = "";
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === "\\" && s[i + 1] === "|") {
+      cur += "|";
+      i++;
+      continue;
+    }
+    if (s[i] === "|") {
+      cells.push(cur.trim());
+      cur = "";
+      continue;
+    }
+    cur += s[i];
+  }
+  cells.push(cur.trim());
+  return cells;
+}
+
+// The ---|:---:|---: line under a GFM table's header, and nothing else.
+function isTableDelimiter(line) {
+  if (!line.includes("|")) return false;
+  const cells = tableCells(line);
+  return cells.length > 0 && cells.every((c) => /^:?-+:?$/.test(c));
+}
+
+function tableHtml(lines) {
+  const head = tableCells(lines[0]);
+  const rows = lines
+    .slice(2)
+    .filter((l) => l.trim())
+    .map((l) => {
+      const cells = tableCells(l);
+      // GFM pads a short row and drops the overflow of a long one.
+      while (cells.length < head.length) cells.push("");
+      return cells.slice(0, head.length);
+    });
+  const th = head.map((c) => `<th>${mdInline(c)}</th>`).join("");
+  const body = rows
+    .map((r) => `<tr>${r.map((c) => `<td>${mdInline(c)}</td>`).join("")}</tr>`)
+    .join("");
+  return `<table><thead><tr>${th}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+// The filename half of a fence's info string. Mirrors fenceFilename() in
+// src/lib/markdown.ts: title="path" is the convention, file=/filename= are
+// accepted, and a bare token that reads as a path is accepted too.
+function fenceFile(meta) {
+  if (!meta) return "";
+  const quoted = meta.match(
+    /(?:^|\s)(?:title|file|filename)\s*=\s*(?:"([^"]*)"|'([^']*)'|(\S+))/,
+  );
+  if (quoted) return (quoted[1] ?? quoted[2] ?? quoted[3] ?? "").trim();
+  const bare = meta.trim();
+  return /^[\w.@/\\+-]+$/.test(bare) && /[./\\]/.test(bare) ? bare : "";
+}
+
+function codeBlockHtml(info, code) {
+  const first = info.trim().split(/\s+/)[0] || "";
+  const isPath = /^[\w.@/\\+-]+$/.test(first) && /[./\\]/.test(first);
+  const lang = isPath ? "" : first.toLowerCase();
+  const meta = isPath ? first : info.trim().slice(first.length).trim();
+  const file = fenceFile(meta);
+  const cls = lang ? ` class="language-${escapeAttr(lang)}"` : "";
+  // One trailing newline, however the fence was closed.
+  const pre = `<pre><code${cls}>${escapeHtml(code.replace(/\n+$/, ""))}\n</code></pre>`;
+  return file
+    ? `<figure class="md-code"><figcaption>${escapeHtml(file)}</figcaption>${pre}</figure>`
+    : pre;
+}
+
+// Paragraph-level blocks, split on blank lines. Fenced code never reaches here:
+// mdToHtml lifts it out first, because a fence may contain blank lines and
+// would otherwise be torn into pieces.
+function mdBlocks(md) {
+  const blocks = md.split(/\n{2,}/);
   const out = [];
   for (const raw of blocks) {
     const b = raw.trim();
@@ -309,6 +431,11 @@ function mdToHtml(md) {
     if (h) {
       const lvl = Math.min(h[1].length + 1, 5);
       out.push(`<h${lvl}>${mdInline(h[2].trim())}</h${lvl}>`);
+      continue;
+    }
+    const lines = b.split("\n");
+    if (lines.length >= 2 && lines[0].includes("|") && isTableDelimiter(lines[1])) {
+      out.push(tableHtml(lines));
       continue;
     }
     if (/^[-*]\s+/m.test(b) && b.split("\n").every((l) => /^[-*]\s+|^\s/.test(l))) {
@@ -320,12 +447,52 @@ function mdToHtml(md) {
       continue;
     }
     if (b.startsWith(">")) {
-      const inner = b.replace(/^>\s?/gm, "").trim();
-      out.push(`<blockquote><p>${mdInline(inner)}</p></blockquote>`);
+      // Back through the top of the renderer, because pages quote whole
+      // passages: a quotation can hold its own paragraphs, list, table or
+      // fenced block, and one <p> of raw markdown would swallow all of it.
+      const inner = b.replace(/^ {0,3}>\s?/gm, "").trim();
+      out.push(`<blockquote>${mdToHtml(inner)}</blockquote>`);
       continue;
     }
     out.push(`<p>${mdInline(b)}</p>`);
   }
+  return out.join("\n");
+}
+
+// The crawlable text. Documentation pages lean on fenced code and tables, and
+// neither survives a blank-line split, so the fences come out in one line pass
+// and everything between them goes through mdBlocks() above.
+export function mdToHtml(md) {
+  if (!md) return "";
+  const lines = md.replace(/\r\n/g, "\n").split("\n");
+  const out = [];
+  let buf = [];
+  const flush = () => {
+    if (!buf.length) return;
+    const text = buf.join("\n");
+    buf = [];
+    if (text.trim()) out.push(mdBlocks(text));
+  };
+  for (let i = 0; i < lines.length; i++) {
+    const open = lines[i].match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
+    // A backtick fence's info string cannot contain a backtick, so a line like
+    // "``` and `code` in prose" is prose.
+    if (!open || (open[1][0] === "`" && open[2].includes("`"))) {
+      buf.push(lines[i]);
+      continue;
+    }
+    flush();
+    const fence = open[1];
+    const body = [];
+    for (i++; i < lines.length; i++) {
+      const close = lines[i].match(/^ {0,3}(`{3,}|~{3,})[ \t]*$/);
+      if (close && close[1][0] === fence[0] && close[1].length >= fence.length) break;
+      body.push(lines[i]);
+    }
+    // An unclosed fence runs to the end of the document, as CommonMark says.
+    out.push(codeBlockHtml(open[2], body.join("\n")));
+  }
+  flush();
   return out.join("\n");
 }
 
@@ -334,6 +501,7 @@ const NAV_HTML = [
   ["/hardware", "Platforms"],
   ["/games", "Games"],
   ["/blog", "News and coverage"],
+  ["/docs", "Documentation"],
 ]
   .map(([href, label]) => `<a href="${href}">${label}</a>`)
   .join(" \u00b7 ");
@@ -587,7 +755,8 @@ function itemStaticHtml(item) {
     .join(" \u00b7 ");
   const parts = [`<article><h1>${escapeHtml(item.title)}</h1>`];
   if (metaLine) parts.push(`<p>${escapeHtml(metaLine)}</p>`);
-  if (item.desc) parts.push(`<p>${escapeHtml(item.desc)}</p>`);
+  const lead = item.summary || item.desc;
+  if (lead) parts.push(`<p>${escapeHtml(lead)}</p>`);
   if (item.body) parts.push(mdToHtml(item.body));
   if (item.captions.length)
     parts.push(
@@ -781,7 +950,7 @@ export function buildRouteMeta(origin) {
     static: homeStaticHtml(items),
   });
 
-  const counts = { hardware: 0, game: 0, blog: 0 };
+  const counts = { hardware: 0, game: 0, blog: 0, docs: 0 };
   for (const it of items) counts[it.kind] = (counts[it.kind] ?? 0) + 1;
   // Derived from the real content counts so the descriptions never drift from
   // what the pages actually list.
@@ -791,9 +960,10 @@ export function buildRouteMeta(origin) {
       return `${counts.game} game recompilations and community ports built on ${SITE_NAME}.`;
     })(),
     blog: `${counts.blog} ${counts.blog === 1 ? "article" : "articles"}: technical writing from the team, press coverage, and videos.`,
+    docs: `${counts.docs} documentation ${counts.docs === 1 ? "page" : "pages"}: the concepts, guides and reference behind ${SITE_NAME}.`,
   };
-  const SEG_KIND = { hardware: "hardware", games: "game", blog: "blog" };
-  for (const seg of ["hardware", "games", "blog"]) {
+  const SEG_KIND = { hardware: "hardware", games: "game", blog: "blog", docs: "docs" };
+  for (const seg of ["hardware", "games", "blog", "docs"]) {
     const listHtml = wrapStatic(
       `<h1>${escapeHtml(COLLECTION_TITLE[seg])}</h1>\n` +
         `<p>${escapeHtml(TAB_DESC[seg])}</p>\n` +
@@ -826,7 +996,10 @@ export function buildRouteMeta(origin) {
     const venuePart = item.venue ? ` · ${item.venue}` : "";
     add(`/${segment}/${item.slug}`, {
       title: `${item.title}${venuePart} · ${SITE_NAME}`,
-      description: truncate(item.desc || item.title, 280),
+      // Docs pages lead with `summary`, the sentence under their H1, so an
+      // author writes the description once. Every other kind has no summary
+      // and reads exactly as before.
+      description: truncate(item.summary || item.desc || item.title, 280),
       image,
       video: vidPath ? `${origin}${vidPath}` : undefined,
       videoEmbed: youtubeEmbed(item.videoUrl) ?? undefined,
@@ -907,7 +1080,43 @@ export function buildRouteMeta(origin) {
     type: "website",
   });
 
+  assertDocsRoutes(all, out);
+
   return out;
+}
+
+// vercel.json rewrites every unmatched path to "/", so a docs page that never
+// reaches the route map does NOT 404: it quietly serves the home page's HTML,
+// title, description and og tags to every crawler and link unfurler, while a
+// human sees the right page because React renders the URL client-side. That
+// failure is invisible without a count, so count it. Three numbers have to
+// agree: the index.md files on disk under data/docs, the docs items this walk
+// produced, and the /docs/... routes in the map.
+function assertDocsRoutes(items, map) {
+  const docsDir = path.join(DATA_DIR, "docs");
+  const onDisk = fs.existsSync(docsDir)
+    ? walk(docsDir).filter((f) => path.basename(f) === "index.md").length
+    : 0;
+  const expected = items.filter((i) => i.kind === "docs").map((i) => `/docs/${i.slug}`);
+  const emitted = [...map.keys()].filter((r) => r.startsWith("/docs/"));
+  const emittedSet = new Set(emitted);
+  const missing = expected.filter((r) => !emittedSet.has(r));
+  const unexpected = emitted.filter((r) => !expected.includes(r));
+  const problems = [];
+  if (onDisk !== expected.length) {
+    problems.push(
+      `data/docs holds ${onDisk} index.md file(s) but the content walk produced ${expected.length} page(s). ` +
+        `A page is being dropped: check the folder layout is data/docs/<NN>_<section>/index.md ` +
+        `or data/docs/<NN>_<section>/<NN>_<page>/index.md, no deeper.`,
+    );
+  }
+  if (missing.length) problems.push(`no prerendered route for: ${missing.join(", ")}`);
+  if (unexpected.length) problems.push(`route with no page behind it: ${unexpected.join(", ")}`);
+  if (problems.length) {
+    throw new Error(
+      "Documentation routes do not match data/docs:\n  - " + problems.join("\n  - "),
+    );
+  }
 }
 
 function writeRoute(distDir, baseHtml, route, meta) {
@@ -932,7 +1141,7 @@ function truncate(s, n) {
 // unrenderable pages.
 function sitemapPriority(route) {
   if (route === "/") return "1.0";
-  if (["/hardware", "/games", "/blog"].includes(route)) {
+  if (["/hardware", "/games", "/blog", "/docs"].includes(route)) {
     return "0.9";
   }
   if (route.startsWith("/source/")) return "0.5";

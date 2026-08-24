@@ -11,12 +11,13 @@ that is the actual request.
 Most work here is one of two jobs, and they are different:
 
 **Publishing a page** is the common one. Read `docs/AUTHORING.md` first: it is
-the one description of what a page is, covering the three kinds, the
+the one description of what a page is, covering the four kinds, the
 frontmatter each takes, how media is embedded, and the house style. The loop:
 
 ```sh
 git pull                       # others publish through the CMS; start current
                                # write or edit data/<kind>/<nn>_<slug>/index.md
+                               # docs nest: data/docs/<nn>_<section>/<nn>_<page>/
 npm run build                  # fails on a referenced asset that is missing
 git add -A && git commit && git push    # this publishes it, see Releasing
 ```

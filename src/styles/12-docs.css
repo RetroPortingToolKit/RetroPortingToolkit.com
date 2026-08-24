@@ -1,0 +1,882 @@
+/* Documentation section: shell, sidebar, reading column, on-this-page rail.
+ *
+ * Imported after 05-detail.css (whose prose rules this extends) and after
+ * 10-link-previews.css (so the hover card is not restyled here). Every colour
+ * is a token from 01-base.css, so both themes come for free; nothing here
+ * defines a second palette, type scale or spacing system.
+ *
+ * The one measurement this file introduces is the docs container width. The
+ * site's --max is 1080px, which a three column docs layout cannot hold without
+ * squeezing the reading measure below the 680px the articles use, so the docs
+ * grid gets its own width and hands the middle column roughly that measure.
+ */
+
+/* ---------------------------------- shell --------------------------------- */
+
+.docs-layout {
+  --docs-rail: 236px;
+  --docs-toc: 208px;
+  --docs-gap: 44px;
+  --docs-max: 1280px;
+
+  max-width: var(--docs-max);
+  margin: 0 auto;
+  padding: 0 28px;
+  display: grid;
+  grid-template-columns: var(--docs-rail) minmax(0, 1fr) var(--docs-toc);
+  column-gap: var(--docs-gap);
+  align-items: start;
+}
+/* No on-this-page rail (the landing, or a page with nothing to navigate): the
+   reading column keeps the space instead of leaving an empty third column. */
+.docs-layout--norail {
+  grid-template-columns: var(--docs-rail) minmax(0, 1fr);
+}
+.docs-column {
+  min-width: 0;
+  padding-top: 4px;
+}
+
+/* The bar is the one from 05-detail.css; docs only add the theme control and
+   the sheet trigger to it. The toggle is absolutely placed inside the tab bar
+   on the home page, so it is pinned back into the flex row here. */
+.docs-bar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.docs-bar .theme-toggle {
+  position: static;
+  transform: none;
+}
+.docs-menu-icon {
+  width: 15px;
+  height: 15px;
+}
+.docs-bar-back {
+  padding-left: 14px;
+}
+
+/* --------------------------------- sidebar -------------------------------- */
+
+.docs-sidebar {
+  position: sticky;
+  /* clears the 52px sticky page bar */
+  top: 52px;
+  align-self: start;
+  max-height: calc(100vh - 52px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding: 6px 12px 48px 0;
+}
+.docs-nav-root {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 0 12px;
+  transition: color 0.15s var(--ease);
+}
+.docs-nav-root:hover,
+.docs-nav-root.is-current {
+  color: var(--ink);
+}
+.docs-nav-sections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.docs-nav-section + .docs-nav-section {
+  margin-top: 18px;
+}
+.docs-nav-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 26px;
+}
+.docs-nav-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.35;
+  padding: 3px 0;
+  transition: color 0.15s var(--ease);
+}
+a.docs-nav-section-title:hover {
+  color: var(--accent);
+}
+/* A section with no index page has no address, so its title is not a link.
+   Held at the same weight as the linked ones, dimmed a step so the difference
+   is visible without looking broken. */
+span.docs-nav-section-title {
+  color: var(--ink-2);
+}
+.docs-nav-disclose {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--muted);
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+.docs-nav-disclose:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
+}
+.docs-nav-chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.18s var(--ease);
+}
+.docs-nav-disclose.is-open .docs-nav-chevron {
+  transform: rotate(90deg);
+}
+.docs-nav-pages {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0 0 0 11px;
+  border-left: 1px solid var(--hairline);
+}
+.docs-nav-pages li {
+  position: relative;
+}
+.docs-nav-page {
+  display: block;
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 14px;
+  line-height: 1.42;
+  color: var(--muted);
+  transition:
+    background 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+.docs-nav-page:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+.docs-nav-page.is-current {
+  color: var(--ink);
+  font-weight: 550;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.docs-nav-page.is-current::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 5px;
+  bottom: 5px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+/* ------------------------------ reading column ---------------------------- */
+
+.docs-article {
+  /* Same display face as the articles (05-detail.css:281), so documentation
+     reads as the same site rather than an imported docs theme. */
+  --article-display: "Fraunces", "SF Pro Display", -apple-system, Georgia, serif;
+  /* Links default to the site accent; a page carrying a kickerColor overrides
+     this inline, exactly as an article does. */
+  --article-accent: var(--accent);
+  padding-bottom: 8px;
+}
+/* The reading measure. The grid column already lands near this, so the cap is
+   what holds the line length steady at the odd viewport width in between the
+   breakpoints. The landing is a card grid and takes the full column. */
+.docs-article:not(.docs-landing) {
+  max-width: 720px;
+}
+
+.docs-breadcrumb {
+  margin: 0 0 14px;
+}
+.docs-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 7px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+.docs-breadcrumb li + li::before {
+  content: "/";
+  margin-right: 7px;
+  color: var(--muted);
+  opacity: 0.55;
+}
+.docs-breadcrumb a {
+  color: var(--muted);
+  transition: color 0.15s var(--ease);
+}
+.docs-breadcrumb a:hover {
+  color: var(--ink);
+}
+.docs-breadcrumb [aria-current="page"] {
+  color: var(--ink-2);
+}
+
+.docs-title {
+  font-family: var(--article-display);
+  font-weight: 600;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 14px;
+}
+/* The one sentence under the H1 (benchmark item 1). Sized between the title and
+   the body so the page states what it is for before it starts. */
+.docs-summary {
+  font-size: 20px;
+  line-height: 1.55;
+  font-weight: 450;
+  letter-spacing: -0.004em;
+  color: var(--ink);
+  margin: 0 0 34px;
+  max-width: 620px;
+}
+
+/* --------------------------------- prose ---------------------------------- */
+/* Extends .modal-content from 05-detail.css: same link, list and blockquote
+   treatment, retuned to the article's 18px/1.72 reading setting. Documentation
+   is read for twenty minutes, not glanced at. */
+
+.docs-prose {
+  font-size: 18px;
+  line-height: 1.72;
+  color: var(--ink-2);
+  /* Reference prose is full of paths, flags and identifiers with no space to
+     break at. Without this a single `recompiler/src/full_function_emitter.cpp`
+     pushes the whole page wider than a phone screen.
+     Deliberately break-word and not anywhere: anywhere also shrinks
+     min-content, which squeezed a reference table's first column and split
+     `format_version` across three lines inside its own code background. This
+     breaks a word only when it would otherwise overflow its line. */
+  overflow-wrap: break-word;
+}
+.docs-prose > p,
+.docs-prose > ul,
+.docs-prose > ol,
+.docs-prose > blockquote {
+  margin: 0 0 22px;
+}
+/* No lead paragraph: the summary above the body already plays that part, so
+   the first sentence of the body is body text. */
+.docs-prose > p:first-child {
+  font-size: 18px;
+  line-height: 1.72;
+  color: var(--ink-2);
+  margin-bottom: 22px;
+}
+.docs-prose li {
+  margin-bottom: 8px;
+}
+.docs-prose h2,
+.docs-prose h3,
+.docs-prose h4 {
+  color: var(--ink);
+  /* an in-page anchor must not land under the sticky bar */
+  scroll-margin-top: 84px;
+}
+/* The heading permalink (.md-anchor) used to be styled here, scoped to
+   .docs-prose. The renderer puts it on every heading of every kind, so a blog
+   post showed a bare "#" after each one; the rules now live unscoped in
+   14-markdown.css, which owns the markdown layer's hooks site-wide. */
+.docs-prose h2 {
+  font-family: var(--article-display);
+  font-weight: 600;
+  font-size: 27px;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  margin: 48px 0 16px;
+  padding-top: 26px;
+  border-top: 1px solid var(--hairline);
+}
+.docs-prose > h2:first-child {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: 0;
+}
+.docs-prose h3 {
+  font-family: var(--article-display);
+  font-weight: 600;
+  font-size: 21px;
+  line-height: 1.25;
+  letter-spacing: -0.008em;
+  margin: 34px 0 10px;
+}
+.docs-prose h4 {
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.006em;
+  margin: 26px 0 8px;
+}
+
+/* Wide content scrolls inside its own box. The page body never scrolls
+   sideways, on any width. */
+.docs-prose pre {
+  background: var(--bg-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin: 0 0 24px;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.docs-prose code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.docs-prose pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+}
+.docs-prose table {
+  /* display:block is what gives a table its own scroll container without a
+     wrapper element around it. */
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: 0 0 26px;
+  font-size: 15.5px;
+  line-height: 1.5;
+}
+.docs-prose th,
+.docs-prose td {
+  text-align: left;
+  vertical-align: top;
+  padding: 9px 16px 9px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+.docs-prose th {
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+  border-bottom-color: var(--hairline);
+}
+.docs-prose blockquote {
+  margin: 0 0 24px;
+  padding: 2px 0 2px 18px;
+}
+.docs-prose img,
+.docs-prose video {
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+/* ------------------------------ on this page ------------------------------ */
+
+.docs-toc-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.docs-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid var(--hairline);
+}
+.docs-toc-item a {
+  display: block;
+  padding: 4px 0 4px 13px;
+  margin-left: -1px;
+  border-left: 2px solid transparent;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  transition:
+    color 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+.docs-toc-item--h3 a {
+  padding-left: 26px;
+  font-size: 13px;
+}
+.docs-toc-item a:hover {
+  color: var(--ink);
+}
+.docs-toc-item.is-active a {
+  color: var(--ink);
+  border-left-color: var(--accent);
+}
+
+.docs-toc--rail {
+  position: sticky;
+  top: 52px;
+  align-self: start;
+  max-height: calc(100vh - 52px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding: 6px 0 48px;
+}
+/* Narrow screens get the same list as a fold-out above the body. */
+.docs-toc--inline {
+  display: none;
+  margin: 0 0 30px;
+  padding: 12px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--bg-soft);
+}
+.docs-toc--inline > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+}
+.docs-toc--inline > summary::-webkit-details-marker {
+  display: none;
+}
+.docs-toc--inline > summary::after {
+  content: "";
+  flex: none;
+  /* the glyph is a rotated square, so it needs room for its own corner */
+  margin-right: 4px;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(45deg) translateY(-2px);
+  transition: transform 0.18s var(--ease);
+}
+.docs-toc--inline[open] > summary::after {
+  transform: rotate(-135deg) translateY(-2px);
+}
+.docs-toc--inline .docs-toc-list {
+  margin-top: 10px;
+}
+
+/* ------------------------------- prev / next ------------------------------ */
+
+.docs-pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid var(--hairline);
+}
+.docs-pager-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 18px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  transition:
+    border-color 0.15s var(--ease),
+    background 0.15s var(--ease);
+}
+.docs-pager-next {
+  grid-column: 2;
+  align-items: flex-end;
+  text-align: right;
+}
+.docs-pager-link:hover {
+  border-color: var(--hairline);
+  background: var(--bg-soft);
+}
+.docs-pager-dir {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.docs-pager-title {
+  font-size: 15.5px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+/* ------------------------------ section index ----------------------------- */
+
+.docs-contents {
+  margin-top: 44px;
+  padding-top: 28px;
+  border-top: 1px solid var(--hairline);
+}
+.docs-contents-title {
+  font-family: var(--article-display);
+  font-weight: 600;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+.docs-section-pages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.docs-section-page {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 18px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  transition:
+    border-color 0.15s var(--ease),
+    background 0.15s var(--ease);
+}
+.docs-section-page:hover {
+  border-color: var(--hairline);
+  background: var(--bg-soft);
+}
+.docs-section-page-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.docs-section-page-desc {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* --------------------------------- landing -------------------------------- */
+
+.docs-landing .docs-title {
+  font-size: 46px;
+  margin-bottom: 16px;
+}
+.docs-lede {
+  font-size: 20px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 660px;
+  margin: 0 0 26px;
+}
+.docs-quicklinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  list-style: none;
+  margin: 0 0 46px;
+  padding: 0;
+}
+.docs-quicklink {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  transition:
+    background 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+.docs-quicklink:hover {
+  background: var(--bg-soft);
+  border-color: var(--ink-2);
+}
+.docs-quicklink-arrow {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.docs-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* Each card is as tall as it needs to be. Stretching them to the row would
+     mean one section with a long page list leaves every card beside it half
+     empty. */
+  align-items: start;
+}
+.docs-card {
+  display: flex;
+  flex-direction: column;
+}
+.docs-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+  padding: 20px 22px 18px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--bg);
+  transition:
+    border-color 0.18s var(--ease),
+    background 0.18s var(--ease),
+    transform 0.18s var(--ease);
+}
+a.docs-card-link:hover {
+  border-color: var(--hairline);
+  background: var(--bg-soft);
+  transform: translateY(-2px);
+}
+.docs-card-title {
+  font-family: var(--article-display);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.docs-card-desc {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.docs-card-meta {
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 12.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+/* A section with no index page of its own: the card is not a link, so its
+   pages are listed inside it and the section stays reachable. One box, so it
+   still reads as a single card: the border moves to the item and comes off the
+   parts. */
+.docs-card--plain {
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  /* Linked cards are a title, a line and a count, so they stretch to one
+     height per row. This one carries a list of unknown length, so it sizes to
+     its content instead of leaving a half empty box. */
+  align-self: start;
+}
+.docs-card--plain .docs-card-link {
+  flex: none;
+  border: 0;
+  background: none;
+  padding-bottom: 4px;
+}
+/* The page list below IS the count, so the count is not repeated. */
+.docs-card--plain .docs-card-meta {
+  display: none;
+}
+.docs-card-pages {
+  list-style: none;
+  margin: 0;
+  padding: 4px 22px 18px;
+  display: grid;
+  gap: 6px;
+}
+.docs-card-pages a {
+  font-size: 14.5px;
+  color: var(--ink-2);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s var(--ease);
+}
+.docs-card-pages a:hover {
+  color: var(--ink);
+  border-bottom-color: var(--hairline);
+}
+.docs-empty {
+  color: var(--muted);
+}
+
+/* ------------------------------ mobile sheet ------------------------------ */
+/* Same vaul drawer this site already uses for navigation on a narrow screen
+   (CollectionView, ItemView), sized to a nav rather than a full page. */
+
+.docs-nav-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 101;
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-top: 1px solid var(--hairline);
+  border-radius: 18px 18px 0 0;
+  outline: none;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+.docs-nav-sheet-grip {
+  display: block;
+  flex: none;
+  width: 42px;
+  height: 4px;
+  margin: 10px auto 2px;
+  border-radius: 999px;
+  background: var(--hairline);
+}
+.docs-nav-sheet-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 10px 24px calc(32px + env(safe-area-inset-bottom));
+}
+
+/* --------------------------- docs link in the nav -------------------------- */
+/* Deliberately not .tab: see the comment in Tabs.tsx. Matched to a tab's
+   metrics so the row still reads as one strip. */
+
+.tabs-doclink {
+  position: relative;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+  transition: color 0.2s ease-in-out;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (hover: hover) {
+  .tabs-doclink:hover {
+    color: var(--ink);
+  }
+}
+
+/* -------------------------------- responsive ------------------------------- */
+
+/* Two columns: the rail is dropped and the table of contents folds into the
+   reading column. */
+@media (max-width: 1199px) {
+  .docs-layout,
+  .docs-layout--norail {
+    --docs-max: 1000px;
+    grid-template-columns: var(--docs-rail) minmax(0, 1fr);
+  }
+  .docs-toc--rail {
+    display: none;
+  }
+  .docs-toc--inline {
+    display: block;
+  }
+}
+
+/* One column: the sidebar becomes the sheet opened from the bar. */
+@media (max-width: 899px) {
+  .docs-layout,
+  .docs-layout--norail {
+    --docs-max: 760px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0 24px;
+  }
+  .docs-title {
+    font-size: 34px;
+  }
+  .docs-landing .docs-title {
+    font-size: 36px;
+  }
+  .docs-summary,
+  .docs-lede {
+    font-size: 18px;
+  }
+  .docs-prose {
+    font-size: 17px;
+  }
+  .docs-prose h2 {
+    font-size: 24px;
+    margin-top: 40px;
+  }
+  .docs-prose h3 {
+    font-size: 19px;
+  }
+}
+
+@media (max-width: 560px) {
+  .docs-layout,
+  .docs-layout--norail {
+    padding: 0 20px;
+  }
+  .docs-title {
+    font-size: 30px;
+  }
+  .docs-landing .docs-title {
+    font-size: 32px;
+  }
+  .docs-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Stacked, so neither link is squeezed to two words per line. */
+  .docs-pager {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .docs-pager-next {
+    grid-column: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .docs-nav-chevron,
+  .docs-card-link,
+  .docs-toc--inline > summary::after {
+    transition: none;
+  }
+  a.docs-card-link:hover {
+    transform: none;
+  }
+}
+
+/* ------------------------------ article foot ------------------------------ */
+
+/* The last-updated stamp. Deliberately the quietest thing on the page: a
+   reader wants it when they are deciding whether to trust what they just read,
+   so it sits under the body and above prev/next, at caption weight. The date
+   itself is decided at build time (scripts/gen-docs-dates.mjs) and rendered by
+   formatArticleDate, which is hand rolled so Node and the browser agree. */
+.docs-article-foot {
+  margin-top: 48px;
+}
+.docs-article-foot:empty {
+  margin-top: 0;
+}
+.docs-updated {
+  margin: 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.docs-updated-date {
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}

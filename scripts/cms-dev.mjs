@@ -32,9 +32,36 @@ const KIND_GROUP = [
   ["blog", "Articles"],
   ["hardware", "Hardware"],
   ["games", "Games"],
+  ["docs", "Docs"],
 ];
 
 const FOLDER_RE = /^(\d+)_(.+)$/;
+const folderSlugOf = (folder) => (folder.match(FOLDER_RE) || [, , folder])[2];
+
+// An item is a folder holding index.md. Docs are the one kind that nests:
+// data/docs/<NN>_<section>/index.md is a section's own page and
+// data/docs/<NN>_<section>/<NN>_<page>/index.md is a page inside it, so a docs
+// id carries one or two folder segments where every other kind carries exactly
+// one. Everything that takes an id apart goes through itemParts(), so the rule
+// lives in one place here and in one place in api/cms.ts. The two backends
+// serve the same editor and must agree.
+const ITEM_RE = /^data\/(blog|hardware|games|docs)\/([^/]+(?:\/[^/]+)?)\/index\.md$/;
+const MAX_FOLDER_DEPTH = { blog: 1, hardware: 1, games: 1, docs: 2 };
+
+export function itemParts(id) {
+  const m = typeof id === "string" ? id.match(ITEM_RE) : null;
+  if (!m) return null;
+  const [, kind, folder] = m;
+  const segments = folder.split("/");
+  if (segments.length > (MAX_FOLDER_DEPTH[kind] ?? 1)) return null;
+  return {
+    kind,
+    folder,
+    parent: segments.slice(0, -1).join("/"),
+    leaf: segments[segments.length - 1],
+    slug: segments.map(folderSlugOf).join("/"),
+  };
+}
 
 // ---- safety: only known content paths may be read/written ----
 function isAllowed(id) {
@@ -42,7 +69,7 @@ function isAllowed(id) {
   if (COPY_LABEL.has(id)) return true;
   if (id === "data/about.md") return true;
   if (/^data\/sources\/[^/]+\.md$/.test(id)) return true;
-  if (/^data\/(blog|hardware|games)\/[^/]+\/index\.md$/.test(id)) return true;
+  if (itemParts(id)) return true;
   return false;
 }
 function resolveSafe(id) {
@@ -75,6 +102,58 @@ function mdTitle(file, fmText) {
   return (folder.match(FOLDER_RE) || [, , folder])[2];
 }
 
+// ---- item folders on disk ----
+// Every item folder in a kind, relative to data/<kind>/: one level for the flat
+// kinds, two for docs (the section folder, then each page folder inside it).
+function itemFoldersOf(kind) {
+  const base = path.join(DATA_DIR, kind);
+  if (!fs.existsSync(base)) return [];
+  const maxDepth = MAX_FOLDER_DEPTH[kind] ?? 1;
+  const out = [];
+  const scan = (rel, depth) => {
+    const abs = rel ? path.join(base, ...rel.split("/")) : base;
+    for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const child = rel ? `${rel}/${entry.name}` : entry.name;
+      if (fs.existsSync(path.join(base, ...child.split("/"), "index.md"))) out.push(child);
+      if (depth + 1 < maxDepth) scan(child, depth + 1);
+    }
+  };
+  scan("", 0);
+  return out.sort();
+}
+
+/** The folder names an item at data/<kind>/<parent>/ sits beside, so slugs and
+    order prefixes can be checked against its real siblings. A docs section
+    counts as a folder at the top of the kind as soon as it holds a page, even
+    before it has an index.md of its own. */
+function foldersOf(kind, parent = "") {
+  const base = parent
+    ? path.join(DATA_DIR, kind, ...parent.split("/"))
+    : path.join(DATA_DIR, kind);
+  if (!fs.existsSync(base)) return [];
+  const nests = (MAX_FOLDER_DEPTH[kind] ?? 1) > 1;
+  const out = [];
+  for (const entry of fs.readdirSync(base, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const dir = path.join(base, entry.name);
+    if (fs.existsSync(path.join(dir, "index.md"))) out.push(entry.name);
+    else if (!parent && nests && holdsAnItem(dir)) out.push(entry.name);
+  }
+  return out;
+}
+
+function holdsAnItem(dir) {
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .some((e) => e.isDirectory() && fs.existsSync(path.join(dir, e.name, "index.md")));
+}
+
+/** The docs section folder ("01_start") for a section slug ("start"). */
+function sectionFolder(section) {
+  return foldersOf("docs").find((f) => folderSlugOf(f) === section) ?? "";
+}
+
 // ---- inventory ----
 export function listEditable() {
   const groups = [];
@@ -87,22 +166,18 @@ export function listEditable() {
   groups.push({ group: "Pages", items: pages });
 
   for (const [dir, label] of KIND_GROUP) {
-    const base = path.join(DATA_DIR, dir);
-    if (!fs.existsSync(base)) continue;
-    const items = fs
-      .readdirSync(base)
-      .map((folder) => ({ folder, file: path.join(base, folder, "index.md") }))
-      .filter((x) => fs.existsSync(x.file))
-      .sort((a, b) => a.folder.localeCompare(b.folder))
-      .map(({ folder, file }) => {
-        const { fmText } = splitRaw(fs.readFileSync(file, "utf8"));
-        const slug = (folder.match(FOLDER_RE) || [, , folder])[2];
-        let draft = false;
-        try {
-          draft = (yaml.load(fmText) || {}).draft === true;
-        } catch {}
-        return { id: `data/${dir}/${folder}/index.md`, title: mdTitle(file, fmText), sub: slug, type: "md", draft };
-      });
+    const items = itemFoldersOf(dir).map((folder) => {
+      const file = path.join(DATA_DIR, dir, ...folder.split("/"), "index.md");
+      const { fmText } = splitRaw(fs.readFileSync(file, "utf8"));
+      // For docs this is the full path under /docs ("start/quickstart"), so the
+      // list shows which section a page is in and stays sorted by it.
+      const slug = folder.split("/").map(folderSlugOf).join("/");
+      let draft = false;
+      try {
+        draft = (yaml.load(fmText) || {}).draft === true;
+      } catch {}
+      return { id: `data/${dir}/${folder}/index.md`, title: mdTitle(file, fmText), sub: slug, type: "md", draft };
+    });
     if (items.length) groups.push({ group: label, items });
   }
 
@@ -247,6 +322,9 @@ function readOne(id) {
         repo: typeof fm.repo === "string" ? fm.repo : "",
         author: typeof fm.author === "string" ? fm.author : "",
         authorAvatar: typeof fm.authorAvatar === "string" ? fm.authorAvatar : "",
+        summary: typeof fm.summary === "string" ? fm.summary : "",
+        pageType: typeof fm.pageType === "string" ? fm.pageType : "",
+        sectionTitle: typeof fm.sectionTitle === "string" ? fm.sectionTitle : "",
         draft: fm.draft === true,
         featured: fm.featured === true,
         tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
@@ -332,10 +410,16 @@ export function writeEditable(id, payload) {
 // post means allocating a folder, not just writing a file. The slug becomes the
 // URL and is permanent in practice (renaming the folder changes the URL), so it
 // is derived from the title once, here, and never rewritten on later saves.
-export const KIND_DIRS = new Set(["blog", "hardware", "games"]);
+export const KIND_DIRS = new Set(["blog", "hardware", "games", "docs"]);
 
 // Reads naturally in the stub description: "this post", not "this blog".
-const KIND_NOUN = { blog: "article", hardware: "platform", games: "game" };
+// Mirrored in api/cms.ts; cmsKinds.test.ts holds the two to each other.
+export const KIND_NOUN = {
+  blog: "article",
+  hardware: "platform",
+  games: "game",
+  docs: "docs page",
+};
 
 export function slugify(title) {
   return String(title)
@@ -352,12 +436,13 @@ export function slugify(title) {
     .slice(0, 60);
 }
 
-// The frontmatter a new item needs to render. Mirrors the shape of the existing
-// items in data/, per kind: talks carry a venue and duration, dated kinds get a
-// date, project/talk get a year.
-function stubFrontmatter(kind, title) {
+// The frontmatter a new item needs to render, per kind. Mirrored line for line
+// in api/cms.ts: the two used to disagree (prod wrote author and platform, dev
+// wrote neither), which meant a page created on dev and a page created on prod
+// were not the same page. `actor` is always absent here, because the dev
+// backend has no sign-in; the branch stays so the two files read alike.
+function stubFrontmatter(kind, title, actor, section) {
   const today = new Date().toISOString().slice(0, 10);
-  const year = today.slice(0, 4);
   const esc = (s) => String(s).replace(/"/g, '\\"');
   const lines = [
     `title: "${esc(title)}"`,
@@ -366,21 +451,32 @@ function stubFrontmatter(kind, title) {
     `featured: false`,
     `desc: "One line describing this ${KIND_NOUN[kind]}."`,
   ];
-  if (kind === "blog") lines.push(`date: "${today}"`);
-  else lines.push(`year: "${year}"`);
+  if (kind === "docs") {
+    // A docs page has no date, no year and no repository of its own. It leads
+    // with the sentence under its H1 and says which quadrant it is in.
+    lines.push(`summary: "One sentence telling a reader what this page answers."`);
+    lines.push(`pageType: "concept"`);
+    // A section's own page names the section in navigation.
+    if (!section) lines.push(`sectionTitle: "${esc(title)}"`);
+  } else if (kind === "blog") {
+    lines.push(`date: "${today}"`);
+    // A post is bylined to whoever created it, not to the site's default
+    // author, which is how someone else's name ends up on your writing.
+    if (actor?.name || actor?.login) lines.push(`author: "${esc(actor.name || actor.login)}"`);
+    if (actor?.avatar) lines.push(`authorAvatar: "${esc(actor.avatar)}"`);
+  } else {
+    lines.push(`year: "${today.slice(0, 4)}"`);
+    lines.push(`status: ""`);
+    lines.push(`repo: ""`);
+    // A game has to say which platform it runs on; the editor offers the
+    // Hardware folder as the choices.
+    if (kind === "games") lines.push(`platform: ""`);
+  }
   return lines.join("\n");
 }
 
-function nextOrder(dir) {
-  let max = 0;
-  if (fs.existsSync(dir)) {
-    for (const folder of fs.readdirSync(dir)) {
-      const m = folder.match(FOLDER_RE);
-      if (m) max = Math.max(max, Number(m[1]) || 0);
-    }
-  }
-  return String(max + 1).padStart(2, "0");
-}
+const nextOrder = (folders) =>
+  String(Math.max(0, ...folders.map((f) => Number((f.match(/^(\d+)_/) || [])[1] || 0))) + 1).padStart(2, "0");
 
 export function createEditable(payload) {
   const kind = String(payload?.kind || "");
@@ -391,20 +487,24 @@ export function createEditable(payload) {
   const slug = slugify(title);
   if (!slug) return { ok: false, error: "That title has no usable characters for a URL." };
 
-  const base = path.join(DATA_DIR, kind);
+  // Docs pages live inside a section, so a new one has to say which. No section
+  // means the new page IS a section: it lands at data/docs/<NN>_<slug>/index.md
+  // and is what /docs/<slug> serves.
+  const section = kind === "docs" ? slugify(String(payload?.section || "")) : "";
+  const parent = section ? sectionFolder(section) : "";
+  if (section && !parent) return { ok: false, error: `There is no "${section}" section in docs.` };
+  const where = section ? `${kind}/${section}` : kind;
+
+  const folders = foldersOf(kind, parent);
   // A duplicate slug would collide on the public URL even though the folder
   // names differ by their order prefix, so check the slug, not the folder.
-  if (fs.existsSync(base)) {
-    for (const folder of fs.readdirSync(base)) {
-      const existing = (folder.match(FOLDER_RE) || [, , folder])[2];
-      if (existing === slug) {
-        return { ok: false, error: `"${slug}" already exists in ${kind}.` };
-      }
+  for (const folder of folders) {
+    if (folderSlugOf(folder) === slug) {
+      return { ok: false, error: `"${slug}" already exists in ${where}.` };
     }
   }
 
-  const folder = `${nextOrder(base)}_${slug}`;
-  const id = `data/${kind}/${folder}/index.md`;
+  const id = `data/${kind}/${parent ? `${parent}/` : ""}${nextOrder(folders)}_${slug}/index.md`;
   // Route the write through the same allow-list every other write uses, so a
   // crafted kind/title can never escape data/.
   const abs = resolveSafe(id);
@@ -412,8 +512,8 @@ export function createEditable(payload) {
 
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   const body = "Write the post here. This body renders as markdown on the item page.\n";
-  fs.writeFileSync(abs, `---\n${stubFrontmatter(kind, title)}\n---\n\n${body}`);
-  return { ok: true, id, slug, kind };
+  fs.writeFileSync(abs, `---\n${stubFrontmatter(kind, title, null, section)}\n---\n\n${body}`);
+  return { ok: true, id, slug, kind, section };
 }
 
 // ---- media upload (DEV ONLY): drop a raw image/video into a content item's
@@ -423,14 +523,14 @@ export function createEditable(payload) {
 const UPLOAD_EXT = /\.(jpe?g|png|webp|gif|avif|mp4|mov|m4v|webm)$/i;
 
 function contentFolder(id) {
-  if (!/^data\/(blog|hardware|games)\/[^/]+\/index\.md$/.test(id)) return null;
+  if (!itemParts(id)) return null;
   const abs = resolveSafe(id);
   return abs ? path.dirname(abs) : null;
 }
 
 async function doUpload({ id, filename, contentBase64 }) {
   const folder = contentFolder(id);
-  if (!folder) return { ok: false, error: "Uploads are only for article / hardware / game items." };
+  if (!folder) return { ok: false, error: "Uploads are only for article / hardware / game / docs items." };
   const clean = path.basename(String(filename || "")).replace(/[^\w.-]/g, "_");
   if (!clean || clean.startsWith(".") || !UPLOAD_EXT.test(clean)) {
     return { ok: false, error: "Unsupported file type (use jpg/png/webp/gif/mp4/mov)." };
@@ -692,12 +792,12 @@ export function startAutoPull(opts = {}) {
 
 
 // ---- item folders: an item is index.md plus the media it embeds ----
-const ITEM_RE = /^data\/(blog|hardware|games)\/([^/]+)\/index\.md$/;
+// ITEM_RE and itemParts() are up with isAllowed(), at the top of the file.
 const ASSET_EXT = /\.(png|jpe?g|webp|gif|avif|svg|mp4|webm|mov)$/i;
 
 export function itemFolder(id) {
-  const m = typeof id === "string" ? id.match(ITEM_RE) : null;
-  return m ? `data/${m[1]}/${m[2]}` : null;
+  const parts = itemParts(id);
+  return parts ? `data/${parts.kind}/${parts.folder}` : null;
 }
 
 export function safeAssetName(name) {
@@ -733,15 +833,16 @@ export function deleteAsset(payload) {
 
 export function deleteEditable(payload) {
   const id = String(payload?.id || "");
+  const parts = itemParts(id);
   const folder = itemFolder(id);
-  if (!folder) return { ok: false, error: "Only content items can be deleted." };
+  if (!folder || !parts) return { ok: false, error: "Only content items can be deleted." };
   const abs = path.join(ROOT, folder);
   if (!fs.existsSync(abs)) return { ok: false, error: "not_found" };
-  const slug = folder.split("/").pop().replace(/^\d+_/, "");
+  const slug = parts.slug;
 
   // The build refuses a homepage that links a page which does not exist, so
   // deleting a featured page breaks every later build, far from whoever did it.
-  const segment = (id.match(ITEM_RE) || [])[1] || "";
+  const segment = parts.kind;
   const homeFile = path.join(DATA_DIR, "home.json");
   if (fs.existsSync(homeFile) && fs.readFileSync(homeFile, "utf8").includes(`/${segment}/${slug}`)) {
     return {
@@ -763,37 +864,32 @@ export function deleteEditable(payload) {
   return { ok: true, removed: removed.length, files: removed };
 }
 
-const folderSlugOf = (folder) => (folder.match(/^(\d+)_(.+)$/) || [, , folder])[2];
-
-function foldersOf(kind) {
-  const base = path.join(DATA_DIR, kind);
-  if (!fs.existsSync(base)) return [];
-  return fs.readdirSync(base).filter((f) => fs.existsSync(path.join(base, f, "index.md")));
-}
-
 export function renameEditable(payload) {
   const id = String(payload?.id || "");
-  const m = id.match(ITEM_RE);
-  if (!m) return { ok: false, error: "Only content items can be renamed." };
-  const [, kind, folder] = m;
+  const parts = itemParts(id);
+  if (!parts) return { ok: false, error: "Only content items can be renamed." };
+  const { kind, folder, parent, leaf } = parts;
   const slug = slugify(String(payload?.slug || ""));
   if (!slug) return { ok: false, error: "That slug has no usable characters for a URL." };
-  if (slug === folderSlugOf(folder)) return { ok: true, id, slug, unchanged: true };
-  if (foldersOf(kind).some((f) => folderSlugOf(f) === slug)) {
+  if (slug === folderSlugOf(leaf)) return { ok: true, id, slug, unchanged: true };
+  if (foldersOf(kind, parent).some((f) => folderSlugOf(f) === slug)) {
     return { ok: false, error: `"${slug}" already exists in ${kind}.` };
   }
-  const prefix = (folder.match(/^(\d+)_/) || [])[1];
-  const source = path.join(DATA_DIR, kind, folder);
-  const targetFolder = `${prefix ? `${prefix}_` : ""}${slug}`;
-  fs.renameSync(source, path.join(DATA_DIR, kind, targetFolder));
+  // Only this folder's own segment changes; a docs page keeps its section, and
+  // renaming a SECTION moves every page under it, because the rename moves the
+  // whole directory.
+  const prefix = (leaf.match(/^(\d+)_/) || [])[1];
+  const source = path.join(DATA_DIR, kind, ...folder.split("/"));
+  const targetFolder = `${parent ? `${parent}/` : ""}${prefix ? `${prefix}_` : ""}${slug}`;
+  fs.renameSync(source, path.join(DATA_DIR, kind, ...targetFolder.split("/")));
   return { ok: true, id: `data/${kind}/${targetFolder}/index.md`, slug };
 }
 
 export function duplicateEditable(payload) {
   const id = String(payload?.id || "");
-  const m = id.match(ITEM_RE);
-  if (!m) return { ok: false, error: "Only content items can be duplicated." };
-  const [, kind] = m;
+  const parts = itemParts(id);
+  if (!parts) return { ok: false, error: "Only content items can be duplicated." };
+  const { kind, parent } = parts;
   const abs = path.join(ROOT, id);
   if (!fs.existsSync(abs)) return { ok: false, error: "not_found" };
   const { fmText, body } = splitRaw(fs.readFileSync(abs, "utf8"));
@@ -805,19 +901,43 @@ export function duplicateEditable(payload) {
   }
   const title = `${String(fm.title || "Untitled")} (copy)`;
   const slug = slugify(title);
-  const folders = foldersOf(kind);
+  const folders = foldersOf(kind, parent);
   if (folders.some((f) => folderSlugOf(f) === slug)) {
     return { ok: false, error: `"${slug}" already exists in ${kind}.` };
   }
   fm.title = title;
   fm.draft = true;
   fm.featured = false;
-  const order = String(Math.max(0, ...folders.map((f) => Number((f.match(/^(\d+)_/) || [])[1] || 0))) + 1).padStart(2, "0");
-  const dir = path.join(DATA_DIR, kind, `${order}_${slug}`);
+  // The copy joins its original's neighbours: a docs page stays in its section.
+  const folder = `${parent ? `${parent}/` : ""}${nextOrder(folders)}_${slug}`;
+  const dir = path.join(DATA_DIR, kind, ...folder.split("/"));
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "index.md"), `---\n${yaml.dump(fm).trim()}\n---\n\n${body.replace(/^\n+/, "")}`);
-  return { ok: true, id: `data/${kind}/${order}_${slug}/index.md`, slug, title };
+  return { ok: true, id: `data/${kind}/${folder}/index.md`, slug, title };
 }
+
+// The frontmatter keys /post copies straight through from its payload. The same
+// list is exported from api/cms.ts and cmsKinds.test.ts compares them, because
+// two hand-maintained copies of one list is exactly the divergence that has
+// bitten this CMS before.
+export const PUBLISH_FIELDS = [
+  "kicker",
+  "desc",
+  "date",
+  "year",
+  "status",
+  "availability",
+  "platform",
+  "repo",
+  "videoUrl",
+  "author",
+  "authorAvatar",
+  "authorBio",
+  "venue",
+  "summary",
+  "pageType",
+  "sectionTitle",
+];
 
 export function postItem(payload) {
   const kind = String(payload?.kind || "");
@@ -826,13 +946,17 @@ export function postItem(payload) {
   if (!title) return { ok: false, error: "A title is required." };
   const slug = slugify(String(payload?.slug || title));
   if (!slug) return { ok: false, error: "That title has no usable characters for a URL." };
-  const folders = foldersOf(kind);
+  // Docs pages live inside a section; no section means the post IS a section.
+  const section = kind === "docs" ? slugify(String(payload?.section || "")) : "";
+  const parent = section ? sectionFolder(section) : "";
+  if (section && !parent) return { ok: false, error: `There is no "${section}" section in docs.` };
+  const folders = foldersOf(kind, parent);
   if (folders.some((f) => folderSlugOf(f) === slug)) {
     return { ok: false, error: `"${slug}" already exists in ${kind}.` };
   }
 
-  const order = String(Math.max(0, ...folders.map((f) => Number((f.match(/^(\d+)_/) || [])[1] || 0))) + 1).padStart(2, "0");
-  const dir = path.join(DATA_DIR, kind, `${order}_${slug}`);
+  const folder = `${parent ? `${parent}/` : ""}${nextOrder(folders)}_${slug}`;
+  const dir = path.join(DATA_DIR, kind, ...folder.split("/"));
   const media = Array.isArray(payload?.media) ? payload.media : [];
   const attached = [];
   let cover = typeof payload?.cover === "string" ? payload.cover : "";
@@ -854,13 +978,17 @@ export function postItem(payload) {
 
   const today = new Date().toISOString().slice(0, 10);
   const fm = { title };
-  for (const key of ["kicker", "desc", "date", "year", "status", "availability", "platform", "repo", "videoUrl", "author", "authorAvatar", "authorBio", "venue"]) {
+  for (const key of PUBLISH_FIELDS) {
     const v = payload?.[key];
     if (typeof v === "string" && v.trim()) fm[key] = v.trim();
   }
   if (Array.isArray(payload?.tags)) fm.tags = payload.tags.filter((t) => typeof t === "string");
   if (!fm.desc) fm.desc = `One line describing this ${KIND_NOUN[kind]}.`;
-  if (kind === "blog") {
+  if (kind === "docs") {
+    // No date and no year: a docs page is maintained, not published on a day.
+    if (!fm.summary) fm.summary = String(fm.desc);
+    if (!fm.pageType) fm.pageType = "concept";
+  } else if (kind === "blog") {
     if (!fm.date) fm.date = today;
   } else if (!fm.year) {
     fm.year = today.slice(0, 4);
@@ -874,11 +1002,14 @@ export function postItem(payload) {
   fs.writeFileSync(path.join(dir, "index.md"), `---\n${yaml.dump(fm).trim()}\n---\n\n${body}\n`);
   return {
     ok: true,
-    id: `data/${kind}/${order}_${slug}/index.md`,
+    id: `data/${kind}/${folder}/index.md`,
     slug,
     kind,
+    section,
     draft: fm.draft === true,
-    url: `/${kind}/${slug}`,
+    // The kind IS the URL segment for all four kinds, and a docs page's address
+    // carries its section: /docs/<section>/<slug>.
+    url: `/${kind}/${section ? `${section}/` : ""}${slug}`,
     media: attached,
   };
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Drawer } from "vaul";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { Item, Kind } from "@/lib/types";
 import { useMobile } from "@/lib/useMobile";
 import { pathFor } from "@/lib/content";
@@ -49,6 +49,7 @@ const KIND_LABEL: Record<Kind, string> = {
   hardware: "Platforms",
   game: "Games",
   blog: "News and coverage",
+  docs: "Documentation",
 };
 
 // Item -> the SAME LabMedia the home/tab cards render, so every surface that
@@ -81,15 +82,38 @@ function KindGrid({ items }: { kind: Kind; items: Item[] }) {
   );
 }
 
+// Docs pages have no card: they are not in the lab media set, and a reference
+// page is not a poster. A collection that contains them lists them instead, so
+// they are visible rather than silently dropped by the card lookup.
+function DocsList({ items }: { items: Item[] }) {
+  return (
+    <ul className="collection-links">
+      {items.map((item) => (
+        <li key={item.slug}>
+          <Link to={pathFor(item.kind, item.slug)}>{item.title}</Link>
+          {(item.summary || item.desc) && <span> {item.summary || item.desc}</span>}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function CollectionBody({ items }: { items: Item[] }) {
   const buckets: Record<Kind, Item[]> = {
     hardware: [],
     game: [],
     blog: [],
+    docs: [],
   };
   for (const item of items) buckets[item.kind].push(item);
-  const order: Kind[] = ["hardware", "game", "blog"];
+  const order: Kind[] = ["hardware", "game", "blog", "docs"];
   const present = order.filter((k) => buckets[k].length > 0);
+  const render = (kind: Kind) =>
+    kind === "docs" ? (
+      <DocsList items={buckets[kind]} />
+    ) : (
+      <KindGrid kind={kind} items={buckets[kind]} />
+    );
 
   if (items.length === 0) {
     return (
@@ -100,8 +124,7 @@ export function CollectionBody({ items }: { items: Item[] }) {
   }
 
   if (present.length === 1) {
-    const kind = present[0];
-    return <KindGrid kind={kind} items={buckets[kind]} />;
+    return render(present[0]);
   }
 
   return (
@@ -109,7 +132,7 @@ export function CollectionBody({ items }: { items: Item[] }) {
       {present.map((kind) => (
         <section key={kind} className="collection-section">
           <h2 className="collection-section-title">{KIND_LABEL[kind]}</h2>
-          <KindGrid kind={kind} items={buckets[kind]} />
+          {render(kind)}
         </section>
       ))}
     </div>

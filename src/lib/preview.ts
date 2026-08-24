@@ -30,12 +30,14 @@ const SEG_TO_KIND: Record<string, Kind> = {
   hardware: "hardware",
   games: "game",
   blog: "blog",
+  docs: "docs",
 };
 
 const KIND_LABEL: Record<Kind, string> = {
   hardware: "Platform",
   game: "Game",
   blog: "Article",
+  docs: "Docs",
 };
 
 // Tiny inline base64 placeholders (LQIP) read as a blurry smear when scaled to
@@ -82,13 +84,14 @@ function topicPreview(id: string): LinkPreview | null {
   if (!topic) return null;
   const items = itemsForTopic(topic);
   // A count summary kicker ("6 talks · 3 projects"), strongest grouping first.
-  const counts: Record<Kind, number> = { hardware: 0, game: 0, blog: 0 };
+  const counts: Record<Kind, number> = { hardware: 0, game: 0, blog: 0, docs: 0 };
   for (const it of items) counts[it.kind]++;
-  const order: Kind[] = ["hardware", "game", "blog"];
+  const order: Kind[] = ["hardware", "game", "blog", "docs"];
   const plural: Record<Kind, [string, string]> = {
     hardware: ["platform", "platforms"],
     game: ["project", "projects"],
     blog: ["article", "articles"],
+    docs: ["docs page", "docs pages"],
   };
   const countBits = order
     .filter((k) => counts[k] > 0)

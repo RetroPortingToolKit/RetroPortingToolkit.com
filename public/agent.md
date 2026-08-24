@@ -61,9 +61,19 @@ Pick by what the thing IS, not where they want it to appear.
 | `blog` | news, build logs, write-ups, videos, press coverage | `/blog/<slug>` |
 | `games` | one game that has been recompiled or ported | `/games/<slug>` |
 | `hardware` | a console's toolchain and ecosystem | `/hardware/<slug>` |
+| `docs` | documentation: a concept, a guide, or reference | `/docs/<section>/<slug>` |
 
 `games` and `hardware` are catalogue entries, not articles. If someone wants to
 write *about* a game, that is a `blog` post that links to the game's page.
+
+`docs` is the only kind with two levels. A docs page belongs to a section, and
+its address is both: `/docs/start/quickstart` is the "quickstart" page in the
+"start" section. Send `"section": "start"` alongside the other fields. Sending
+no `section` creates the SECTION itself, at `/docs/start`, which is the page a
+reader lands on for that whole group. Create the section before its pages.
+
+Documentation explains the toolkit as a whole. A page about one project's news
+is a `blog` post; a page about one console's toolchain is a `hardware` entry.
 
 ## Fields
 
@@ -81,8 +91,16 @@ promotes it onto the home page), `slug` (defaults to the title).
 
 `hardware` also takes: `status`, `repo`.
 
+`docs` also takes: `section` (see above), `summary` (the one sentence under the
+title, which is what a reader and a model use to choose the page), `pageType`
+(`concept`, `guide`, `reference` or `project`), and, on a section page,
+`sectionTitle` (the section's name in navigation). It takes no `date` and no
+`year`: a docs page is maintained, not published on a day.
+
 To see the platform slugs available, `GET /api/cms/list` with the same header
-and read the `sub` of each item in the `Hardware` group.
+and read the `sub` of each item in the `Hardware` group. The same call lists the
+docs sections: in the `Docs` group, an item whose `sub` has no `/` is a section,
+and its `sub` is the value to send as `section`.
 
 ## Images and video
 
@@ -105,6 +123,25 @@ A YouTube link in the body embeds as a player:
 
 Limits: `png jpg jpeg webp gif avif svg mp4 webm mov`, **3 MB per file**. If a
 video is bigger, link to it instead of attaching it.
+
+## Code blocks
+
+Give every fenced block a language. When the block quotes a real file, name that
+file in the info string too, and the site renders the name as a label on the
+block:
+
+````
+```toml title="bios/SCPH1001.toml"
+name = "SCPH1001"
+load_addr = 0x1FC00000
+```
+````
+
+Use the same path the sentence above the block cites, so the label and the
+caption agree. Do not invent one: a block showing an example that exists
+nowhere, or commands a reader is meant to run, gets no filename. `file="..."`
+and `filename="..."` mean the same thing, and a bare path as the whole info
+string works when there is no language.
 
 ## Drafts
 

@@ -1,0 +1,340 @@
+/* The markdown layer's own class hooks.
+ *
+ * Markdown.tsx and CodeBlock.tsx emit these on EVERY kind of page (blog, games,
+ * hardware, docs) and inside the CMS preview, so the rules live here rather
+ * than in 12-docs.css. That scoping mistake is what put a permanently visible
+ * "#" after every heading on the blog: see .md-anchor below, which used to be
+ * written as `.docs-prose .md-anchor`.
+ *
+ * Imported last of the public partials (after 12-docs.css and
+ * 13-docs-search.css, before the .applecms-scoped 11-apple-cms.css). Two
+ * reasons, and both are about the cascade rather than about the topic:
+ *
+ *  1. The prose layers style the bare elements a markdown body used to be made
+ *     of: `.docs-prose pre`, `.modal-body--article .modal-content pre`,
+ *     `.docs-prose table`, `.modal-content a`. A hook here is a class selector
+ *     of equal or lower specificity, so where this file has to win (the resets
+ *     inside a code figure, the table's scroll container, the anchor's colour)
+ *     it wins on source order. Coming last is what makes a code block look the
+ *     same in an article, in the docs column and in the CMS preview.
+ *  2. Where this file is only supplying a default the design layers may
+ *     legitimately own (table cell padding, code type metrics), the selector is
+ *     wrapped in :where() so it carries zero specificity and any real rule in
+ *     05-detail.css or 12-docs.css beats it. Those two files stay in charge of
+ *     how prose is tuned per context; this one is in charge of the components.
+ *
+ * Every colour is a token from 01-base.css. Note that --hairline-2 is #e8e8ed
+ * in light and #1d1d1f in dark, which is exactly --bg, so a border drawn with
+ * it is invisible in dark: every rule below uses --hairline.
+ */
+
+/* ------------------------------ heading anchor ---------------------------- */
+/* The permalink Markdown.tsx hangs off every H2, H3 and H4 in every markdown
+   body on the site. Quiet until the heading is hovered or the link is focused,
+   so it is available without punctuating every heading with a "#".
+   Deliberately unscoped: this rule is the whole reason the file exists.
+   `a.md-anchor` and not `.md-anchor` for the colour and the underline, because
+   `.modal-content a` paints every link in a body and would otherwise win. */
+.md-anchor {
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+a.md-anchor {
+  margin-left: 0.35em;
+  color: var(--muted);
+  border-bottom: 0;
+  font-weight: 400;
+}
+.md-heading:hover .md-anchor,
+.md-anchor:focus-visible {
+  opacity: 1;
+}
+a.md-anchor:hover {
+  color: var(--ink);
+}
+@media (hover: none) {
+  /* No hover to reveal it, so it simply stays visible and quiet. */
+  .md-anchor {
+    opacity: 0.45;
+  }
+}
+
+/* -------------------------------- code block ------------------------------ */
+/* <figure class="md-code"> = a header bar plus the <pre>. The figure carries
+   the surface and the border; the pre inside it is stripped back to text so
+   there is one box, not two. */
+
+.md-code {
+  /* a figure's UA margin is 1em 40px, which would indent every code block */
+  margin: 0 0 24px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--bg-soft);
+  /* keeps the head's fill and the pre's scrollbar inside the rounded corners */
+  overflow: hidden;
+}
+
+/* The bar above the code. Before this rule it was a plain figcaption, so the
+   language label and the copy button ran together as "ShellCopy".
+   `.md-code > figcaption` is here too: the prerendered crawlable shell writes a
+   bare figcaption, and it should not look broken before hydration. */
+.md-code-head,
+.md-code > figcaption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 6px 8px 6px 14px;
+  border-bottom: 1px solid var(--hairline);
+  /* a step off the figure's surface in both themes: darker over the light
+     --bg-soft, lighter over the dark one */
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* The filename, when the fence names one. Mono, because it is a path, and
+   truncated rather than wrapped so the bar stays one line tall. */
+.md-code-file {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+/* The language, written for a human by the renderer ("Shell", "JSON",
+   "TypeScript"). Set as the site's eyebrow label (12-docs.css uses the same
+   treatment for the sidebar root, the contents title and the pager direction)
+   so it reads as a tag and cannot be mistaken for the button beside it. */
+.md-code-lang {
+  flex: none;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* The copy button, at the trailing edge whatever else is in the bar. */
+.md-code-copy {
+  flex: none;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  /* a button does not inherit the page font */
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.4;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 0.15s var(--ease),
+    background 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+.md-code-copy:hover {
+  color: var(--ink);
+  border-color: var(--hairline);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.md-code-copy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* The copied state, off the data-state attribute CodeBlock.tsx sets.
+   --ai-accent-text and not --accent: it is the token that is lightened in dark
+   (#4ea0ff) so small text clears AA, where --accent (#0066cc) reaches only
+   3.0:1 on the dark surface. */
+.md-code-copy[data-state="copied"] {
+  color: var(--ai-accent-text);
+  border-color: color-mix(in srgb, var(--ai-accent-text) 40%, transparent);
+  background: color-mix(in srgb, var(--ai-accent-text) 8%, transparent);
+}
+.md-code-copy[data-state="failed"] {
+  color: var(--ink);
+  border-color: var(--hairline);
+}
+.md-code-copy-label {
+  white-space: nowrap;
+}
+
+/* The <pre>. Inside a figure it is stripped: the figure owns the box, so these
+   have to beat `.docs-prose pre` and `.modal-body--article .modal-content pre`,
+   which is what the element selector on .md-code-pre is for. */
+.md-code > pre.md-code-pre {
+  margin: 0;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+/* Defaults only, at zero specificity, so each context keeps the type and
+   padding it tuned. This is what a <pre> outside a figure, or one in a body
+   with no prose rules at all (the CMS preview), falls back to. */
+:where(.md-code-pre) {
+  overflow-x: auto;
+  padding: 14px 16px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.6;
+}
+:where(.md-code-pre code) {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+}
+
+/* --------------------------------- tables --------------------------------- */
+/* <div class="md-table-wrap" tabindex="0"><table class="md-table">. The wrap is
+   the scroll container, and it says so: a soft shadow appears at whichever edge
+   has more table behind it and disappears when there is none. The two --bg
+   layers are attached `local` so they travel with the content and uncover the
+   `scroll`-attached shadows underneath. A table that fits shows nothing. */
+
+.md-table-wrap {
+  margin: 0 0 26px;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  font-size: 15.5px;
+  line-height: 1.5;
+  background-image:
+    linear-gradient(to right, var(--bg), transparent),
+    linear-gradient(to left, var(--bg), transparent),
+    radial-gradient(
+      farthest-side at 0 50%,
+      color-mix(in srgb, var(--ink) 20%, transparent),
+      transparent
+    ),
+    radial-gradient(
+      farthest-side at 100% 50%,
+      color-mix(in srgb, var(--ink) 20%, transparent),
+      transparent
+    );
+  background-position:
+    left center,
+    right center,
+    left center,
+    right center;
+  background-size:
+    34px 100%,
+    34px 100%,
+    12px 100%,
+    12px 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
+/* It is tabindex="0" so a keyboard can scroll it, which means it can be
+   focused and has to show it. */
+.md-table-wrap:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+/* The table is a table again. 12-docs.css makes a bare table `display: block`
+   to give it a scroll box of its own, which it no longer needs and which would
+   swallow the wrap's scroll (and with it the shadows above). Two classes, so
+   this beats `.docs-prose table`. */
+.md-table-wrap > .md-table {
+  display: table;
+  max-width: none;
+  margin: 0;
+  border-collapse: collapse;
+}
+/* Cell defaults at zero specificity, so `.docs-prose th/td` still decides how a
+   documentation table is set, and a table in a blog post is not left bare. */
+:where(.md-table) :where(th, td) {
+  text-align: left;
+  vertical-align: top;
+  padding: 9px 16px 9px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+:where(.md-table) :where(th) {
+  color: var(--ink);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* -------------------------------- callouts -------------------------------- */
+/* A blockquote whose first paragraph opens "**Note.**", "**Warning.**" or
+   "**You provide this.**" is rendered as <div class="md-callout md-callout--x">
+   instead. An ordinary blockquote keeps its accent spine from 05-detail.css and
+   is deliberately untouched here, so the two never read as the same thing: a
+   quotation is a rule in the margin, a callout is a plate.
+   The three variants differ by edge colour and tint strength only. No new
+   palette: there is no warning hue in this site's tokens, and inventing an
+   amber for four pages would be a second palette, so the ranking is carried by
+   the neutrals the site already has. Warning is the loudest (--ink), note is
+   informational (--accent), "You provide this" is the calm one (--muted) that
+   has to appear 25 times without shouting. */
+
+.md-callout {
+  --md-callout-edge: var(--muted);
+
+  margin: 0 0 24px;
+  padding: 14px 18px;
+  border: 1px solid color-mix(in srgb, var(--md-callout-edge) 28%, var(--hairline));
+  border-left: 3px solid var(--md-callout-edge);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--md-callout-edge) 7%, transparent);
+  color: var(--ink-2);
+}
+.md-callout--note {
+  --md-callout-edge: var(--accent);
+}
+.md-callout--warning {
+  --md-callout-edge: var(--ink);
+}
+.md-callout--provide {
+  --md-callout-edge: var(--muted);
+}
+/* The body inside. The prose layers space direct children of the article only,
+   so a callout's paragraphs would otherwise fall back to the UA's 1em. */
+.md-callout > * {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+.md-callout > :last-child {
+  margin-bottom: 0;
+}
+.md-callout ul,
+.md-callout ol {
+  padding-left: 1.3em;
+}
+/* The label ("Note.", "Warning.", "You provide this.") is the first bold run of
+   the first paragraph, still inline in the sentence. Held at the strong ink so
+   it reads as the callout's name without a second type size. */
+.md-callout > p:first-child > strong:first-child {
+  color: var(--ink);
+}
+
+/* ------------------------- markdown blocks in an article ------------------- */
+/* 05-detail.css caps and centres the direct children of an article body at the
+   680px measure, listing them by element (p, h2, h3, ul, ol, pre, blockquote).
+   A code block is now a figure and a table has a wrapper, so they are no longer
+   in that list and would run the full 980px column. Same measure, same place. */
+.modal-body--article .modal-content > .md-code,
+.modal-body--article .modal-content > .md-table-wrap,
+.modal-body--article .modal-content > .md-callout {
+  max-width: 680px;
+  margin-inline: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-anchor,
+  .md-code-copy {
+    transition: none;
+  }
+}

@@ -21,7 +21,12 @@ export interface NavLink {
 // but the Talks/Articles/Projects tab pages should too, clicking a card
 // inside a tab should always open the same modal-over-page experience as
 // clicking it from Home, never the bare item page.
-const ITEM_PATH_RE = /^\/(projects|talks|writing)\/[^/]+\/?$/;
+// Docs pages are real pages, never a backdrop for a modal: a card clicked from
+// one navigates to the item's own page instead of stacking an overlay over the
+// documentation. (The projects|talks|writing segments are left as found: they
+// no longer exist, so this never matches for them, and "fixing" that would
+// change how the live item pages behave. See the handoff note.)
+const ITEM_PATH_RE = /^\/(projects|talks|writing)\/[^/]+\/?$|^\/docs(\/|$)/;
 
 export function useItemNavigate(item: Item): NavLink {
   const navigate = useNavigate();

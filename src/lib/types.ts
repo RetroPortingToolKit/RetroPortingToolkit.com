@@ -1,4 +1,9 @@
-export type Kind = "hardware" | "game" | "blog";
+export type Kind = "hardware" | "game" | "blog" | "docs";
+
+/** Docs pages: which quadrant the page is in, which is what tells a reader
+    (and an agent) whether to expect an explanation, a task, a table, or a
+    project write-up. */
+export type DocsPageType = "concept" | "guide" | "reference" | "project";
 
 export interface TopicItemRef {
   kind: Kind;
@@ -97,6 +102,21 @@ export interface Item {
   /** Blog cards: opt in to a motion preview from /previews/<slug>.{mp4,webp} (a real recorded clip).
       Implied for posts with a `demo`; set explicitly for body-only posts that still have a clip. */
   preview?: boolean;
+  /** Docs pages: the section this page sits in, taken from the folder path and
+      therefore always the first segment of `slug`. A section's own index page
+      carries its own slug here. Absent on every other kind. */
+  section?: string;
+  /** Docs pages: the section folder's numeric prefix, so a sidebar can order
+      sections without re-walking the tree. */
+  sectionOrder?: number;
+  /** Docs section index pages: the section's display name in navigation, when
+      it should differ from the page title. */
+  sectionTitle?: string;
+  /** Docs pages: the one sentence that sits under the H1 and describes the
+      page to a reader choosing between pages. Falls back to `desc`. */
+  summary?: string;
+  /** Docs pages: concept | guide | reference | project. */
+  pageType?: DocsPageType;
 }
 
 export interface About {

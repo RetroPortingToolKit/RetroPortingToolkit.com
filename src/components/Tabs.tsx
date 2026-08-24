@@ -4,7 +4,9 @@ import {
   useRef,
   type RefObject,
 } from "react";
+import { Link } from "react-router-dom";
 import { useAbout } from "@/lib/about";
+import { COLLECTION_TITLE } from "@/lib/pageTitle";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type TabId = "home" | "hardware" | "game" | "blog";
@@ -180,6 +182,15 @@ export function Tabs({
               {t.count != null && <span className="count">{t.count}</span>}
             </a>
           ))}
+          {/* Documentation is a PAGE, not a tab: it has its own sidebar and is
+              not one of the home pager's panes. So it is a plain link, and
+              deliberately NOT class="tab" - the sliding pill measures
+              querySelectorAll(".tab") against the tabs array by index, and an
+              extra .tab would make a swipe past the last tab scrub the pill
+              onto this link. Styled to match a tab in 12-docs.css. */}
+          <Link to="/docs" className="tabs-doclink">
+            {COLLECTION_TITLE.docs}
+          </Link>
           {/* On mobile this sits inline at the end of the tab row so it
               doesn't crowd the last tab. On desktop CSS pulls it back to
               the absolute top-right of .tabs-inner. */}

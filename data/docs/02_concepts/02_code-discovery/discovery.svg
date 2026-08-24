@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 606" role="img" aria-label="Why a linear sweep of a cartridge dump fails, and the two lanes a static recompiler uses instead to find function entry points.">
+  <style>
+    /* One ink per theme. A single ink cannot clear 4.5:1 against both a white
+       and a near-black page, so each theme gets its own, and each still clears
+       the 3:1 graphics threshold on the other in case a reader has toggled the
+       page against their system setting. */
+    svg { --ink: #76767c; --acc: #cc4b45; }
+    @media (prefers-color-scheme: dark) {
+      svg { --ink: #84848a; --acc: #dc5b55; }
+    }
+    text { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: var(--ink); }
+    .h { font-size: 14px; font-weight: 600; }
+    .s { font-size: 12.5px; font-weight: 600; }
+    .m { font-size: 11px; }
+    .n { font-size: 11.5px; }
+    .k { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 12.5px; }
+    .kb { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 13px; }
+    .kf { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 10px; }
+    .box { fill: none; stroke: var(--ink); stroke-width: 1.25; }
+    .ln { fill: none; stroke: var(--ink); stroke-width: 1.25; }
+    .dl { fill: none; stroke: var(--ink); stroke-width: 1.25; stroke-dasharray: 5 4; }
+    .rule { fill: none; stroke: var(--ink); stroke-width: 1; stroke-opacity: 0.4; }
+    .bad { fill: none; stroke: var(--acc); stroke-width: 1.4; }
+    .badt { fill: var(--acc); }
+  </style>
+  <defs>
+    <marker id="ar" viewBox="0 0 8 8" refX="6.8" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 L6.6 4 L1 7" fill="none" stroke="var(--ink)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arb" viewBox="0 0 8 8" refX="6.8" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 L6.6 4 L1 7" fill="none" stroke="var(--acc)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Panel A: why a sweep cannot start anywhere -->
+  <text class="n" x="20" y="26">The same seven bytes of a cartridge dump, decoded from two starting points.</text>
+
+  <text class="k" x="192" y="44" text-anchor="middle">LDA #$20</text>
+  <text class="k" x="322" y="44" text-anchor="middle">STA $2007</text>
+  <text class="k" x="426" y="44" text-anchor="middle">RTS</text>
+  <path class="ln" d="M140 54 L140 50 L244 50 L244 54"/>
+  <path class="ln" d="M244 54 L244 50 L400 50 L400 54"/>
+  <path class="ln" d="M400 54 L400 50 L452 50 L452 54"/>
+
+  <rect class="box" x="140" y="58" width="364" height="30"/>
+  <path class="rule" d="M192 58 L192 88 M244 58 L244 88 M296 58 L296 88 M348 58 L348 88 M400 58 L400 88 M452 58 L452 88"/>
+  <text class="kb" x="166" y="78" text-anchor="middle">A9</text>
+  <text class="kb" x="218" y="78" text-anchor="middle">20</text>
+  <text class="kb" x="270" y="78" text-anchor="middle">8D</text>
+  <text class="kb" x="322" y="78" text-anchor="middle">07</text>
+  <text class="kb" x="374" y="78" text-anchor="middle">20</text>
+  <text class="kb" x="426" y="78" text-anchor="middle">60</text>
+  <text class="kb" x="478" y="78" text-anchor="middle">EA</text>
+
+  <path class="ln" d="M192 90 L192 94 L348 94 L348 90"/>
+  <path class="ln" d="M348 90 L348 94 L504 94 L504 90"/>
+  <text class="k" x="270" y="110" text-anchor="middle">JSR $078D</text>
+  <text class="k" x="426" y="110" text-anchor="middle">JSR $EA60</text>
+
+  <text class="m" x="130" y="54" text-anchor="end">from a real entry</text>
+  <text class="m" x="130" y="106" text-anchor="end">one byte later</text>
+  <text class="m" x="516" y="54">the instructions that are there</text>
+  <text class="m badt" x="516" y="106">fluent, plausible, and wrong</text>
+
+  <line class="rule" x1="20" y1="140" x2="700" y2="140"/>
+
+  <!-- Panel B: the two lanes -->
+  <text class="m" x="430" y="164" text-anchor="middle">misses are seeded back into the next run</text>
+  <path class="dl" d="M530 561 L690 561 L690 170 L135 170 L135 180" marker-end="url(#ar)"/>
+
+  <rect class="box" x="20" y="184" width="230" height="48"/>
+  <text class="k" x="34" y="205">NMI  RESET  IRQ</text>
+  <text class="m" x="34" y="222">the vectors the hardware guarantees</text>
+
+  <rect class="box" x="300" y="184" width="230" height="48"/>
+  <text class="s" x="314" y="205">the rest of the ROM</text>
+  <text class="m" x="314" y="222">reached by no instruction</text>
+
+  <line class="ln" x1="135" y1="232" x2="135" y2="248" marker-end="url(#ar)"/>
+  <line class="ln" x1="415" y1="232" x2="415" y2="248" marker-end="url(#ar)"/>
+
+  <rect class="box" x="20" y="252" width="230" height="82"/>
+  <text class="h" x="34" y="274">breadth-first walk</text>
+  <text class="m" x="34" y="292">every JSR, JMP and branch target</text>
+  <text class="m" x="34" y="308">becomes a new entry</text>
+  <text class="kf" x="34" y="326">FUNCTION_SOURCE_CONTROL</text>
+
+  <rect class="box" x="300" y="252" width="230" height="82"/>
+  <text class="h" x="314" y="274">heuristic scanners</text>
+  <text class="m" x="314" y="292">a pointer scan, table runs of four</text>
+  <text class="m" x="314" y="308">or more, split and declared tables</text>
+  <text class="kf" x="314" y="326">PTR_SCAN  TABLE_RUN  SPLIT_TABLE</text>
+
+  <text class="m" x="405" y="350" text-anchor="end">every weak candidate</text>
+  <line class="ln" x1="415" y1="334" x2="415" y2="354" marker-end="url(#ar)"/>
+
+  <rect class="box" x="300" y="358" width="230" height="62"/>
+  <text class="k" x="314" y="380">validate_code_target</text>
+  <text class="m" x="314" y="398">seven instructions decode cleanly,</text>
+  <text class="m" x="314" y="414">or a clean terminator sooner</text>
+
+  <line class="bad" x1="532" y1="389" x2="546" y2="389" marker-end="url(#arb)"/>
+  <text class="s badt" x="552" y="376">rejected</text>
+  <text class="m badt" x="552" y="392">an illegal opcode,</text>
+  <text class="m badt" x="552" y="406">BRK at the entry,</text>
+  <text class="m badt" x="552" y="420">or RTI</text>
+
+  <line class="ln" x1="135" y1="334" x2="135" y2="456" marker-end="url(#ar)"/>
+  <line class="ln" x1="415" y1="420" x2="415" y2="456" marker-end="url(#ar)"/>
+
+  <rect class="box" x="20" y="460" width="510" height="54"/>
+  <text class="h" x="275" y="484" text-anchor="middle">the set of function entry points</text>
+  <text class="m" x="275" y="502" text-anchor="middle">each carrying a source flag and an evidence count</text>
+
+  <line class="ln" x1="275" y1="514" x2="275" y2="530" marker-end="url(#ar)"/>
+
+  <rect class="box" x="20" y="534" width="510" height="54"/>
+  <text class="s" x="275" y="558" text-anchor="middle">what no scanner finds</text>
+  <text class="m" x="275" y="576" text-anchor="middle">becomes a dispatch miss at run time: interpreted, and logged</text>
+</svg>
