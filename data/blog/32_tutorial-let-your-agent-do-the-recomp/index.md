@@ -29,7 +29,7 @@ tracks beside it. I own it. Do not try to obtain it from anywhere.
 
 Read these first, in this order:
   https://retroportingtoolkit.com/docs/agents/start-here
-  https://github.com/RetroPortingToolKit/RetroPortingToolkit.com/blob/main/starter-kit/AGENTS.md
+  https://github.com/RetroPortingToolKit/recomp-starter/blob/main/AGENTS.md
   https://github.com/mstan/psxrecomp/blob/master/docs/GAME_PROJECT_SETUP.md
 
 Then check https://retroportingtoolkit.com/all/games to see whether this
@@ -147,9 +147,9 @@ Be precise about this, because the failure mode is an agent that loops for an ho
 
 If you want the shortest useful version of this article to give an agent, it is the starter kit:
 
-<https://github.com/RetroPortingToolKit/RetroPortingToolkit.com/tree/main/starter-kit>
+<https://github.com/RetroPortingToolKit/recomp-starter>
 
-Its [`AGENTS.md`](https://github.com/RetroPortingToolKit/RetroPortingToolkit.com/blob/main/starter-kit/AGENTS.md) is written in the second person for the agent rather than for you, and carries the decision tree, the flag table, the failure modes and an explicit list of what an agent must not decide alone. [`README.md`](https://github.com/RetroPortingToolKit/RetroPortingToolkit.com/blob/main/starter-kit/README.md) is the same material for a human.
+Its [`AGENTS.md`](https://github.com/RetroPortingToolKit/recomp-starter/blob/main/AGENTS.md) is written in the second person for the agent rather than for you, and carries the decision tree, the flag table, the failure modes and an explicit list of what an agent must not decide alone. [`README.md`](https://github.com/RetroPortingToolKit/recomp-starter/blob/main/README.md) is the same material for a human.
 
 And [If you are an agent, start here](/docs/agents/start-here) is the orientation page for this whole fleet: the rules that hold in every repository, the commands that decide whether a change worked, and, at the end, an honest list of what the fleet does not have, so an agent does not plan around a capability that is not there.
 

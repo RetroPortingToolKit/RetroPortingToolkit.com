@@ -52,12 +52,12 @@ is wrong.
 If you are using an AI coding agent, this is enough to give it:
 
 > Read <https://retroportingtoolkit.com/docs/start/recomp-your-own-game> and
-> <https://github.com/RetroPortingToolKit/RetroPortingToolkit.com/tree/main/starter-kit>. I want to recompile
+> <https://github.com/RetroPortingToolKit/recomp-starter>. I want to recompile
 > the PlayStation game at `/path/to/my/game.cue`, which I own. Follow the
 > PlayStation path. Do not create any GitHub repository. Stop and ask me when
 > you need someone to look at the screen.
 
-The starter kit's [`AGENTS.md`](https://github.com/RetroPortingToolKit/RetroPortingToolkit.com/blob/main/starter-kit/AGENTS.md)
+The starter kit's [`AGENTS.md`](https://github.com/RetroPortingToolKit/recomp-starter/blob/main/AGENTS.md)
 is written for the agent rather than for you: it carries the decision tree, the
 exact flags, the failure modes, and an explicit list of what an agent must not
 decide on its own.
@@ -165,7 +165,7 @@ of the work on any console, and it is measured in weeks.
 ## The other eight consoles
 
 Copy a working port and change what is game specific. The starter kit's
-[`other-consoles/`](https://github.com/RetroPortingToolKit/RetroPortingToolkit.com/tree/main/starter-kit/other-consoles)
+[`other-consoles/`](https://github.com/RetroPortingToolKit/recomp-starter/tree/main/other-consoles)
 names which port to copy for each console and what the per game recompiler input
 is called there, because it is spelled differently everywhere: `game.toml` on
 NES, a bank configuration directory on SNES, `game.toml` plus symbols and
