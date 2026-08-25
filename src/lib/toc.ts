@@ -78,6 +78,15 @@ export function headingText(raw: string): string {
   // A closing "##" sequence is decoration, not text.
   s = s.replace(/[ \t]+#+$/, "");
   s = s.replace(/\\([\\`*_{}[\]()#+\-.!|~<>])/g, (_, ch: string) => park(ch));
+  // Code spans, before every rule below, because nothing inside one is markup
+  // and remark binds them tighter than a link or a tag. Parking them last cost
+  // `titles/<id>.json` its <id> to the raw-HTML strip further down, and that
+  // heading slugged to an id the page does not carry. The delimiter run can be
+  // any length, and one leading and one trailing space are dropped when both
+  // are present.
+  s = s.replace(/(`+)([\s\S]*?)\1/g, (_, _ticks: string, code: string) =>
+    park(/^ .* $/.test(code) ? code.slice(1, -1) : code),
+  );
   // Images contribute nothing to a heading's text content.
   s = s.replace(/!\[[^\]]*\]\([^)]*\)/g, "");
   s = s.replace(/!\[[^\]]*\]\[[^\]]*\]/g, "");
@@ -87,11 +96,6 @@ export function headingText(raw: string): string {
   // An autolink reads as its target; other raw HTML contributes no text.
   s = s.replace(/<((?:https?|mailto):[^>\s]+)>/g, (_, url: string) => park(url));
   s = s.replace(/<\/?[a-zA-Z][^>]*>/g, "");
-  // Code spans: the delimiter run can be any length, and one leading and one
-  // trailing space are dropped when both are present.
-  s = s.replace(/(`+)([\s\S]*?)\1/g, (_, _ticks: string, code: string) =>
-    park(/^ .* $/.test(code) ? code.slice(1, -1) : code),
-  );
   s = s.replace(/~~([^~]+)~~/g, "$1");
   s = s.replace(/\*\*([^*]+)\*\*/g, "$1");
   s = s.replace(/__([^_]+)__/g, "$1");
