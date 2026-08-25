@@ -13,6 +13,12 @@ export declare const KIND_NOUN: Record<string, string>;
 /** The frontmatter keys POST /api/cms/post copies through. Mirrors api/cms.ts. */
 export declare const PUBLISH_FIELDS: readonly string[];
 
+/** The publishable keys that are lists, not strings. Mirrors api/cms.ts. */
+export declare const PUBLISH_LIST_FIELDS: readonly string[];
+
+/** Which of those keys each kind may receive. Mirrors api/cms.ts. */
+export declare const PUBLISH_KIND_FIELDS: Record<string, readonly string[]>;
+
 /** An item id taken apart: data/<kind>/<folder>/index.md, with docs nesting one
     level deeper. Null for anything that is not an item. */
 export declare function itemParts(id: string): {

@@ -1,10 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { CMS_KINDS, FOLDER_KIND, MAX_FOLDER_DEPTH, NEW_LABEL } from "./cmsKinds";
-import { KINDS, KIND_NOUN, PUBLISH_FIELDS } from "../../api/cms";
+import { KINDS, KIND_NOUN, PUBLISH_FIELDS, PUBLISH_LIST_FIELDS, PUBLISH_KIND_FIELDS } from "../../api/cms";
 import {
   KIND_DIRS,
   KIND_NOUN as DEV_KIND_NOUN,
   PUBLISH_FIELDS as DEV_PUBLISH_FIELDS,
+  PUBLISH_LIST_FIELDS as DEV_PUBLISH_LIST_FIELDS,
+  PUBLISH_KIND_FIELDS as DEV_PUBLISH_KIND_FIELDS,
   itemParts,
 } from "../../scripts/cms-dev.mjs";
 
@@ -53,6 +55,57 @@ describe("CMS kind vocabulary", () => {
 
   it("gives every kind a folder depth", () => {
     for (const kind of CMS_KINDS) expect(MAX_FOLDER_DEPTH[kind], kind).toBeGreaterThan(0);
+  });
+
+  it("copies the same publishable LIST fields in both backends", () => {
+    // `repos` is a list. The scalar loop tests `typeof v === "string"`, so a
+    // list named there is accepted by /post and never written.
+    expect([...DEV_PUBLISH_LIST_FIELDS]).toEqual([...PUBLISH_LIST_FIELDS]);
+    expect([...PUBLISH_LIST_FIELDS]).toContain("tags");
+    expect([...PUBLISH_LIST_FIELDS]).toContain("repos");
+  });
+
+  it("gates the same fields per kind in both backends", () => {
+    expect(DEV_PUBLISH_KIND_FIELDS).toEqual(PUBLISH_KIND_FIELDS);
+  });
+
+  it("gives every kind an allow list, of fields both backends can copy", () => {
+    const copyable = new Set<string>([...PUBLISH_FIELDS, ...PUBLISH_LIST_FIELDS]);
+    for (const kind of CMS_KINDS) {
+      const fields = PUBLISH_KIND_FIELDS[kind];
+      expect(fields, kind).toBeTruthy();
+      for (const field of fields) expect(copyable, `${kind}.${field}`).toContain(field);
+    }
+  });
+
+  it("leaves no publishable field that no kind can receive", () => {
+    // A field in the copy list that no kind allows is dead: /post would take it
+    // and drop it, which is the shape of the bug the gate was added for.
+    const allowed = new Set(Object.values(PUBLISH_KIND_FIELDS).flat());
+    for (const field of [...PUBLISH_FIELDS, ...PUBLISH_LIST_FIELDS]) {
+      expect(allowed, field).toContain(field);
+    }
+  });
+
+  it("keeps a docs page free of the fields both documents say it does not take", () => {
+    // docs/AUTHORING.md and public/agent.md: "It takes no date and no year: a
+    // docs page is maintained, not published on a day."
+    for (const field of ["date", "year", "status", "availability", "platform", "repo", "videoUrl", "venue", "authorBio"]) {
+      expect(PUBLISH_KIND_FIELDS.docs, field).not.toContain(field);
+    }
+    // ...and carries the two it does: every docs page has `updated`, and the
+    // pages inside sections have `repos`.
+    expect(PUBLISH_KIND_FIELDS.docs).toContain("updated");
+    expect(PUBLISH_KIND_FIELDS.docs).toContain("repos");
+  });
+
+  it("keeps `repos` to docs and `summary`/`pageType` off the other kinds", () => {
+    for (const kind of ["blog", "hardware", "games"]) {
+      expect(PUBLISH_KIND_FIELDS[kind], kind).not.toContain("repos");
+      expect(PUBLISH_KIND_FIELDS[kind], kind).not.toContain("summary");
+      expect(PUBLISH_KIND_FIELDS[kind], kind).not.toContain("pageType");
+      expect(PUBLISH_KIND_FIELDS[kind], kind).not.toContain("sectionTitle");
+    }
   });
 });
 

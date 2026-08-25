@@ -315,9 +315,11 @@ async function ghReadFile(path: string): Promise<{ content: string; sha: string 
   const content = j.encoding === "base64" ? Buffer.from(j.content, "base64").toString("utf8") : j.content;
   return { content, sha: j.sha };
 }
-async function ghWriteFile(path: string, text: string, message: string, actor?: Actor | null): Promise<void> {
+/** Writes one file and answers with the blob sha the repo now holds for it,
+    which is the version the editor carries into its next save. */
+async function ghWriteFile(path: string, text: string, message: string, actor?: Actor | null): Promise<string> {
   const existing = await ghReadFile(path);
-  if (existing && existing.content === text) return; // no-op, avoid an empty commit
+  if (existing && existing.content === text) return existing.sha; // no-op, avoid an empty commit
   const body: Record<string, unknown> = {
     // The trailer records who asked for the change; the commit author records
     // it in git itself, so `git log` alone answers "who edited this".
@@ -338,13 +340,22 @@ async function ghWriteFile(path: string, text: string, message: string, actor?: 
     body: JSON.stringify(body),
   });
   if (!r.ok) throw new Error(`gh_write_${r.status} ${path}: ${await r.text()}`);
+  const written = (await r.json().catch(() => ({}))) as { content?: { sha?: string } };
+  return written.content?.sha ?? "";
 }
 /** One commit that may write and delete several files at once.
     The Contents API is one file per commit, which would mean a commit and a
     rebuild per asset, and cannot express a deletion alongside the edit that
     stops referencing it. The Git Data API can: blobs, then a tree layered on
-    the current one (a null sha removes a path), then a commit, then the ref. */
-type Change = { path: string; text: string } | { path: string; base64: string } | { path: string; remove: true };
+    the current one (a null sha removes a path), then a commit, then the ref.
+    A blobSha change points a path at a blob that is already in the repo, which
+    is how a file MOVES: nothing is downloaded, so no encoding step can touch
+    the bytes. */
+type Change =
+  | { path: string; text: string }
+  | { path: string; base64: string }
+  | { path: string; blobSha: string }
+  | { path: string; remove: true };
 
 async function ghJson(url: string, init?: RequestInit): Promise<Record<string, unknown>> {
   const r = await fetch(url, {
@@ -366,6 +377,10 @@ async function ghCommit(changes: Change[], message: string, actor?: Actor | null
   for (const c of changes) {
     if ("remove" in c) {
       tree.push({ path: c.path, mode: "100644", type: "blob", sha: null });
+      continue;
+    }
+    if ("blobSha" in c) {
+      tree.push({ path: c.path, mode: "100644", type: "blob", sha: c.blobSha });
       continue;
     }
     const blob = await ghJson(`${GH}/git/blobs`, {
@@ -427,10 +442,10 @@ async function ghReadMany(paths: string[]): Promise<Map<string, string>> {
   return out;
 }
 
-async function ghListTree(): Promise<{ path: string }[]> {
+async function ghListTree(): Promise<{ path: string; sha: string }[]> {
   const r = await fetch(`${GH}/git/trees/${BRANCH}?recursive=1`, { headers: ghHeaders() });
   if (!r.ok) throw new Error(`gh_tree_${r.status}`);
-  const j = (await r.json()) as { tree: { path: string; type: string }[] };
+  const j = (await r.json()) as { tree: { path: string; type: string; sha: string }[] };
   return j.tree.filter((e) => e.type === "blob");
 }
 
@@ -525,7 +540,8 @@ function mdFields(fmText: string) {
 }
 
 async function readHome() {
-  const aboutRaw = (await ghReadFile("data/about.md"))?.content || "";
+  const aboutFile = await ghReadFile("data/about.md");
+  const aboutRaw = aboutFile?.content || "";
   const { fmText, body } = splitRaw(aboutRaw);
   let fields = { headerName: "", heroTitle: "", role: "", eyebrow: "", tagline: "", email: "", locations: [] as string[] };
   try {
@@ -540,16 +556,40 @@ async function readHome() {
       locations: Array.isArray(fm.locations) ? (fm.locations as unknown[]).filter((x) => typeof x === "string") as string[] : [],
     };
   } catch {}
+  const homeFile = await ghReadFile("data/home.json");
   let home = { proof: [] as unknown[], recognition: [] as unknown[], philosophy: [] as unknown[] };
   try {
-    const parsed = JSON.parse((await ghReadFile("data/home.json"))?.content || "{}");
+    const parsed = JSON.parse(homeFile?.content || "{}");
     home = {
       proof: Array.isArray(parsed.proof) ? parsed.proof : [],
       recognition: Array.isArray(parsed.recognition) ? parsed.recognition : [],
       philosophy: Array.isArray(parsed.philosophy) ? parsed.philosophy : [],
     };
   } catch {}
-  return { id: "page:home", type: "home", about: { frontmatter: fmText, body: body.replace(/^\n+/, ""), fields }, home };
+  return {
+    id: "page:home",
+    type: "home",
+    about: { frontmatter: fmText, body: body.replace(/^\n+/, ""), fields },
+    home,
+    baseSha: homeBaseSha(aboutFile?.sha, homeFile?.sha),
+  };
+}
+
+// ---- optimistic concurrency ----
+// The version a read hands out, sent back with the save as `expectedBase`. On
+// prod that version is the GitHub blob sha, which changes with the content and
+// costs nothing to obtain, because every read already has it. Mirrors
+// fileBaseSha() in scripts/cms-dev.mjs, which hashes the bytes on disk; the two
+// values never meet, since each backend only ever compares against its own.
+const homeBaseSha = (about?: string, home?: string) => `${about || ""}.${home || ""}`;
+
+async function baseShaOf(id: string): Promise<string> {
+  if (id === "page:home") {
+    const about = await ghReadFile("data/about.md");
+    const home = await ghReadFile("data/home.json");
+    return homeBaseSha(about?.sha, home?.sha);
+  }
+  return (await ghReadFile(id))?.sha || "";
 }
 
 async function readEditable(id: string) {
@@ -560,12 +600,32 @@ async function readEditable(id: string) {
   const type = typeOf(id);
   if (type === "md") {
     const { fmText, body } = splitRaw(file.content);
-    return { id, type, frontmatter: fmText, body: body.replace(/^\n+/, ""), fields: mdFields(fmText) };
+    return { id, type, frontmatter: fmText, body: body.replace(/^\n+/, ""), fields: mdFields(fmText), baseSha: file.sha };
   }
-  return { id, type, raw: file.content };
+  return { id, type, raw: file.content, baseSha: file.sha };
 }
 
-async function writeHome(payload: Record<string, unknown>, actor?: Actor | null) {
+export interface WriteResult {
+  ok: boolean;
+  error?: string;
+  /** the save was built on a version the repo no longer holds -> 409 */
+  staleBase?: boolean;
+  /** the version the repo holds now, for the editor to carry forward */
+  baseSha?: string;
+}
+
+/** The three sections the editor knows about in home.json. Mirrored in
+    scripts/cms-dev.mjs. */
+const HOME_SECTIONS = ["proof", "recognition", "philosophy"] as const;
+
+/** One home.json entry. A section holds strings today, so a stray number is
+    coerced, but an object is passed through: String({}) would write the text
+    "[object Object]" into the page and lose the entry. */
+function homeEntry(value: unknown): unknown {
+  return value && typeof value === "object" ? value : String(value);
+}
+
+async function writeHome(payload: Record<string, unknown>, actor?: Actor | null): Promise<WriteResult> {
   const about = (payload.about || {}) as Record<string, unknown>;
   const fm = String(about.frontmatter ?? "");
   try {
@@ -573,7 +633,11 @@ async function writeHome(payload: Record<string, unknown>, actor?: Actor | null)
   } catch (e) {
     return { ok: false, error: `about.md frontmatter: ${(e as Error).message}` };
   }
-  const aboutOut = `---\n${fm.trim()}\n---\n\n${String(about.body ?? "").replace(/\s+$/, "")}\n`;
+  // The blank line and the body only exist when there IS a body: about.md is
+  // frontmatter alone, and writing the separator unconditionally grew the file
+  // by two newlines on every save that changed nothing.
+  const aboutBody = String(about.body ?? "").replace(/\s+$/, "");
+  const aboutOut = `---\n${fm.trim()}\n---\n` + (aboutBody ? `\n${aboutBody}\n` : "");
   const home = (payload.home || {}) as Record<string, unknown>;
   // Merge over the stored file: the editor only knows about proof/recognition/
   // philosophy, and a save must not drop the other authored sections
@@ -582,24 +646,45 @@ async function writeHome(payload: Record<string, unknown>, actor?: Actor | null)
   try {
     existing = JSON.parse((await ghReadFile("data/home.json"))?.content || "{}");
   } catch {}
-  const homeOut =
-    JSON.stringify(
-      {
-        ...existing,
-        proof: Array.isArray(home.proof) ? (home.proof as unknown[]).map((p) => String(p)) : [],
-        recognition: Array.isArray(home.recognition) ? home.recognition : [],
-        philosophy: Array.isArray(home.philosophy) ? (home.philosophy as unknown[]).map((p) => String(p)) : [],
-      },
-      null,
-      2,
-    ) + "\n";
-  await ghWriteFile("data/about.md", aboutOut, "CMS: update Home hero (about.md)", actor);
-  await ghWriteFile("data/home.json", homeOut, "CMS: update Home content (home.json)", actor);
-  return { ok: true };
+  const merged: Record<string, unknown> = { ...existing };
+  for (const key of HOME_SECTIONS) {
+    const value = home[key];
+    if (!Array.isArray(value)) continue;
+    // An empty section the file never had is the editor reporting what it
+    // found, not an edit. Writing it anyway invented "recognition": [] on
+    // every save.
+    if (!value.length && !(key in existing)) continue;
+    merged[key] = (value as unknown[]).map(homeEntry);
+  }
+  const homeOut = JSON.stringify(merged, null, 2) + "\n";
+  const aboutSha = await ghWriteFile("data/about.md", aboutOut, "CMS: update Home hero (about.md)", actor);
+  const homeSha = await ghWriteFile("data/home.json", homeOut, "CMS: update Home content (home.json)", actor);
+  return { ok: true, baseSha: homeBaseSha(aboutSha, homeSha) };
 }
 
-async function writeEditable(id: string, payload: Record<string, unknown>, actor?: Actor | null) {
+async function writeEditable(
+  id: string,
+  payload: Record<string, unknown>,
+  actor?: Actor | null,
+): Promise<WriteResult> {
   if (!isAllowed(id)) return { ok: false, error: "not_editable" };
+  // Optimistic concurrency: refuse a save built on a version the repo no longer
+  // holds, so two people editing the same page cannot silently overwrite one
+  // another. An absent expectedBase skips the check (an editor with no version
+  // yet). Mirrors writeEditable() in scripts/cms-dev.mjs; src/pages/Admin.tsx
+  // sends the field on every save and already handles the 409.
+  const expected = typeof payload.expectedBase === "string" ? payload.expectedBase : "";
+  if (expected) {
+    const current = await baseShaOf(id);
+    if (expected !== current) {
+      return {
+        ok: false,
+        staleBase: true,
+        baseSha: current,
+        error: "The live site changed this page since you opened it. Load the live version, then re-apply your edit.",
+      };
+    }
+  }
   if (id === "page:home") return writeHome(payload, actor);
   const type = typeOf(id);
   if (type === "md") {
@@ -610,8 +695,8 @@ async function writeEditable(id: string, payload: Record<string, unknown>, actor
       return { ok: false, error: `invalid YAML frontmatter: ${(e as Error).message}` };
     }
     const body = String(payload.body ?? "").replace(/\s+$/, "");
-    await ghWriteFile(id, `---\n${fm.trim()}\n---\n\n${body}\n`, `CMS: update ${id}`, actor);
-    return { ok: true };
+    const sha = await ghWriteFile(id, `---\n${fm.trim()}\n---\n\n${body}\n`, `CMS: update ${id}`, actor);
+    return { ok: true, baseSha: sha };
   }
   // json
   const raw = String(payload.raw ?? "");
@@ -620,8 +705,8 @@ async function writeEditable(id: string, payload: Record<string, unknown>, actor
   } catch (e) {
     return { ok: false, error: `invalid JSON: ${(e as Error).message}` };
   }
-  await ghWriteFile(id, raw.endsWith("\n") ? raw : raw + "\n", `CMS: update ${id}`, actor);
-  return { ok: true };
+  const sha = await ghWriteFile(id, raw.endsWith("\n") ? raw : raw + "\n", `CMS: update ${id}`, actor);
+  return { ok: true, baseSha: sha };
 }
 
 // ---- create a new item ----
@@ -933,7 +1018,11 @@ async function uploadAsset(body: Record<string, unknown>, actor?: Actor | null) 
   }
   const path = `${folder}/${name}`;
   await ghCommit([{ path, base64 }], `cms: add ${path}`, actor);
-  return { ok: true, path, name, markdown: `![](./${name})` };
+  // `path` is what the editor writes into `cover:`, and a cover is resolved
+  // against the item's own folder, so it has to be the relative "./name" the
+  // dev backend returns. The repo-relative path resolved to nothing and the
+  // cover came out blank.
+  return { ok: true, path: `./${name}`, name, markdown: `![](./${name})` };
 }
 
 async function deleteAsset(body: Record<string, unknown>, actor?: Actor | null) {
@@ -949,8 +1038,20 @@ async function deleteAsset(body: Record<string, unknown>, actor?: Actor | null) 
   return { ok: true, path };
 }
 
+/** Does this text reference that exact page path? A plain substring test was
+    wrong: "/games/tomba" is inside "/games/tomba-2", so deleting one page was
+    refused because a DIFFERENT page was featured. The lookahead ends the match
+    at the end of the path, while still matching a page INSIDE the path being
+    deleted (where the next character is "/"), so featuring a docs page still
+    protects the section holding it. Mirrored in scripts/cms-dev.mjs. */
+function referencesPath(text: string, path: string): boolean {
+  const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`${escaped}(?![A-Za-z0-9._-])`).test(text);
+}
+
 /** Remove an item: its whole folder, and the generated preview keyed to its
-    slug, which nothing else references once the item is gone. */
+    slug, which nothing else references once the item is gone. Deleting a docs
+    section takes every page inside it, so the reply counts them. */
 async function deleteEditable(body: Record<string, unknown>, actor?: Actor | null) {
   const id = String(body.id || "");
   const folder = itemFolder(id);
@@ -961,7 +1062,7 @@ async function deleteEditable(body: Record<string, unknown>, actor?: Actor | nul
   // out from under it therefore breaks every later build, not just this one,
   // and the failure surfaces nowhere near the person who caused it.
   const home = await ghReadFile("data/home.json");
-  if (home && home.content.includes(`/${kindSegment(id)}/${slug}`)) {
+  if (home && referencesPath(home.content, `/${kindSegment(id)}/${slug}`)) {
     return {
       ok: false,
       error: `The home page features this page, so deleting it would break the site build. Remove it from the home page first: open Pages > Home and take out the card that points at /${kindSegment(id)}/${slug}.`,
@@ -972,9 +1073,20 @@ async function deleteEditable(body: Record<string, unknown>, actor?: Actor | nul
   const own = paths.filter((p) => p === `${folder}/index.md` || p.startsWith(`${folder}/`));
   if (!own.length) return { ok: false, error: "not_found" };
   const previews = paths.filter((p) => new RegExp(`^public/previews/${slug}\\.(mp4|webp|webm|png|jpg)$`).test(p));
-  const changes: Change[] = [...own, ...previews].map((path) => ({ path, remove: true }));
+  const files = [...own, ...previews];
+  const changes: Change[] = files.map((path) => ({ path, remove: true }));
+  // A docs section holds a page per folder, so deleting one deletes them all.
+  // Nothing else nests, so this is 0 everywhere else.
+  const children = own.filter((p) => p.endsWith("/index.md") && p !== `${folder}/index.md`).length;
   await ghCommit(changes, `cms: delete ${folder}`, actor);
-  return { ok: true, removed: changes.length, files: [...own, ...previews] };
+  return { ok: true, removed: files.length, children, warning: childWarning(children), files };
+}
+
+/** What the editor should tell someone who just deleted a section. Empty when
+    the item had nothing inside it. Mirrored in scripts/cms-dev.mjs. */
+function childWarning(children: number): string {
+  if (!children) return "";
+  return `This also deleted ${children} page${children === 1 ? "" : "s"} inside it.`;
 }
 
 /** The folder names an item at data/<kind>/<parent>/ sits beside, so slugs and
@@ -1011,7 +1123,8 @@ async function renameEditable(body: Record<string, unknown>, actor?: Actor | nul
   if (!slug) return { ok: false, error: "That slug has no usable characters for a URL." };
   if (slug === folderSlugOf(leaf)) return { ok: true, id, slug, unchanged: true };
 
-  const paths = (await ghListTree()).map((e) => e.path);
+  const tree = await ghListTree();
+  const paths = tree.map((e) => e.path);
   for (const f of foldersOf(kind, parent, paths)) {
     if (folderSlugOf(f) === slug) return { ok: false, error: `"${slug}" already exists in ${kind}.` };
   }
@@ -1023,16 +1136,16 @@ async function renameEditable(body: Record<string, unknown>, actor?: Actor | nul
   const base = `data/${kind}${parent ? `/${parent}` : ""}`;
   const target = `${base}/${prefix ? `${prefix}_` : ""}${slug}`;
   const source = `data/${kind}/${folder}`;
-  const own = paths.filter((p) => p.startsWith(`${source}/`));
+  const own = tree.filter((e) => e.path.startsWith(`${source}/`));
   if (!own.length) return { ok: false, error: "not_found" };
 
   const changes: Change[] = [];
   for (const from of own) {
-    const file = await ghReadFile(from);
-    if (!file) continue;
-    // ghReadFile decodes as utf-8; re-encode so binaries survive the move.
-    changes.push({ path: `${target}/${from.slice(source.length + 1)}`, base64: Buffer.from(file.content, "utf8").toString("base64") });
-    changes.push({ path: from, remove: true });
+    // Point the new path at the file's existing blob. Reading the file first
+    // would decode it as utf-8, and re-encoding that string destroys every
+    // byte sequence that is not text: a moved image arrived corrupt.
+    changes.push({ path: `${target}/${from.path.slice(source.length + 1)}`, blobSha: from.sha });
+    changes.push({ path: from.path, remove: true });
   }
   await ghCommit(changes, `cms: rename ${source} -> ${target}`, actor);
   return { ok: true, id: `${target}/index.md`, slug };
@@ -1102,7 +1215,25 @@ export const PUBLISH_FIELDS = [
   "summary",
   "pageType",
   "sectionTitle",
+  "updated",
 ] as const;
+
+// The publishable keys that are LISTS. They need their own loop: the scalar
+// one above tests `typeof v === "string"`, which drops an array on the floor,
+// so `repos` looked accepted and was silently never written.
+export const PUBLISH_LIST_FIELDS = ["tags", "repos"] as const;
+
+// Which of those keys each kind may actually receive. The copy loop used to
+// apply every field to every kind, so an agent posting a docs page could write
+// date, year, status, platform and a byline into it, which docs/AUTHORING.md
+// and public/agent.md both say a docs page does not take. Each list is what
+// that kind's own pages carry plus what those two documents promise it.
+export const PUBLISH_KIND_FIELDS: Record<string, readonly string[]> = {
+  blog: ["kicker", "desc", "tags", "date", "year", "repo", "updated", "videoUrl", "author", "authorAvatar", "authorBio", "venue"],
+  hardware: ["kicker", "desc", "tags", "year", "status", "availability", "repo", "updated"],
+  games: ["kicker", "desc", "tags", "year", "status", "availability", "platform", "repo", "videoUrl", "updated"],
+  docs: ["kicker", "desc", "tags", "summary", "pageType", "sectionTitle", "updated", "repos"],
+};
 
 async function postItem(payload: Record<string, unknown>, actor?: Actor | null) {
   const kind = String(payload.kind || "");
@@ -1151,12 +1282,16 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
 
   const today = new Date().toISOString().slice(0, 10);
   const fm: Record<string, unknown> = { title };
+  const takes = new Set(PUBLISH_KIND_FIELDS[kind] ?? []);
   for (const key of PUBLISH_FIELDS) {
+    if (!takes.has(key)) continue;
     const v = payload[key];
     if (typeof v === "string" && v.trim()) fm[key] = v.trim();
   }
-  if (Array.isArray(payload.tags)) {
-    fm.tags = (payload.tags as unknown[]).filter((t): t is string => typeof t === "string");
+  for (const key of PUBLISH_LIST_FIELDS) {
+    if (!takes.has(key)) continue;
+    const v = payload[key];
+    if (Array.isArray(v)) fm[key] = (v as unknown[]).filter((t): t is string => typeof t === "string");
   }
   if (!fm.desc) fm.desc = `One line describing this ${KIND_NOUN[kind]}.`;
   if (kind === "docs") {
@@ -1293,7 +1428,9 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "save") {
     try {
       const result = await writeEditable(String(body.id || ""), body, await actorFor(req));
-      return json(result, result.ok ? 200 : 400);
+      // 409 is what the editor watches for to stop auto-saving over a page
+      // someone else has already changed.
+      return json(result, result.ok ? 200 : result.staleBase ? 409 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }

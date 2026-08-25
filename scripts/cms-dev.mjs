@@ -247,6 +247,17 @@ function readHome() {
   };
 }
 
+/** The three sections the editor knows about in home.json. Mirrored in
+    api/cms.ts. */
+const HOME_SECTIONS = ["proof", "recognition", "philosophy"];
+
+/** One home.json entry. A section holds strings today, so a stray number is
+    coerced, but an object is passed through: String({}) would write the text
+    "[object Object]" into the page and lose the entry. */
+function homeEntry(value) {
+  return value && typeof value === "object" ? value : String(value);
+}
+
 function writeHome(payload) {
   const about = payload.about || {};
   const fm = String(about.frontmatter ?? "");
@@ -255,29 +266,32 @@ function writeHome(payload) {
   } catch (e) {
     return { ok: false, error: `about.md frontmatter: ${e.message}` };
   }
-  const aboutOut = `---\n${fm.trim()}\n---\n\n${String(about.body ?? "").replace(/\s+$/, "")}\n`;
+  // The blank line and the body only exist when there IS a body: about.md is
+  // frontmatter alone, and writing the separator unconditionally grew the file
+  // by two newlines on every save that changed nothing.
+  const aboutBody = String(about.body ?? "").replace(/\s+$/, "");
+  const aboutOut = `---\n${fm.trim()}\n---\n` + (aboutBody ? `\n${aboutBody}\n` : "");
   const home = payload.home || {};
-  const homeOut =
-    JSON.stringify(
-      {
-        // merge over the stored file so a save never drops sections the
-        // editor does not know about (videos, capabilities, pillars, ...)
-        ...(() => {
-          try {
-            return JSON.parse(fs.readFileSync(HOME_FILE, "utf8"));
-          } catch {
-            return {};
-          }
-        })(),
-        proof: Array.isArray(home.proof) ? home.proof.map((p) => String(p)) : [],
-        recognition: Array.isArray(home.recognition) ? home.recognition : [],
-        philosophy: Array.isArray(home.philosophy) ? home.philosophy.map((p) => String(p)) : [],
-      },
-      null,
-      2,
-    ) + "\n";
+  // merge over the stored file so a save never drops sections the editor does
+  // not know about (videos, capabilities, pillars, ...)
+  let existing = {};
+  try {
+    existing = JSON.parse(fs.readFileSync(HOME_FILE, "utf8"));
+  } catch {
+    existing = {};
+  }
+  const merged = { ...existing };
+  for (const key of HOME_SECTIONS) {
+    const value = home[key];
+    if (!Array.isArray(value)) continue;
+    // An empty section the file never had is the editor reporting what it
+    // found, not an edit. Writing it anyway invented "recognition": [] on
+    // every save.
+    if (!value.length && !(key in existing)) continue;
+    merged[key] = value.map(homeEntry);
+  }
   fs.writeFileSync(ABOUT_FILE, aboutOut);
-  fs.writeFileSync(HOME_FILE, homeOut);
+  fs.writeFileSync(HOME_FILE, JSON.stringify(merged, null, 2) + "\n");
   return { ok: true };
 }
 
@@ -520,7 +534,11 @@ export function createEditable(payload) {
 // folder, run the media pipeline (cwebp/ffmpeg) on it, and return the path to
 // reference in frontmatter. The pipeline binaries only exist on the dev machine,
 // so this is a dev-side action (upload + process here, then publish).
-const UPLOAD_EXT = /\.(jpe?g|png|webp|gif|avif|mp4|mov|m4v|webm)$/i;
+const UPLOAD_EXT = /\.(jpe?g|png|webp|gif|avif|svg|mp4|mov|m4v|webm)$/i;
+// The same ceiling api/cms.ts holds uploads to, so a file that lands on dev is
+// a file prod would have accepted. Without it dev took a file of any size and
+// the person only found out when they tried the same upload on the live site.
+const MAX_ASSET_BYTES = 3 * 1024 * 1024;
 
 function contentFolder(id) {
   if (!itemParts(id)) return null;
@@ -533,7 +551,7 @@ async function doUpload({ id, filename, contentBase64 }) {
   if (!folder) return { ok: false, error: "Uploads are only for article / hardware / game / docs items." };
   const clean = path.basename(String(filename || "")).replace(/[^\w.-]/g, "_");
   if (!clean || clean.startsWith(".") || !UPLOAD_EXT.test(clean)) {
-    return { ok: false, error: "Unsupported file type (use jpg/png/webp/gif/mp4/mov)." };
+    return { ok: false, error: "Unsupported file type (use jpg/png/webp/gif/svg/mp4/mov)." };
   }
   let buf;
   try {
@@ -542,8 +560,16 @@ async function doUpload({ id, filename, contentBase64 }) {
     return { ok: false, error: "Could not decode the upload." };
   }
   if (!buf.length) return { ok: false, error: "The file was empty." };
+  if (buf.length > MAX_ASSET_BYTES) {
+    return { ok: false, error: `That file is ${(buf.length / 1024 / 1024).toFixed(1)} MB. The limit here is 3 MB.` };
+  }
   const rawPath = path.join(folder, clean);
   fs.writeFileSync(rawPath, buf);
+  // An SVG is already a delivery format, is the only media the documentation
+  // uses, and has no encoder in the pipeline: optimize-media.mjs throws on it,
+  // and the cleanup below would then DELETE the upload. So it lands and stops
+  // here, which is also what prod does, since prod runs no pipeline at all.
+  if (/\.svg$/i.test(clean)) return { ok: true, path: `./${clean}` };
   // Run the pipeline in SINGLE-FILE mode on just this upload (converts it, merges
   // its placeholder into lqip.ts). NEVER the full walk, which would re-convert and
   // delete originals across all of data/ + public/.
@@ -831,6 +857,42 @@ export function deleteAsset(payload) {
   return { ok: true, path: `${folder}/${name}` };
 }
 
+/** Does this text reference that exact page path? A plain substring test was
+    wrong: "/games/tomba" is inside "/games/tomba-2", so deleting one page was
+    refused because a DIFFERENT page was featured. The lookahead ends the match
+    at the end of the path, while still matching a page INSIDE the path being
+    deleted (where the next character is "/"), so featuring a docs page still
+    protects the section holding it. Mirrored in api/cms.ts. */
+function referencesPath(text, pagePath) {
+  const escaped = pagePath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`${escaped}(?![A-Za-z0-9._-])`).test(text);
+}
+
+/** What the editor should tell someone who just deleted a section. Empty when
+    the item had nothing inside it. Mirrored in api/cms.ts. */
+function childWarning(children) {
+  if (!children) return "";
+  return `This also deleted ${children} page${children === 1 ? "" : "s"} inside it.`;
+}
+
+/** Every file under a directory, as paths relative to it. */
+function filesUnder(dir) {
+  const out = [];
+  const walk = (rel) => {
+    const abs = rel ? path.join(dir, ...rel.split("/")) : dir;
+    for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
+      const child = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) walk(child);
+      else out.push(child);
+    }
+  };
+  walk("");
+  return out;
+}
+
+/** Remove an item: its whole folder, and the generated preview keyed to its
+    slug, which nothing else references once the item is gone. Deleting a docs
+    section takes every page inside it, so the reply counts them. */
 export function deleteEditable(payload) {
   const id = String(payload?.id || "");
   const parts = itemParts(id);
@@ -844,24 +906,33 @@ export function deleteEditable(payload) {
   // deleting a featured page breaks every later build, far from whoever did it.
   const segment = parts.kind;
   const homeFile = path.join(DATA_DIR, "home.json");
-  if (fs.existsSync(homeFile) && fs.readFileSync(homeFile, "utf8").includes(`/${segment}/${slug}`)) {
+  if (fs.existsSync(homeFile) && referencesPath(fs.readFileSync(homeFile, "utf8"), `/${segment}/${slug}`)) {
     return {
       ok: false,
       error: `The home page features this page, so deleting it would break the site build. Remove it from the home page first: open Pages > Home and take out the card that points at /${segment}/${slug}.`,
     };
   }
 
-  const removed = [folder];
+  // Name every file that is about to go, rather than the one folder holding
+  // them: a section reported "removed: 1" while taking its pages with it, and
+  // the count is what the editor shows. Mirrors the enumeration api/cms.ts
+  // does against the repo tree.
+  const files = filesUnder(abs)
+    .map((f) => `${folder}/${f}`)
+    .sort();
+  // A docs section holds a page per folder, so deleting one deletes them all.
+  // Nothing else nests, so this is 0 everywhere else.
+  const children = files.filter((f) => f.endsWith("/index.md") && f !== `${folder}/index.md`).length;
   fs.rmSync(abs, { recursive: true, force: true });
   // The generated preview is keyed to the slug and nothing else references it.
   for (const ext of ["mp4", "webp", "webm", "png", "jpg"]) {
     const prev = path.join(ROOT, "public", "previews", `${slug}.${ext}`);
     if (fs.existsSync(prev)) {
       fs.rmSync(prev);
-      removed.push(`public/previews/${slug}.${ext}`);
+      files.push(`public/previews/${slug}.${ext}`);
     }
   }
-  return { ok: true, removed: removed.length, files: removed };
+  return { ok: true, removed: files.length, children, warning: childWarning(children), files };
 }
 
 export function renameEditable(payload) {
@@ -937,7 +1008,25 @@ export const PUBLISH_FIELDS = [
   "summary",
   "pageType",
   "sectionTitle",
+  "updated",
 ];
+
+// The publishable keys that are LISTS. They need their own loop: the scalar
+// one above tests `typeof v === "string"`, which drops an array on the floor,
+// so `repos` looked accepted and was silently never written.
+export const PUBLISH_LIST_FIELDS = ["tags", "repos"];
+
+// Which of those keys each kind may actually receive. The copy loop used to
+// apply every field to every kind, so an agent posting a docs page could write
+// date, year, status, platform and a byline into it, which docs/AUTHORING.md
+// and public/agent.md both say a docs page does not take. Each list is what
+// that kind's own pages carry plus what those two documents promise it.
+export const PUBLISH_KIND_FIELDS = {
+  blog: ["kicker", "desc", "tags", "date", "year", "repo", "updated", "videoUrl", "author", "authorAvatar", "authorBio", "venue"],
+  hardware: ["kicker", "desc", "tags", "year", "status", "availability", "repo", "updated"],
+  games: ["kicker", "desc", "tags", "year", "status", "availability", "platform", "repo", "videoUrl", "updated"],
+  docs: ["kicker", "desc", "tags", "summary", "pageType", "sectionTitle", "updated", "repos"],
+};
 
 export function postItem(payload) {
   const kind = String(payload?.kind || "");
@@ -978,11 +1067,17 @@ export function postItem(payload) {
 
   const today = new Date().toISOString().slice(0, 10);
   const fm = { title };
+  const takes = new Set(PUBLISH_KIND_FIELDS[kind] ?? []);
   for (const key of PUBLISH_FIELDS) {
+    if (!takes.has(key)) continue;
     const v = payload?.[key];
     if (typeof v === "string" && v.trim()) fm[key] = v.trim();
   }
-  if (Array.isArray(payload?.tags)) fm.tags = payload.tags.filter((t) => typeof t === "string");
+  for (const key of PUBLISH_LIST_FIELDS) {
+    if (!takes.has(key)) continue;
+    const v = payload?.[key];
+    if (Array.isArray(v)) fm[key] = v.filter((t) => typeof t === "string");
+  }
   if (!fm.desc) fm.desc = `One line describing this ${KIND_NOUN[kind]}.`;
   if (kind === "docs") {
     // No date and no year: a docs page is maintained, not published on a day.
@@ -1129,7 +1224,10 @@ export function createCmsMiddleware() {
             .then((r) => send(res, r.ok ? 200 : 400, r))
             .catch((e) => send(res, 500, { ok: false, error: e.message }));
         },
-        300_000_000, // allow large media (base64-inflated)
+        // Generous next to MAX_ASSET_BYTES (base64 inflates by a third), so an
+        // oversized upload reaches doUpload and is answered with the reason
+        // rather than having its connection dropped here.
+        4 * MAX_ASSET_BYTES,
       );
     }
     if (url === "/api/cms/assets" && req.method === "GET") {

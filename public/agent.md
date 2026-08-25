@@ -97,16 +97,18 @@ title, which is what a reader and a model use to choose the page), `pageType`
 `sectionTitle` (the section's name in navigation). It takes no `date` and no
 `year`: a docs page is maintained, not published on a day.
 
-Two more `docs` keys live in the page's frontmatter, and `/post` accepts
-neither. Set them with `/save`, which writes the frontmatter you send verbatim.
-`updated` is a `YYYY-MM-DD` date, the day the page's content last changed. It is
-optional, but every docs page has one, so write it: it renders as the "Last
-updated" stamp on the page, and in `/docs/<slug>.md` and `/llms-full.txt`. It
-outranks the date of the last commit on purpose, because git cannot answer here:
-a page written through this API is untracked until the commit that publishes it,
-and the deploy is a shallow clone, where the one fetched commit looks like it
-added every file. `repos` is optional too, and it is a YAML list of the
-repository URLs the page documents, never a string:
+Two more `docs` keys live in the page's frontmatter, and `/post` takes both. You
+can also set them later with `/save`, which writes the frontmatter you send
+verbatim. `updated` is a `YYYY-MM-DD` date, the day the page's content last
+changed. It is optional, but every docs page has one, so write it: it renders as
+the "Last updated" stamp on the page, and in `/docs/<slug>.md` and
+`/llms-full.txt`. It outranks the date of the last commit on purpose, because
+git cannot answer here: a page written through this API is untracked until the
+commit that publishes it, and the deploy is a shallow clone, where the one
+fetched commit looks like it added every file. `repos` is optional too, and it
+is a list of the repository URLs the page documents, never a string. Send it as
+an array, the way you send `tags`, and it lands in the frontmatter as a YAML
+list:
 
 ```yaml
 repos:
