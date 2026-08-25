@@ -1,6 +1,6 @@
 ---
 title: "Code you cannot see ahead of time"
-summary: "PS1 games stream code off the disc into RAM while they run, so a build-time pass never sees it: psxrecomp captures those bytes at CD DMA, compiles them out of process, caches the result by address and checksum, and re-checks live memory against that checksum on every dispatch."
+summary: "PS1 games pull code off the disc into memory while they run, so a build-time pass never sees it. psxrecomp records those bytes as they arrive, compiles them in a separate process, keeps the result, and checks it against live memory every time it is used."
 pageType: "concept"
 tags: ["Overlays", "PlayStation", "Code discovery", "Nintendo DS", "Game Boy Advance"]
 repos:
@@ -8,34 +8,34 @@ repos:
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-24"
+updated: "2026-08-25"
 ---
 
-A static recompiler translates a game's machine code before the game runs, which means it can only translate code that exists before the game runs. Whether that is a real limit depends entirely on the console, and this page is mostly about the one where it bites hardest. On the PlayStation a disc holds far more code than 2 MB of RAM can, so games load a chunk, run it, and overwrite it with the next one. Those chunks are called overlays, and no amount of analysis of the executable will find them, because they are not in the executable. [psxrecomp](https://github.com/mstan/psxrecomp) answers this by moving part of the recompiler into the running game: it records an overlay's bytes the moment the disc delivers them, compiles them to native code in a separate process, and keeps the result. The consequence is unusual for a game, and it is the part worth remembering: the more a game has been played, the faster it runs.
+A static recompiler translates a game's machine code before the game runs, so it can only translate code that exists before the game runs. Some code does not. A game can work out an address while you play, or pull a fresh block of code off the disc, and no study of the file on disk will find it.
 
-Everything from here to "Which consoles actually have this problem" is that one toolchain's mechanism. Read it as the PlayStation's answer, not as the technique: three other consoles in this fleet have a version of the problem and solve it differently, and one has decided the machinery is not worth having.
+That is not a crash. Every port here keeps a small emulator inside it, an interpreter, which reads those instructions and acts them out one at a time. It is slower than compiled code and it is correct, so a missed instruction costs a moment of speed, not the game.
 
-## The problem, in the project's own words
+How much this matters depends on the console. It matters most on the PlayStation.
 
-From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
+## Why the PlayStation is the hard case
+
+A PS1 disc holds far more code than the console's 2 MB of memory, so games load a chunk, run it, and write the next chunk over the top. Those chunks are called **overlays**, and they are not in the game's executable.
+
+From [psxrecomp](https://github.com/mstan/psxrecomp)'s [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
 
 > "Games stream code off the disc into RAM at runtime and execute it, then
 > overwrite it with the next overlay. That code does not exist in the executable
 > at build time, so a pure ahead-of-time recompiler cannot see it."
 
-This is a different failure from the one in [telling code from data](/docs/concepts/code-discovery). There, the bytes are present and the recompiler has to work out which of them are instructions. Here the bytes are absent, and no discovery heuristic can help, because there is nothing to be heuristic about.
+This is a different problem from [telling code from data](/docs/concepts/code-discovery). There the bytes are present and the recompiler has to work out which are instructions. Here the bytes are absent, and no guess helps.
+
+psxrecomp answers it by moving part of the recompiler into the running game. It records an overlay the moment the disc delivers it, compiles it in a separate process, and keeps the result. One consequence is unusual for a game: the more it has been played, the faster it runs.
 
 ## Capture, compile, cache
 
-### Capture, at the moment the code arrives
+**Capture.** The runtime watches every disc transfer that lands in game code memory and stores the bytes as delivered, before the game can change them. Capture later, after the game has patched itself, and you have recorded something the recompiler cannot reason about. Meanwhile the interpreter notes which addresses it really executed, so the list of function starts comes from execution rather than guesswork. Both go into a file called `overlay_captures.json` next to the game.
 
-The runtime hooks every CD DMA completion that lands in game-code RAM and stores the bytes as delivered, which [`docs/FEATURES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/FEATURES.md) describes as an unpatched copy, taken before the game can modify them. Timing is the point: capture after the game has relocated or patched itself and you have recorded something the recompiler cannot reason about.
-
-Separately, the interpreter that runs this code before it is native keeps two bitmaps, of which program counters were executed and which were entered through dispatch. Those become the seed list, so a seed is an address execution really reached rather than a guess. The record goes next to the executable as `overlay_captures.json`, a JSON array of `"psxrecomp overlay capture v2"` objects carrying `load_addr`, `size`, `bytes_b64`, `executed_pcs`, `dispatch_entry_pcs`, `function_entry_pcs` and `seeds`.
-
-### Compile, out of process
-
-Compilation is not a just-in-time compiler inside the runtime. [`tools/compile_overlays.py`](https://github.com/mstan/psxrecomp/blob/master/tools/compile_overlays.py) wraps the captured bytes in a synthetic PS-X EXE header, spawns the same `psxrecomp-game` binary that recompiled the main executable, post-processes the emitted C and compiles it to a shared library with either `gcc` or the bundled TinyCC. From [`docs/ARCHITECTURE.md`](https://github.com/mstan/psxrecomp/blob/master/docs/ARCHITECTURE.md):
+**Compile.** Not inside the running game. A tool wraps the captured bytes in a header, runs the same `psxrecomp-game` recompiler that handled the main executable, and compiles the C it emits into a shared library. From [`docs/ARCHITECTURE.md`](https://github.com/mstan/psxrecomp/blob/master/docs/ARCHITECTURE.md):
 
 > "When an overlay needs compiling, the runtime spawns a C compiler on the
 > recompiler-emitted C and loads the resulting DLL — it does not JIT in-process."
@@ -53,27 +53,13 @@ python psxrecomp/tools/compile_overlays.py \
     --cps
 ```
 
-`<exe-dir>` is the directory holding the built game. Backends resolve once at startup in the order static, then `gcc`, then TinyCC. An in-process JIT tier did exist and was removed in July 2026.
+`<exe-dir>` is the folder holding the built game.
 
-### Cache, keyed by address and content
+**Cache.** Each build lands as two files named after the address and a checksum of the code, under a path that includes the game, the compiler, the host machine, the emitter version and the configuration. Change any of those and the old results are correctly ignored.
 
-Each build lands as two files, `<phys>_<crc>.dll` and `<phys>_<crc>.ranges`, under a deeply namespaced directory:
+## Checking before every use
 
-`<cache-root>/<game-id>/<gcc|tcc>/<os>-<arch>/cg<CODEGEN_VER>_<emitter-hash>_gc<config-hash>_f<flavor>/`
-
-Every component stops two caches mixing that should not: a different game, compiler, host architecture, emitter or configuration. The runtime and the compiler build that path independently and must agree exactly, a deliberate double implementation. It is also where a stale document will mislead you: [`docs/COMPILING_OVERLAYS.md`](https://github.com/mstan/psxrecomp/blob/master/docs/COMPILING_OVERLAYS.md) gives the path one component short, without the config hash and flavour. The two implementations agree with each other; the prose has not caught up.
-
-The `.ranges` file beside each library is the manifest, in two line kinds. From [`tools/compile_overlays.py`](https://github.com/mstan/psxrecomp/blob/master/tools/compile_overlays.py):
-
-> "Manifest v2 line format:
->       F <entry_hex> <code_crc_hex>     one per function
->       R <lo_hex> <len_hex>             one per coalesced code range"
-
-The pair of entry address and code checksum is the identity of a compiled function. The offline CRC32 that writes it is bit-identical to the one the runtime computes, which is what makes the next step possible.
-
-## Validating on every dispatch
-
-Cached native code is safe only while the RAM it was compiled from still holds the same bytes, and that RAM is exactly the RAM the game overwrites with the next overlay. So the loader re-checks, every time. The expensive part is a hash, so a page-generation counter bumped by writes does the work in the common case, and the hash runs only when something in the page has moved.
+Cached native code is only safe while the memory it came from still holds the same bytes, and that memory is what the game overwrites with its next overlay. So the loader checks every time. The full check is a checksum, so a counter that ticks whenever a page is written does the work in the common case, and the checksum runs only when something moved.
 
 From [`runtime/src/overlay_loader.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/overlay_loader.c):
 
@@ -102,88 +88,47 @@ From [`runtime/src/overlay_loader.c`](https://github.com/mstan/psxrecomp/blob/ma
     s_rehash_miss++;
 ```
 
-Read the comment at the top as the design rule. One guest address holds several compiled variants at once, chained as candidates, because the same RAM window has held several overlays over a session. Selecting by content rather than by address means walking back into an area you visited an hour ago re-validates the variant that matches and flips back to native automatically.
+Read the comment as the design rule. One address holds several compiled versions at once, because that block of memory has held several overlays over a session. Picking by content rather than by address means walking back into an area you left an hour ago finds the version that matches and goes native again by itself.
 
-A mismatch is not an error. It drops that address to the interpreter, which runs the code correctly and more slowly, and the capture path notices the new bytes. That is the bias the whole tier is built on, and [PlayStation](/docs/platforms/playstation) has the full dispatch order: nothing that might be compiled wrong is ever dispatched, so the failure direction is always speed.
+A mismatch is not an error. That address drops to the interpreter, and capture notices the new bytes. Nothing that might be compiled wrong is ever run, so the failure direction is always speed. [PlayStation](/docs/platforms/playstation) has the full dispatch order.
 
-![Read the fall-through arrows down and the dashed path back up. Reaching the interpreter is not a failure, it is what feeds capture and compilation, and the same address dispatches to the cache the next time its bytes still match.](./tiers.svg)
-
-## Two persisted artefacts, and why the difference matters
-
-These are easy to collapse into one thing, and doing so will confuse you the first time a cache misbehaves.
-
-| Artefact | What it is | Where it lives |
-|---|---|---|
-| `overlay_captures.json` | The discovery record: the raw overlay bytes as the disc delivered them, plus the program counters execution actually reached | Beside the game executable, redirectable with `PSX_OVERLAY_CAPTURE_ROOT` |
-| `cache/` | The native code: compiled shared libraries and their `.ranges` manifests, namespaced by game, compiler, architecture, emitter, config and flavour | Under the cache root, rebuilt from the capture record when it is missing |
-
-The capture record is the durable one. The compiled cache is derived, and a change to the emitter, the configuration or the compiler correctly invalidates all of it by changing the path, at which point it is rebuilt from captures rather than from another play session.
+![Read the fall-through arrows down and the dashed path back up. Reaching the interpreter is not a failure. It is what feeds capture and compilation, and the same address goes to the cache next time, as long as its bytes still match.](./tiers.svg)
 
 ## Why a game gets faster the more it is played
 
-Every fresh area a player reaches is an area that gets captured, compiled and cached, and nothing sends it back. From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
+Every new area a player reaches gets captured, compiled and kept. From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
 
 > "**Your discoveries persist for you.** They are saved in a file written next to
 > the game called `overlay_captures.json`, and your local cache is rebuilt from
 > it automatically — areas you have visited stay fast on every later session."
 
-The same property works across players, because the artefacts are files. [`docs/EXECUTION_MODEL.md`](https://github.com/mstan/psxrecomp/blob/master/docs/EXECUTION_MODEL.md) describes a release shipping a `cache/` folder of overlays already compiled from everywhere players have collectively visited, so a first-time player starts warm.
+It works across players too, because these are files. A release can ship a `cache/` folder built from everywhere players have been, so a first-time player starts warm. The capture file is the durable one; the cache is rebuilt from it.
 
-> **Note.** The repository asks players not to redistribute their capture files, because a capture contains verbatim game code. That is the same boundary described in [the game file you supply](/docs/concepts/the-game-file-you-supply) and [provenance](/docs/fleet/provenance).
+> **Note.** The repository asks players not to share capture files, because a capture holds game code. Same boundary as [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
-The direction of travel is stated but not reached. The project's goal is that every executed instruction should have been translated ahead of time, leaving the interpreter idle, and no artefact in the repository shows a title in that state. What the tier buys today is that the gap costs frames rather than correctness.
+The goal is that every instruction a game executes has been translated before it is needed, leaving the interpreter idle. No title is there yet. What this buys today is that the gap costs frames, not correctness.
 
 ## Which consoles actually have this problem
 
-Everything above is the PlayStation's answer to a PlayStation constraint. Four other consoles here sit at different points, and the differences are not cosmetic: two of them build most of the same machinery for a different reason, one guards against changing bytes without compiling anything at run time, and one has decided it does not need any of it.
+Everything above is one console's answer to one console's constraint.
 
-### Nintendo DS
+**Nintendo DS.** [ndsrecomp](https://github.com/mstan/ndsrecomp) first recommended against copying psxrecomp's machinery, because a DS game's overlays are known at build time. It later shipped a provider that does compile while the game runs, so do not quote the old recommendation as current policy. It needs the same content check too, because several overlay generations share one address.
 
-The closest equivalent, and the most interesting because the project changed its mind in public. [ndsrecomp](https://github.com/mstan/ndsrecomp)'s [`docs/overlay-strategy.md`](https://github.com/mstan/ndsrecomp/blob/main/docs/overlay-strategy.md) re-derived psxrecomp's mechanisms from its code and recommended against copying them: "**Do not port psxrecomp's runtime-compile machinery**", on the argument that a DS title's overlay set is "fixed, finite ... and known completely at build time". That recommendation was later overtaken. The repository now ships a live overlay provider that does compile at run time, driven by `--live-overlay-enable`, `--live-overlay-command` and `--live-overlay-cache`, with [`tools/compile_live_shards.py`](https://github.com/mstan/ndsrecomp/blob/main/tools/compile_live_shards.py) compiling generation-bound RAM code pages into persistent libraries. Anyone reading that repository should not quote the recommendation as current policy; the decision that overtook it is recorded in [`docs/live-overlay-psx-adversarial-review.md`](https://github.com/mstan/ndsrecomp/blob/main/docs/live-overlay-psx-adversarial-review.md).
+**Game Boy Advance.** No streamed code, and [gbarecomp](https://github.com/mstan/gbarecomp) still builds capture, compile and cache, because its offline finder cannot see code the game builds in memory. On the first miss it interprets to keep running, recompiles that function into an on-disk cache "so it is served NATIVELY for the rest of the run", and sends the address back to a reviewed file so the next build finds it properly. The fleet calls that self-healing.
 
-The DS also needs the identity half of psxrecomp's design for its own reason. A generated bank's entries carry live-byte validation and an entry is skipped when the guest bytes no longer match, which is how several overlay generations coexist at one address. That is the same content-keyed lookup, arrived at from cartridge RAM rather than from a disc. [Nintendo DS](/docs/platforms/nintendo-ds) has the toolchain.
+**Genesis and Master System.** The Genesis sound Z80 runs a program the main CPU uploads into memory, so the compiled image may not match what is there. [smsggrecomp](https://github.com/mstan/smsggrecomp)'s flat-step output checks every compiled instruction against the live bytes before running it. That is checking without compiling at run time.
 
-### Game Boy Advance
+**SNES.** [snesrecomp](https://github.com/mstan/snesrecomp) took half the design: "**The performance tiers (gcc shard + sljit JIT) are NOT worth porting.**" It kept the interpreter fallback and the feedback loop, so here the layer below native code is an interpreter, and the PlayStation tier numbers do not carry across.
 
-There is no streamed code on a GBA cartridge, and [gbarecomp](https://github.com/mstan/gbarecomp) still builds a runtime compile and cache path, because the offline finder cannot see genuinely dynamic RAM code. Its `PRINCIPLES.md` permits the interpreter to bridge a dispatch miss only under three conditions together, and the second is the one that matters here: "On the first miss we interpret to keep running, but we immediately recompile that function on the fly (the on-disk "code cache") so it is served NATIVELY for the rest of the run." The third condition sends the address back to a reviewed proposal file so the next static build finds it properly. So the same three verbs appear, capture, compile, cache, driven by a discovery gap rather than by a disc. [Game Boy Advance](/docs/platforms/game-boy-advance) covers it, and the fleet calls the pattern self-healing.
-
-### Genesis and Master System
-
-The Genesis has code that arrives at run time and answers it without compiling anything then. Its sound Z80 executes a program the 68000 uploads into RAM while the Z80 is held in reset, so the image compiled ahead of time may not be the image in memory. [smsggrecomp](https://github.com/mstan/smsggrecomp)'s flat step output guards every compiled instruction against the live bytes before running it, keeping captured variants as alternate byte sequences at the same address and falling back to a dispatch-miss handler when none match. That is validation without runtime compilation: the cheapest point on this axis that is still correct. [Sega Genesis](/docs/platforms/sega-genesis) and [Master System and Game Gear](/docs/platforms/master-system-game-gear) have both halves.
-
-### SNES
-
-[snesrecomp](https://github.com/mstan/snesrecomp) evaluated psxrecomp's four-layer model and took half of it. From [`docs/MULTI_TIER.md`](https://github.com/mstan/snesrecomp/blob/main/docs/MULTI_TIER.md):
-
-> **The performance tiers (gcc shard + sljit JIT) are NOT worth porting.** They
-> exist in psxrecomp to run code at native speed.
-
-What it did adopt is the interpreter fallback and the manifest feedback, "not for speed, but to convert snesrecomp's *resolve-or-fail-the-build* wall into a self-healing loop, and to give games a runtime correctness floor for control flow the static pass hasn't covered yet". So on this console tier 2 is an interpreter, not compiled code, and a reader carrying the PlayStation's tier numbering across will be wrong about what tier 2 means. [SNES](/docs/platforms/snes) has the dispatch it sits in.
-
-### NES
-
-The negative case, and the reason this page is not a general one. nesrecomp explains its own decision not to adopt the multi-tier design in one sentence:
-
-> psxrecomp's multi-tier system exists to solve a problem NES does not have ... On NES there is no hot code that arrives at runtime — the entire ROM is present at build time.
-
-Cartridge alone does not decide it, as the DS and the Genesis Z80 both show. What decides it is whether the bytes a program executes can change after the recompiler has seen them.
-
-## What this is, and what it is not
-
-It is not a technique unique to this fleet. N64Recomp ships a runtime recompilation backend of its own, so the difference here is purpose rather than capability: upstream's serves mod support, and psxrecomp's exists because a PS1 disc streams code into RAM that no build-time pass can see. [Lineage and credit](/docs/fleet/lineage-and-credit) is careful about which relationships in this fleet are code and which are conceptual.
-
-It also does not have a name. The repository describes the mechanism in stages and never gives the whole of it a single term, and neither does anything else in the fleet. This page's title is a description rather than a coinage, deliberately: labelling something the projects have not labelled would put a word in a reader's vocabulary that no repository will confirm.
+**NES.** The negative case: the whole cartridge is present at build time, so none of this is needed. What decides it is not cartridge against disc, as the DS and the Genesis Z80 both show. It is whether the bytes a program executes can change after the recompiler has seen them.
 
 ## Source
 
-From [psxrecomp](https://github.com/mstan/psxrecomp). Documents: [`docs/EXECUTION_MODEL.md`](https://github.com/mstan/psxrecomp/blob/master/docs/EXECUTION_MODEL.md), [`docs/FEATURES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/FEATURES.md), [`docs/COMPILING_OVERLAYS.md`](https://github.com/mstan/psxrecomp/blob/master/docs/COMPILING_OVERLAYS.md), [`docs/ARCHITECTURE.md`](https://github.com/mstan/psxrecomp/blob/master/docs/ARCHITECTURE.md) and [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md). Code: [`runtime/src/overlay_capture.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/overlay_capture.c) for the DMA hook and the JSON schema, [`runtime/src/overlay_loader.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/overlay_loader.c) for validation and the cache path, [`runtime/src/overlay_backend.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/overlay_backend.c) for backend resolution, [`runtime/src/dirty_ram_interp.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/dirty_ram_interp.c) for the fallback and the seed bitmaps, and [`tools/compile_overlays.py`](https://github.com/mstan/psxrecomp/blob/master/tools/compile_overlays.py) for the manifest format and the compiler side of the cache path.
-
-For the per-console section: ndsrecomp's [`docs/overlay-strategy.md`](https://github.com/mstan/ndsrecomp/blob/main/docs/overlay-strategy.md), [`docs/live-overlay-psx-adversarial-review.md`](https://github.com/mstan/ndsrecomp/blob/main/docs/live-overlay-psx-adversarial-review.md), [`tools/compile_live_shards.py`](https://github.com/mstan/ndsrecomp/blob/main/tools/compile_live_shards.py) and [`runner/src/dispatch_lookup.h`](https://github.com/mstan/ndsrecomp/blob/main/runner/src/dispatch_lookup.h); gbarecomp's [`PRINCIPLES.md`](https://github.com/mstan/gbarecomp/blob/main/PRINCIPLES.md); smsggrecomp's [`FLAT_STEP.md`](https://github.com/mstan/smsggrecomp/blob/main/FLAT_STEP.md) and [`recompiler/src/code_generator.c`](https://github.com/mstan/smsggrecomp/blob/main/recompiler/src/code_generator.c); snesrecomp's [`docs/MULTI_TIER.md`](https://github.com/mstan/snesrecomp/blob/main/docs/MULTI_TIER.md); nesrecomp's [`docs/MULTITIER_PORT_PROPOSAL.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MULTITIER_PORT_PROPOSAL.md).
+- psxrecomp: [`docs/EXECUTION_MODEL.md`](https://github.com/mstan/psxrecomp/blob/master/docs/EXECUTION_MODEL.md), [`docs/ARCHITECTURE.md`](https://github.com/mstan/psxrecomp/blob/master/docs/ARCHITECTURE.md), [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md), [`runtime/src/overlay_capture.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/overlay_capture.c), [`runtime/src/overlay_loader.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/overlay_loader.c), [`tools/compile_overlays.py`](https://github.com/mstan/psxrecomp/blob/master/tools/compile_overlays.py)
+- ndsrecomp: [`docs/overlay-strategy.md`](https://github.com/mstan/ndsrecomp/blob/main/docs/overlay-strategy.md). gbarecomp: [`PRINCIPLES.md`](https://github.com/mstan/gbarecomp/blob/main/PRINCIPLES.md). smsggrecomp: [`FLAT_STEP.md`](https://github.com/mstan/smsggrecomp/blob/main/FLAT_STEP.md). snesrecomp: [`docs/MULTI_TIER.md`](https://github.com/mstan/snesrecomp/blob/main/docs/MULTI_TIER.md)
 
 ## Next
 
-- [PlayStation](/docs/platforms/playstation), for the full dispatch order this tier sits inside.
-- [Nintendo DS](/docs/platforms/nintendo-ds), [Game Boy Advance](/docs/platforms/game-boy-advance) and [SNES](/docs/platforms/snes), the three consoles that took part of this design and the depth on each.
-- [Telling code from data](/docs/concepts/code-discovery), the build-time half of the same question.
-- [Configuration](/docs/reference/configuration) for the overlay and cache keys, and the [command line reference](/docs/reference/cli) for every flag on the tool above.
-- [High level and low level](/docs/concepts/hle-and-lle) for the other tier in this runtime, and the [glossary](/docs/concepts/glossary) for overlay, shard and capture as this fleet uses them.
+- [PlayStation](/docs/platforms/playstation), for the dispatch order this sits inside.
+- [Telling code from data](/docs/concepts/code-discovery), the build-time half of the question.
+- [Glossary](/docs/concepts/glossary) for overlay, capture and tier as this fleet uses them.
