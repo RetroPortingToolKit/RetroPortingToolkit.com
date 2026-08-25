@@ -113,7 +113,7 @@ The project is clear about which mistakes matter, in [`README.md`](https://githu
 
 > The deep-decode check eliminates 'harmful' false positives (data misidentified as code, which would generate invalid C). 'Harmless' false positives (valid code in another bank's context) are accepted.
 
-Data read as code is harmful: the recompiler writes a function out of misread graphics. Real code found under the wrong bank is harmless, because nothing calls it. A pass that had to prevent both kinds would have to be perfect. One that only has to prevent the harmful kind can afford to guess.
+Data read as code is harmful: the recompiler writes a function out of misread graphics. Genuine instructions found under the wrong bank are harmless, because nothing calls them. A pass that had to prevent both kinds would have to be perfect. One that only has to prevent the harmful kind can afford to guess.
 
 Whatever is still missing shows up as a jump to an address with no generated function. That is not a crash. The address goes to the interpreter, a small emulator inside the port that reads those instructions and acts them out one at a time, more slowly. Misses are logged.
 
