@@ -1,14 +1,16 @@
 ---
 title: "Xbox"
-summary: "xboxlle-probe is not a recompiler and runs no games: it is a small agent that answers fixed read-only measurement questions on a real original Xbox, wrapped in unusually strict safety documentation."
+summary: "xboxlle-probe is not a recompiler and runs no games. It is a small agent that answers fixed read-only measurement questions on a real original Xbox."
 pageType: "project"
 tags: ["Xbox", "Hardware probe", "Safety"]
 repos:
   - "https://github.com/mstan/xboxlle-probe"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-[xboxlle-probe](https://github.com/mstan/xboxlle-probe) is not a recompiler, and there is no Xbox port on this page. It is a measuring instrument: a small homebrew agent that runs on an original Xbox you already own and can already run unsigned code on, plus a Python client that asks it a fixed set of questions over a network socket. It exists because an emulator needs ground truth. In the repository's words, "It originated as the hardware-oracle component of `xboxlle`: emulator behavior could be compared with measurements from actual silicon instead of assumptions or another emulator." That emulator is a separate project and is not covered here, so nothing on this page runs, ports or plays anything.
+[xboxlle-probe](https://github.com/mstan/xboxlle-probe) is not a recompiler, and there is no Xbox port here. It is a measuring instrument: a small homebrew agent that runs on an original Xbox you already own and can already run unsigned code on, plus a Python client that asks it a fixed set of questions over a network socket.
+
+It exists because an emulator needs ground truth. In the repository's words, "It originated as the hardware-oracle component of `xboxlle`: emulator behavior could be compared with measurements from actual silicon instead of assumptions or another emulator." That emulator is a separate project and is not covered here. The catalogue entry for the console is [/hardware/original-xbox](/hardware/original-xbox).
 
 ## Status, in the project's own words
 
@@ -22,11 +24,11 @@ The README opens with a warning, in capitals, and repeats the point in two other
 > This project reduces accidental misuse; it does not make low-level hardware
 > access safe.
 
-That last sentence is the honest summary of the whole design. The guards described below reduce the chance of an accident. They are not a safety guarantee, and the repository does not present them as one.
+That last sentence is the honest summary of the whole design. The guards below reduce the chance of an accident. They are not a safety guarantee, and the repository does not present them as one.
 
 ## What a probe is scoped to do
 
-The fleet uses three suffixes in repository names. A `recomp` project [translates guest machine code to C ahead of time](/docs/start/what-is-static-recompilation). An `lle` project makes a claim about running the machine's own firmware. A `probe` is neither: it produces no native executable of any guest program, and its entire output is measurements. The full distinction is set out on the [GameCube page](/docs/platforms/gamecube), and [high level and low level](/docs/concepts/hle-and-lle) covers the underlying argument.
+The fleet uses three suffixes in repository names. A `recomp` project [translates guest machine code ahead of time](/docs/start/what-is-static-recompilation). An `lle` project makes a claim about running the machine's own firmware. A `probe` is neither: it produces no native executable of any guest program, and its entire output is measurements. The full distinction is on the [GameCube page](/docs/platforms/gamecube).
 
 Concretely, a probe here is a named, fixed, read-only measurement that returns one line of JSON. The README says the named probes "are the intended interface for humans and AI agents". Three exist: `cpu`, `nv2a` and `controller-s-hub`. This is the entire reply from the CPU probe, copied from the README:
 
@@ -44,13 +46,13 @@ The third probe is the interesting one, because it answers by refusing. Rather t
 > It cannot satisfy a Controller S descriptor-capture request and does not touch
 > USB/OHCI hardware.
 
-The source comment says the same thing and gives the reason: the agent's USB stack is not initialized, so the probe "must not inspect a device list, issue a USB transfer, access OHCI, or infer hub/descriptors from any other source", and it exists "so callers can distinguish this unsupported capability from an empty or guessed hardware capture". That pattern is what this fleet calls a capability sentinel, one of the terms collected in the [glossary](/docs/concepts/glossary).
+The source comment gives the reason: the agent's USB stack is not initialized, so the probe "must not inspect a device list, issue a USB transfer, access OHCI, or infer hub/descriptors from any other source", and it exists "so callers can distinguish this unsupported capability from an empty or guessed hardware capture". That pattern is what this fleet calls a capability sentinel, one of the terms in the [glossary](/docs/concepts/glossary).
 
 ## What the safety documents constrain
 
-The repository carries a `SECURITY.md` and a `NOTICE.md` alongside `AGENTS.md` and `CONTRIBUTING.md`, and of the fleet's three frontier targets it is the only one whose agent file is about physical consequences rather than debugging method. That file opens: "This repository controls real hardware. An incorrect action can freeze, corrupt, or brick an original Xbox. Treat network commands as physical side effects, not ordinary software tests."
+The repository carries a `SECURITY.md` and a `NOTICE.md` alongside `AGENTS.md` and `CONTRIBUTING.md`. Of the fleet's three frontier targets it is the only one whose agent file is about physical consequences rather than debugging method. That file opens: "This repository controls real hardware. An incorrect action can freeze, corrupt, or brick an original Xbox. Treat network commands as physical side effects, not ordinary software tests."
 
-Two mechanisms do the constraining. The first is arming. Every raw or state-changing command requires the client to send the exact phrase `ARM I_ACCEPT_THE_RISK` first, and that state belongs to one TCP connection: a new connection starts in `SAFE`. The documentation is explicit that "The phrase is an accident guard, **not authentication**."
+Two mechanisms do the constraining. The first is arming. Every raw or state-changing command requires the client to send the exact phrase `ARM I_ACCEPT_THE_RISK` first, and that state belongs to one TCP connection, so a new connection starts in `SAFE`. The documentation is explicit that "The phrase is an accident guard, **not authentication**."
 
 The second is an address allowlist, which decides what may be read at all. Its own comment declines to overclaim.
 
@@ -76,13 +78,17 @@ static int addr_readable(uint32_t address, uint32_t len) {
 
 The top 512 bytes of the flash mirror sit outside that range for a recorded reason: a prototype agent "froze real hardware while reading the top-of-memory MCPX region". Flash writes are refused outright.
 
-`AGENTS.md` then binds anything automated. Its rules include "Do not scan a LAN, infer a host address, or search for an Xbox.", a requirement that a human explicitly authorize each dangerous operation in the current task, "Never add `--i-accept-the-risk` on the human's behalf based on implied consent.", "Never weaken or bypass the Xbox-side `ARM I_ACCEPT_THE_RISK` gate.", and a publication ban covering "BIOS, flash, EEPROM, HDD, dashboard, kernel, or game dumps; IP or MAC addresses; FTP/HTTP credentials; HDD serial numbers, console-unique keys, or other per-console identifiers; unsanitized probe logs." It also says to stop after any timeout, malformed reply, unexpected register value, freeze, or loss of video or network, and never to retry a failed hardware operation automatically.
+`AGENTS.md` then binds anything automated. Its rules include:
+
+- "Do not scan a LAN, infer a host address, or search for an Xbox."
+- A human must explicitly authorize each dangerous operation in the current task. "Never add `--i-accept-the-risk` on the human's behalf based on implied consent."
+- "Never weaken or bypass the Xbox-side `ARM I_ACCEPT_THE_RISK` gate."
+- A publication ban covering "BIOS, flash, EEPROM, HDD, dashboard, kernel, or game dumps; IP or MAC addresses; FTP/HTTP credentials; HDD serial numbers, console-unique keys, or other per-console identifiers; unsanitized probe logs."
+- Stop after any timeout, malformed reply, unexpected register value, freeze, or loss of video or network. Never retry a failed hardware operation automatically.
 
 `CONTRIBUTING.md` extends that to evidence: "Safety documentation is part of the product. Changes that add hardware access must explain the affected address space, expected side effects, tested Xbox revisions, failure behavior, and how results are sanitized." And, for a project whose job is ground truth, "Reports from emulators are useful comparisons but must not be represented as real-hardware observations."
 
-`SECURITY.md` is where the scope of the testing is recorded, and it states that behaviour on console revisions other than the one tested is not known.
-
-`NOTICE.md` handles origin. It records that this code was extracted from the parent emulator project and names the commits it came from, giving the "source repository commit at extraction: `213b080844d34b5ac581c24705f7a18a0314edad`", the two original agent commits, and the "original author: Matthew Stanley". It also scopes the build dependency: nxdk is "not included in this repository. Its components retain their respective licenses." [Provenance](/docs/fleet/provenance) covers how the fleet handles this kind of record generally.
+`NOTICE.md` handles origin. It records that this code was extracted from the parent emulator project and names the commits it came from, gives the "original author: Matthew Stanley", and scopes the build dependency: nxdk is "not included in this repository. Its components retain their respective licenses." [Provenance](/docs/fleet/provenance) covers how the fleet handles this kind of record.
 
 ## The commands
 
@@ -118,14 +124,14 @@ python host/xbox_probe.py probe cpu
 
 ## What runs today
 
-Three named probes exist. Two return measurements, one returns a documented refusal. The NV2A set is described in the source as "Fixed read-only registers measured successfully on the original v1.1 test console", and whether the agent has been run against any other console is not recorded. The published evidence is one sanitized table in `docs/ORIGIN.md` plus the CPU reply above. There is no game, no port and no emulator in this repository, and the project these measurements were taken for is outside this documentation, so this page says nothing about its state.
+Three named probes exist. Two return measurements, one returns a documented refusal. The NV2A set is described in the source as "Fixed read-only registers measured successfully on the original v1.1 test console", and whether the agent has been run against any other console is not recorded. The published evidence is one sanitized table in `docs/ORIGIN.md` plus the CPU reply above. There is no game, no port and no emulator in this repository.
 
 ## Known limits
 
-- The Controller S probe is a capability sentinel only, as quoted above: it reports that it cannot answer, and touches no USB or OHCI hardware.
+- The Controller S probe is a capability sentinel only: it reports that it cannot answer, and touches no USB or OHCI hardware.
 - "Named hardware probes use a small set of fixed registers tested on one Xbox v1.1", per the README. Other revisions are not covered, and `SECURITY.md` says so.
-- No hardware session logs or captured dumps are kept in the repository, by design, so the only measurements published are one sanitized table and the example JSON above.
-- Some one-off PCI and SMBus probe scripts written during an earlier session were not preserved and are not in the repository.
+- No hardware session logs or captured dumps are kept in the repository, by design.
+- Some one-off PCI and SMBus probe scripts written during an earlier session were not preserved.
 - The `deploy` subcommand uses plain FTP. The repository's answer to that appears to be that the LAN must be trusted, which is what the README asks for.
 - Arming is an accident guard, not authentication, and it is per connection.
 

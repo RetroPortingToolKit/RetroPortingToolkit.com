@@ -1,14 +1,14 @@
 ---
 title: "GameCube"
-summary: "gcnlle statically recompiles the GameCube IPL and models the hardware under it; it calls itself research software that is not ready for ordinary game use, and it is where this wiki explains what recomp, lle and probe mean."
+summary: "gcnlle statically recompiles the GameCube boot ROM and models the hardware under it. It calls itself research software that is not ready for ordinary game use."
 pageType: "project"
 tags: ["GameCube", "Early development", "LLE"]
 repos:
   - "https://github.com/mstan/gcnlle"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-[gcnlle](https://github.com/mstan/gcnlle) recompiles the GameCube's boot ROM, not a game. It is early development by its own description, it is not a general GameCube emulator, and you should not arrive expecting to play anything. It takes the IPL, the mask ROM holding the console's boot stages and system menu, runs it through a static recompiler, and executes the result on top of hand-written device models for the hardware that firmware talks to. Its design document states the aim plainly: "The near-term goal is **not to run games**."
+[gcnlle](https://github.com/mstan/gcnlle) recompiles the GameCube's boot ROM, not a game. It is early development by its own description, it is not a general GameCube emulator, and you should not arrive expecting to play anything. It takes the IPL, the mask ROM holding the console's boot stages and system menu, runs it through a static recompiler, and executes the result on top of hand-written device models for the hardware that firmware talks to. Its design document states the aim plainly: "The near-term goal is **not to run games**." The catalogue entry is [/hardware/gamecube](/hardware/gamecube).
 
 ## Status, in the project's own words
 
@@ -26,25 +26,25 @@ Its "Current state" list gives two results, the second carrying its own limit:
 > through content-validated native code plus loud interpreter fallback. This
 > is an engineering acceptance route, not a whole-game or release claim.
 
-Take the second quote at exactly its stated weight: one route through one title, offered as evidence that the boot chain works end to end and disclaimed in the same breath. Note also that `docs/DESIGN.md` is stale by its own header, and its status section says nothing boots the IPL yet, which the README contradicts. Read status from the README.
+Take the second quote at exactly its stated weight: one route through one title, offered as evidence that the boot chain works end to end, and disclaimed in the same breath. Note also that `docs/DESIGN.md` is stale by its own header, and its status section says nothing boots the IPL yet, which the README contradicts. Read status from the README.
 
 ## What recomp, lle and probe mean in this fleet
 
 Three suffixes turn up in repository names across the fleet, and they are not decorative.
 
-A `recomp` project is a static recompiler: guest machine code is translated to C ahead of time and compiled into a native binary. That is the fleet's default shape, and [what static recompilation is](/docs/start/what-is-static-recompilation) explains it from scratch.
+A `recomp` project is a static recompiler: guest machine code is translated into ordinary source code ahead of time, then compiled into a native binary. The projects in this fleet emit C. That is the fleet's default shape, and [what static recompilation is](/docs/start/what-is-static-recompilation) explains it from scratch.
 
-An `lle` in the name is a claim about firmware, not about the translation technique. `PRINCIPLES.md` here puts the two in a strict order: "**LLE / static recompilation / native execution is the baseline.** Architect as much of the system that way as you can, and on platforms that recompile their own firmware/BIOS, run that recompiled firmware." High level emulation is permitted only as a deliberate subsystem replacement on top of a proven low-level baseline; as "the **starting point / sole implementation**" it is called "the historical failure mode: it leaves *half an ecosystem*". So a project can be both a static recompiler and low-level throughout, and both of these are: gcnlle recompiles by construction, and [cdirecomp](/docs/platforms/cd-i), named `recomp`, describes its own philosophy as "**LLE (low-level emulation) and static / native-first**".
+An `lle` in the name is a claim about firmware, not about the translation technique. `PRINCIPLES.md` here puts the two in a strict order: "**LLE / static recompilation / native execution is the baseline.** Architect as much of the system that way as you can, and on platforms that recompile their own firmware/BIOS, run that recompiled firmware." High level emulation is permitted only as a deliberate subsystem replacement on top of a proven low-level baseline; as "the **starting point / sole implementation**" it is called "the historical failure mode: it leaves *half an ecosystem*". So a project can be both a static recompiler and low-level throughout, and both of these are. gcnlle recompiles by construction, and [cdirecomp](/docs/platforms/cd-i), named `recomp`, describes its own philosophy as "**LLE (low-level emulation) and static / native-first**".
 
-A `probe` is not a port at all. It is an instrument: it produces no native executable of any guest program and exists to measure hardware, so an emulator can be checked against silicon instead of against another emulator. [xboxlle-probe](/docs/platforms/xbox) is that, and it fills the seat CeDImu fills for cdirecomp and Dolphin fills for gcnlle.
+A `probe` is not a port at all. It is an instrument. It produces no native executable of any guest program, and exists to measure hardware, so an emulator can be checked against silicon instead of against another emulator. [xboxlle-probe](/docs/platforms/xbox) is that.
 
 One caution about names. This repository is `gcnlle` on GitHub, calls itself gcnrecomp in every document it ships, and its design document names its own remote a third way. Use the repository URL for identity. [High level and low level](/docs/concepts/hle-and-lle) argues the distinction in depth.
 
 ## The Gekko, and its paired singles
 
-The CPU is an IBM PowerPC 750CXe derivative called Gekko, running at 485 MHz, big-endian. What makes it not a stock 750 is a locked cache and paired-single floating point: single instruction, multiple data over two floats, adding a family of `ps_*` arithmetic operations plus quantized load and store instructions that convert to and from integer formats in flight. The GPU is the fixed-function TEV part, Flipper. The vocabulary used below is collected in the [glossary](/docs/concepts/glossary).
+The CPU is an IBM PowerPC 750CXe derivative called Gekko, running at 485 MHz, big-endian. Two things make it not a stock 750: a locked cache, and paired-single floating point. Paired singles are one instruction working on two floats at once. They add a family of `ps_*` arithmetic operations, plus quantized load and store instructions that convert to and from integer formats in flight. The GPU is the fixed-function TEV part, Flipper. The vocabulary used below is in the [glossary](/docs/concepts/glossary).
 
-Being exact about what the toolchain does with that matters more here than enthusiasm. The recompiler's decoder covers the documented family and nothing beyond it: primary opcode 4 dispatches on the secondary field, and what is not in this table decodes to `PPC_OP_UNKNOWN`.
+The recompiler's decoder covers the documented family and nothing beyond it. Primary opcode 4 dispatches on the secondary field, and what is not in this table decodes to `PPC_OP_UNKNOWN`.
 
 From [`recompiler/src/frontend/decoder.c`](https://github.com/mstan/gcnlle/blob/master/recompiler/src/frontend/decoder.c):
 
@@ -73,7 +73,7 @@ From [`recompiler/src/frontend/decoder.c`](https://github.com/mstan/gcnlle/blob/
                 default: inst.op = PPC_OP_UNKNOWN; break;
 ```
 
-The runtime implements the quantized loads rather than treating them as plain float loads. Such a load reads one of eight graphics quantization registers, which carries a storage type and a scale exponent, and dequantizes through `ldexp`. Five storage types are supported. A type outside that set raises a program exception, a misaligned float pair raises an alignment exception, so a wrong quantizer is loud instead of quietly wrong.
+The runtime implements the quantized loads rather than treating them as plain float loads. Such a load reads one of eight graphics quantization registers, which carries a storage type and a scale exponent, and dequantizes through `ldexp`. Five storage types are supported. A type outside that set raises a program exception and a misaligned float pair raises an alignment exception, so a wrong quantizer is loud instead of quietly wrong.
 
 From [`runtime/src/cpu_glue.c`](https://github.com/mstan/gcnlle/blob/master/runtime/src/cpu_glue.c):
 
@@ -102,11 +102,11 @@ static f64 psq_load_value(CPUState* cpu, u32 ea, u8 type, s32 scale) {
 }
 ```
 
-So the coverage claim is: the documented paired-single set decodes, and the quantized paths are modelled including their exceptions. The claim that cannot be made is numerical fidelity. The test trees carry a decode-level opcode table and no differential paired-single test against hardware or against the Dolphin oracle. Nothing here establishes bit-exact paired-single arithmetic, and the project does not say it does.
+So the coverage claim is: the documented paired-single set decodes, and the quantized paths are modelled including their exceptions. The claim that cannot be made is numerical fidelity. The test trees carry a decode-level opcode table and no differential paired-single test against hardware or against the Dolphin oracle.
 
 ## The boot chain it targets
 
-The IPL is roughly 2 MB of mask ROM holding both boot stages, the apploader reader, the boot animation, the fonts and the menu, stored scrambled. BS1 runs from mask ROM at `0xFFF00100`, descrambles and hash-verifies BS2 into main memory, and jumps to it; BS2 brings up hardware and shows the menu. `tools/ipl_descramble` produces the plaintext payload the recompiler consumes.
+The IPL is roughly 2 MB of mask ROM holding both boot stages, the apploader reader, the boot animation, the fonts and the menu, stored scrambled. BS1 runs from mask ROM at `0xFFF00100`, descrambles and hash-verifies BS2 into main memory, and jumps to it. BS2 brings up hardware and shows the menu. `tools/ipl_descramble` produces the plaintext payload the recompiler consumes.
 
 The reason for aiming there is a survey. `docs/DESIGN.md` records checking the other GameCube recompilation projects:
 
@@ -125,7 +125,7 @@ ctest --test-dir tools/ipl_descramble/build --output-on-failure
 
 > **You provide this.** Everything past this point needs your own GameCube IPL dump at `bios/ipl.bin`, and the full low-level boot also needs your own DSP IROM and coefficient dumps. The repository ships no firmware. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
-With firmware present, `runtime/generate.sh` descrambles the IPL, slices BS2 and drives the recompiler over it; a second configure with `-DGCN_WITH_GENERATED=ON` builds the runtime against the generated C:
+With firmware present, `runtime/generate.sh` descrambles the IPL, slices BS2 and drives the recompiler over it. A second configure with `-DGCN_WITH_GENERATED=ON` builds the runtime against the generated C:
 
 ```sh
 ./build.sh
@@ -136,23 +136,23 @@ cmake --build runtime/build-boot
 GCN_DEBUG_PORT=4380 GCN_WINDOW=1 ./runtime/build-boot/gcn_boot bios/ipl.bin
 ```
 
-There is no configuration file. The switches are environment variables read by `runtime/src/boot.c` and documented in its header comment: `GCN_GX_BACKEND` picks the renderer, `GCN_DSP_ROM` and `GCN_DSP_COEF` point at the DSP dumps, `GCN_SRAM_FILE` backs the RTC and SRAM, `GCN_BOOT_BS1` selects the true-reset path from the raw scrambled ROM. Two carry warnings: `GCN_RTC_HOST` samples host time at boot and its documentation says "Never set it for oracle-diff runs", and leaving `GCN_BS1_REFERENCE` unset means the BS1 output check "is skipped with a loud notice (never silently assumed to pass)". A separate binary, `gcn_runtime`, checks the seed contract only; its usage text says it "Does not execute PPC yet".
+There is no configuration file. The switches are environment variables read by `runtime/src/boot.c` and documented in its header comment: `GCN_GX_BACKEND` picks the renderer, `GCN_DSP_ROM` and `GCN_DSP_COEF` point at the DSP dumps, `GCN_SRAM_FILE` backs the RTC and SRAM, `GCN_BOOT_BS1` selects the true-reset path from the raw scrambled ROM. Two carry warnings: `GCN_RTC_HOST` samples host time at boot and its documentation says "Never set it for oracle-diff runs", and leaving `GCN_BS1_REFERENCE` unset means the BS1 output check "is skipped with a loud notice (never silently assumed to pass)".
 
 ## What runs today
 
-The recompiled IPL reaches and runs the console's own menu on Windows. The Wind Waker route reaches the title sailing sequence, on the terms quoted above. What makes a title route legitimate under an LLE-first rule: an ahead-of-time compiled title module may only run once the live bytes in memory match its immutable input, so the accelerator never loads anything itself. From `runtime/include/cpu/title_module.h`:
+The recompiled IPL reaches and runs the console's own menu on Windows. The Wind Waker route reaches the title sailing sequence, on the terms quoted above. What makes a title route legitimate under an LLE-first rule is a strict condition: an ahead-of-time compiled title module may only run once the live bytes in memory match its immutable input, so the accelerator never loads anything itself. From `runtime/include/cpu/title_module.h`:
 
 > The LLE boot path remains the sole authority for loading bytes into guest RAM; this layer only accelerates a PC after those live bytes match the module's immutable input.
 
-Correctness work runs against a patched local Dolphin build as an oracle, for event order and state targets rather than implementation, and the runtime suite is documented as 14 tests. Those pass claims are the repository's records, not something this page re-ran. [Co-simulation](/docs/concepts/co-simulation) covers the method.
+Correctness work runs against a patched local Dolphin build as an oracle, for event order and state targets rather than implementation, and the runtime suite is documented as 14 tests. Those pass claims are the repository's own records, not re-tested here. [Co-simulation](/docs/concepts/co-simulation) covers the method.
 
 ## Known limits
 
 - No games. This is not a general emulator, and the README says so.
 - Paired-single numerical fidelity is unverified, as above.
-- Forcing the interpreter floor is not a user-selectable mode: `ISSUES.md` records CPU force-interpreter control as confirmed absent and the force-floor gate as not exercised.
+- Forcing the interpreter floor is not a user-selectable mode: `ISSUES.md` records CPU force-interpreter control as confirmed absent.
 - Audio PCM fidelity remains unvalidated, with no capture knob and no reference comparison done.
-- The tested host is 64-bit Windows on an AVX2-capable CPU with MSYS2 MinGW64, and the dispatch translation unit includes Windows headers unconditionally. Treat other hosts as unsupported.
+- The tested host is 64-bit Windows on an AVX2-capable CPU with MSYS2 MinGW64. Treat other hosts as unsupported.
 - Two rendering bugs are open: magenta noise on a second attract transition, and the Wind Waker ocean rendering flat solid blue.
 - `GXSetDrawDone` throughput is "an unthrottled emulation-capacity proxy, not a measurement of distinct host-presented frames". It is not a frame rate.
 
@@ -160,14 +160,13 @@ Correctness work runs against a patched local Dolphin build as an oracle, for ev
 
 - [mstan/gcnlle](https://github.com/mstan/gcnlle), GPL-3.0.
 - [`README.md`](https://github.com/mstan/gcnlle/blob/master/README.md) for status, prerequisites and the build sequence.
-- [`PRINCIPLES.md`](https://github.com/mstan/gcnlle/blob/master/PRINCIPLES.md) for the LLE baseline rule quoted above.
-- [`docs/DESIGN.md`](https://github.com/mstan/gcnlle/blob/master/docs/DESIGN.md) for the Gekko notes, the boot stages and the survey, staleness warning attached.
+- [`PRINCIPLES.md`](https://github.com/mstan/gcnlle/blob/master/PRINCIPLES.md) for the LLE baseline rule quoted above, and [`docs/DESIGN.md`](https://github.com/mstan/gcnlle/blob/master/docs/DESIGN.md) for the Gekko notes, the boot stages and the survey, staleness warning attached.
 - [`runtime/src/boot.c`](https://github.com/mstan/gcnlle/blob/master/runtime/src/boot.c) for the environment variables, [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md) for the debug surface.
-- [`ISSUES.md`](https://github.com/mstan/gcnlle/blob/master/ISSUES.md) for open bugs and measurement caveats, and [`THIRD_PARTY_NOTICES.md`](https://github.com/mstan/gcnlle/blob/master/THIRD_PARTY_NOTICES.md) for what is borrowed and from whom, a different strategy from cdirecomp's clean-room route that [provenance](/docs/fleet/provenance) sets side by side.
+- [`ISSUES.md`](https://github.com/mstan/gcnlle/blob/master/ISSUES.md) for open bugs, and [`THIRD_PARTY_NOTICES.md`](https://github.com/mstan/gcnlle/blob/master/THIRD_PARTY_NOTICES.md) for what is borrowed and from whom, a different strategy from cdirecomp's clean-room route that [provenance](/docs/fleet/provenance) sets side by side.
 
 ## Next
 
 - [GameCube in the hardware catalogue](/hardware/gamecube), the shorter entry for this console.
 - [High level and low level](/docs/concepts/hle-and-lle), the argument this project is a position in.
-- [CD-i](/docs/platforms/cd-i), the other firmware-first target, which reached the same conclusion from a different direction.
-- [Xbox](/docs/platforms/xbox), the probe, for what the third category looks like in practice.
+- [CD-i](/docs/platforms/cd-i), the other firmware-first target.
+- [Xbox](/docs/platforms/xbox), the probe, for what the third category looks like.

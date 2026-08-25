@@ -1,14 +1,16 @@
 ---
 title: "CD-i"
-summary: "cdirecomp recompiles the Philips CD-i system ROM and runs CD-RTOS itself as native code instead of stubbing it, and its README says gameplay is not yet reachable."
+summary: "cdirecomp recompiles the Philips CD-i system ROM and runs CD-RTOS itself as native code instead of stubbing it. Its README says gameplay is not yet reachable."
 pageType: "project"
 tags: ["CD-i", "Early development", "Provenance"]
 repos:
   - "https://github.com/mstan/cdirecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-[cdirecomp](https://github.com/mstan/cdirecomp) is the fleet's Philips CD-i toolchain, and it is an early research project: it boots the console's system software as native code, and its README says in bold that gameplay is not yet reachable. You cannot use it to play a CD-i game. It is worth reading about anyway, because of the one decision that makes it different from every other target here. A CD-i title is not a cartridge image. It is a set of relocatable modules that the console's operating system loads from a disc at run time, so cdirecomp recompiles that entire operating system, CD-RTOS, and runs it, rather than writing host-side stand-ins for the calls a game makes into it.
+[cdirecomp](https://github.com/mstan/cdirecomp) is the fleet's Philips CD-i toolchain, and it is an early research project. It boots the console's system software as native code, and its README says in bold that gameplay is not yet reachable. You cannot use it to play a CD-i game.
+
+One decision makes it different from every other target here. A CD-i title is not a cartridge image. It is a set of relocatable modules that the console's operating system loads from a disc while it runs. So cdirecomp recompiles that entire operating system, CD-RTOS, and runs it, instead of writing host-side stand-ins for the calls a game makes into it. The catalogue entry is [/hardware/cd-i](/hardware/cd-i).
 
 ## Status, in the project's own words
 
@@ -23,14 +25,14 @@ The README opens with a warning banner. Quoted exactly:
 > features, incomplete hardware coverage, and breaking changes. This is a
 > research project shared in the open, not a finished product
 
-Its "What is **not** done yet" list repeats the point and names the two open pieces of work:
+Its "What is **not** done yet" list names the two open pieces of work:
 
 > **Gameplay is not reachable.** Static native promotion of relocated game
 > modules, and full-playthrough certification, are open work.
 
 > Broader title compatibility beyond the current Hotel Mario bring-up.
 
-The same README describes the project as "a static recompiler, **not an emulator**". That is the project's framing of its technique. Alongside it, a clean-room 68000 interpreter stays in the runner as the correctness floor for code not yet statically promoted, and every peripheral is a modelled device. [Is this emulation](/docs/start/is-this-emulation) untangles that properly.
+The same README describes the project as "a static recompiler, **not an emulator**". That is the project's framing of its technique. Alongside it, a clean-room 68000 interpreter stays in the runner as a fallback for code not yet promoted to native, and every peripheral is a modelled device. So a missed address becomes a slow moment, not a wrong result. [Is this emulation](/docs/start/is-this-emulation) untangles that properly.
 
 ## The SCC68070 and the CD-i machine
 
@@ -40,15 +42,15 @@ The 68000 frontend is no longer stored in this repository. Every frontend source
 
 ## Why the operating system comes first
 
-`PRINCIPLES.md` states the platform difference and the decision that follows from it:
+`PRINCIPLES.md` states the platform difference and the decision that follows:
 
 > A CD-i title runs on **CD-RTOS / OS-9**. Code arrives as relocatable OS-9 modules loaded at run time; the program talks to the system through `TRAP #0` OS-9 calls (F$Load, F$Link, I$Read, …).
 
 > We recompile the CD-RTOS system ROM itself (kernel + file managers + drivers + player shell) and run the real OS as native C. We do **NOT** hand-write OS-9 HLE stubs
 
-The justification is a failure inside the fleet, not a preference. The same file continues: "psxrecomp proved that path fails (faked syscall outputs + drifting C-side kernel state)", and the README puts it as "psxrecomp showed that stubbing the BIOS leads to silent failure; CD-i takes the opposite, faithful route." The [PlayStation page](/docs/platforms/playstation) covers that project, and [high level and low level](/docs/concepts/hle-and-lle) covers the argument itself.
+The reason is a failure inside the fleet, not a preference. The same file continues: "psxrecomp proved that path fails (faked syscall outputs + drifting C-side kernel state)", and the README puts it as "psxrecomp showed that stubbing the BIOS leads to silent failure; CD-i takes the opposite, faithful route." The [PlayStation page](/docs/platforms/playstation) covers that project, and [high level and low level](/docs/concepts/hle-and-lle) covers the argument.
 
-Two consequences run through the code. Unimplemented things stop the world rather than return something plausible: an unknown opcode is a "loud failure, never a stub", an unmapped bus access is a loud abort. And an indirect call landing on an address with no generated function is the most serious class of bug here, because a skipped subroutine is silent. The runtime counts those dispatch misses and prints every new one.
+Two consequences run through the code. Unimplemented things stop the world rather than return something plausible: an unknown opcode is a "loud failure, never a stub", and an unmapped bus access is a loud abort. And an indirect call landing on an address with no generated function is the most serious class of bug here, because a skipped subroutine is silent. The runtime counts those dispatch misses and prints every new one.
 
 From [`runner/src/runtime.c`](https://github.com/mstan/cdirecomp/blob/master/runner/src/runtime.c):
 
@@ -70,7 +72,7 @@ The exported symbol is still called `genesis_log_dispatch_miss`, inherited from 
 
 ## The commands
 
-Three binaries, an oracle and a checker. `CdiRecompBios` recompiles the system ROM to C, `CdiRecomp` inventories a disc, `CdiRuntime` runs the result, and `CdiOracle` wraps a separately authored CD-i emulator, CeDImu, serving the same debug surface one port up so the two can be compared. The build order is not optional.
+There are three binaries, an oracle and a checker. `CdiRecompBios` recompiles the system ROM to C, `CdiRecomp` inventories a disc, `CdiRuntime` runs the result, and `CdiOracle` wraps a separately authored CD-i emulator, CeDImu, serving the same debug surface one port up so the two can be compared. The build order is not optional.
 
 > **You provide this.** cdirecomp ships no system ROM and no disc images. Its license note says the license "covers the cdirecomp source only. It grants no rights to any Philips, Nintendo, or other third-party intellectual property; you must supply your own legally obtained system ROM and disc images." See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
@@ -95,11 +97,11 @@ The middle one is the gate that comes first. It documents its own exit codes: "E
 
 ## What runs today
 
-The firmware milestone is the one that closed. `BIOS-CLOSEOUT.md` records the BIOS and player-shell closeout on 2026-07-14, with runner tests and co-simulation self-tests passing at the time it was written; those are the repository's own records, and two unit tests have been added since. Beyond the shell, the README's claim is a very basic boot of a CD-i title, with Hotel Mario as the single bring-up and no compatibility story past it. Whether any other CD-i title has been tried is not recorded in the repository.
+The firmware milestone is the one that closed. `BIOS-CLOSEOUT.md` records the BIOS and player-shell closeout on 2026-07-14, with runner tests and co-simulation self-tests passing at the time it was written. Those are the repository's own records. Beyond the shell, the README's claim is a very basic boot of a CD-i title, with Hotel Mario as the single bring-up and no compatibility story past it.
 
 ## How the BIOS provenance was handled
 
-This is the part of cdirecomp worth copying. Because it recompiles firmware and models hardware that other people have already emulated, it documents where every implementation came from. `PROVENANCE.md` gives each major component an independent implementation basis and the project evidence for it: SCC68070 exception frames, timers and UART from the SCC68070 User Manual, the DS1216 phantom clock from the Analog Devices data sheet, MCD212 video from the CD-i Full Functional Specification, with those sources listed by URL. The device sources say the same at the top of the file.
+This is the part of cdirecomp worth copying. Because it recompiles firmware and models hardware that other people have already emulated, it documents where every implementation came from. `PROVENANCE.md` gives each major component an independent implementation basis and the evidence for it. SCC68070 exception frames, timers and UART come from the SCC68070 User Manual. The DS1216 phantom clock comes from the Analog Devices data sheet. MCD212 video comes from the CD-i Full Functional Specification. Every source is listed by URL, and the device sources say the same at the top of the file.
 
 From [`runner/src/mcd212_video.c`](https://github.com/mstan/cdirecomp/blob/master/runner/src/mcd212_video.c):
 
@@ -115,24 +117,24 @@ From [`runner/src/mcd212_video.c`](https://github.com/mstan/cdirecomp/blob/maste
  */
 ```
 
-`PROVENANCE.md` then records an audit of that claim, a rule that any future implementation must cite a hardware specification, an author-owned ancestor or a project-owned experiment, and the removal of a previously vendored third-party 68000 core, including a history rewrite so that source is in no commit. The optional CeDImu oracle is git-ignored, never packaged, and treated as test evidence rather than implementation authority, with the release packager enforcing that boundary mechanically. `bios/README.md` calls the system ROM "**copyrighted Philips player firmware**", says it is not shipped and not downloaded automatically, and asks you to dump it from a player you own. [Provenance](/docs/fleet/provenance) gives the full account.
+`PROVENANCE.md` then records an audit of that claim, a rule that any future implementation must cite a hardware specification or a project-owned experiment, and the removal of a previously vendored third-party 68000 core, including a history rewrite so that source is in no commit. The optional CeDImu oracle is git-ignored, never packaged, and treated as test evidence rather than implementation authority. `bios/README.md` calls the system ROM "**copyrighted Philips player firmware**", says it is not shipped, and asks you to dump it from a player you own. [Provenance](/docs/fleet/provenance) gives the full account.
 
 ## Known limits
 
 - Gameplay is not reachable. Static native promotion of relocated game modules is open work.
-- Four defects are open in `ISSUES.md`: intro backgrounds that lag and then stop, a stage entry that never completes, a random black-screen wedge after starting a title on roughly a third to half of launches, and a random wild jump during shell boot. The last two are recorded as the same timing-race family. `ISSUES.md` also states which commit it was current for, which is not the current HEAD.
+- Four defects are open in `ISSUES.md`: intro backgrounds that lag and then stop, a stage entry that never completes, a random black-screen wedge after starting a title, and a random wild jump during shell boot. The last two are the same timing-race family.
 - `external/m68k-recomp-core` is a submodule and the recompiler will not configure without it. The README's build steps do not mention initialising it.
 - The 24-bit CRC residue check on OS-9 modules is not verified yet, and `CLAUDE.md` tells you not to trust its `crc_ok` result.
-- The packaged runtime checkpoint numbered 0.0.1 predates the current source, so do not read it as a current release.
+- The packaged runtime checkpoint numbered 0.0.1 predates the current source. Do not read it as a current release.
 
 ## What recomp, lle and probe mean here
 
-cdirecomp is named `recomp`, meaning it is a [static recompiler](/docs/start/what-is-static-recompilation), yet its README describes its philosophy as "**LLE (low-level emulation) and static / native-first**". That is not a contradiction: an `lle` in a repository name records what the project does with the machine's firmware, not which translation technique it uses, and a project can be both, as this one is. The full three-way distinction, including what a `probe` is, is set out on the [GameCube page](/docs/platforms/gamecube), and [high level and low level](/docs/concepts/hle-and-lle) argues it in depth.
+cdirecomp is named `recomp`, meaning it is a [static recompiler](/docs/start/what-is-static-recompilation), yet its README describes its philosophy as "**LLE (low-level emulation) and static / native-first**". That is not a contradiction. An `lle` in a repository name records what the project does with the machine's firmware, not which translation technique it uses, and a project can be both, as this one is. The full three-way distinction, including what a `probe` is, is on the [GameCube page](/docs/platforms/gamecube).
 
 ## Source
 
 - [mstan/cdirecomp](https://github.com/mstan/cdirecomp), PolyForm Noncommercial License 1.0.0.
-- [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md) for status, build steps and controls, and [`bios/README.md`](https://github.com/mstan/cdirecomp/blob/master/bios/README.md) for what you supply and which ROM revisions the project has had good results with.
+- [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md) for status and build steps, [`bios/README.md`](https://github.com/mstan/cdirecomp/blob/master/bios/README.md) for what you supply.
 - [`PRINCIPLES.md`](https://github.com/mstan/cdirecomp/blob/master/PRINCIPLES.md) for the no-stub rule and the CD-RTOS decision, [`docs/ARCHITECTURE.md`](https://github.com/mstan/cdirecomp/blob/master/docs/ARCHITECTURE.md) for the recompiler, runner and oracle split.
 - [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md) and [`BIOS-CLOSEOUT.md`](https://github.com/mstan/cdirecomp/blob/master/BIOS-CLOSEOUT.md) for the implementation-basis table and the closeout evidence.
 - [`ISSUES.md`](https://github.com/mstan/cdirecomp/blob/master/ISSUES.md) for the open defects, [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md) for the debug protocol.
@@ -142,4 +144,4 @@ cdirecomp is named `recomp`, meaning it is a [static recompiler](/docs/start/wha
 - [CD-i in the hardware catalogue](/hardware/cd-i), the shorter entry for this console.
 - [Provenance](/docs/fleet/provenance), the full account of the discipline summarised above.
 - [High level and low level](/docs/concepts/hle-and-lle), for why stubbing an OS is the thing this project refuses to do.
-- [Glossary](/docs/concepts/glossary), for dispatch miss, oracle, first divergence and the rest of the vocabulary used here.
+- [Glossary](/docs/concepts/glossary), for dispatch miss, oracle, first divergence and the rest.

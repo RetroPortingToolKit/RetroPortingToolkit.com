@@ -1,14 +1,14 @@
 ---
 title: "NES"
-summary: "nesrecomp translates a NES cartridge's 6502 code into C and links it against an SDL2 runner that simulates the PPU, APU and mapper: this page covers its status, its mapper handling, its commands, and where its own documents have fallen behind its code."
+summary: "nesrecomp translates a NES cartridge's 6502 machine code into C and links it against an SDL2 runner that simulates the PPU, APU and mapper."
 pageType: "project"
 tags: ["NES", "6502", "Mappers"]
 repos:
   - "https://github.com/mstan/nesrecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-[nesrecomp](https://github.com/mstan/nesrecomp) turns the 6502 machine code in a NES cartridge dump into C at build time, then links that C against a runner library which simulates the console's picture processor, audio, cartridge mapper and controllers. The result is a native program, and you supply the cartridge dump. This page is the toolchain: what the project says about its own state, what the NES demands of it, the commands, and where its documents and its code have drifted apart. The catalogue entry for the platform, with the games and the player-facing features, is [/hardware/nes](/hardware/nes).
+[nesrecomp](https://github.com/mstan/nesrecomp) reads the 6502 machine code in a NES cartridge dump and turns it into C at build time. That C is compiled and linked against a runner library, which simulates the console's picture processor, audio, cartridge mapper and controllers. The result is a native program. You supply the cartridge dump. The games and the player-facing features are on the catalogue page, [/hardware/nes](/hardware/nes).
 
 ## Status, in the project's own words
 
@@ -18,7 +18,7 @@ From [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md):
 
 > **This is NOT an emulator.** Each 6502 instruction is translated to equivalent C code at build time. JSR becomes a direct C function call, branches become gotos, and the NES hardware (PPU, APU, mapper) is simulated by the runner library.
 
-That second quote is precise: the game's instructions are translated ahead of time, the console's hardware is simulated while the game runs. Both halves are true at once, which [what static recompilation is](/docs/start/what-is-static-recompilation) unpacks.
+That second quote is precise, and both halves are true at once. The game's own instructions are translated ahead of time. The console's hardware is simulated while you play. [What static recompilation is](/docs/start/what-is-static-recompilation) unpacks that.
 
 The same file's platform table:
 
@@ -28,31 +28,31 @@ The same file's platform table:
 >
 > Other UNIX (Linux) | Likely works via the same POSIX path; less tested
 
-It is also explicit that the framework alone is not a game:
+And it is clear that the framework alone is not a game:
 
 > This builds a static library. It does not create a playable game by itself. Each game still needs game-specific configuration and runner integration.
 
-> **You provide this.** From the same README: "NESRecomp does not include game ROMs." The packaged CLI expects "a legally obtained .nes ROM" and checks the `NES\x1a` header magic first. No BIOS file is needed for this console.
+The license is [PolyForm Noncommercial License 1.0.0](https://github.com/mstan/nesrecomp/blob/master/LICENSE), Copyright (c) 2026 Matthew Stan.
 
-The license is [PolyForm Noncommercial License 1.0.0](https://github.com/mstan/nesrecomp/blob/master/LICENSE), Copyright (c) 2026 Matthew Stan, with a tail note saying the intent is to restrict uses where profit is derived from the software.
+> **You provide this.** From the same README: "NESRecomp does not include game ROMs." The packaged CLI expects "a legally obtained .nes ROM" and checks the `NES\x1a` header magic first. No BIOS file is needed for this console.
 
 ## The 6502, and what comes out of the recompiler
 
-The CPU is the MOS 6502 in its Ricoh RP2A03 form. The recompiler is pure C11 with no external dependencies; the game runners add SDL2. A run has five stages: parse the iNES header, banks and vectors; load `game.toml`; discover functions; emit C; write a per-ROM coverage report.
+The CPU is the MOS 6502 in its Ricoh RP2A03 form. The recompiler is pure C11 with no external dependencies; the game runners add SDL2. A run has five stages: parse the iNES header, banks and vectors; load `game.toml`; discover functions; emit C; write a coverage report.
 
-The two halves meet at one header, [`runner/include/nes_runtime.h`](https://github.com/mstan/nesrecomp/blob/master/runner/include/nes_runtime.h), which describes itself as "Shared between runner/ and generated/ code. Generated code includes this; runner implements it." Across it go the CPU state, the RAM, SRAM, CHR, OAM, palette and nametable arrays, bus functions such as `nes_read` and `nes_read16_jmpbug`, the dispatch functions, and the timing hook `nes_instruction_boundary`. That split is the fleet-wide pattern in [the recompiler and the runtime](/docs/concepts/recompiler-and-runtime).
+The two halves meet at one header, [`runner/include/nes_runtime.h`](https://github.com/mstan/nesrecomp/blob/master/runner/include/nes_runtime.h), which describes itself as "Shared between runner/ and generated/ code. Generated code includes this; runner implements it." Across it go the CPU state, the RAM, SRAM, CHR, OAM, palette and nametable arrays, bus functions such as `nes_read`, the dispatch functions, and the timing hook `nes_instruction_boundary`. Every project in the fleet splits this way. See [the recompiler and the runtime](/docs/concepts/recompiler-and-runtime).
 
-The generated C is emitted as genuinely separate translation units, which matters because the outputs are large. From [`SPLITGEN_MIGRATION.md`](https://github.com/mstan/nesrecomp/blob/master/SPLITGEN_MIGRATION.md):
+The generated C is emitted as separate translation units, which matters because the outputs are large. From [`SPLITGEN_MIGRATION.md`](https://github.com/mstan/nesrecomp/blob/master/SPLITGEN_MIGRATION.md):
 
 > Measured on Metroid: 13 MB single TU → 18 parallel TUs (none > 1.5 MB); `-j16` compile **29.5s → 10.2s** (~2.9×).
 
 ## Mappers, which is where the NES gets specific
 
-Almost every NES cartridge above 32 KB carries a mapper: hardware on the cart that swaps which chunk of ROM appears in the CPU's address window. For a static recompiler that is the defining problem on this console, because an address alone no longer identifies the bytes it names. It complicates [code discovery](/docs/concepts/code-discovery) and makes dispatch a runtime question.
+Almost every NES cartridge above 32 KB carries a mapper. That is hardware on the cart which swaps which chunk of ROM appears in the CPU's address window. For a static recompiler it is the defining problem on this console, because an address alone no longer says which bytes it names. It makes [code discovery](/docs/concepts/code-discovery) harder, and it makes dispatch a runtime question.
 
 The runner's mapper source supports NROM, MMC1 (mapper 1), UxROM (mapper 2), MMC3 (mapper 4), mapper 40 and GxROM. The README's own support table does not match that list; see the divergences below.
 
-MMC3 shows why banked dispatch cannot be resolved at build time. The generated dispatcher reads the live 8 KB bank of the target's CPU window and rebases the address into the recompiler's layout before switching on it.
+MMC3 shows why banked dispatch cannot be settled at build time. The generated dispatcher reads the live 8 KB bank of the target's CPU window, then rebases the address into the recompiler's layout before switching on it.
 
 From [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/code_generator.c):
 
@@ -77,7 +77,7 @@ From [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob
         );
 ```
 
-The other half of mapper handling is per-game configuration. Bank switches usually go through one routine reached by a `JSR`, with the bank and target address stored inline after the call, so the recompiler has to be told or it decodes that data as instructions. The declaration lives in `game.toml`, next to any dispatch tables the scanners cannot find alone.
+The other half of mapper handling is per-game configuration. A bank switch usually goes through one routine reached by a `JSR`, with the bank and target address stored inline right after the call. The recompiler has to be told, or it reads that data as instructions. The declaration lives in `game.toml`, next to any dispatch tables the scanners cannot find alone.
 
 From [`game.toml`](https://github.com/mstan/FaxanaduRecomp/blob/master/game.toml) in FaxanaduRecomp, the repository's designated boilerplate:
 
@@ -106,7 +106,7 @@ start = 0x8087
 end = 0x8151   # main entity state dispatch (101 entries)
 ```
 
-`game.toml` is the only recompiler config format. The older plain text `.cfg` format now hard-fails the load.
+`game.toml` is the only recompiler config format. The older plain text `.cfg` format now fails the load outright.
 
 ## The commands
 
@@ -121,7 +121,7 @@ cmake --build build/recompiler
 build/recompiler/NESRecomp "Super Mario Bros.nes" --game game.toml
 ```
 
-`--game` defaults to `./game.toml` if present, `--output-prefix` overrides the generated filename prefix, and `--proposal-out <path>` writes a proposed config from auto-discovery. With no config at all, the recompiler runs an iterative proposal loop and writes a starter `game.toml`. Outputs land in `generated/`, plus two audit CSVs.
+`--game` defaults to `./game.toml` if present, `--output-prefix` overrides the generated filename prefix, and `--proposal-out <path>` writes a proposed config from auto-discovery. With no config at all, the recompiler runs a proposal loop and writes a starter `game.toml`. Outputs land in `generated/`, plus two audit CSVs.
 
 There is also a packaged Windows CLI, a Python front end around the same core:
 
@@ -137,13 +137,13 @@ Once a game project builds, a headless smoke run is the fastest check that disco
 GameRecomp.exe "rom.nes" --smoke 6000 --smoke-output smoke.json
 ```
 
-Expect `dispatch_miss_count` to be 0. Correctness beyond that is co-simulation against Mesen through a `nesref` host binary, coordinated by `tools/nes_cosim.py`, whose gates print PASS or FAIL and exit non-zero on FAIL. There is no CI workflow here, so all of this is run by hand.
+Expect `dispatch_miss_count` to be 0. Beyond that, correctness is co-simulation against Mesen through a `nesref` host binary, coordinated by `tools/nes_cosim.py`. Its gates print PASS or FAIL and exit non-zero on FAIL. There is no CI workflow here, so all of this is run by hand.
 
 ## What runs today
 
 Ten game repositories consume nesrecomp as a submodule: SuperMarioBrosNESRecomp, DuckHuntNESRecomp, DrMarioNesRecomp, LegendOfZeldaNESRecomp, MetroidNESRecomp, [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp), YoshiNESRecomp, YoshisCookieRecomp, Megaman3NESRecomp and GumshoeNESRecomp. The README nominates FaxanaduRecomp as the boilerplate to copy.
 
-The README's per-game status table is the authority on how far each gets, and it hedges deliberately. Its wording runs from "Fully playable" through:
+The README's per-game status table is the authority on how far each gets, and it hedges on purpose. Its wording runs from "Fully playable" through:
 
 > Believed 100% playable
 
@@ -154,20 +154,20 @@ Read that table rather than a summary of it. Nothing on this site has re-tested 
 ## Known limits
 
 - The framework builds a static library. A playable result still needs per-game configuration and runner integration.
-- Discovery misses fall through to an interpreter sharing the recompiler's decode table. That is survivable and logged rather than silent, but it is slower, and a fresh port starts with a list of addresses to chase.
-- Because a `JSR` becomes a C function call, the 6502 stack page below the live stack pointer is not bit faithful against a reference emulator. The project documents that as an expected difference, not a bug.
-- Co-simulation needs a `nesref` host binary and `mesen_libretro.dll`. The repository ships `tools/nesref/` with a frontend, a header, a build script and a README, but no core DLL, and several documents point at absolute paths on the author's machine, so it cannot be reproduced from a clean checkout alone.
-- The `lib/recomp-net` submodule was not populated in the checkout this page was written from, so nothing here describes netplay internals.
+- Code the discovery pass misses falls through to an interpreter that shares the recompiler's decode table. That fallback is slower, and it is logged rather than silent, so a missed address becomes a slow moment and an entry in a log, not a crash. A fresh port starts with a list of addresses to chase.
+- Because a `JSR` becomes a C function call, the 6502 stack page below the live stack pointer is not bit faithful against a reference emulator. The project documents that as an expected difference.
+- Co-simulation needs a `nesref` host binary and `mesen_libretro.dll`. The repository ships `tools/nesref/` but no core DLL, and several documents point at absolute paths on the author's machine, so it cannot be reproduced from a clean checkout alone.
+- The `lib/recomp-net` submodule was not populated in the checkout this page was written from.
 
-## Where the repository's documents and its code disagree
+## Where the documents and the code disagree
 
-Four places had drifted when this page was written. None is a fault in the toolchain, and each costs time if you trust the document over the source. The repository takes that view itself in [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), about its debug command list:
+Four places had drifted when this page was written. The repository takes the same view itself, in [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md):
 
 > Source of truth: the `s_commands[]` table in `runner/src/debug_server.c`. If you find a discrepancy with this list, **the code wins**.
 
-**Unofficial opcodes.** [`COVERAGE.md`](https://github.com/mstan/nesrecomp/blob/master/COVERAGE.md), dated 2026-05-03, and the README both list `SAX`, `DCP`, `ISC`, `SLO`, `RLA`, `SRE`, `RRA`, `ANC`, `ALR`, `ARR` and `AXS` as unimplemented. The decoder and the code generator implement them, and the accuracy burndown's status table agrees. How many opcode bytes are still emitted as sized NOPs this page cannot say: the 256-entry table was not tallied.
+**Unofficial opcodes.** [`COVERAGE.md`](https://github.com/mstan/nesrecomp/blob/master/COVERAGE.md) and the README both list `SAX`, `DCP`, `ISC`, `SLO`, `RLA`, `SRE`, `RRA`, `ANC`, `ALR`, `ARR` and `AXS` as unimplemented. The decoder and the code generator implement them.
 
-**The `JMP ($xxFF)` page-boundary erratum.** `COVERAGE.md` says the wrap behaviour is not modelled. The burndown says it is, `nes_read16_jmpbug` exists in the runtime header, and a test pins it in both the static resolver and the emitted code.
+**The `JMP ($xxFF)` page-boundary erratum.** `COVERAGE.md` says the wrap behaviour is not modelled. It is: `nes_read16_jmpbug` exists in the runtime header, and a test pins it in both the static resolver and the emitted code.
 
 From [`tests/codegen.test.ts`](https://github.com/mstan/nesrecomp/blob/master/tests/codegen.test.ts):
 
@@ -192,38 +192,23 @@ From [`tests/codegen.test.ts`](https://github.com/mstan/nesrecomp/blob/master/te
     expect(result.fullC).not.toContain("nes_read16(0xDEFF)");
 ```
 
-**UxROM and mapper 40.** The README's mapper table lists mapper 2 (UxROM) as "Not yet", while [`runner/src/mapper.c`](https://github.com/mstan/nesrecomp/blob/master/runner/src/mapper.c) lists it as supported and has a working write handler for it. Mapper 40 is implemented across the mapper, the function finder and the ROM parser, and is absent from the README table entirely. Which titles actually run under either was not tested here.
+**UxROM and mapper 40.** The README's mapper table lists mapper 2 (UxROM) as "Not yet", while [`runner/src/mapper.c`](https://github.com/mstan/nesrecomp/blob/master/runner/src/mapper.c) supports it. Mapper 40 is implemented and is missing from the README table entirely.
 
-**`game.cfg` in the agent instructions.** [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) still refers to `game.cfg` in four places. That format was removed, and the loader now prints "[GameConfig] ERROR: .cfg format is no longer supported." and fails. Write `game.toml`.
+**`game.cfg` in the agent instructions.** [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) still refers to `game.cfg` in four places. Write `game.toml`.
 
 > **Note.** These are observations from one clone, not corrections filed with the project. Check them against the current tree, and prefer the code.
 
-## Where to go next in the repository
-
-`README.md` is the entry point, with the per-game table, the mapper table and the build instructions. `CLAUDE.md` and `AGENTS.md` both exist and do not overlap: `CLAUDE.md` is the operating manual, `AGENTS.md` adds one rule about validating a change yourself before calling it done, so read both. `PATTERNS.md` catalogues the 6502 idioms that defeat a naive walk, `EXTRACTION.md` covers bank layout, `COSIM.md` and `NES_ACCURACY_BURNDOWN.md` are the correctness pair, `TCP.md` documents the debug server, and `MODDING.md` covers mods and overrides.
-
 ## Source
 
-From [nesrecomp](https://github.com/mstan/nesrecomp):
-[`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md),
-[`COVERAGE.md`](https://github.com/mstan/nesrecomp/blob/master/COVERAGE.md),
-[`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md),
-[`AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md),
-[`SPLITGEN_MIGRATION.md`](https://github.com/mstan/nesrecomp/blob/master/SPLITGEN_MIGRATION.md),
-[`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md),
-[`recompiler/src/main_nes.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/main_nes.c),
-[`recompiler/src/game_config.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/game_config.c),
-[`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/code_generator.c),
-[`runner/src/mapper.c`](https://github.com/mstan/nesrecomp/blob/master/runner/src/mapper.c),
-[`runner/include/nes_runtime.h`](https://github.com/mstan/nesrecomp/blob/master/runner/include/nes_runtime.h),
-[`tools/cli.py`](https://github.com/mstan/nesrecomp/blob/master/tools/cli.py),
-[`tools/nes_cosim.py`](https://github.com/mstan/nesrecomp/blob/master/tools/nes_cosim.py),
-[`tests/codegen.test.ts`](https://github.com/mstan/nesrecomp/blob/master/tests/codegen.test.ts),
-and [`game.toml`](https://github.com/mstan/FaxanaduRecomp/blob/master/game.toml) in FaxanaduRecomp.
+From [nesrecomp](https://github.com/mstan/nesrecomp).
+
+- Start with [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md): the per-game table, the mapper table and the build steps.
+- `CLAUDE.md` is the operating manual, `PATTERNS.md` catalogues the 6502 idioms that defeat a naive walk, `COSIM.md` and `NES_ACCURACY_BURNDOWN.md` are the correctness pair, [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) the debug server.
+- Code above: [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/code_generator.c), [`runner/src/mapper.c`](https://github.com/mstan/nesrecomp/blob/master/runner/src/mapper.c), [`runner/include/nes_runtime.h`](https://github.com/mstan/nesrecomp/blob/master/runner/include/nes_runtime.h), [`tests/codegen.test.ts`](https://github.com/mstan/nesrecomp/blob/master/tests/codegen.test.ts), [`game.toml`](https://github.com/mstan/FaxanaduRecomp/blob/master/game.toml) in FaxanaduRecomp.
 
 ## Next
 
 - [NES on the hardware catalogue](/hardware/nes), for the games and what the ports add.
 - [Telling code from data](/docs/concepts/code-discovery), the discovery problem this toolchain shows clearest.
 - [Port a game](/docs/guides/port-a-game), the workflow from a cartridge dump to a running build.
-- [Proving it with co-simulation](/docs/concepts/co-simulation), how the gates above decide a port is right, with terms in the [glossary](/docs/concepts/glossary).
+- [Proving it with co-simulation](/docs/concepts/co-simulation), and the [glossary](/docs/concepts/glossary) for the terms.

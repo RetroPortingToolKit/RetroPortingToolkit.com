@@ -1,15 +1,15 @@
 ---
 title: "Game Boy and Game Boy Color"
-summary: "gbrecompiled translates SM83 ROMs into portable C, one file per bank, and backs it with the fleet's most rigorous correctness programme: three legs of verification and five gates that must pass before a divergence report is believed."
+summary: "gbrecompiled translates SM83 ROMs into portable C, one file per bank, and backs it with the fleet's most developed correctness programme: three kinds of evidence and five gates."
 pageType: "project"
 tags: ["Game Boy", "Game Boy Color", "SM83", "Cycle exact", "Co-simulation"]
 repos:
   - "https://github.com/mstan/gbrecompiled"
   - "https://github.com/mstan/TetrisGBRecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-[gbrecompiled](https://github.com/mstan/gbrecompiled) is the fleet's Game Boy and Game Boy Color toolchain. It translates a ROM's SM83 machine code into portable C, one file per ROM bank, and links it against a shared runtime library called `gbrt`. The translation is the easy half. The proof is the interesting half: this project carries the fleet's most developed correctness programme, comparing two whole machines cycle by cycle inside one process, behind a ladder of gates that have to pass before anyone believes what the comparison says.
+[gbrecompiled](https://github.com/mstan/gbrecompiled) is the fleet's Game Boy and Game Boy Color toolchain. It translates a ROM's SM83 machine code into portable C, one file per ROM bank, and links it against a shared runtime library called `gbrt`. Most of the work in this repository is not the translation. It is the proof: this project runs two whole machines side by side, cycle by cycle, inside one process, behind a ladder of gates that have to pass before anyone believes what the comparison says. The games are on the catalogue page, [/hardware/game-boy](/hardware/game-boy).
 
 ## Status in the project's own words
 
@@ -19,9 +19,11 @@ The build file calls the project a "Static recompiler for Game Boy (DMG/CGB) ROM
 
 ## SM83, one C file per bank
 
-The guest CPU is the SM83, also called the LR35902, and unlike the [Game Boy Advance](/docs/platforms/game-boy-advance) it has one instruction set, which removes a whole class of problem before it starts. "Each ROM bank becomes a separate C file", and calls are what they look like: "**CALL = direct C function calls.** `func_00_0150(ctx)` calls `func_00_0200(ctx)` directly." Every function threads a `GBContext*`, so a whole machine is one struct. Code the analyzer missed falls through to `gb_interpret`, and `gbrecomp --harvest` feeds those addresses back as seeds for the next build. [Telling code from data](/docs/concepts/code-discovery) covers why an analyzer misses code at all.
+The guest CPU is the SM83, also called the LR35902. Unlike the [Game Boy Advance](/docs/platforms/game-boy-advance) it has one instruction set, which removes a whole class of problem before it starts. "Each ROM bank becomes a separate C file", and calls are what they look like: "**CALL = direct C function calls.** `func_00_0150(ctx)` calls `func_00_0200(ctx)` directly." Every function threads a `GBContext*`, so a whole machine is one struct.
 
-What is not simple here is time. The programme rests on one claim: "Every remaining co-sim/accuracy divergence reduces to the SAME root: hardware (PPU LY/STAT, timer TIMA/DIV/IF) advances and is sampled/mutated at whole-instruction granularity, not at the exact sub-instruction M-cycle". So the emitter places ticks inside instructions. A read modify write on `(HL)` splits its tick so the read samples one M cycle before the write.
+Code the analyzer missed falls through to `gb_interpret`, and `gbrecomp --harvest` feeds those addresses back as seeds for the next build. So a miss is a slow moment plus a to-do item, not a crash. [Telling code from data](/docs/concepts/code-discovery) covers why an analyzer misses code at all.
+
+What is not simple here is time. The programme rests on one claim: "Every remaining co-sim/accuracy divergence reduces to the SAME root: hardware (PPU LY/STAT, timer TIMA/DIV/IF) advances and is sampled/mutated at whole-instruction granularity, not at the exact sub-instruction M-cycle". So the emitter places ticks inside instructions. A read modify write on `(HL)` splits its tick, so the read samples one M cycle before the write.
 
 From [`recompiler/src/codegen/c_emitter.cpp`](https://github.com/mstan/gbrecompiled/blob/master/recompiler/src/codegen/c_emitter.cpp):
 
@@ -41,15 +43,15 @@ From [`recompiler/src/codegen/c_emitter.cpp`](https://github.com/mstan/gbrecompi
     };
 ```
 
-The fallback interpreter carries the same policy in its own code, and keeping the two in step is a rule rather than a courtesy: "**Both backends atomically** each phase (interpreter + `c_emitter.cpp`), or the A-vs-B gate splits." [Timing models](/docs/concepts/timing-models) sets this against the fleet's coarser models.
+The fallback interpreter carries the same policy, and keeping the two in step is a rule: "**Both backends atomically** each phase (interpreter + `c_emitter.cpp`), or the A-vs-B gate splits." [Timing models](/docs/concepts/timing-models) sets this against the fleet's coarser models.
 
 ## The cycle exact verification programme
 
-[Co-simulation](/docs/concepts/co-simulation) explains the technique in general. What is specific here is the discipline around it: three legs of evidence, and five gates that qualify the tool before its output counts.
+[Co-simulation](/docs/concepts/co-simulation) explains the technique in general. What is specific here is the discipline: three kinds of evidence, and five gates that qualify the tool before its output counts.
 
-### Three legs
+### Three kinds of evidence
 
-**Coverage ground truth.** Static analysis cannot follow computed control flow, so a mature emulator supplies proof of executability: "By using a mature emulator (PyBoy) to record an execution trace, we can 'seed' our static recompiler with a list of proven entry points, effectively bridging the gap between static and dynamic analysis." `tools/run_ground_truth.py` wraps capture, recompile and verify; the target is "**>99% coverage**", and the residue is expected to be RAM resident code the interpreter handles.
+**Coverage ground truth.** Static analysis cannot follow computed jumps, so an emulator supplies proof that an address really executes: "By using a mature emulator (PyBoy) to record an execution trace, we can 'seed' our static recompiler with a list of proven entry points, effectively bridging the gap between static and dynamic analysis." The target is "**>99% coverage**", and the rest is expected to be RAM resident code the interpreter handles.
 
 ```sh
 python3 tools/capture_ground_truth.py roms/pokeblue.gb -o pokeblue_ground.trace --frames 18000 --random
@@ -57,7 +59,7 @@ python3 tools/capture_ground_truth.py roms/pokeblue.gb -o pokeblue_ground.trace 
 python3 tools/compare_ground_truth.py --trace pokeblue_ground.trace pokeblue_output
 ```
 
-**Full state co-simulation.** Two backends step on a shared clock, `ctx->cycles` in T cycles, checkpointed every 456 by default, one scanline. Pairing 1 runs the generated code against the in project interpreter inside one process, which works because both thread a `GBContext*`. Pairing 2 runs it against an embedded SameBoy core. The program counter is left out of the cross backend hash, since the recompiled side only keeps it current at block boundaries, and a control flow split shows up anyway as a differing register or RAM byte. The purpose is not bug hunting but [ratcheting](/docs/concepts/glossary): "the GBC co-sim is a **regression ratchet / correctness guard**", and "A 'no divergence' result here is a **feature, not a null result**".
+**Full state co-simulation.** Two backends step on a shared clock, `ctx->cycles` in T cycles, checked every 456 by default, which is one scanline. Pairing 1 runs the generated code against the in project interpreter inside one process. Pairing 2 runs it against an embedded SameBoy core. The program counter is left out of the hash, because the recompiled side only keeps it current at block boundaries, and a control flow split shows up anyway as a differing register or RAM byte. The purpose is not bug hunting but [ratcheting](/docs/concepts/glossary): "A 'no divergence' result here is a **feature, not a null result**".
 
 The hashed surface is split into fourteen named sub hashes, so a mismatch names the guilty subsystem before anyone diffs a byte. Trimming it is forbidden: hashing only the PPU "because we know the CPU is correct" re-creates the blind spot the method exists to remove.
 
@@ -82,7 +84,7 @@ typedef struct {
 } CosimSubHashes;
 ```
 
-**The fixture scorecard.** Two hang proof harnesses read third party test ROM verdicts. `tools/gate5_sweep.sh` dumps a Blargg style ROM's final frame as a PNG and reads the screen; `tools/mooneye_sweep.sh` reads mooneye's pass signal, "the Fibonacci register magic (PASS = B C D E H L = 03 05 08 0D 15 22)", from a register dump.
+**The fixture scorecard.** Two harnesses read third party test ROM verdicts and cannot hang. `tools/gate5_sweep.sh` dumps a Blargg style ROM's final frame as a PNG and reads the screen. `tools/mooneye_sweep.sh` reads mooneye's pass signal, "the Fibonacci register magic (PASS = B C D E H L = 03 05 08 0D 15 22)", from a register dump.
 
 ### The five gates, in order
 
@@ -94,7 +96,7 @@ typedef struct {
 | 4 | a full byte compare every N checkpoints agrees with the hash | PASS on Tetris |
 | 5 | an independent fixture sweep exposes a ROM whose verdict is PASS but whose state hash splits mid run | STARTED |
 
-The ordering is the point: "Only after 1 to 4 pass do you run **recomp-vs-interp** (pairing 1) and believe its first-divergence report."
+The order matters: "Only after 1 to 4 pass do you run **recomp-vs-interp** (pairing 1) and believe its first-divergence report."
 
 Gate 3 is the one to understand. If the comparator quietly stops comparing anything, gates 1, 2 and 4 still report green, so a blind tool looks healthy. Gate 3 corrupts one field in one backend after a chosen checkpoint and requires the tool to halt there and name the owning subsystem: "This is the ONLY gate that catches a silently-blind compare (a parse bug or `None == None` compare passes Gate 1 trivially while catching nothing)... **Never skip it.**"
 
@@ -114,13 +116,13 @@ typedef enum {
 } GBCosimInjectTarget;
 ```
 
-The stance behind all of it is worth stating, because projects rarely write it down: "**'We know subsystem X is correct' is a HYPOTHESIS the co-sim tests.**"
+The stance behind all of it: "**'We know subsystem X is correct' is a HYPOTHESIS the co-sim tests.**"
 
 ### What the programme found
 
-The first divergence against the SameBoy oracle was not a race and not a subtle sampling offset. Phase 0 extended the oracle to expose its internal 16 bit divider, measured, and found "a **constant +8 DIV-counter phase offset**". Phase 1a traced that to instruction 1, cycle 0: "The entire offset is the **power-on internal divider value**, the divider has advanced 8 T-cycles before the CPU begins the boot ROM." The fix was one line in the power on path, and Phase 1b found CGB the same, so the value was set unconditionally.
+The first divergence against the SameBoy oracle was not a race. Phase 0 extended the oracle to expose its internal 16 bit divider and found "a **constant +8 DIV-counter phase offset**". Phase 1a traced that to instruction 1, cycle 0: "The entire offset is the **power-on internal divider value**, the divider has advanced 8 T-cycles before the CPU begins the boot ROM." The fix was one line in the power on path, and Phase 1b found CGB the same.
 
-Every phase lands the interpreter and the emitter together, then runs one fixed gate set, quoted here verbatim. Its last two entries name procedures rather than single commands.
+Every phase lands the interpreter and the emitter together, then runs one fixed gate set:
 
 ```sh
 # oracle (DMG + CGB) — first-divergence must advance, never regress
@@ -136,12 +138,6 @@ python tools/gbc_cosim.py --exe megaman_xtreme2.exe --ab-frames 1000 --expect-ch
 build+run mem_timing / mem_timing-2 / instr_timing   (read screens)
 # mooneye timer + interrupt subsets (tools/mooneye_sweep.sh)
 ```
-
-## The game file you supply
-
-You supply the ROM. A per game `valid_crcs` list covers multi version releases, and a title such as [TetrisGBRecomp](https://github.com/mstan/TetrisGBRecomp) gates the file at run time before it will start. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the canonical page for that contract.
-
-> **You provide this.** No ROM is embedded in a generated project. TetrisGBRecomp states it plainly: "The ROM is **not** embedded. On first run the launcher asks for one and gates it against `game_get_expected_crc32()` in `extras.c`".
 
 ## The commands
 
@@ -166,35 +162,37 @@ ninja -C output/game/build
 ./output/game/build/game
 ```
 
-The generated executable carries the verification surface: `--cosim` runs the co-simulation and `--cosim-pair` selects the pairing, `--cosim-stride` sets the checkpoint interval, `--cosim-inject` and `--cosim-inject-at` drive Gate 3, `--cosim-audit` drives Gate 4, and `--cosim-oracle` runs against SameBoy.
+The generated executable carries the verification surface. `--cosim` runs the co-simulation and `--cosim-pair` selects the pairing, `--cosim-stride` sets the checkpoint interval, `--cosim-inject` and `--cosim-inject-at` drive Gate 3, `--cosim-audit` drives Gate 4, and `--cosim-oracle` runs against SameBoy.
+
+> **You provide this.** No ROM is embedded in a generated project. [TetrisGBRecomp](https://github.com/mstan/TetrisGBRecomp) states it plainly: "The ROM is **not** embedded. On first run the launcher asks for one and gates it against `game_get_expected_crc32()` in `extras.c`". A per game `valid_crcs` list covers multi version releases. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
 ## What runs today
 
-Gates 1 to 4 pass on Tetris DMG attract, demo gameplay included, with the injected fault halting at the exact checkpoint and naming each subsystem, the APU among them. Performance: "**Tetris 700 frames / 109,671 checkpoints in ~13 s; MMX2 (CGB) 1000 frames / 156,918 checkpoints in ~23 s**", both matched. The caveat is recorded alongside and is the one to carry away: any residual divergence from real hardware that both backends share, such as a bug in a shared timing table, "is invisible to pairing 1 by construction". That is why the SameBoy pairing exists.
+Gates 1 to 4 pass on Tetris DMG attract, demo gameplay included, with the injected fault halting at the exact checkpoint and naming each subsystem. Performance: "**Tetris 700 frames / 109,671 checkpoints in ~13 s; MMX2 (CGB) 1000 frames / 156,918 checkpoints in ~23 s**", both matched. The caveat is recorded alongside: any divergence from real hardware that both backends share "is invisible to pairing 1 by construction". That is why the SameBoy pairing exists.
 
-On the fixture scorecard of 2026-07-02, every Blargg CPU, interrupt and HALT behavioural test passes, `cpu_instrs` 1 to 11 included, while `mem_timing`, `mem_timing-2` and `oam_bug` still fail subtests. The mooneye timer subset stands at 9 of 13, all four failures clustered on the TIMA overflow to TMA reload window, which localises the remaining timer work to one piece of logic. Two game repositories in the fleet are built on the engine: TetrisGBRecomp and PokemonRedAndBlueRecomp.
+On the fixture scorecard of 2026-07-02, every Blargg CPU, interrupt and HALT behavioural test passes, while `mem_timing`, `mem_timing-2` and `oam_bug` still fail subtests. The mooneye timer subset stands at 9 of 13, all four failures on the TIMA overflow to TMA reload window. Two game repositories are built on the engine: TetrisGBRecomp and PokemonRedAndBlueRecomp.
 
 ## Known limits
 
-- There is no LICENSE file at the repository root, so this page states no license for the project; the only license file in the tree covers a vendored copy of Dear ImGui.
-- There is no `tests/` directory, though the build guards one behind a `BUILD_TESTS` option that defaults off. The regression surface is the gate set and the fixture sweeps above.
-- `COMPATIBILITY.md` is linked from the README and absent from the tree, so the 98.9% figure has no accompanying report. `ACCURACY.md` is dated 2026-03-17 and disagrees with the July scorecard, listing tests as failing that now pass. Prefer the scorecard.
-- `IO_TRACING.md` describes code an engineer is expected to add rather than a shipped feature: the `GB_IO_TRACE` variable and `--io-trace` flag it names could not be found implemented. Treat it as a recipe.
-- The remaining memory timing work is parked as "diminishing returns, do NOT resume without a real-game need". The coordinate is recorded anyway, a clean 4 T cycle gap with all divider, PPU and interrupt state matching, and the remaining phases are expected to fix test ROM scores with "~zero player-visible impact".
+- There is no LICENSE file at the repository root, so this page states no license; the only license file in the tree covers a vendored copy of Dear ImGui.
+- There is no `tests/` directory. The regression surface is the gate set and the fixture sweeps above.
+- `COMPATIBILITY.md` is linked from the README and absent from the tree, so the 98.9% figure has no accompanying report. `ACCURACY.md` is dated 2026-03-17 and disagrees with the July scorecard. Prefer the scorecard.
+- `IO_TRACING.md` describes code an engineer is expected to add, not a shipped feature. Treat it as a recipe.
+- The remaining memory timing work is parked as "diminishing returns, do NOT resume without a real-game need". The remaining phases are expected to fix test ROM scores with "~zero player-visible impact".
 
 ## Source
 
 Written from [mstan/gbrecompiled](https://github.com/mstan/gbrecompiled):
 
-- [`COSIM_ORACLE.md`](https://github.com/mstan/gbrecompiled/blob/master/COSIM_ORACLE.md), [`CYCLE_EXACT_INITIATIVE.md`](https://github.com/mstan/gbrecompiled/blob/master/CYCLE_EXACT_INITIATIVE.md), the gates, the phase log and the fixed gate set.
-- [`GROUND_TRUTH_WORKFLOW.md`](https://github.com/mstan/gbrecompiled/blob/master/GROUND_TRUTH_WORKFLOW.md), [`GATE5_SCORECARD.md`](https://github.com/mstan/gbrecompiled/blob/master/GATE5_SCORECARD.md), the other two legs.
-- [`runtime/include/cosim_state.h`](https://github.com/mstan/gbrecompiled/blob/master/runtime/include/cosim_state.h), [`runtime/include/gbrt.h`](https://github.com/mstan/gbrecompiled/blob/master/runtime/include/gbrt.h), the hashed surface and injection targets.
-- [`recompiler/src/codegen/c_emitter.cpp`](https://github.com/mstan/gbrecompiled/blob/master/recompiler/src/codegen/c_emitter.cpp), [`runtime/src/interpreter.c`](https://github.com/mstan/gbrecompiled/blob/master/runtime/src/interpreter.c), the two halves of the timing policy.
-- [`README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md), [`GBC.md`](https://github.com/mstan/gbrecompiled/blob/master/GBC.md), [`ISSUES.md`](https://github.com/mstan/gbrecompiled/blob/master/ISSUES.md), status and current disposition.
+- [`COSIM_ORACLE.md`](https://github.com/mstan/gbrecompiled/blob/master/COSIM_ORACLE.md) and [`CYCLE_EXACT_INITIATIVE.md`](https://github.com/mstan/gbrecompiled/blob/master/CYCLE_EXACT_INITIATIVE.md), the gates, the phase log and the fixed gate set.
+- [`GROUND_TRUTH_WORKFLOW.md`](https://github.com/mstan/gbrecompiled/blob/master/GROUND_TRUTH_WORKFLOW.md) and [`GATE5_SCORECARD.md`](https://github.com/mstan/gbrecompiled/blob/master/GATE5_SCORECARD.md), the other two kinds of evidence.
+- [`runtime/include/cosim_state.h`](https://github.com/mstan/gbrecompiled/blob/master/runtime/include/cosim_state.h) and [`runtime/include/gbrt.h`](https://github.com/mstan/gbrecompiled/blob/master/runtime/include/gbrt.h), the hashed surface and injection targets.
+- [`recompiler/src/codegen/c_emitter.cpp`](https://github.com/mstan/gbrecompiled/blob/master/recompiler/src/codegen/c_emitter.cpp) and [`runtime/src/interpreter.c`](https://github.com/mstan/gbrecompiled/blob/master/runtime/src/interpreter.c), the two halves of the timing policy.
+- [`README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md), [`GBC.md`](https://github.com/mstan/gbrecompiled/blob/master/GBC.md) and [`ISSUES.md`](https://github.com/mstan/gbrecompiled/blob/master/ISSUES.md), status and current disposition.
 
 ## Next
 
 - [Game Boy](/hardware/game-boy), the catalogue entry for this console.
-- [Proving it with co-simulation](/docs/concepts/co-simulation), the technique this page is one implementation of.
+- [Proving it with co-simulation](/docs/concepts/co-simulation), the general form of the technique above.
 - [Port a game](/docs/guides/port-a-game), the walk from a game file to a running port.
-- [Game Boy Advance](/docs/platforms/game-boy-advance), the other half of the family, and a different CPU problem entirely.
+- [Game Boy Advance](/docs/platforms/game-boy-advance), the other half of the family, and a different CPU problem.

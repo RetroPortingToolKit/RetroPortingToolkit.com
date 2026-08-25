@@ -1,16 +1,18 @@
 ---
 title: "Game Boy Advance"
-summary: "gbarecomp lifts ARM7TDMI cartridge code into sharded C++, and the hard part is interworking: keeping ARM and Thumb apart when a game switches instruction set while it runs."
+summary: "gbarecomp turns a cartridge's ARM7TDMI machine code into C++, and the hard part is interworking: a GBA game switches between two instruction sets while it runs."
 pageType: "project"
 tags: ["Game Boy Advance", "ARM7TDMI", "Interworking", "Recompiler"]
 repos:
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/MinishCapRecomp"
   - "https://github.com/Shy/BoktaiRecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-[gbarecomp](https://github.com/mstan/gbarecomp) is this fleet's Game Boy Advance toolchain. It reads a cartridge image you supply, finds the functions in it, and writes them out as sharded C++ that compiles into a native SDL2 program linked against a GBA hardware runtime. What makes the GBA harder than most targets here is the processor: the ARM7TDMI runs two instruction sets, 32 bit ARM and 16 bit Thumb, and a game switches between them while it runs. A static recompiler has to know which set it is looking at before it can translate a byte, and has to preserve every switch in generated code that has no program counter of its own.
+[gbarecomp](https://github.com/mstan/gbarecomp) is this fleet's Game Boy Advance toolchain. It reads a cartridge image you supply, finds the functions in its compiled machine code, and writes them out as C++ split across many files. That compiles into a native SDL2 program, linked against a GBA hardware runtime. The games are on the catalogue page, [/hardware/game-boy-advance](/hardware/game-boy-advance).
+
+The GBA is harder than most targets here because of its processor. The ARM7TDMI runs two instruction sets, 32 bit ARM and 16 bit Thumb, and a game switches between them while it runs. A static recompiler has to know which set it is looking at before it can translate a byte, and it has to preserve every switch in generated code that has no program counter of its own.
 
 ## Status in the project's own words
 
@@ -26,7 +28,7 @@ The framework is licensed under the PolyForm Noncommercial License 1.0.0.
 
 ### A function is an address and a mode
 
-Both instruction sets share one address space, so an address alone does not name a function. Discovery keys functions on the pair `(addr, mode)` "so ARM and THUMB can coexist at the same address", and the generated name carries the mode: `afunc_AAAAAAAA` for ARM, `tfunc_AAAAAAAA` for Thumb. The dispatch table carries the same distinction as a `thumb` bit, its builder noting that "ARM and Thumb bodies may overlap at the same numeric addresses". So the lookup matches on two fields, not one.
+Both instruction sets share one address space, so an address alone does not name a function. Discovery keys functions on the pair `(addr, mode)` "so ARM and THUMB can coexist at the same address", and the generated name carries the mode: `afunc_AAAAAAAA` for ARM, `tfunc_AAAAAAAA` for Thumb. The dispatch table carries the same bit, so the lookup matches on two fields, not one.
 
 From [`src/armv4t/runtime_arm.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/armv4t/runtime_arm.cpp#L781-L784):
 
@@ -37,7 +39,7 @@ From [`src/armv4t/runtime_arm.cpp`](https://github.com/mstan/gbarecomp/blob/main
     return nullptr;
 ```
 
-The entry point that reaches that lookup after a branch and exchange is short enough to read whole: bit 0 of the target picks the instruction set.
+The entry point that reaches that lookup after a branch and exchange is short enough to read whole. Bit 0 of the target picks the instruction set.
 
 From [`src/armv4t/runtime_arm.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/armv4t/runtime_arm.cpp#L836-L842):
 
@@ -53,7 +55,9 @@ extern "C" void runtime_dispatch_with_exchange(uint32_t target_pc) {
 
 ### The order of the mode flag and the tick
 
-This is the detail worth carrying away. Emitting a `BX` means doing three things: writing the target to the program counter with bit 0 cleared, setting or clearing the CPSR T bit from bit 0, and charging the instruction's cycle cost to the clock. gbarecomp charges a whole instruction with one `runtime_tick` at the instruction boundary, the coarse end of the fleet's [timing models](/docs/concepts/timing-models), and that tick is where interrupts get delivered. So the order is not free. If the tick ran between the new program counter and the new mode flag, an interrupt taken inside it would snapshot a return address from one instruction set paired with a mode bit from the other, and the machine would resume decoding at the wrong width. The generator commits both halves of the architectural state first, and says why.
+Emitting a `BX` means doing three things: writing the target to the program counter with bit 0 cleared, setting or clearing the CPSR T bit from bit 0, and charging the instruction's cycle cost to the clock.
+
+gbarecomp charges a whole instruction with one `runtime_tick` at the instruction boundary, the coarse end of the fleet's [timing models](/docs/concepts/timing-models). That tick is where interrupts are delivered, so the order matters. Suppose the tick ran between the new program counter and the new mode flag. An interrupt taken inside it would save a return address from one instruction set next to a mode bit from the other. The machine would then resume decoding at the wrong width. So the generator commits both halves of the state first, and says why.
 
 From [`src/armv4t/arm_codegen.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/armv4t/arm_codegen.cpp#L708-L741):
 
@@ -78,27 +82,29 @@ From [`src/armv4t/arm_codegen.cpp`](https://github.com/mstan/gbarecomp/blob/main
             // runtime_dispatch_with_exchange.
 ```
 
-Not every write to the program counter exchanges. An `LDM` or `POP` into it forces bit 0 clear on ARMv4T, and a plain `MOV pc, Rn` keeps the current mode, so discovery takes a computed target's mode from bit 0 for `BX` alone.
+Not every write to the program counter exchanges. An `LDM` or `POP` into it forces bit 0 clear on ARMv4T, and a plain `MOV pc, Rn` keeps the current mode, so discovery reads a computed target's mode from bit 0 for `BX` alone.
 
 ### Jump tables get a verdict per table
 
-Discovery meets the same problem one level up. A table of code pointers may hold ARM targets, Thumb targets or both, and nothing in the table says which, so the finder reaches a verdict per table. An indexed load becomes a jump table only once a later instruction actually branches through it, and how it branches sets the rule: a `BX` or a `bx dest` veneer means interwork on bit 0 of each entry, while a `MOV pc, dest` means every entry keeps the dispatcher's current mode. Even then the finder wants evidence, calling a table interworking only when at least two entries have bit 0 set and those account for half the unique targets or more. A table that meets neither that test nor a uniform one is left alone rather than guessed at.
+Discovery meets the same problem one level up. A table of code pointers may hold ARM targets, Thumb targets or both, and nothing in the table says which. So the finder reaches a verdict per table.
 
-Where the machine cannot decide, a human writes the verdict into the game's TOML, in a configuration that mirrors the machine's rule. A `[[jump_table]]` record takes `addr`, `stride`, `count`, a `format` of `abs32`, `abs16`, `pcrel_thumb` or `pcrel_arm`, and an `entries_mode` of `"arm"`, `"thumb"` or `"auto"`. Auto is the interworking case: bit 0 set means Thumb, bit 0 clear means ARM, and the bit is cleared afterwards to recover the address. `abs16` refuses auto, because 16 bit pointers "don't span an interworking address space on the GBA".
+An indexed load only becomes a jump table once a later instruction actually branches through it, and how it branches sets the rule. A `BX` means interwork on bit 0 of each entry. A `MOV pc, dest` means every entry keeps the current mode. Even then the finder wants evidence: it calls a table interworking only when at least two entries have bit 0 set and those cover half the unique targets or more. A table that meets neither test is left alone rather than guessed at.
+
+Where the machine cannot decide, a person writes the verdict into the game's TOML. A `[[jump_table]]` record takes `addr`, `stride`, `count`, a `format` of `abs32`, `abs16`, `pcrel_thumb` or `pcrel_arm`, and an `entries_mode` of `"arm"`, `"thumb"` or `"auto"`. Auto is the interworking case.
 
 ## The rest of the hardware, and the BIOS rule
 
-`src/gba/` models everything around the CPU: bus, PPU, audio, DMA, timers, IRQ, save chips, GPIO, gyro, solar sensor and real time clock. The BIOS is not modelled at all. It is recompiled and dispatched like any other code, "not stubbed, not HLE'd", and new SWI behaviour in the runtime is forbidden because "The behavior is in the recompiled BIOS bytes."
+`src/gba/` models everything around the CPU: bus, PPU, audio, DMA, timers, IRQ, save chips, GPIO, gyro, solar sensor and real time clock. The BIOS is not modelled at all. It is recompiled and dispatched like any other code, "not stubbed, not HLE'd", and adding new SWI behaviour to the runtime is forbidden because "The behavior is in the recompiled BIOS bytes."
 
-An address with no generated body is a [dispatch miss](/docs/concepts/glossary), served by a healed native overlay cache or a logged interpreter bridge, and both count against the run's fully static verdict. [Telling code from data](/docs/concepts/code-discovery) explains why misses happen.
+An address with no generated body is a [dispatch miss](/docs/concepts/glossary). It is served by a healed native overlay cache, or by a logged interpreter bridge, so a missed address becomes a slow moment and a log entry rather than a crash. Both count against the run's fully static verdict. [Telling code from data](/docs/concepts/code-discovery) explains why misses happen.
 
 ## The game file you supply
 
-You provide the cartridge image and, for a playable build, your own GBA BIOS dump. Generated code is keyed to exact opcodes at exact addresses, so a patched or trimmed image is a different program and is rejected on purpose. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the canonical page.
+You provide the cartridge image and, for a playable build, your own GBA BIOS dump. Generated code is keyed to exact opcodes at exact addresses, so a patched or trimmed image is a different program and is rejected. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
 > **You provide this.** `MinishCapRecomp/baserom.md` puts it plainly: "We do **not** ship the ROM or the BIOS. You must provide your own dumps of both", and "The runner refuses to launch unless **both** verify."
 
-[BoktaiRecomp](https://github.com/Shy/BoktaiRecomp) shows why it has to be the exact file. Sensor patched dumps of Boktai circulate, and they "replace the cartridge photodiode reads with a constant, so the game no longer talks to the hardware this project emulates": the solar sensor the port exists to model goes inert. Such a dump fails the hash gate, "which is the intended behaviour."
+[BoktaiRecomp](https://github.com/Shy/BoktaiRecomp) shows why it has to be the exact file. Sensor patched dumps of Boktai circulate, and they "replace the cartridge photodiode reads with a constant, so the game no longer talks to the hardware this project emulates". The solar sensor the port exists to model goes inert. Such a dump fails the hash gate, "which is the intended behaviour."
 
 ## The commands
 
@@ -137,14 +143,14 @@ python oracle/diff_frame.py --scan 1 240 1
 
 ## What runs today
 
-Ten GBA title repositories carry a `baserom.md` identity document: Minish Cap, Mega Man Zero, Mario Kart Super Circuit, Super Mario Advance 2 and 4, Shrek GBA Video, three Dragon Ball Z titles and Boktai. Four more are named by the framework README, covering WarioWare: Twisted!, FireRed and LeafGreen, Ruby and Sapphire, and Emerald, plus an experimental arm64 Android build of WarioWare: Twisted!.
+Ten GBA title repositories carry a `baserom.md` identity document: Minish Cap, Mega Man Zero, Mario Kart Super Circuit, Super Mario Advance 2 and 4, Shrek GBA Video, three Dragon Ball Z titles and Boktai. Four more are named by the framework README: WarioWare: Twisted!, FireRed and LeafGreen, Ruby and Sapphire, and Emerald.
 
-Adaptive widescreen is "a genuinely wider logical view, not a stretch, crop, or zoom", growing the logical width from 240 toward a per game validated maximum while keeping the authentic 160 lines. It is opt in three times over, by the engine, the game and the launcher. The default in every build is the faithful 240 by 160 view, and the project's measure of done for a title is the coverage banner reading `self_heal_coverage=FULLY_STATIC`.
+Adaptive widescreen here is "a genuinely wider logical view, not a stretch, crop, or zoom". It grows the logical width from 240 toward a per game validated maximum, keeping the authentic 160 lines. It is opt in three times over: by the engine, the game and the launcher. The default in every build is the faithful 240 by 160 view. The project's measure of done for a title is the coverage banner reading `self_heal_coverage=FULLY_STATIC`.
 
 ## Known limits
 
-- The game builds are "experimental preservation and research previews, not finished commercial ports", and generating source is not a port: a playable integration "still needs verified function coverage, a host application, cartridge configuration, and game-specific validation."
-- [Co-simulation](/docs/concepts/co-simulation) here is a design document, not a built tool. `COSIM_ORACLE.md` is a plan with "no engine code yet", and its primary pairing needs a whole program interpreter backend that does not exist yet. The [Game Boy toolchain](/docs/platforms/game-boy) has a built version of the same idea.
+- The game builds are "experimental preservation and research previews, not finished commercial ports". Generating source is not a port: a playable integration "still needs verified function coverage, a host application, cartridge configuration, and game-specific validation."
+- [Co-simulation](/docs/concepts/co-simulation) here is a design document, not a built tool. `COSIM_ORACLE.md` is a plan with "no engine code yet". The [Game Boy toolchain](/docs/platforms/game-boy) has a built version of the same idea.
 - Two documents disagree with the tree. `docs/ARCHITECTURE.md` still calls the BIOS interpreted and `gba_recompile` a stub, and `TCP.md` documents a `--reverse-debug` flag the argument parser does not accept.
 - The Pokémon FireRed widescreen sidecar in `docs/WIDESCREEN_STEPC_PLAN.md` does not arm unless `GBARECOMP_WS_WIP=1` is set. It is not shipped.
 
@@ -154,13 +160,12 @@ Written from [mstan/gbarecomp](https://github.com/mstan/gbarecomp):
 
 - [`README.md`](https://github.com/mstan/gbarecomp/blob/main/README.md) and [`PRINCIPLES.md`](https://github.com/mstan/gbarecomp/blob/main/PRINCIPLES.md), status and the interworking, BIOS and coverage rules.
 - [`src/armv4t/arm_codegen.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/armv4t/arm_codegen.cpp), [`src/armv4t/runtime_arm.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/armv4t/runtime_arm.cpp), [`src/recompile/function_finder.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/recompile/function_finder.cpp), interworking and the jump table verdict.
-- [`docs/TOML_SCHEMA.md`](https://github.com/mstan/gbarecomp/blob/main/docs/TOML_SCHEMA.md), [`tools/gba_recompile/main.cpp`](https://github.com/mstan/gbarecomp/blob/main/tools/gba_recompile/main.cpp), configuration and the CLI.
-- [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md), [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md), the debug transport.
-- [`MinishCapRecomp/baserom.md`](https://github.com/mstan/MinishCapRecomp/blob/main/baserom.md), [`BoktaiRecomp/baserom.md`](https://github.com/Shy/BoktaiRecomp/blob/main/baserom.md), the game file contract.
+- [`docs/TOML_SCHEMA.md`](https://github.com/mstan/gbarecomp/blob/main/docs/TOML_SCHEMA.md) and [`tools/gba_recompile/main.cpp`](https://github.com/mstan/gbarecomp/blob/main/tools/gba_recompile/main.cpp), configuration and the CLI; [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md) and [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md), the debug transport.
+- [`MinishCapRecomp/baserom.md`](https://github.com/mstan/MinishCapRecomp/blob/main/baserom.md) and [`BoktaiRecomp/baserom.md`](https://github.com/Shy/BoktaiRecomp/blob/main/baserom.md), the game file contract.
 
 ## Next
 
 - [Game Boy Advance](/hardware/game-boy-advance), the catalogue entry for this console.
-- [Telling code from data](/docs/concepts/code-discovery), the discovery problem behind jump table verdicts and dispatch misses.
+- [Telling code from data](/docs/concepts/code-discovery), the problem behind jump table verdicts and dispatch misses.
 - [Port a game](/docs/guides/port-a-game), the walk from a game file to a running port.
 - [Game Boy and Game Boy Color](/docs/platforms/game-boy), the other half of the family.
