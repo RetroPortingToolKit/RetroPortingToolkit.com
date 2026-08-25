@@ -71,3 +71,50 @@ So do not push anything you would not publish, and run the checks above first.
 Beyond that, deploys happen when the owner asks. Do not add a scheduled job,
 hook, or CI workflow that builds, deploys, or publishes on its own; the git
 connection above is the one exception and it already exists.
+
+## Pushing to the RetroPortingToolKit org
+
+Sessions in this repo are authorized for this repo only. Repositories under
+the separate `RetroPortingToolKit` org (`recomp-starter` is the one that
+exists today) are outside that set: the git proxy refuses to inject a
+credential (403 on push), and `add_repo` with push access has failed at the
+approval step every time it has been tried (2026-08-24 and 2026-08-25). The
+owner has checked the GitHub App settings and "All repositories" is already
+selected, so do not diagnose it as a permissions setting the owner forgot.
+
+What works, proven end to end on 2026-08-25:
+
+1. Try `add_repo` (push) once anyway; it may get fixed someday. If it errors,
+   stop retrying and use the ferry below.
+2. Clone the target repo into the scratchpad (public repos clone fine read
+   only), do the work there, and commit it locally.
+3. **Author the commit as `Shokunin <30949000+tetrisgm@users.noreply.github.com>`,
+   never the owner's personal email.** GitHub's email privacy protection
+   (GH007) rejects any push whose commits expose the private address; the
+   noreply identity above is the one the owner's own pushes use and it passes.
+4. Export with `git format-patch -1 --stdout <sha> > name.patch`, copy the
+   patch into this repo's `public/`, commit and push it (that publishes it at
+   `https://retroportingtoolkit.com/name.patch` about a minute later).
+5. **Wait until the URL serves the real bytes before telling the owner to
+   fetch.** vercel.json rewrites every unmatched path to the SPA with a 200,
+   so an early `curl` downloads HTML and `git am` fails with "Patch format
+   detection failed". Poll until the first bytes are `From <sha>`.
+6. Hand the owner this block, with the paths filled in:
+
+   ```sh
+   cd ~/Downloads
+   git clone https://github.com/RetroPortingToolKit/<repo>.git
+   cd <repo>
+   curl -fLO https://retroportingtoolkit.com/name.patch
+   git am name.patch
+   git push
+   ```
+
+7. After the owner's push lands, verify the pushed tree matches your local
+   commit (`git rev-parse origin/main^{tree}` against your sha's tree), then
+   remove the patch from `public/` in a follow-up commit. The ferry file is
+   temporary by contract.
+
+Do not send the patch as a chat file attachment and assume it arrived: the
+owner's Downloads folder did not have it when that was tried, and the whole
+detour above exists because of it.
