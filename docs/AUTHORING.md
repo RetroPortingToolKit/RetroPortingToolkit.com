@@ -144,13 +144,34 @@ a bare path as the whole info string works when the block has no language
 
 ## House style
 
-- Plain language, concrete, short sentences. No hype, no marketing voice.
+- Write for a smart 16 year old whose first language is not English. Short
+  sentences, one idea each. Common words. Define a technical term in plain
+  words the first time, then use it normally. If a paragraph reads clever,
+  rewrite it until it reads plain. (Owner's standing decision, 2026-08-25,
+  after the core developer's review.)
+- Plain language, concrete, short sentences. No hype, no marketing voice. Not
+  defensive: state a fact once and move on.
 - **No em dashes or en dashes anywhere.** Commas, colons, periods.
-- "core project" or "core team", never "first-party". Never "real code". Never
-  claim categorically that no emulation is involved.
+- The recompiler reads a game's binary, its compiled machine code, and writes
+  code in an ordinary programming language. The projects here emit C, but do
+  not define the technique as producing C, and never say it produces "text".
+- Call interpretation what it is: emulation. In these ports emulation is a
+  fallback, a small interpreter that catches what the recompiler missed, so a
+  missed instruction becomes a slow moment instead of a crash. Never claim
+  categorically that no emulation is involved. The game is the program, never
+  "inside" the program.
+- On a mature console framework, standing up a new game takes minutes (the
+  Street Fighter Alpha 3 page is the source). The months live in building each
+  framework and in making one game feel finished. Do not write "months of work
+  per game".
+- "core project" or "core team", never "first-party". Never "real code".
 - "Pokémon" keeps its accent.
 - Do not invent facts about a project. If a claim cannot be sourced, leave it
   out and link the source instead.
+- Documentation pages under `data/docs/` do not reference N64Recomp,
+  N64ModernRuntime or RT64 (owner's standing decision, 2026-08-25). The
+  hardware and game pages keep that platform's lineage and licensing story; a
+  docs page that needs it links to /hardware/nintendo-64.
 - Never mention these non-public projects: Mario Kart DS, Super Mario 64 DS,
   Pokémon Black, Rocket Knight Adventures, Legend of Legaia.
 

@@ -182,13 +182,23 @@ file, so send back the frontmatter and body you got, with your change applied.
 
 Match it or the post will read as foreign to the site.
 
-- Plain language, concrete, short sentences. No hype, no marketing voice.
+- Write for a smart 16 year old whose first language is not English. Short
+  sentences, one idea each. Common words. Define a technical term in plain
+  words the first time, then use it normally.
+- Plain language, concrete, short sentences. No hype, no marketing voice. Not
+  defensive: state a fact once and move on.
 - **No em dashes or en dashes anywhere.** Commas, colons, periods.
+- The recompiler reads a game's binary and writes code in an ordinary
+  programming language. The projects here emit C, but do not define the
+  technique as producing C. Emulation in these ports is a fallback: a missed
+  instruction becomes a slow moment, not a crash. Never claim categorically
+  that no emulation is involved. The game is the program, never "inside" it.
 - Say "core project" or "core team", never "first-party". Never "real code".
-  Never claim categorically that no emulation is involved.
 - "Pokémon" keeps its accent.
 - Do not invent facts about a project. If you cannot source a claim, leave it
   out. Link the source instead.
+- Documentation pages do not reference N64Recomp, N64ModernRuntime or RT64.
+  That platform's story lives at /hardware/nintendo-64; link there instead.
 
 ## Other things you can do
 
