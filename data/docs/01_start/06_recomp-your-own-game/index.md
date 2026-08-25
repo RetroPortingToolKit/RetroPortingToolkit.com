@@ -5,21 +5,21 @@ pageType: "guide"
 tags: ["Tutorial", "Agents", "PlayStation"]
 repos:
   - "https://github.com/mstan/psxrecomp"
-updated: "2026-08-24"
+updated: "2026-08-25"
 ---
 
 You have a game you own and you want a native port of it. This page is what to
-do, and it is written so you can hand it straight to an AI coding agent: point
-one here, tell it which game and where the file is, and it has everything it
-needs to start.
+do. It is written so you can hand it straight to an AI coding agent: point one
+here, tell it which game and where the file is, and it has what it needs to
+start.
 
-Read the next section before you do that, because how far you get depends
-almost entirely on which console the game is from.
+Read the next section first. How far you get depends almost entirely on which
+console the game is from.
 
 ## What actually works today
 
-There is one console where this goes fast and eight where it does not, and the
-difference is tooling rather than difficulty.
+There is one console where this goes fast and eight where it does not. The
+difference is tooling, not difficulty.
 
 | Console | Scaffolding | What starting a port means |
 |---|---|---|
@@ -28,12 +28,14 @@ difference is tooling rather than difficulty.
 | CD-i, GameCube, Xbox | Not applicable | Research projects, not a route to a playable port |
 
 [`psxrecomp`](https://github.com/mstan/psxrecomp) ships
-[`tools/new_project_layout/`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/),
-which creates the repository, pins the framework, reads your disc for its
-identity and a first pass at the code it needs to find, writes the build and
-packaging stubs, and will run the first generate and build if you ask it to.
+[`tools/new_project_layout/`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/).
+It creates the repository, pins the framework, and reads your disc for its
+identity and a first pass at the code it needs to find. It writes the build and
+packaging stubs, and runs the first generate and build if you ask it to.
 That tooling is why a contributor could decide to port a PlayStation title and
 have it running in the same session.
+[Street Fighter Alpha 3](/games/street-fighter-alpha-3) came through this flow,
+with about five minutes of game-specific work behind it.
 
 The other eight toolchains have no equivalent. Starting a port there means
 reproducing a working port's structure by hand, which is an afternoon rather
@@ -56,9 +58,9 @@ If you are using an AI coding agent, this is enough to give it:
 > you need someone to look at the screen.
 
 The starter kit's [`AGENTS.md`](https://github.com/RetroPortingToolKit/recomp-starter/blob/main/AGENTS.md)
-is written for the agent rather than for you: it carries the decision tree, the
-exact flags, the failure modes, and an explicit list of what an agent must not
-decide on its own.
+is written for the agent rather than for you. It carries the decision tree, the
+exact flags, the failure modes, and a list of what an agent must not decide on
+its own.
 
 ## The PlayStation path
 
@@ -106,15 +108,15 @@ sh tools/new_project_layout/setup_project.sh \
 One detail matters more than it looks. `--yes` requires `--name` and `--disc`,
 and in that mode **the yes or no options default to off**. So `--generate` and
 `--enable-build` have to be passed explicitly, or the scaffold writes the tree
-and stops. That single line is the difference between an agent that finishes and
-one that appears to succeed and produces nothing runnable.
+and stops. Without them an agent appears to succeed and produces nothing
+runnable.
 
 Two caveats, because "everything defaults off" is not literally true. The setup
 wizard defaults on when the launcher interface is enabled, so
 `--yes --enable-recomp-ui` turns the wizard on with it. And the command above
-gives you no launcher interface, no wizard and no netplay: the right shape for a
-first build, not the shape a shipping port has. Add them back deliberately once
-the game boots.
+gives you no launcher interface, no wizard and no netplay. That is the right
+shape for a first build, not the shape a shipping port has. Add them back
+deliberately once the game boots.
 
 The flags worth knowing:
 
@@ -147,9 +149,9 @@ changes.
 
 ## A build is not a finished port
 
-This is the part worth internalising before you start, because it is where the
-time actually goes. The framework's own setup document lists what remains after
-the scaffold has done everything it can:
+This is where the time actually goes, so read it before you start. The
+framework's own setup document lists what remains after the scaffold has done
+everything it can:
 
 1. Boot and soak the game, fixing missing seeds, overlays and runtime quirks
 2. Test netplay, if the title has it
@@ -158,16 +160,16 @@ the scaffold has done everything it can:
 
 Code the analysis could not find ahead of time surfaces as a crash or a hang
 well into the game rather than at startup. Finding and fixing those is the bulk
-of the work on any console, and it is measured in weeks.
+of the work on any console, and it takes weeks or months.
 
 ## The other eight consoles
 
 Copy a working port and change what is game specific. The starter kit's
 [`other-consoles/`](https://github.com/RetroPortingToolKit/recomp-starter/tree/main/other-consoles)
-names which port to copy for each console and what the per game recompiler input
-is called there, because it is spelled differently everywhere: `game.toml` on
-NES, a bank configuration directory on SNES, `game.toml` plus symbols and
-per region config on Game Boy Advance.
+names which port to copy for each console, and what the per game recompiler
+input is called there, because it is spelled differently everywhere:
+`game.toml` on NES, a bank configuration directory on SNES, `game.toml` plus
+symbols and per region config on Game Boy Advance.
 
 [Port a game](/docs/guides/port-a-game) is the full guide, with the canonical
 repository layout and the mechanisms for expressing per game fixes.

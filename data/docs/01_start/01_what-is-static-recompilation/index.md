@@ -1,69 +1,64 @@
 ---
 title: "What static recompilation is"
-summary: "The idea the rest of this site rests on: a game's own code is rewritten as C before it ever runs, compiled into a normal program, and joined to a library that stands in for the console, and what that buys and costs."
+summary: "A game's binary is translated into ordinary source code before it ever runs, compiled for the computer you own, and joined to a library that stands in for the console. What that buys, and what it costs."
 pageType: "concept"
 tags: ["Static recompilation", "Recompiler", "Runtime"]
 repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/cdirecomp"
-updated: "2026-08-24"
+updated: "2026-08-25"
 ---
 
-A console game is a block of code written for a machine nobody makes any more. Static recompilation reads that code before the game ever runs and rewrites it in C, which is an ordinary programming language. The C is then compiled for the computer you actually own. What comes out is a normal program, and your computer runs the game's own logic directly, instead of running a second program that reads the game's instructions and acts them out one at a time. Static means the rewriting happens ahead of time, once, on a developer's machine. None of it is automatic. The rewritten code has to be joined to a runtime, which is a library that stands in for the console's hardware, and taking one game from a dump to a working program is months of work on that one game.
+A console game is a binary: compiled machine code, built for a machine nobody makes any more. It is not source code, and your computer cannot run it. Static recompilation reads that binary before the game ever runs and translates it into source code in an ordinary programming language. That source is compiled for the computer you actually own. What comes out is a normal program. Your computer runs the game's own logic directly, instead of running an emulator that reads the game's instructions and acts them out one at a time while you play. Static means the translation happens ahead of time, once, on a developer's machine. The translated code is joined to a runtime, a library that stands in for the console's hardware. The projects here write C, but the technique does not require C.
 
 ## What the recompiler writes
 
-The tool that does the rewriting is called the recompiler, and what it produces is text. It reads the game's code, works out where each of the game's own functions begins, and writes one C function for each one it finds. It also writes a table, so the program can find the right C function later when the game asks for an address. Wherever the game reads or writes memory, the recompiler writes a call into the runtime instead. Nothing about the result is exotic. An ordinary C compiler builds it, and a person can open the output and read it.
+The tool that does the translation is called the recompiler. It reads a binary and writes code.
 
-[The recompiler and the runtime](/docs/concepts/recompiler-and-runtime) shows what that generated code looks like on the page, and each [platform page](/docs/platforms) shows one console's version of it.
+It works out where each of the game's own functions begins and writes one function of source code for each. It writes a lookup table too, so the program can find the right function when the game asks for an address. Wherever the game reads or writes memory, it writes a call into the runtime instead.
 
-## Why not just interpret it
+Nothing about the result is exotic. The projects here emit C, so an ordinary C compiler builds it and you can read the output. [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime) shows what that generated code looks like, and each [platform page](/docs/platforms) shows one console's version of it.
 
-The familiar way to run an old game on a new machine is to interpret it. A program keeps track of where the game is in its own code, reads the instruction sitting there, works out what it means, does it, and moves on. Then it does all of that again, for the next instruction, and again after that. A loop the game runs a million times pays the reading and the working out a million times.
+## Why not just emulate it
 
-Static recompilation moves that work to build time. Each instruction is read once, ever, and what it does is written down as C. While you are playing there is nothing left to read and nothing left to work out. There is only compiled code.
+An emulator is a second program. While you play, it reads the game's binary one instruction at a time and acts each one out. That is called interpreting, and it is what emulation means here. It pays for the same work over and over: read an instruction, work out what it means, do it, start again. A loop the game runs a million times pays that cost a million times.
 
-## Why not translate while the game runs
+Static recompilation moves that work to build time. Each instruction is read once, ever, and what it does is written down as code. While you play there is nothing left to read and nothing left to work out. There is only compiled code.
 
-The other familiar answer is to translate during play: take a piece of the game's code the first time the game reaches it, translate it right then, keep the result in memory, and reuse it. The difference is when the work happens and what survives it. Translating during play happens on your machine, and normally the result is thrown away when you quit. Translating ahead of time happens once on a build machine, and what it leaves behind is C source a person can read, review and keep in a repository.
-
-The line is less tidy than that, and this site would rather say so. Some games keep code where the recompiler cannot see it until the game asks for it, so a project has to catch those pieces while the game runs and translate them then. [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) is that whole problem. Pointing the other way, [N64Recomp](https://github.com/N64Recomp/N64Recomp), the upstream project this technique comes from, can translate during play as well as ahead of time. So working ahead of time is a choice these projects make. It is not a limit of the idea.
+Some games keep code where the recompiler cannot see it ahead of time. [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) covers those cases.
 
 ## What it buys
 
-**Speed to spare.** The game runs as a normal program, on a computer far faster than the console ever was, and everything the runtime does around it is code that can be improved. No project here publishes a frame rate claim, and this page does not invent one.
+**The port is not tied to the console any more.** It does not have to pretend to be as slow as the original hardware. The console's limits on speed and storage are gone too, so a feature is no longer boxed in by what that machine could hold or keep up with.
 
-**Room to add things.** Because the result is compiled and linked like any other program, features can be added at the joins rather than by patching the game itself. Widescreen, [mods](/docs/guides/write-a-mod), [translations](/docs/guides/translate-a-game), replacement graphics and controller remapping all live there. One rule keeps that honest across the fleet: every added feature is off by default, and with it off the port behaves exactly as the original did. cdirecomp's [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md) states it most plainly.
+**It is ordinary code.** Source code can be compiled and modified, like any program. That is much easier than modifying an already compiled binary. Widescreen, [mods](/docs/guides/write-a-mod), [translations](/docs/guides/translate-a-game), replacement graphics and controller remapping are added that way. One rule keeps it honest: every added feature is off by default, and with it off the port behaves exactly as the original did. cdirecomp's [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md) says so plainly.
 
-**Things that need the game to repeat itself exactly.** Save states, rewind, and online play that can quietly redo the last moment are one requirement three times over: take a snapshot of the machine, put it back, and have the game do exactly the same thing again from there. [Determinism](/docs/concepts/determinism) is that idea on its own page.
+**Save states, rewind and netplay.** These all need one thing: the game must repeat itself exactly. Emulators have had these features for years. The new part is that a native port can have them too. That only works if the port is deterministic, and these projects build for that on purpose. See [determinism](/docs/concepts/determinism).
 
 ## What it costs
 
-**Months of work, per game.** Every framework here is used by separate per game repositories, and those repositories exist to supply facts the tool could not work out on its own. The banner on those game pages says it directly, here from [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/README.md):
+**Building the framework, not adding the game.** On a mature console framework, standing up a new game takes about five minutes of game-specific work. [Street Fighter Alpha 3](/games/street-fighter-alpha-3) is this site's example. Months went into building that framework. More months go into taking one game from booting to feeling finished. Not every framework here is mature. PlayStation can scaffold a new game project, most of the others cannot, and starting a port there means copying a working port by hand. [Recomp your own game](/docs/start/recomp-your-own-game) says which is which.
 
-> **These are in-development previews, not finished ports — expect rough edges**, and depth will keep landing over months, not days.
+**Telling code from data.** A binary is one flat block of bytes. Nothing in it marks where a function begins, or which bytes are instructions at all rather than a picture or a piece of music. Getting that wrong is the central difficulty of the whole technique, and it has its own page: [telling code from data](/docs/concepts/code-discovery).
 
-**Telling code from data.** A dump is one flat block of bytes. Nothing inside it marks where a function begins, and nothing marks which bytes are instructions at all rather than a picture or a piece of music. Getting that wrong is the central difficulty of the whole technique, and it has its own page: [telling code from data](/docs/concepts/code-discovery).
-
-**No promise about any one game.** psxrecomp's own README calls what its tool generates "a practical starting point, not a promise that every game works without game-specific fixes". Whether a particular game works is a question about that game. The careful words the projects use to answer it are unpacked in the [status vocabulary](/docs/reference/status-vocabulary).
+**No promise about any one game.** psxrecomp's own README calls what its tool generates "a practical starting point, not a promise that every game works without game-specific fixes". Whether a particular game works is a question about that game, and the [status vocabulary](/docs/reference/status-vocabulary) unpacks the careful words the projects use to answer it.
 
 > **You provide this.** Nothing here ships a game. Every port needs a game file that you supply from your own media, and the port checks it before it starts. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the full contract.
 
-## Where the word emulation comes in
+## Where emulation comes in
 
-Two things are true at the same time. The game's own code is translated ahead of time and runs as compiled code. The console around that code, its picture, its sound, its controllers and its timing, is imitated by the runtime while you play, and most of these projects also keep a small backup for game code the translation could not reach. That is a real question with a real answer, and the answer differs per project. [Is this emulation](/docs/start/is-this-emulation) answers it properly, which is why this page does not.
+The game's own code is translated ahead of time and runs as compiled code. The console around it, its picture, sound, controllers and timing, is imitated by software while you play, and most projects keep a small emulator as a fallback for code the translation could not reach. [Is this emulation?](/docs/start/is-this-emulation) is the full answer.
 
 ## Source
 
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md), [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), and [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/code_generator.c), which is the smallest emitter in the fleet to read.
 - [psxrecomp](https://github.com/mstan/psxrecomp): [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md), [`docs/ARCHITECTURE.md`](https://github.com/mstan/psxrecomp/blob/master/docs/ARCHITECTURE.md), [`docs/EXECUTION_MODEL.md`](https://github.com/mstan/psxrecomp/blob/master/docs/EXECUTION_MODEL.md).
-- [cdirecomp](https://github.com/mstan/cdirecomp): [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md). [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp): [`README.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/README.md).
-- [N64Recomp](https://github.com/N64Recomp/N64Recomp): [`README.md`](https://github.com/N64Recomp/N64Recomp/blob/main/README.md) for the backend that translates during play.
+- [cdirecomp](https://github.com/mstan/cdirecomp): [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md).
 
 ## Next
 
-- [How a port is made](/docs/start/how-a-port-is-made) is the same idea told as a sequence, stage by stage.
-- [Is this emulation](/docs/start/is-this-emulation) is the honest answer to the question this page deliberately left open.
-- [Telling code from data](/docs/concepts/code-discovery) is the hard part, explained on one console.
-- [Quickstart](/docs/start/quickstart) has you run a recompiler yourself, and [the glossary](/docs/concepts/glossary) defines every word above.
+- [How a port is made](/docs/start/how-a-port-is-made): the same idea as a sequence, stage by stage.
+- [Is this emulation?](/docs/start/is-this-emulation): where emulation does and does not come in.
+- [Telling code from data](/docs/concepts/code-discovery): the hard part, on one console.
+- [Quickstart](/docs/start/quickstart) has you run a recompiler yourself. [The glossary](/docs/concepts/glossary) defines every word above.

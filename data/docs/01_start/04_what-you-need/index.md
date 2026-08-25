@@ -1,15 +1,15 @@
 ---
 title: "What you need"
-summary: "Two things before you start: a normal set of programming tools, which is the same five for every project here, and your own copy of the game, which no repository ships."
+summary: "Two things before you start: a normal set of programming tools, the same five for every project here, and your own copy of the game, which no repository ships."
 pageType: "guide"
 tags: ["Prerequisites", "Build", "Game files"]
 repos:
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/nesrecomp"
-updated: "2026-08-24"
+updated: "2026-08-25"
 ---
 
-Two things. First, a normal set of programming tools, the same ones people use to build any C or C++ program. Second, if you want to play something rather than just build it, your own copy of the game. No repository here ships a game. This page is the software half in detail, and the short version of the game half with a link to the page that states it properly.
+Two things. First, a normal set of programming tools, the same ones people use to build any C or C++ program. Second, your own copy of the game, if you want to play something rather than only build it. No repository here ships a game.
 
 ## The five tools
 
@@ -23,9 +23,9 @@ Nearly every project here wants the same five things, and nothing exotic.
 | Ninja | any recent release | Running the build |
 | Python 3 | 3.9 or newer | Driving the helper scripts around the build |
 
-One more, if you want to see a game and not only build one: these projects draw their picture with SDL, so install your system's SDL development package too. Some want SDL2 and some want SDL3.
+One more, if you want to see a game and not only build one. These projects draw their picture with SDL, so install your system's SDL development package too. Some want SDL2 and some want SDL3.
 
-Every console here needs a slightly different set of steps on top of that, and there is no point learning them all now. [Build a toolchain](/docs/guides/build-a-toolchain) has the exact commands for each one, and each [platform page](/docs/platforms) says what its project supports. Read your console's page before you spend an evening on it: some of these projects say plainly that a given computer is untested.
+Every console needs a few more steps on top of that. [Build a toolchain](/docs/guides/build-a-toolchain) has the exact commands for each one, and each [platform page](/docs/platforms) says what its project supports. Read your console's page before you spend an evening on it: some of these projects say plainly that a given computer is untested.
 
 ## Your computer
 
@@ -38,7 +38,7 @@ pacman -S --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake \
                    mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache
 ```
 
-Two Windows problems come up often enough to warn about. If you have other development tools installed, Windows may find the wrong `cmake` or the wrong `python` first, and the build fails in a confusing way; the fix is to run the one you meant, by its full path. And a very large generated file can defeat the Windows assembler with an error about too many sections, which needs a newer toolchain or one extra build flag. [Errors and exit codes](/docs/reference/errors-and-exit-codes) has the exact messages and the exact fixes.
+Two Windows problems come up often enough to warn about. If you have other development tools installed, Windows may find the wrong `cmake` or the wrong `python` first, and the build then fails in a confusing way. Run the one you meant, by its full path. The other one: a very large generated file can defeat the Windows assembler, which complains about too many sections. That needs a newer toolchain or one extra build flag. [Errors and exit codes](/docs/reference/errors-and-exit-codes) has the exact messages and the exact fixes.
 
 ### macOS
 
@@ -58,7 +58,7 @@ Adjust the package names for your distribution.
 
 ## Two settings that are not optional
 
-**Always say which kind of build you want.** Pass `-DCMAKE_BUILD_TYPE=Release` to CMake. If you leave it out, the compiler skips its optimisations, and the generated code is so large that the build takes an unreasonable amount of time.
+**Always say which kind of build you want.** Pass `-DCMAKE_BUILD_TYPE=Release` to CMake. Leave it out and the compiler skips its optimisations. The generated code is so large that the build then takes an unreasonable amount of time.
 
 **Do not ask for too many parallel jobs.** The generated files are huge, and each one takes a lot of memory to compile. Too many at once and your machine runs out, which does not produce a polite error. psxrecomp's [`docs/TESTING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/TESTING.md) records the symptom:
 
@@ -76,7 +76,7 @@ This site does not describe how to obtain any of those files.
 
 - **A game file, to try any of this.** You can build a toolchain and recompile a real binary without one. That is what the [quickstart](/docs/start/quickstart) does.
 - **Any prior knowledge of the console.** You do not need to know how the hardware worked to build one of these projects and run it.
-- **All the extra downloads, every time.** psxrecomp says a plain clone is enough to build the recompiler and the runtime on their own. A game project is the opposite: it pulls its toolchain in as a linked copy, and a clone without that copy cannot build.
+- **All the extra downloads, every time.** psxrecomp's build document says a plain clone is enough for the recompiler and the runtime, though the [quickstart](/docs/start/quickstart) hit one exception to that. A game project is the opposite: it pulls its toolchain in as a linked copy, and a clone without that copy cannot build.
 
 ## Check your setup
 
@@ -96,7 +96,7 @@ python3 --version
 | `ninja --version` | `1.x.y` | any recent release |
 | `python3 --version` | `Python 3.12.0` or similar | 3.9 |
 
-On Windows, run them inside the MSYS2 MinGW64 shell you intend to build in, not in PowerShell. That is the same trap described above, and this is where it is cheapest to catch. If all four answer, go to the [quickstart](/docs/start/quickstart).
+On Windows, run them inside the MSYS2 MinGW64 shell you intend to build in, not in PowerShell. If all four answer, go to the [quickstart](/docs/start/quickstart).
 
 ## Source
 
