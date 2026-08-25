@@ -1,12 +1,15 @@
+import fs from "node:fs";
+import path from "node:path";
 import { describe, it, expect } from "vitest";
 import { CMS_KINDS, FOLDER_KIND, MAX_FOLDER_DEPTH, NEW_LABEL } from "./cmsKinds";
-import { KINDS, KIND_NOUN, PUBLISH_FIELDS, PUBLISH_LIST_FIELDS, PUBLISH_KIND_FIELDS } from "../../api/cms";
+import { KINDS, KIND_NOUN, PUBLISH_FIELDS, PUBLISH_LIST_FIELDS, PUBLISH_KIND_FIELDS, mdFields } from "../../api/cms";
 import {
   KIND_DIRS,
   KIND_NOUN as DEV_KIND_NOUN,
   PUBLISH_FIELDS as DEV_PUBLISH_FIELDS,
   PUBLISH_LIST_FIELDS as DEV_PUBLISH_LIST_FIELDS,
   PUBLISH_KIND_FIELDS as DEV_PUBLISH_KIND_FIELDS,
+  mdFields as devMdFields,
   itemParts,
 } from "../../scripts/cms-dev.mjs";
 
@@ -152,5 +155,58 @@ describe("CMS item ids", () => {
   it("refuses a non-item path", () => {
     expect(itemParts("data/about.md")).toBeNull();
     expect(itemParts("data/docs/index.md")).toBeNull();
+  });
+});
+
+// The editor's structured fields come from mdFields(), and each backend keeps
+// its own copy of that parser. Until now nothing held them together, which is
+// the same gap PUBLISH_FIELDS had before its test above: they agreed by luck.
+// So: identical output over every real page in the tree, and over the awkward
+// inputs where a copy could quietly diverge, the failure path included.
+describe("mdFields parity between the two backends", () => {
+  const ROOT = path.resolve(__dirname, "../..");
+  const frontmatterOf = (file: string) => {
+    const raw = fs.readFileSync(file, "utf8");
+    const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    return m ? m[1] : "";
+  };
+  const walk = (dir: string): string[] =>
+    fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+      const p = path.join(dir, e.name);
+      if (e.isDirectory()) return walk(p);
+      return e.name === "index.md" ? [p] : [];
+    });
+
+  it("parses every page in data/ identically", () => {
+    const pages = walk(path.join(ROOT, "data"));
+    // A wrong glob returning nothing would pass vacuously.
+    expect(pages.length).toBeGreaterThan(150);
+    for (const p of pages) {
+      const fm = frontmatterOf(p);
+      expect(devMdFields(fm), path.relative(ROOT, p)).toEqual(mdFields(fm));
+    }
+  });
+
+  it("agrees on wrong-typed values, unknown keys and empty input", () => {
+    const awkward = [
+      "",
+      "title: 42\ntags: not-a-list\ndraft: yes\nfeatured: 1",
+      'title: "T"\nunknownKey: kept?\ntags: [a, 3, b]\nsectionTitle: ["not", "a", "string"]',
+      "date: 2026-08-25\n", // YAML date object, not a string
+    ];
+    for (const fm of awkward) {
+      expect(devMdFields(fm), JSON.stringify(fm)).toEqual(mdFields(fm));
+    }
+  });
+
+  it("agrees on invalid YAML, catch path included", () => {
+    const broken = 'title: "unterminated\n  [: {';
+    const prod = mdFields(broken);
+    expect(devMdFields(broken)).toEqual(prod);
+    // The catch must yield the zeroed shape, not a bare {}: the editor reads
+    // fields.title off it unconditionally.
+    expect(prod.title).toBe("");
+    expect(prod.tags).toEqual([]);
+    expect(prod.draft).toBe(false);
   });
 });

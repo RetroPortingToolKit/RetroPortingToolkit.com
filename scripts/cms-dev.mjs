@@ -315,6 +315,37 @@ export function fileBaseSha(id) {
 }
 
 // ---- read one ----
+// The structured fields the editor shows for an item, parsed off its raw
+// frontmatter. Mirrors mdFields() in api/cms.ts line for line, including the
+// catch: invalid YAML returns the same zeroed shape there, so the editor sees
+// one behaviour whichever backend serves it. cmsKinds.test.ts holds the two to
+// identical output over every page in data/ plus the awkward cases.
+export function mdFields(fmText) {
+  try {
+    const fm = yaml.load(fmText) || {};
+    return {
+      title: typeof fm.title === "string" ? fm.title : "",
+      desc: typeof fm.desc === "string" ? fm.desc : "",
+      kicker: typeof fm.kicker === "string" ? fm.kicker : "",
+      date: typeof fm.date === "string" ? fm.date : "",
+      cover: typeof fm.cover === "string" ? fm.cover : "",
+      platform: typeof fm.platform === "string" ? fm.platform : "",
+      status: typeof fm.status === "string" ? fm.status : "",
+      repo: typeof fm.repo === "string" ? fm.repo : "",
+      author: typeof fm.author === "string" ? fm.author : "",
+      authorAvatar: typeof fm.authorAvatar === "string" ? fm.authorAvatar : "",
+      summary: typeof fm.summary === "string" ? fm.summary : "",
+      pageType: typeof fm.pageType === "string" ? fm.pageType : "",
+      sectionTitle: typeof fm.sectionTitle === "string" ? fm.sectionTitle : "",
+      draft: fm.draft === true,
+      featured: fm.featured === true,
+      tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
+    };
+  } catch {
+    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, tags: [] };
+  }
+}
+
 function readOne(id) {
   const abs = resolveSafe(id);
   if (!abs || !fs.existsSync(abs)) return null;
@@ -322,29 +353,7 @@ function readOne(id) {
   const type = typeOf(id);
   if (type === "md") {
     const { fmText, body } = splitRaw(raw);
-    let fields = {};
-    try {
-      const fm = yaml.load(fmText) || {};
-      fields = {
-        title: typeof fm.title === "string" ? fm.title : "",
-        desc: typeof fm.desc === "string" ? fm.desc : "",
-        kicker: typeof fm.kicker === "string" ? fm.kicker : "",
-        date: typeof fm.date === "string" ? fm.date : "",
-        cover: typeof fm.cover === "string" ? fm.cover : "",
-        platform: typeof fm.platform === "string" ? fm.platform : "",
-        status: typeof fm.status === "string" ? fm.status : "",
-        repo: typeof fm.repo === "string" ? fm.repo : "",
-        author: typeof fm.author === "string" ? fm.author : "",
-        authorAvatar: typeof fm.authorAvatar === "string" ? fm.authorAvatar : "",
-        summary: typeof fm.summary === "string" ? fm.summary : "",
-        pageType: typeof fm.pageType === "string" ? fm.pageType : "",
-        sectionTitle: typeof fm.sectionTitle === "string" ? fm.sectionTitle : "",
-        draft: fm.draft === true,
-        featured: fm.featured === true,
-        tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
-      };
-    } catch {}
-    return { id, type, frontmatter: fmText, body: body.replace(/^\n+/, ""), fields };
+    return { id, type, frontmatter: fmText, body: body.replace(/^\n+/, ""), fields: mdFields(fmText) };
   }
   return { id, type, raw };
 }

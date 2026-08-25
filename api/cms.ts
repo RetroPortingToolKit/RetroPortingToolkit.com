@@ -513,7 +513,9 @@ function str(v: unknown): string {
 function prettify(slug: string): string {
   return slug.replace(/[-_]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
-function mdFields(fmText: string) {
+// Exported for src/lib/cmsKinds.test.ts, which holds this parser and the one
+// in scripts/cms-dev.mjs to identical output over the same frontmatter.
+export function mdFields(fmText: string) {
   try {
     const fm = (yaml.load(fmText) || {}) as Record<string, unknown>;
     return {

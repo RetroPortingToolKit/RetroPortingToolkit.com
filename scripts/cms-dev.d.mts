@@ -19,6 +19,27 @@ export declare const PUBLISH_LIST_FIELDS: readonly string[];
 /** Which of those keys each kind may receive. Mirrors api/cms.ts. */
 export declare const PUBLISH_KIND_FIELDS: Record<string, readonly string[]>;
 
+/** The structured fields the editor shows, parsed off raw frontmatter.
+    Mirrors mdFields() in api/cms.ts, catch included. */
+export declare function mdFields(fmText: string): {
+  title: string;
+  desc: string;
+  kicker: string;
+  date: string;
+  cover: string;
+  platform: string;
+  status: string;
+  repo: string;
+  author: string;
+  authorAvatar: string;
+  summary: string;
+  pageType: string;
+  sectionTitle: string;
+  draft: boolean;
+  featured: boolean;
+  tags: string[];
+};
+
 /** An item id taken apart: data/<kind>/<folder>/index.md, with docs nesting one
     level deeper. Null for anything that is not an item. */
 export declare function itemParts(id: string): {
