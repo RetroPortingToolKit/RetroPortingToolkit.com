@@ -1,6 +1,6 @@
 ---
 title: "Errors and exit codes"
-summary: "What every tool in the fleet returns when it fails, how the debug protocol reports errors, and the documented failure modes with their causes and fixes, so a script or an agent can act on a result instead of guessing."
+summary: "What every tool in the fleet returns when it fails, how the debug protocol reports errors, and the documented failures with their causes and fixes, so a script or an agent can act on a result instead of guessing."
 pageType: "reference"
 tags: ["Reference", "Errors", "Exit codes"]
 repos:
@@ -13,10 +13,12 @@ repos:
   - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/gbrecompiled"
   - "https://github.com/mstan/SuperMarioWorldRecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-A tool that fails is only useful if you can tell what it meant. This page collects every exit code the fleet's tools define, the two error shapes the debug protocol uses, and the documented failure modes with their causes and fixes. Every row comes from a tool's own source or its own documentation; where a tool does not state its exit codes, this page says so rather than guessing, because a guessed exit code in a script is worse than none.
+A tool that fails is only useful if you can tell what went wrong. Below are every exit code the fleet's tools define, the two error shapes the debug protocol uses, and the documented failures with their causes and fixes.
+
+Every row comes from a tool's own source or its own documentation. Where a tool states no exit codes, this page says so. A guessed exit code in a script is worse than none.
 
 ## Exit codes by tool
 
@@ -58,19 +60,19 @@ Any tool not listed here does not document its exit codes. Treat non-zero as fai
 
 ## The CTest convention
 
-Exit code **77 is the CTest skip convention**, and the fleet uses it: SuperMetroidRecomp's widescreen visual smoke test skips with code 77 when its artifacts are missing, so a test that cannot run reports as skipped rather than as a pass or a failure.
+**Exit code 77 means skipped in CTest**, and the fleet uses it. SuperMetroidRecomp's widescreen visual smoke test exits 77 when its artifacts are missing, so a test that cannot run reports as skipped instead of as a pass or a failure.
 
-Three related rules govern what is registered with CTest in the first place.
+Three more rules govern what gets registered with CTest at all.
 
 - **An unregistered test cannot fail.** psxrecomp's testing document states it as a rule: if you add a test, add it to `ctest` in the same commit, because a test that cannot fail is not a test.
 - **A test that needs a game file is deliberately not registered.** segagenesisrecomp's `l1_decoder_test` is built but left out of CTest because it requires a ROM the user supplies.
 - **CI excludes the suites that need inputs it does not have.** BoktaiRecomp runs `ctest --test-dir build -E "oracle|bios_intro_flawless" --output-on-failure`, excluding the two suites that need a vendored oracle checkout and a BIOS.
 
-`--output-on-failure` is the fleet's standard CTest invocation, on the principle that a failure you cannot read is a failure you will re-run.
+`--output-on-failure` is the fleet's standard CTest flag. A failure you cannot read is a failure you will just run again.
 
 ## Error shapes on the debug protocol
 
-The wire protocol is JSON over newline, one object per line. Two response shapes exist and a client must handle both spellings of the error key.
+The wire protocol is JSON over newline, one object per line. There are two response shapes, and a client has to handle both spellings of the error key.
 
 | Shape | Meaning | Where |
 |---|---|---|
@@ -78,7 +80,12 @@ The wire protocol is JSON over newline, one object per line. Two response shapes
 | `{"id": N, "ok": false, "error": "<msg>"}` | Failure | psxrecomp, gbarecomp, vbrecomp, cdirecomp |
 | `{"ok": false, "err": "<msg>"}` | Failure | nesrecomp and its game repositories |
 
-Four error conditions are worth knowing before you write a client. A command line longer than **8192 bytes** is rejected, and the servers accept **one client at a time**. On psxrecomp, inline responses are bounded at 2 seconds per zero-progress chunk and **15 seconds total**, and a client that exceeds the budget is disconnected; responses larger than that must use the `*_dump_file` variants, which write to disk instead of the socket. An unknown argument to `nds_recompile` prints `unknown arg: <a>`. And some commands return an error by design: psxrecomp's `pause`, `continue`, `step` and `run_to_frame` are removed but still registered, so they always error, and ndsrecomp's `run_to_*` commands error in play mode because the frontend owns execution there.
+Four things to know before you write a client.
+
+- A command line longer than **8192 bytes** is rejected, and every server takes **one client at a time**.
+- On psxrecomp an inline response is bounded at 2 seconds per zero-progress chunk and **15 seconds total**. A client that goes over is disconnected. Anything bigger uses the `*_dump_file` variants, which write to disk instead of the socket.
+- An unknown argument to `nds_recompile` prints `unknown arg: <a>`.
+- Some commands error by design. psxrecomp's `pause`, `continue`, `step` and `run_to_frame` are removed but still registered, so they always error. ndsrecomp's `run_to_*` commands error in play mode, because the frontend owns execution there.
 
 ## Configure and build failures
 
@@ -139,7 +146,7 @@ Four error conditions are worth knowing before you write a client. A command lin
 
 ## Documented commands that are not in this checkout
 
-An error can also mean the command was never built. Three cases are recorded, and a client should treat them as documentation ahead of implementation rather than as a bug.
+An error can also mean the command was never built. Three cases are recorded. Treat them as documentation running ahead of the code, not as a bug.
 
 - gbarecomp's `TCP.md` describes a reverse debugger family, `rdb_*`, gated on a `--reverse-debug` flag and a build option. In this checkout neither the flag nor the build option nor the source file exists, so those tables are the documented design, not verified behaviour. Two implemented commands, `run_frames` and `step_inst`, are missing from that document in the other direction.
 - Several vbrecomp commands that its `TCP.md` lists are not in the dispatch chain, including `dump_ram`, `write_ram`, `history`, `step`, `run_to_frame`, `frame_diff` and `first_divergence`. `watchdog` is implemented while `watchdog_status` is documented.
@@ -147,7 +154,7 @@ An error can also mean the command was never built. Three cases are recorded, an
 
 ## What is not documented
 
-Two gaps are worth stating so nobody fills them with a guess. Most tools in the fleet state no exit codes at all; the table above is the complete set that do. And there is no signing of release artefacts anywhere except an ad-hoc macOS signature, so there is no signature verification failure to document.
+Two gaps, stated so nobody fills them with a guess. Most tools in the fleet state no exit codes at all, and the table above is the complete set that do. And nothing signs release artefacts, apart from one ad-hoc macOS signature, so there is no signature check failure to document.
 
 ## Source
 

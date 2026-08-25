@@ -1,6 +1,6 @@
 ---
 title: "TCP port registry"
-summary: "Which localhost port every debug server in this fleet listens on, which ports several projects claim at once, how to move a port in each project, and the failure that a second listener on the same port produces."
+summary: "Which localhost port every debug server in this fleet listens on, which ports more than one project claims, how to move a port in each project, and what a second listener on the same port does to your results."
 pageType: "reference"
 tags: ["Protocol", "Debugging", "Tooling", "Agents"]
 repos:
@@ -13,16 +13,16 @@ repos:
   - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/smsggrecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-Every debug server in this fleet listens on `127.0.0.1` and a port chosen by whichever project it belongs to. Those choices were made one repository at a time, across repositories that share no file, so several of them landed on the same number: port 4380 is claimed by four projects at once, and 19842 by two. Nothing goes wrong until you run two of them together, and then what goes wrong is quiet: a client cannot tell from the outside which process answered it, and a stale second listener on a port is documented as producing co-simulation differences that are not real. This page is the allocation table the fleet has never had, plus what to do when two of the projects you need are on the same number.
+Every debug server in this fleet listens on `127.0.0.1`. The port comes from whichever project the server belongs to, and each project chose on its own, so several picked the same number. Four projects claim port 4380. Two claim 19842.
 
-This is a coordination gap, not a mistake anyone made. The fleet grew fast and each repository picked a sensible default in isolation. The fix is a list, and the list is below.
+Nothing breaks until you run two of them at once, and then the failure is quiet. A client cannot tell which process answered it. A second server left listening on a port is recorded as producing co-simulation differences that are not real. Below is the full list of ports, and what to do when two projects you need share one.
 
 ## The registry
 
-Sorted by port. "What listens" names the process, because on several of these ports the answer differs between a recompiled runtime and the emulator core used as its [oracle](/docs/concepts/glossary). See [the TCP debug protocol](/docs/reference/tcp-protocol) for what any of these servers will answer once you connect.
+Sorted by port. "What listens" names the process. On several ports that is a recompiled runtime in one project and a reference emulator, the [oracle](/docs/concepts/glossary), in another. [The TCP debug protocol](/docs/reference/tcp-protocol) covers what these servers answer once you connect.
 
 | Port | Project | What listens | Documented in |
 |---|---|---|---|
@@ -75,27 +75,27 @@ Four projects claim it, and one more names it as its example value.
 | segagenesisrecomp | the native runner, per its compiled-in default |
 | gcnlle | the documented example value for `GCN_DEBUG_PORT`, and the default in its own client script |
 
-The likely pairing is psxrecomp against one of the three natives: a PlayStation co-simulation session already occupies 4380 for its oracle, so starting cdirecomp, segagenesisrecomp or Yoshi without moving a port puts two servers on one number. From the outside a client cannot tell which one it reached except by what `ping` answers, and the answers differ enough to be diagnostic: psxrecomp returns a frame number, cdirecomp returns `{ok,pong}`.
+The clash you will hit is psxrecomp against one of the three native runners. A PlayStation co-simulation session already holds 4380 for its oracle, so starting cdirecomp, segagenesisrecomp or Yoshi without moving a port puts two servers on one number. From outside, only `ping` tells you which one you reached: psxrecomp returns a frame number, cdirecomp returns `{ok,pong}`.
 
 ### Port 4370
 
-psxrecomp's `psx-runtime` shares it with five nesrecomp game ports, Super Mario Bros., Dr. Mario, Faxanadu, The Legend of Zelda and Yoshi's Cookie, and with gbrecompiled. Same reasoning: any two of those at once is a conflict.
+psxrecomp's `psx-runtime` shares it with five nesrecomp game ports, Super Mario Bros., Dr. Mario, Faxanadu, The Legend of Zelda and Yoshi's Cookie, and with gbrecompiled. Same problem: any two of those at once collide.
 
 ### Ports 19842 and 19843
 
-gbarecomp and ndsrecomp use exactly the same pair, native on 19842 and oracle on 19843. This is the pair the Nintendo DS work runs into most often, because a Game Boy Advance session and a DS session are both plausible things to have open at once on the same machine.
+gbarecomp and ndsrecomp use the same pair: native on 19842, oracle on 19843. Nintendo DS work hits this one most often, because a Game Boy Advance session and a DS session are both easy to have open at the same time.
 
 ### Ports 4371 and 4381
 
-The `+1` numbers inherit every collision from the natives beneath them. 4381 is the Nestopia oracle for Yoshi, the CeDImu oracle for CD-i and segagenesisrecomp's oracle. 4371 is both psxrecomp's retired DuckStation oracle and Super Mario Bros.' Nestopia oracle.
+The `+1` numbers have the same collisions as the ports below them. 4381 is the Nestopia oracle for Yoshi, the CeDImu oracle for CD-i and segagenesisrecomp's oracle. 4371 is both psxrecomp's retired DuckStation oracle and Super Mario Bros.' Nestopia oracle.
 
 ### Port 4390
 
-vbrecomp's `vb-runtime` and smsggrecomp's runner. This is the least likely of the collisions to bite you, because smsggrecomp's server does not start unless `--port <N>` is passed and its own document describes the whole surface as intended rather than shipped. The number is still claimed in both repositories.
+vbrecomp's `vb-runtime` and smsggrecomp's runner. This one is least likely to bite you. smsggrecomp's server does not start unless you pass `--port <N>`, and its own document calls the whole surface intended rather than shipped. Both repositories still claim the number.
 
 ### Where a project's own documents disagree
 
-Two projects state two different ports for themselves, and this page cannot resolve it for you.
+Two projects give two different ports for themselves. This page cannot settle it for you.
 
 | Project | The disagreement |
 |---|---|
@@ -104,15 +104,15 @@ Two projects state two different ports for themselves, and this page cannot reso
 
 ### The native plus one convention
 
-The fleet has one stated rule for allocating an oracle port, and it holds nearly everywhere. gbarecomp's `TCP.md` states it as "Convention: native odd port + 1 = oracle port. Same as in nesrecomp and snesrecomp." ndsrecomp states the same idea as "Oracle (melonDS): `127.0.0.1:19843` (one above native)".
+The fleet has one rule for choosing an oracle port. gbarecomp's `TCP.md` states it as "Convention: native odd port + 1 = oracle port. Same as in nesrecomp and snesrecomp." ndsrecomp states the same idea as "Oracle (melonDS): `127.0.0.1:19843` (one above native)".
 
-The `+1` half is correct across the whole registry above. The "odd port" half is not: 19842, 4370, 4380 and 4390 are all even, so the wording does not match any of the documented defaults. Rely on the arithmetic, not the parity.
+The `+1` half holds across the whole table above. The "odd port" half does not: 19842, 4370, 4380 and 4390 are all even. Use the arithmetic and ignore the odd and even part.
 
 ## Running two of these at once
 
 ### Move the port, do not move the process
 
-Every project has a documented override. Use it rather than closing whichever session you were already running.
+Every project documents a way to change its port. Use it instead of closing the session you already have running.
 
 | Project | How to change the port |
 |---|---|
@@ -125,7 +125,7 @@ Every project has a documented override. Use it rather than closing whichever se
 | gcnlle | The `GCN_DEBUG_PORT` environment variable. With it unset "the rings still record, there is just no query surface" |
 | smsggrecomp | `--port <N>`. The server does not start without it |
 
-vbrecomp's example configuration is the clearest illustration of a two-process pair, because it sets both halves in one file. Verbatim, from [`debug.ini.example`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/debug.ini.example) in MarioTennisVirtualBoyRecomp:
+vbrecomp's example configuration sets both halves of a pair in one file. Verbatim, from [`debug.ini.example`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/debug.ini.example) in MarioTennisVirtualBoyRecomp:
 
 ```ini title="debug.ini.example"
 [runtime]
@@ -144,25 +144,25 @@ wtrace_ring_size  = 1048576
 ; [snip] the file continues with stub_abort_fatal, which is not a port setting
 ```
 
-> **Note.** Both ndsrecomp and vbrecomp name `debug.ini` as the per-build port configuration, and in the surveyed clones no parser for it was located in the tracked runtime sources. If a `debug.ini` port setting does not take effect, use the command line flag instead and treat the file as unverified.
+> **Note.** ndsrecomp and vbrecomp both name `debug.ini` as the per-build port configuration. No parser for it was found in their tracked runtime sources. If a `debug.ini` port setting has no effect, use the command line flag.
 
 ### One listener per port, one client per listener
 
-Two rules that are easy to break and expensive to debug.
+Two rules, both easy to break.
 
-The protocol accepts **one client at a time** on every server. A second connection is not a second session.
+Every server takes **one client at a time**. A second connection is not a second session.
 
-**Two listeners on one port produce fabricated divergences, not an error you will notice.** ndsrecomp's issue log records this directly: more than one listener on 19842 or 19843 means a stale server answering your probes, so a co-simulation run reports differences that do not exist. The fix it gives is procedural: kill by port before any probe, keep exactly one process per port, and start a fresh server pair for each traversal scenario. That advice generalises to every project in the table above.
+**Two listeners on one port invent divergences instead of raising an error.** ndsrecomp's issue log records it. With more than one listener on 19842 or 19843, a stale server answers your probes, and a co-simulation run reports differences that do not exist. Its fix is a routine: kill by port before any probe, keep exactly one process per port, and start a fresh server pair for each scenario. That holds for every project in the table above.
 
-psxrecomp's `tools/debug_client.py` exits 1 when the connection is refused, which makes "is anything actually listening on this port" a scriptable check rather than a guess. [Errors and exit codes](/docs/reference/errors-and-exit-codes) has the rest of the conventions.
+psxrecomp's `tools/debug_client.py` exits 1 when the connection is refused, so a script can check whether anything is listening. [Errors and exit codes](/docs/reference/errors-and-exit-codes) has the rest.
 
 ### Do not renumber quietly
 
-nesrecomp's `TCP.md` states the maintenance rule for the whole fleet: "Do not change a project's ports without updating sibling docs". Because those sibling documents live in repositories that share no file, that is a manual step in every repository that names the port. If you move a project's port permanently rather than for one session, update its own document and this page together.
+nesrecomp's `TCP.md` states the rule for the whole fleet: "Do not change a project's ports without updating sibling docs". Those sibling documents live in separate repositories, so it is a manual edit in each one. If you move a port for good rather than for one session, update that project's document and this page together.
 
 ## Other localhost ports in the fleet
 
-Not debug servers, but they occupy localhost ports on the same machine and are worth knowing before you assign a new one. Four repositories carry an `.mcp.json`, all of them declaring a Ghidra server over SSE, all on different ports. [Machine-readable surfaces](/docs/agents/machine-surfaces) covers what those servers are for.
+These are not debug servers, but they take localhost ports on the same machine. Four repositories carry an `.mcp.json`, each declaring a Ghidra server over SSE on a different port. [Machine-readable surfaces](/docs/agents/machine-surfaces) covers what those servers are for.
 
 | Port | Project | What listens |
 |---|---|---|
@@ -171,7 +171,7 @@ Not debug servers, but they occupy localhost ports on the same machine and are w
 | 4000 | gbrecompiled | Ghidra over SSE |
 | 8078 | [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp) | Ghidra over SSE, declared as `ghidra_smw` |
 
-Several repositories gate all work on a reachable Ghidra MCP server but ship no `.mcp.json` at all, among them nesrecomp, Megaman3NESRecomp and YoshiNESRecomp. An agent in one of those repositories has no configured server to reach, which is a gap in those repositories rather than a port to allocate.
+Several repositories require a reachable Ghidra MCP server but ship no `.mcp.json`, among them nesrecomp, Megaman3NESRecomp and YoshiNESRecomp. An agent working in one of those has no configured server to reach.
 
 ## Source
 
@@ -186,6 +186,6 @@ Several repositories gate all work on a reachable Ghidra MCP server but ship no 
 ## Next
 
 - [TCP debug protocol](/docs/reference/tcp-protocol), for what to send once you have the right port.
-- [Debug a divergence](/docs/guides/debug-a-divergence), where running a native process and an oracle process together is the whole point.
+- [Debug a divergence](/docs/guides/debug-a-divergence), where you run a native process and an oracle process together.
 - [PlayStation](/docs/platforms/playstation) and [Nintendo DS](/docs/platforms/nintendo-ds), the two toolchains whose ports collide with the most others.
-- [If you are an agent, start here](/docs/agents/start-here), if you arrived here to drive one of these servers rather than to read about it.
+- [If you are an agent, start here](/docs/agents/start-here), if you came here to drive one of these servers.

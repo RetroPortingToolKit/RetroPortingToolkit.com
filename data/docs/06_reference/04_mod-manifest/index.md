@@ -1,6 +1,6 @@
 ---
 title: "Mod manifest"
-summary: "Field-by-field reference for the `manifest.toml` that psxrecomp, nesrecomp and snesrecomp mod packages share: types, requiredness, defaults, the operation blocks, and the clearly marked places where projects in the fleet genuinely differ."
+summary: "Field by field for the `manifest.toml` that psxrecomp, nesrecomp and snesrecomp mod packages share: types, defaults, which fields are required, the operation blocks, and the marked places where projects in the fleet differ."
 pageType: "reference"
 tags: ["Modding", "Schema", "PlayStation", "NES"]
 repos:
@@ -9,24 +9,25 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/TombaRecomp"
-  - "https://github.com/N64Recomp/N64Recomp"
   - "https://github.com/mstan/PokemonStadiumRecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-A mod package for a PlayStation, NES or SNES port is a ZIP archive with a `manifest.toml` at its root, carrying data only. The manifest declares which exact game it targets, which independently toggleable features it contributes, which typed options each feature exposes, and which guarded operations those features produce. This page documents that schema. It is not the only mod design in the fleet, so the shared shape comes first and the real per-project differences are in a clearly marked section at the end, rather than being flattened into one schema that no project implements.
+A mod package for a PlayStation, NES or SNES port is a ZIP archive with a `manifest.toml` at its root. It carries data, never code.
 
-## Scope and reading conventions
+The manifest says which exact game the package targets, which features it adds, which options each feature offers, and which writes those features make. Each feature can be switched on and off on its own. Every field is listed below, then the places where projects differ.
 
-The field tables below describe the TOML manifest used by [psxrecomp](https://github.com/mstan/psxrecomp) and its downstream ports, with [nesrecomp](https://github.com/mstan/nesrecomp) and [snesrecomp](https://github.com/mstan/snesrecomp) sharing the same vocabulary. The most complete published field list is [xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp)'s [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md); the normative operation semantics are in psxrecomp's [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md).
+## How to read these tables
 
-**Required** reads `Yes`, `No`, `Conditional`, or `Not documented`. `Not documented` means the projects have not stated it in the material this page was written from, and it is recorded that way rather than guessed. The same applies to `Default`.
+The tables below describe the TOML manifest used by [psxrecomp](https://github.com/mstan/psxrecomp) and the ports built on it. [nesrecomp](https://github.com/mstan/nesrecomp) and [snesrecomp](https://github.com/mstan/snesrecomp) use the same vocabulary. The fullest published field list is [xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp)'s [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md). What each operation means is defined in psxrecomp's [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md).
 
-A package contains data only. It cannot ship DLLs, shared objects, scripts or arbitrary native code, and it cannot select a symbol by name. It must also contain no part of the game: the publication checklist requires that "The archive contains no stock game files, patched disc, secrets, or files without redistribution permission". See [the game file you supply](/docs/concepts/the-game-file-you-supply).
+**Required** reads `Yes`, `No`, `Conditional` or `Not documented`. `Not documented` means no project states it in the sources this page was written from. The same goes for `Default`. Nothing here is guessed.
+
+A package carries data only. It cannot ship DLLs, shared objects, scripts or any native code, and it cannot pick a symbol by name. It also carries no part of the game. The publication checklist requires that "The archive contains no stock game files, patched disc, secrets, or files without redistribution permission". See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
 ## Format versions
 
-`format_version` is a cumulative feature level. The authoring guidance is to "Use the lowest version that provides the operations you need, from 1 through 7."
+`format_version` says which operations the manifest may use. Each version adds to the one before it. The guidance is to "Use the lowest version that provides the operations you need, from 1 through 7."
 
 | Version | Adds |
 |---|---|
@@ -37,7 +38,7 @@ A package contains data only. It cannot ship DLLs, shared objects, scripts or ar
 | 5 | Trusted static plugin selectors |
 | 6 | Authenticated replacement of game-specific indexed files |
 
-Xenogears' own catalog also references format 8 for its Perfect Works composition work. Formats 7 and 8 are not itemised in the material this page was written from.
+Xenogears' own catalog also uses format 8, for its Perfect Works work. Nothing this page was written from says what formats 7 and 8 add.
 
 ## Top-level fields
 
@@ -56,11 +57,11 @@ Xenogears' own catalog also references format 8 for its Perfect Works compositio
 | `save_compatibility` | string | Not documented | not documented | `shared` or `isolated`. |
 | `conflicts` | array of strings | No | none | Package ids that cannot coexist with this one at all. |
 
-Invalid `id` or `version` is one of the documented causes of a package failing to install.
+An invalid `id` or `version` is one of the documented reasons a package fails to install.
 
 ## `[[target]]`
 
-A target pins the package to one exact stock revision. Resolution verifies the selected game and revision before boot, and a mismatch fails closed.
+A target pins the package to one exact stock revision. The runtime checks the game and the revision before boot. If they do not match, nothing is applied.
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
@@ -76,7 +77,7 @@ A target pins the package to one exact stock revision. Resolution verifies the s
 
 ## `[[feature]]`
 
-Features are the rows the launcher shows. Identity is always `(package_id, feature_id)`, and "Enabling one feature never enables, disables, or reconfigures another feature."
+A feature is a row in the launcher. Its identity is `(package_id, feature_id)`. "Enabling one feature never enables, disables, or reconfigures another feature."
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
@@ -86,11 +87,11 @@ Features are the rows the launcher shows. Identity is always `(package_id, featu
 | `group` | string | No | none | Grouping label in the launcher, for example `Display` or `Gameplay`. |
 | `default_enabled` | boolean | No | `false` | New features default to disabled. |
 
-Do not model alternatives as rival features: "Mutually exclusive choices such as US versus Japanese artwork belong inside one feature as option values."
+Do not build two features that rule each other out: "Mutually exclusive choices such as US versus Japanese artwork belong inside one feature as option values."
 
 ## `[[option]]`
 
-Options are feature-owned and typed. The launcher renders, validates and persists them, and a trusted plugin can read the committed value back through one narrow accessor.
+Every option belongs to one feature and has a type. The launcher draws it, checks it and saves it. A trusted plugin can read the saved value back through one function.
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
@@ -115,7 +116,7 @@ One block per selectable value, for `type = "choice"`.
 | `value` | string | Yes | none | The stored value. The option's `default` must match one of these. |
 | `label` | string | Not documented | none | Player-facing label for this value. |
 
-Typed options exist because an activation callback takes no arguments. The runtime header states the reasoning directly, from [`runtime/include/mod_plugins.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/mod_plugins.h):
+Options have types because an activation callback takes no arguments. The runtime header explains it, from [`runtime/include/mod_plugins.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/mod_plugins.h):
 
 ```c title="runtime/include/mod_plugins.h"
 /*
@@ -132,7 +133,7 @@ Typed options exist because an activation callback takes no arguments. The runti
 
 ## `[[patch]]`
 
-A guarded write. The guard is checked before the plan is applied, and a mismatch fails closed.
+A guarded write. The guard is the bytes that must already be there. They are checked before anything is written, and a mismatch cancels the whole plan.
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
@@ -159,7 +160,7 @@ A `disc_raw` or `disc_user` patch may not cross a sector boundary. Use `disc_use
 | `offset` | integer | Not documented | not documented | Byte offset into the guarded range. |
 | `addend` | integer | No | none | Checked addend applied to the option value. |
 
-The design is deliberately minimal: "There is deliberately no host-endian encoding, signed inference, mask, shift, scale, expression language, or partial-field merge." The `mips_lui_ori_u32` loader verifies the opcodes and register linkage and "does not apply signed-`ADDIU` carry adjustment".
+The design is kept small on purpose: "There is deliberately no host-endian encoding, signed inference, mask, shift, scale, expression language, or partial-field merge." The `mips_lui_ori_u32` loader checks the opcodes and the register linkage, and "does not apply signed-`ADDIU` carry adjustment".
 
 A generated value that equals the stock guard produces no write and claims no bytes.
 
@@ -170,18 +171,18 @@ A generated value that equals the stock guard produces no write and claims no by
 | `kind` | string | Yes | none | `ordered_integer`. Format 3 and above. |
 | `direction` | string | Yes | none | `nondecreasing` or `nonincreasing`, across several integer options on one feature. |
 
-A constraint expresses ordering only within a single feature. It cannot make options in different features mutually exclusive. The keys that name the constrained options are in [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md) and are not recorded here.
+A constraint orders options inside one feature. It cannot make options in different features rule each other out. The keys that name the constrained options are in [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md), not here.
 
 ## `[[overlay]]`
 
-For large assets: artwork, script, audio, or another sizeable disc asset. An overlay replaces a range as it is read, and does not rebuild the player's stock image.
+For large assets: artwork, script, audio, or anything else big on the disc. An overlay replaces a range of the disc as it is read. It does not rebuild the player's own copy.
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
 | `sha256` | hex string | Yes | none | Hash of the payload file carried in the archive. |
 | `expected_sha256` | hex string | No | none | Hash of the stock range being replaced. |
 
-The key naming the payload file inside the archive is not recorded in the material this page was written from; see the specification. Every `[[target]]` used by a feature with a disc overlay must carry an exact `disc_sha256`. Payloads are "loaded and reverified during resolution, then indexed by target and LBA before boot. A CD read performs a direct indexed lookup rather than scanning every installed mod."
+The key that names the payload file inside the archive is not in the sources this page was written from; see the specification. Every `[[target]]` used by a feature with a disc overlay needs an exact `disc_sha256`. Payloads are "loaded and reverified during resolution, then indexed by target and LBA before boot. A CD read performs a direct indexed lookup rather than scanning every installed mod."
 
 `derived_disc` is "legacy conversion scaffolding only" and is rejected by feature-style manifests. Do not ship a prepatched disc.
 
@@ -194,11 +195,11 @@ Format 5 and above. Selects behaviour that is already statically linked into the
 | `feature` | string | Yes | none | The owning `feature.id`. |
 | `id` | string | Yes | none | A stable registry key registered by the build. |
 
-"The package archive supplies no native code." A plugin id that is not registered in the build makes the plugin unavailable, and a package cannot supply the implementation. Adding a new plugin id or a `builtin:` resolver is a source change to the port and requires project review. On NES the same boundary is described precisely: "Native plugins are intentionally trusted code, so this is an activation-scope gate rather than a sandbox between plugins."
+"The package archive supplies no native code." If the build has not registered a plugin id, that plugin is unavailable, and the package cannot supply it. Adding a plugin id, or a `builtin:` resolver, is a source change to the port and needs project review. NES states the same boundary: "Native plugins are intentionally trusted code, so this is an activation-scope gate rather than a sandbox between plugins."
 
 ## `[[indexed_file]]`
 
-Format 6 and above, and specific to Xenogears' hidden disc index. It replaces a file in that index without requiring a fixed-size payload: the runtime appends replacements to a virtual extension of the data track and rebuilds complete Mode 2 Form 1 sectors with valid EDC and ECC. Field names are in [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md) and are not recorded here.
+Format 6 and above, and specific to Xenogears' hidden disc index. It replaces a file in that index, and the replacement does not have to be the same size. The runtime adds it to a virtual extension of the data track and rebuilds complete Mode 2 Form 1 sectors with valid EDC and ECC. Field names are in [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md), not here.
 
 An active `[[indexed_file]]` plan cannot be combined with `disc_raw` or `disc_user` writes, file-backed overlays, or a legacy `derived_disc`, "even when their ranges would be disjoint or they come from different packages".
 
@@ -277,7 +278,7 @@ id = "tomba.frame-interpolation"
 
 ## `mods/state.toml`
 
-The companion file, written by the launcher, holding selected package versions separately from per-feature enabled state and values. Format 2, from [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md):
+The launcher writes this file. It records which package versions are selected, and separately which features are on and what their options are set to. Format 2, from [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md):
 
 ```toml title="docs/MOD_PACKAGES.md"
 format_version = 2
@@ -295,11 +296,11 @@ enabled = true
 variant = "rockman"
 ```
 
-Installed and preloaded packages share one executable-relative catalog, `mods/packages/<package-id>/<version>/manifest.toml`. A game may ship reviewed, default-disabled packages unpacked at `mods/preloaded/packages/<package-id>/<version>/manifest.toml`, staged beside the executable at build time; [Port a game](/docs/guides/port-a-game) covers where `mods/` sits in a port repository. Framework packages live in the recompiler repository at `mods/builtin/packages/<package-id>/<version>/manifest.toml`.
+Installed and preloaded packages share one catalog beside the executable, at `mods/packages/<package-id>/<version>/manifest.toml`. A game may also ship reviewed packages, unpacked and off by default, at `mods/preloaded/packages/<package-id>/<version>/manifest.toml`; those are put in place at build time. Framework packages live in the recompiler repository at `mods/builtin/packages/<package-id>/<version>/manifest.toml`. [Port a game](/docs/guides/port-a-game) shows where `mods/` sits in a port repository.
 
 ## Where projects differ
 
-There is one shared package design across PlayStation, NES and SNES, a genuinely different design on N64, and an older file-drop layer on some 8-bit ports. Everything above describes the first of the three.
+PlayStation, NES and SNES share the package design above. The differences that matter are below.
 
 ### NES
 
@@ -313,34 +314,29 @@ There is one shared package design across PlayStation, NES and SNES, a genuinely
 
 ### SNES
 
-The same package vocabulary and the same per-game build opt-in posture. snesrecomp keeps its own `docs/MOD_PACKAGES.md`; its format level is not recorded here.
+The same package vocabulary, and mod support is a per-game build opt-in there too. snesrecomp keeps its own `docs/MOD_PACKAGES.md`; its format level is not recorded here.
 
-### N64
+### Nintendo 64
 
-N64 mods are compiled code, which makes this a different design in kind rather than a variant. The tooling is a four-stage pipeline over a mod ELF, and the manifest is `mod.json`. [N64Recomp](https://github.com/N64Recomp/N64Recomp)'s [`RecompModTool/main.cpp`](https://github.com/N64Recomp/N64Recomp/blob/main/RecompModTool/main.cpp) declares `symbol_filename = "mod_syms.bin"`, `binary_filename = "mod_binary.bin"`, `manifest_filename = "mod.json"`, and a `ModManifest` carrying `mod_id`, `version_string`, `authors`, `game_id`, `minimum_recomp_version`, `native_libraries`, `custom_gamemode`, `config_options`, `dependencies` and `optional_dependencies`.
-
-[PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) describes the same shape as its plan: "Modding will follow the N64Recomp four-tool pattern: mod manifest schema (`mod.json`), RecompModTool (mod ELF → symbol tables), OfflineModRecomp (mod recompiler), RecompModMerger (multi-mod conflict resolution)." Its own status is "**Status: deferred.** Modding is intentionally out of scope until the base game boots and is playable."
-
-> **Note.** N64Recomp prohibits AI-generated contributions. This page documents its manifest shape as published; it is not an invitation to open a pull request against it.
+[PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) has no mod format yet. Its `MODDING.md` says: "**Status: deferred.** Modding is intentionally out of scope until the base game boots and is playable."
 
 ### The file-drop layer
 
-Some NES ports predate packages entirely and still document a manifest-free path: drop `text_overrides.json` and a `tiles/` directory beside the executable and the game auto-detects them. No manifest, no hashes, no packaging step. [Write a mod](/docs/guides/write-a-mod) covers it.
+Some NES ports predate packages and still document a path with no manifest at all. Drop `text_overrides.json` and a `tiles/` directory beside the executable and the game finds them. No manifest, no hashes, no packaging step. [Write a mod](/docs/guides/write-a-mod) covers it.
 
-## What this schema does not pin down
+## What the schema leaves open
 
-- **The operations in shipped use are narrower than the ones documented.** Every manifest present in the surveyed clone of the fleet, three psxrecomp builtins and five TombaRecomp preloaded packages, is `format_version = 5` and uses only `[[plugin]]`. The integer, sparse-field and overlay examples in the specifications are explicitly placeholders.
+- **Shipped packages use far less than the schema allows.** Every manifest in the surveyed clone of the fleet, three psxrecomp builtins and five TombaRecomp preloaded packages, is `format_version = 5` and uses only `[[plugin]]`. The integer, sparse-field and overlay examples in the specifications are marked as placeholders.
 - **Validation is not endorsement.** "Passing archive validation does not establish authorship, legality, gameplay correctness, or compatibility."
 - **The packer checks almost nothing.** `psxmod_pack.py` requires `manifest.toml`, sorts entries, fixes timestamps and modes, and writes a DEFLATE ZIP. "It does not prove that your addresses or expected bytes are correct. Full manifest and target validation happens when the package is installed/resolved by the runtime."
-- **Netplay clears the plan.** Mods are disabled for every netplay session, lobby, LAN, direct and rematch, without touching the offline selection. [Determinism](/docs/concepts/determinism) explains why an unsynchronised plan is intolerable to rollback.
+- **Netplay turns mods off.** Every netplay session runs with no mods, in lobby, LAN, direct and rematch play, and your offline selection is left alone. [Determinism](/docs/concepts/determinism) explains why rollback cannot survive a plan the two sides do not share.
 
 ## Source
 
 - [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md), [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md), [`runtime/include/mod_plugins.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/mod_plugins.h), [`tools/psxmod_pack.py`](https://github.com/mstan/psxrecomp/blob/master/tools/psxmod_pack.py), [`docs/NETPLAY.md`](https://github.com/mstan/psxrecomp/blob/master/docs/NETPLAY.md).
 - [xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp): [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md) and [`MODS.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MODS.md).
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`docs/MOD_PACKAGES.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MOD_PACKAGES.md) and [`MODDING.md`](https://github.com/mstan/nesrecomp/blob/master/MODDING.md). [snesrecomp](https://github.com/mstan/snesrecomp): [`README.md`](https://github.com/mstan/snesrecomp/blob/main/README.md).
-- [TombaRecomp](https://github.com/mstan/TombaRecomp): the shipped manifests under [`mods/preloaded/packages/`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages).
-- [N64Recomp](https://github.com/N64Recomp/N64Recomp): [`RecompModTool/main.cpp`](https://github.com/N64Recomp/N64Recomp/blob/main/RecompModTool/main.cpp). [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): [`MODDING.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/MODDING.md).
+- [TombaRecomp](https://github.com/mstan/TombaRecomp): the shipped manifests under [`mods/preloaded/packages/`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages). [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): [`MODDING.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/MODDING.md).
 
 ## Next
 

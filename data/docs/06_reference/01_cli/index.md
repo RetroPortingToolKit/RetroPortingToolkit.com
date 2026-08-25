@@ -1,6 +1,6 @@
 ---
 title: "Command line reference"
-summary: "Every command line tool in the fleet worth driving: one real invocation and a full flag table with type, default and meaning, for the recompilers, the runtimes, the packagers and the debug clients."
+summary: "Every command line tool in the fleet: one real command you can run, then a full flag table with type, default and meaning, for the recompilers, the runtimes, the packagers and the debug clients."
 pageType: "reference"
 tags: ["CLI", "Reference", "Tooling"]
 repos:
@@ -15,16 +15,20 @@ repos:
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/vbrecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-This is the flag surface of the fleet: the recompilers that emit C, the runtimes that run it, the packagers, and the debug clients. Where a tool reads a game file, you supply your own, and none of these tools ships one. Tools are grouped by project, psxrecomp first because it has the largest and best documented surface, then the rest alphabetically; flags are alphabetical inside each table. Every tool and subcommand is a heading, so it has a stable link anchor. Exit codes are collected separately on [errors and exit codes](/docs/reference/errors-and-exit-codes), and the terms used here are defined in [the glossary](/docs/concepts/glossary).
+Every command line tool in this fleet, with its flags. The recompilers here read a game's compiled code and write C source. The runtimes run the result. The packagers and debug clients sit around them.
+
+You supply your own game file. None of these tools ships one.
+
+Tools are grouped by project, psxrecomp first because it has the most, then the rest alphabetically. Flags are alphabetical inside each table. Exit codes are on [errors and exit codes](/docs/reference/errors-and-exit-codes), and terms are defined in [the glossary](/docs/concepts/glossary).
 
 ## psxrecomp
 
 ### psxrecomp build
 
-The shipped `psxrecomp.exe` is a C++ binary with exactly one subcommand. Supported BIOS images per its usage text: OpenBIOS, SCPH1001, SCPH101, SCPH5552, or any 512 KiB PS1 BIOS dump you supply.
+The shipped `psxrecomp.exe` is a C++ binary with one subcommand. Its usage text lists the BIOS images it takes: OpenBIOS, SCPH1001, SCPH101, SCPH5552, or any 512 KiB PS1 BIOS dump you supply.
 
 ```sh
 psxrecomp build --disc /path/game.cue --bios /path/SCPH1001.BIN --output /path/MyGameRecomp --name "My Game"
@@ -40,7 +44,7 @@ psxrecomp build --disc /path/game.cue --bios /path/SCPH1001.BIN --output /path/M
 
 ### psxrecomp_cli.py
 
-The headless SDK CLI, and the flagship of this page. Six subcommands: `verify-disc`, `generate`, `rebuild`, `pgo-train`, `ensure-toolchain`, `ensure-emitters`. These common flags are injected into `verify-disc`, `generate`, `rebuild` and `pgo-train`.
+The headless CLI. Six subcommands: `verify-disc`, `generate`, `rebuild`, `pgo-train`, `ensure-toolchain`, `ensure-emitters`. The three flags below are added to `verify-disc`, `generate`, `rebuild` and `pgo-train`.
 
 | Flag | Type | Default | Meaning |
 |---|---|---|---|
@@ -63,7 +67,7 @@ python psxrecomp_cli.py verify-disc --config game.toml --disc tomba/tomba.cue
 
 ### psxrecomp_cli.py generate
 
-Regenerates BIOS backends, prepares the disc, and generates the game C.
+Regenerates the BIOS backends, prepares the disc, and writes the game's C source.
 
 ```sh
 python psxrecomp_cli.py generate --config game.toml --disc tomba/tomba.cue --bios bios/SCPH1001.BIN
@@ -82,7 +86,7 @@ python psxrecomp_cli.py generate --config game.toml --disc tomba/tomba.cue --bio
 
 ### psxrecomp_cli.py rebuild
 
-Runs the CMake build, and the PGO phase when `game.toml` enables it.
+Runs the CMake build, plus the PGO step when `game.toml` turns it on. PGO is profile guided optimization: build, run the game and measure it, then build again using the measurements.
 
 ```sh
 python psxrecomp_cli.py rebuild --config game.toml --build-dir build --target psx-runtime --cmake-extra -DPSX_NETPLAY=ON
@@ -109,7 +113,7 @@ python psxrecomp_cli.py rebuild --config game.toml --build-dir build --target ps
 
 ### psxrecomp_cli.py pgo-train
 
-Forces a PGO rebuild, train and use, standalone. Same flag set as `rebuild` minus the toolchain and prune options, with `--force-pgo` on by default and `--no-pgo` present only for interface parity.
+Runs the PGO cycle on its own: rebuild, train, use. Same flags as `rebuild`, minus the toolchain and prune options. `--force-pgo` is on by default. `--no-pgo` exists only so the two flag sets match.
 
 ```sh
 python psxrecomp_cli.py pgo-train --config game.toml --build-dir build --disc tomba/tomba.cue --train-secs 90
@@ -172,7 +176,7 @@ Example: {} SCUS_942.36 --seeds seeds/functions.txt --out-dir generated --strict
 
 ### psxrecomp-bios
 
-The BIOS emitter. It self-validates its own output by compiling the emitted `boot_slice.c`, and if no C compiler is on PATH the tool fails; there is no skip path. The going-forward invocation is `psxrecomp-bios --config <path.toml>`; `--rom`, `--out-dir`, `--cc`, `--discover` and `--emit-full` also parse. Its header comment states the older positional form and the exit codes:
+The BIOS emitter. It compiles the `boot_slice.c` it just wrote to check its own output, so it needs a C compiler on PATH. Without one it fails, and that check cannot be skipped. Use `psxrecomp-bios --config <path.toml>`; `--rom`, `--out-dir`, `--cc`, `--discover` and `--emit-full` also parse. Its header comment gives the older positional form and the exit codes:
 
 ```text
 // CLI:
@@ -187,7 +191,7 @@ The BIOS emitter. It self-validates its own output by compiling the emitted `boo
 
 ### psxrecomp-toml
 
-The fourth binary in the CLI package. It analyses a PS-X EXE and generates a complete `game.toml` with auto-detected `load_address`, `entry_pc`, `text_size` and `stack_base`, plus an optional seeds file of JAL targets.
+The fourth binary in the CLI package. It reads a PS-X EXE and writes a complete `game.toml`, detecting `load_address`, `entry_pc`, `text_size` and `stack_base`. It can also write a seeds file of JAL targets.
 
 | Flag | Type | Default | Meaning |
 |---|---|---|---|
@@ -201,7 +205,9 @@ The fourth binary in the CLI package. It analyses a PS-X EXE and generates a com
 
 ### psx-runtime
 
-The runtime binary, which is what a player actually launches. The invocation below is the framework's own documented example. One naming caveat, established by building it: `psx-runtime` is the CMake target, and the executable on disk carries a derived name, `PSXRecomp` for the framework's own build and a name derived from the game's title in a game repository. Substitute the file that is actually in your build directory.
+The runtime binary, the thing a player launches. The command below is the framework's own example.
+
+`psx-runtime` is the CMake target name, not the file name. The framework's build writes `PSXRecomp`; a game repository writes a name from the game's title. Run whichever file is in your build directory.
 
 ```sh
 ./build/psx-runtime --game game.toml --disc tomba/tomba.cue
@@ -228,7 +234,7 @@ The runtime binary, which is what a player actually launches. The invocation bel
 
 ### psxrecomp tools/build_cli.py
 
-Builds the redistributable CLI archive. It configures with `-DPSXRECOMP_STATIC_CLI=ON`, builds the four CLI targets, and stages `psxrecomp` at the archive root with the other three under `libexec/`.
+Builds the CLI archive that gets shipped. It configures with `-DPSXRECOMP_STATIC_CLI=ON`, builds the four CLI targets, and puts `psxrecomp` at the archive root with the other three under `libexec/`.
 
 ```sh
 python tools/build_cli.py release
@@ -245,7 +251,7 @@ Sibling `tools/build_cli.py` scripts exist in nesrecomp, snesrecomp and gbarecom
 
 ### psxrecomp tools/regen_bios.sh
 
-Regenerates a BIOS backend. `--config` is the only accepted flag form, and anything else is rejected rather than silently regenerating the default.
+Regenerates a BIOS backend. `--config` is the only flag it accepts. Anything else is rejected, so a typo cannot quietly regenerate the default profile instead.
 
 ```sh
 tools/regen_bios.sh --config bios/OpenBIOS.toml
@@ -259,7 +265,7 @@ tools/regen_bios.sh --config bios/OpenBIOS.toml
 
 ### psxrecomp tools/setup_dev.sh
 
-One-shot developer setup for macOS and Linux. It prints an `[ok]`, `[missing]` or `[warn]` line for `cmake`, `python3`, `ninja` and a C compiler, then builds the CLI, the recompiler tools and the BIOS-only runtime. It does not create per-game runtime targets.
+Developer setup for macOS and Linux, run once. It prints `[ok]`, `[missing]` or `[warn]` for `cmake`, `python3`, `ninja` and a C compiler, then builds the CLI, the recompiler tools and the BIOS-only runtime. It creates no per-game runtime targets.
 
 | Name | Type | Default | Meaning |
 |---|---|---|---|
@@ -269,7 +275,7 @@ One-shot developer setup for macOS and Linux. It prints an `[ok]`, `[missing]` o
 
 ### psxrecomp tools/debug_client.py
 
-The TCP debug client. With no positional arguments it drops into an interactive REPL. Extra arguments of the form `key=value` become JSON fields, integers when numeric, so every server command is reachable without changing the client.
+The TCP debug client. With no arguments it opens an interactive prompt. Extra `key=value` arguments become JSON fields, and numbers stay numbers, so every server command is reachable.
 
 ```sh
 python tools/debug_client.py --port 4370 gpu_frame_dump frame=14528 count=65536
@@ -282,15 +288,15 @@ python tools/debug_client.py --port 4370 gpu_frame_dump frame=14528 count=65536
 | `--host` | string | `127.0.0.1` | Target host |
 | `--port` | int | 4370 native | Target port |
 
-There is also a `compare` form, `python tools/debug_client.py compare <cmd>`, which runs a command on both sides and diffs the results.
+A `compare` form, `python tools/debug_client.py compare <cmd>`, runs one command on both sides and shows the differences.
 
 ### psxrecomp project_studio
 
-A separate scaffolding and operations CLI for game repositories, at `tools/new_project_layout/project_studio/cli.py`. Top-level subcommands are `audit`, `plan`, `apply`, `ops`, `gui`, `git` and `build`. Its `git` group adds `status`, `ensure-submodules`, `ensure-nested`, `set-branch`, `update-submodules`, `update-nested`, `commit-nested`, `pull`, `commit`, `push` and `release`. Its `build` group is `configure` (`--build-type` default `Release`, `--generator` default auto, `--extra`), `compile` (`--target` default `psx-runtime`, `--jobs` default 0), `run` (`--exe`, `--args`), `stop` and `status`; all of them take `--root` (required), `--build-dir` (default `build-release`) and `--dry-run`.
+A separate CLI for game repositories, at `tools/new_project_layout/project_studio/cli.py`. It sets a project up and then runs it. Top-level subcommands are `audit`, `plan`, `apply`, `ops`, `gui`, `git` and `build`. Its `git` group adds `status`, `ensure-submodules`, `ensure-nested`, `set-branch`, `update-submodules`, `update-nested`, `commit-nested`, `pull`, `commit`, `push` and `release`. Its `build` group is `configure` (`--build-type` default `Release`, `--generator` default auto, `--extra`), `compile` (`--target` default `psx-runtime`, `--jobs` default 0), `run` (`--exe`, `--args`), `stop` and `status`; all of them take `--root` (required), `--build-dir` (default `build-release`) and `--dry-run`.
 
 ## cdirecomp
 
-Four binaries, driven positionally. Both harnesses also accept `--stop-frame N`, which parks immediately after publishing field N for deterministic frame-domain comparison, and `--stop-seq`.
+Four binaries, all driven by positional arguments. Both harnesses also take `--stop-frame N`, which stops right after field N is published so two runs line up, and `--stop-seq`.
 
 ### CdiRecompBios
 
@@ -344,7 +350,7 @@ The Python wrapper around the emitter.
 
 ### gba_recompile
 
-The native emitter, with two mutually exclusive modes. `--rom` and `--bios` are rejected together. `--config` is repeatable: the first is the base config and each later one is a supplemental overlay merged on top, and the base wins every conflict. Usage, verbatim from [`tools/gba_recompile/main.cpp`](https://github.com/mstan/gbarecomp/blob/main/tools/gba_recompile/main.cpp):
+The native emitter. It has two modes and you pick one: `--rom` and `--bios` together are rejected. `--config` can be repeated. The first file is the base, later files merge on top, and the base wins every conflict. Usage, verbatim from [`tools/gba_recompile/main.cpp`](https://github.com/mstan/gbarecomp/blob/main/tools/gba_recompile/main.cpp):
 
 ```text title="tools/gba_recompile/main.cpp"
 gba_recompile --rom <path> [--entry HEX] [--symbols TSV]
@@ -367,13 +373,13 @@ gba_recompile --bios <path>
   bios_recompiled.{cpp,h} + bios_dispatch_table.cpp.
 ```
 
-`--symbol-map` and `--no-symbol-map` are parsed but absent from that usage block.
+`--symbol-map` and `--no-symbol-map` are also parsed, but the usage text above does not list them.
 
 ## gbrecompiled
 
 ### gbrecomp
 
-Directory mode recompiles every `.gb`, `.gbc` and `.sgb` file under a folder, emits one module per ROM, and generates a launcher. CLI flags override TOML config values. Directory mode does not support `--bank` or `--add-entry-point`.
+Given a folder, it recompiles every `.gb`, `.gbc` and `.sgb` file in it, writes one module per ROM, and generates a launcher. Flags beat the TOML config. Folder mode does not support `--bank` or `--add-entry-point`.
 
 ```sh
 ./build/bin/gbrecomp path/to/game.gb -o output/game
@@ -411,7 +417,7 @@ Directory mode recompiles every `.gb`, `.gbc` and `.sgb` file under a folder, em
 
 ### gcn_debug_client.py
 
-Thirteen lines of Python, and the whole debug surface is reachable through it: `key=value` arguments become JSON fields, hexadecimal and decimal integers stay integers.
+Thirteen lines of Python that reach the whole debug surface. `key=value` arguments become JSON fields, and both hex and decimal numbers stay numbers.
 
 ```sh
 python tools/gcn_debug_client.py read_ram addr=0x80000034 len=8
@@ -424,7 +430,7 @@ python tools/gcn_debug_client.py read_ram addr=0x80000034 len=8
 
 ### gcn_cosim.py
 
-The co-simulation harness driver. Subcommands: `runtime-capture`, `runtime-pub-sweep`, `dolphin-ipl-capture`, `gate1`, `ab-step`. Its flags cover capture shaping (`--draw-state`, `--pc-seen PC`, `--block-dump-count N`, `--fifo-dump-count N`, `--sample-pub N`, `--byte-audit-every N`), memory watching (`--watch-range LO:HI`, `--watch-dump-count N`), register probes (`--gpr-probe-pc PC`, `--gpr-probe-dump-count N`, `--gpr-probe-memory [PC:]GPR:OFFSET:LENGTH`, `--gpr-probe-memory-deref [PC:]GPR:PTR_OFFSET:READ_OFFSET:LENGTH`), checkpoints (`--checkpoint-pc PC`, `--checkpoint-gpr N`, `--checkpoint-gpr-value V`, `--checkpoint-lr LR`), snapshots (`--snapshot-save PATH`, `--snapshot-exit`) and alignment (`--align-dolphin-timebase-at N`, `--pad-pulse 0:0:10000`).
+Drives the co-simulation harness: the port and a reference emulator run side by side and are compared. Subcommands: `runtime-capture`, `runtime-pub-sweep`, `dolphin-ipl-capture`, `gate1`, `ab-step`. Its flags cover capture shaping (`--draw-state`, `--pc-seen PC`, `--block-dump-count N`, `--fifo-dump-count N`, `--sample-pub N`, `--byte-audit-every N`), memory watching (`--watch-range LO:HI`, `--watch-dump-count N`), register probes (`--gpr-probe-pc PC`, `--gpr-probe-dump-count N`, `--gpr-probe-memory [PC:]GPR:OFFSET:LENGTH`, `--gpr-probe-memory-deref [PC:]GPR:PTR_OFFSET:READ_OFFSET:LENGTH`), checkpoints (`--checkpoint-pc PC`, `--checkpoint-gpr N`, `--checkpoint-gpr-value V`, `--checkpoint-lr LR`), snapshots (`--snapshot-save PATH`, `--snapshot-exit`) and alignment (`--align-dolphin-timebase-at N`, `--pad-pulse 0:0:10000`).
 
 ## ndsrecomp
 
@@ -478,7 +484,7 @@ The Python wrapper, version 0.3.0 in this checkout.
 
 ### NESRecomp
 
-The native emitter, which writes `generated/<prefix>_full.c` and `generated/<prefix>_dispatch.c`. Usage, verbatim from [`recompiler/src/main_nes.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/main_nes.c):
+The native emitter. It writes `generated/<prefix>_full.c` and `generated/<prefix>_dispatch.c`. Usage, verbatim from [`recompiler/src/main_nes.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/main_nes.c):
 
 ```text title="recompiler/src/main_nes.c"
 Usage:
@@ -515,7 +521,7 @@ Usage: GenesisRecomp <rom.md|rom.bin> [--game <path/to/game.toml>] [--output-dir
 
 ### boot_smoke.py
 
-The boot regression harness. Its baseline lives on disk and the default mode is a check against it.
+The boot check. It keeps a baseline on disk, and by default compares a fresh run against it.
 
 ```sh
 python tools/boot_smoke.py --game sonic1 --port 4380 --dump-on-diff
@@ -531,7 +537,7 @@ python tools/boot_smoke.py --game sonic1 --port 4380 --dump-on-diff
 
 ### zone_smoke.py
 
-The visual regression harness: it hashes the framebuffer during a scripted run and diffs against a checked-in baseline.
+The picture check. It hashes the framebuffer during a scripted run and compares that against a baseline stored in the repository.
 
 ```sh
 python tools/zone_smoke.py --game sonic2 \
@@ -547,11 +553,11 @@ python tools/zone_smoke.py --game sonic2 \
 | `--keep-log` | flag | off | Save the runner's full stderr |
 | `--write-baseline` | flag | off | Capture a baseline |
 
-The runner side takes `--input-script <path>` for a scripted button timeline with RAM assertions, and `--hash-frames N`.
+The runner takes `--input-script <path>`, a scripted button timeline that can also check RAM values, and `--hash-frames N`.
 
 ### package_release.py
 
-The allowlist packager. Flags and the compliance rules behind them are on [release a port](/docs/guides/release-a-port).
+The packager. It copies only files on an allowlist. Its flags and the rules behind them are on [release a port](/docs/guides/release-a-port).
 
 ## smsggrecomp
 
@@ -563,7 +569,7 @@ Usage, verbatim from [`recompiler/src/main_sms.c`](https://github.com/mstan/smsg
 usage: SmsRecomp [<rom>] --game <game.toml> [--flat-step [--flat-step-variant <image>]...]
 ```
 
-Regenerating the native C from a ROM you supply overwrites `generated/<prefix>_{full,dispatch,layout}.c`, after which the runner is rebuilt.
+Regenerating from a ROM you supply overwrites `generated/<prefix>_{full,dispatch,layout}.c`. Rebuild the runner afterwards.
 
 ## snesrecomp
 
@@ -579,7 +585,7 @@ Regenerating the native C from a ROM you supply overwrites `generated/<prefix>_{
 | `--output`, `-o` | dir | required | New output directory |
 | `--rom` | path | required | A `.sfc` or `.smc` ROM you supply |
 
-A separate `tools/build_native_analyzer.py` builds and tests the `snesrecomp-analyze` binary and takes `--test`.
+A separate script, `tools/build_native_analyzer.py`, builds and tests the `snesrecomp-analyze` binary. It takes `--test`.
 
 ## vbrecomp
 
@@ -591,7 +597,7 @@ Both binaries take `--port N`, which overrides the compiled-in default: 4390 for
 ./build/runtime/vb-runtime --port 4390      # vb-runtime.exe on Windows
 ```
 
-The repository's Python helpers are `tools/_ping.py --port 4390`, `tools/_wtrace_summary.py` for a paginated drain of the write trace with histograms by 4 KB target page and source PC, `tools/_wram_diff.py` for a byte-level work RAM diff between 4390 and 4391, and `tools/_vip_diff.py` for a cross-process VIP register diff.
+Four Python helpers ship with it. `tools/_ping.py --port 4390` checks a server is up. `tools/_wtrace_summary.py` reads the write trace a page at a time, counting writes by 4 KB target page and by source PC. `tools/_wram_diff.py` compares work RAM between 4390 and 4391 byte by byte, and `tools/_vip_diff.py` compares the VIP registers.
 
 ## Source
 

@@ -1,16 +1,20 @@
 ---
 title: "recomp-net API"
-summary: "The public C surface of recomp-net: the four-pointer host vtable a port implements, the session config every peer must agree on, the admission loop, the three transports, the rollback layer, and the wire format."
+summary: "The public C surface of recomp-net: the four-pointer host vtable a port fills in, the session config every peer must agree on, the admission loop, the three transports, the rollback layer, and the wire format."
 pageType: "reference"
 tags: ["Netplay", "Rollback", "API", "Schema"]
 repos:
   - "https://github.com/TechnicallyComputers/recomp-net"
   - "https://github.com/TechnicallyComputers/retcomm-rbengine"
   - "https://github.com/TechnicallyComputers/recomp-net-server"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-[recomp-net](https://github.com/TechnicallyComputers/recomp-net) is the netcode library the console toolchains in this fleet share instead of each writing their own. Its README calls it a "Portable **delay-sync** netcode library for recompilation / modern-runtime hosts (N64Recomp, PSX recomp, and similar)", it reports version `0.1.0`, and it is MIT licensed. The whole contract a port has to satisfy for delay-sync is one struct of four function pointers, of which two are mandatory; rollback adds a second vtable of six. The library never looks inside a pad: everything it knows about an input is a tick, a size and an opaque byte array. This page is the reference for that surface.
+[recomp-net](https://github.com/TechnicallyComputers/recomp-net) is the netcode library the console toolchains in this fleet share instead of each writing their own. It is portable delay-sync netcode for recompilation and modern-runtime hosts, it reports version `0.1.0`, and it is MIT licensed.
+
+Delay-sync means your own input is not used at once. It is scheduled a fixed number of ticks ahead, which gives the other player's input time to arrive. A port fills in one struct of four function pointers, two of them required. Rollback adds a second vtable of six.
+
+The library never looks inside a pad. All it knows about an input is a tick, a size and an opaque block of bytes.
 
 ## The public headers
 
@@ -35,7 +39,7 @@ Three compile-time constants bound everything: `RNET_MAX_SLOTS` is 8, `RNET_INPU
 
 ## What a port implements: `RNetHostVTable`
 
-Four function pointers. `sample_local` and `publish` are mandatory. `now_ms` is optional and falls back to platform monotonic milliseconds. `on_signal` is optional and may be NULL for a LAN-only host.
+Four function pointers. `sample_local` and `publish` are required. `now_ms` is optional and falls back to platform monotonic milliseconds. `on_signal` is optional and may be NULL for a LAN-only host.
 
 From [`include/recomp_net/session.h`](https://github.com/TechnicallyComputers/recomp-net/blob/main/include/recomp_net/session.h):
 
@@ -54,13 +58,13 @@ typedef struct RNetHostVTable
 } RNetHostVTable;
 ```
 
-The pad blob crossing that boundary is opaque by contract: "Host-defined pad layout lives in `bytes`. The library never interprets the payload, only tick ownership and presence matter for delay-sync admission." Nothing about the emulated machine reaches the library.
+The pad data crossing that boundary is opaque on purpose: "Host-defined pad layout lives in `bytes`. The library never interprets the payload, only tick ownership and presence matter for delay-sync admission." Nothing about the emulated machine reaches the library.
 
 `RNetInputSample` is `tick:u32`, `size:u16`, `bytes[RNET_INPUT_MAX]`, `valid:u8`.
 
 ### What that looks like in a shipping engine
 
-An engine facade implements the two mandatory callbacks once for every title on its platform. This is [snesrecomp](https://github.com/mstan/snesrecomp)'s, where the pad blob is two bytes of buttons plus two game-defined sync bytes and slot 0 is authoritative for the sync bytes.
+One engine layer implements the two required callbacks once, for every title on its platform. This is [snesrecomp](https://github.com/mstan/snesrecomp)'s. Its pad data is two bytes of buttons plus two game-defined sync bytes, and slot 0 owns those sync bytes.
 
 From [`runner/src/netplay/snes_netplay.c`](https://github.com/mstan/snesrecomp/blob/main/runner/src/netplay/snes_netplay.c):
 
@@ -92,11 +96,11 @@ static void host_publish(rnet_u32 tick, const RNetInputSample *by_slot, int slot
 }
 ```
 
-A game repository on top of that engine writes far less: a hooks struct with a pad capture function and two timeouts, plus one line of CMake. [`MetalWarriorsSNESRecomp`](https://github.com/TechnicallyComputers/MetalWarriorsSNESRecomp) enables the whole stack with `snesrecomp_enable_recomp_net(MetalWarriorsSNESRecomp)`. The library README prescribes that split: the library owns session, ICE, TURN fallback, bundle size and protocol; the engine facade owns barrier admit, starvation latch, catch-up budget and soft exit; the title owns identity, the pad sample hook and the connect-timeout modal.
+A game repository on top of that engine writes much less: a hooks struct with a pad capture function and two timeouts, plus one line of CMake. [`MetalWarriorsSNESRecomp`](https://github.com/TechnicallyComputers/MetalWarriorsSNESRecomp) turns the whole stack on with `snesrecomp_enable_recomp_net(MetalWarriorsSNESRecomp)`. The library README sets out that split. The library owns session, ICE, TURN fallback, bundle size and protocol. The engine layer owns barrier admit, starvation latch, catch-up budget and soft exit. The title owns identity, the pad sample hook and the connect-timeout dialog.
 
 ## Session configuration: `RNetConfig`
 
-`RNetConfig` is read by `rnet_session_create`. `rnet_config_init_defaults` fills every field, so nothing is strictly required of a host that takes the defaults. What matters is agreement: five of these fields must be identical on every peer, `local_slot` is the one that differs, and the documented rule does not mention `occupied_mask` either way.
+`rnet_session_create` reads `RNetConfig`. `rnet_config_init_defaults` fills every field, so a host that takes the defaults has to set nothing. What matters is that the peers agree. Five of these fields must be identical on every peer, `local_slot` is the one that differs, and the documented rule says nothing either way about `occupied_mask`.
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
@@ -112,9 +116,9 @@ The rule is stated once, in [`docs/host_integration.md`](https://github.com/Tech
 
 > `RNetConfig` fields (`slot_count`, `local_slot`, `input_delay`, `bundle_redundancy`, `session_id`, `protocol_magic`) must match across peers except `local_slot`. Negotiate them out-of-band (lobby) before `create`.
 
-That sentence names six fields and does not mention `occupied_mask`. The header explains what the mask is for rather than stating a matching rule: sparse rooms, for example seats 0 and 2 in a four-seat lobby, "must clear empty bits so READY/admit do not wait forever on a phantom remote", and empty seats are filled with deterministic neutral samples that every peer synthesizes identically.
+That sentence names six fields and never mentions `occupied_mask`. The header says what the mask is for instead of giving a matching rule. A room with gaps in it, say seats 0 and 2 in a four-seat lobby, "must clear empty bits so READY/admit do not wait forever on a phantom remote". Empty seats are filled with neutral samples that every peer generates identically.
 
-`rnet_session_request_delay_change` can move `D` mid-session and emits a `DELAY_SYNC` packet; the new value "is clamped to 2..20".
+`rnet_session_request_delay_change` can change `D` during a session. It sends a `DELAY_SYNC` packet, and the new value "is clamped to 2..20".
 
 ## The session lifecycle
 
@@ -139,7 +143,7 @@ Create, start exactly one transport, then loop. `rnet_session_pump` moves the ne
 
 ### The loop, verbatim
 
-This is the complete host loop from the shipped two-peer example. Nothing else is required for a working LAN session.
+This is the whole host loop from the shipped two-peer example. A working LAN session needs nothing else.
 
 From [`examples/lan_delay_2p/main.c`](https://github.com/TechnicallyComputers/recomp-net/blob/main/examples/lan_delay_2p/main.c):
 
@@ -167,9 +171,17 @@ From [`examples/lan_delay_2p/main.c`](https://github.com/TechnicallyComputers/re
 
 ### What try_admit does
 
-For sim tick `T` with committed delay `D`: if a local ring row for wire `T+D` is missing, `sample_local` is called and the result stored; the input bundle is sent, retransmitting `bundle_redundancy` prior rows; the confirm window is refreshed; a remote ring row at wire `T` is then required for every occupied slot; the resolved per-slot samples are hashed and compared against the peer's `INPUT_CONFIRM`. On agreement, `publish` runs and the call returns 1. On any miss it records a stall reason and returns 0.
+For sim tick `T` with committed delay `D`, in order:
 
-Five rules the integration document states as mandatory:
+1. If the local ring has no row for wire `T+D`, call `sample_local` and store the result.
+2. Send the input bundle, resending `bundle_redundancy` earlier rows.
+3. Refresh the confirm window.
+4. Require a remote ring row at wire `T` for every occupied slot.
+5. Hash the resolved per-slot samples and compare them against the peer's `INPUT_CONFIRM`.
+
+If the hashes agree, `publish` runs and the call returns 1. On any miss it records a stall reason and returns 0.
+
+Five rules the integration document calls mandatory:
 
 1. "only one authoritative sim tick may advance after a successful `try_admit`. Do not sample pads for tick `T+1` until `advance` has run."
 2. "Prefer a single thread that owns both `pump` and sim advance, or protect the session with an external mutex (API is not internally locked)."
@@ -192,7 +204,7 @@ Five rules the integration document states as mandatory:
 | `RNET_ADMIT_WAIT_REMOTE_INPUT` | A remote row is missing |
 | `RNET_ADMIT_WAIT_CONFIRM` | Confirm window not satisfied |
 
-`RNET_ADMIT_DESYNC` is permanent for the session. Poll `rnet_session_input_desync` for the tick and the two hashes, and soft exit: the documented reading is that the underlying cause is a host determinism bug, not a library bug. [Determinism](/docs/concepts/determinism) is the page for that.
+`RNET_ADMIT_DESYNC` lasts for the rest of the session. Call `rnet_session_input_desync` for the tick and the two hashes, then leave the session cleanly. The documented reading is that the cause is a determinism bug in the host, not in the library. See [Determinism](/docs/concepts/determinism).
 
 ## Liveness, delay and state transfer
 
@@ -212,7 +224,7 @@ State transfer ops are `RNET_STATE_OP_SAVE 0`, `LOAD 1`, `SRAM 2`, `RB_KF 3`, `B
 
 ## Transports
 
-Three ways to start a session. The library deliberately ships no lobby of its own: "This library has no lobby binary." Signalling for the ICE path normally comes from [`recomp-net-server`](https://github.com/TechnicallyComputers/recomp-net-server), and the shipped `ice_manual_signaling` example shows the same exchange done through two files instead.
+Three ways to start a session. The library ships no lobby of its own: "This library has no lobby binary." Signalling for the ICE path normally comes from [`recomp-net-server`](https://github.com/TechnicallyComputers/recomp-net-server). The shipped `ice_manual_signaling` example does the same exchange through two files instead.
 
 | Start call | Topology | Notes |
 |---|---|---|
@@ -239,7 +251,7 @@ Online lobbies always use the server's UDP SFU: "Online WebSocket lobbies always
 
 ### ICE relay fallback variables
 
-Four environment variables tune the automatic relay fallback, and they are the only environment variables recomp-net reads.
+Four environment variables tune the automatic relay fallback. They are the only environment variables recomp-net reads.
 
 | Variable | Type | Default | Meaning |
 |---|---|---|---|
@@ -250,7 +262,7 @@ Four environment variables tune the automatic relay fallback, and they are the o
 
 ## The rollback layer
 
-Read this section knowing one thing first. [`docs/rollback.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/docs/rollback.md) marks all three of its layers "Landed", and on `main` the rollback headers, sources, wire opcodes and tests are all present. The README's Modes section still describes rollback as living on a `feat/rollback` branch. That section is stale.
+One thing before you read this section. [`docs/rollback.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/docs/rollback.md) marks all three of its layers "Landed", and on `main` the rollback headers, sources, wire opcodes and tests are all there. The README's Modes section still says rollback lives on a `feat/rollback` branch. That section is out of date.
 
 `RNetRbSession` "owns the episode FSM (`Live → SealInputs → AwaitingBaseline → Replay → Verify → Commit|Abort`), the correction tuple, the sealed input table, and the resolved-through (shared frontier) watermark. The host owns snapshots, the deterministic sim step, state digests, and the wire transport."
 
@@ -270,7 +282,7 @@ Read this section knowing one thing first. [`docs/rollback.md`](https://github.c
 
 ### `RNetRollbackVTable`
 
-The vtable is six callbacks plus one optional gate set, and the comments are the specification.
+Six callbacks plus one optional set of gates. The comments in the header are the specification.
 
 From [`include/recomp_net/rollback.h`](https://github.com/TechnicallyComputers/recomp-net/blob/main/include/recomp_net/rollback.h):
 
@@ -301,9 +313,9 @@ typedef struct RNetRollbackVTable
 
 Episode phases are `Live`, `SealInputs`, `AwaitingBaseline`, `Replay`, `Verify`, `TipHold`, `Commit`, `Abort`. Roles are `Initiator` and `Follower`. Event types are `None`, `InputMismatch`, `PeerSymmetric`, `StateDiverge` and `FrameCommit`. `RB_SYNC` ops are `NACK 0`, `BEGIN 1`, `ABORT 2`, `COMMIT 3`, and its flags are `LIGHT_TIP 0x01`, `REREPLAY 0x02`, `MEDIA_KF 0x04`.
 
-The host gates in `RNetInputContractHostGates` are all optional, "NULL = portable default = gate never fires", with one exception: `hash_confirm_promote` explicitly "Fail closed when NULL." The library's own advice is to "bind only `hash_confirm_promote` ... and leave the rest NULL (portable defaults)", which is exactly what psxrecomp does for its rollback vtable.
+The host gates in `RNetInputContractHostGates` are all optional, "NULL = portable default = gate never fires". One is different: `hash_confirm_promote` says "Fail closed when NULL." The library's own advice is to "bind only `hash_confirm_promote` ... and leave the rest NULL (portable defaults)", which is what psxrecomp does in its rollback vtable.
 
-Pacing policy is deliberately not here. [`retcomm-rbengine`](https://github.com/TechnicallyComputers/retcomm-rbengine) is the sibling C library that owns when to invent, when to stall and what `D` should be. It links `recomp_net` publicly and will not configure without it, and it "never advances sim".
+Pacing is deliberately not in this library. [`retcomm-rbengine`](https://github.com/TechnicallyComputers/retcomm-rbengine) is the sibling C library that decides when to guess an input, when to stall and what `D` should be. It links `recomp_net` publicly, will not configure without it, and it "never advances sim".
 
 ## Wire format
 
@@ -330,7 +342,7 @@ Little endian throughout. Every packet ends with a 32 bit FNV-1a checksum over a
 | 24 | `RB_FRAME_COMMIT` | State or master hash watermark token |
 | 25 | `RB_RESOLVED` | Resolved-through frontier advertise |
 
-Opcodes 20 to 25 are an additive range that delay-sync hosts never emit or parse.
+Opcodes 20 to 25 were added for rollback. A delay-sync host never sends or reads them.
 
 ### Protocol limits
 
@@ -344,7 +356,7 @@ Opcodes 20 to 25 are an additive range that delay-sync hosts never emit or parse
 
 ### `rnet_proto_checksum`
 
-`INPUT_CONFIRM.input_hash` is exactly specified as "`rnet_proto_checksum` over `sim_tick` (LE u32) followed by each slot's `size` (LE u16) and `bytes`". That checksum is the one function the entire protocol depends on, and a port that reimplements it has to match byte for byte.
+`INPUT_CONFIRM.input_hash` is specified exactly, as "`rnet_proto_checksum` over `sim_tick` (LE u32) followed by each slot's `size` (LE u16) and `bytes`". Every packet depends on this function, so a port that rewrites it has to match byte for byte.
 
 From [`src/protocol/rnet_protocol.c`](https://github.com/TechnicallyComputers/recomp-net/blob/main/src/protocol/rnet_protocol.c):
 
@@ -362,7 +374,7 @@ rnet_u32 rnet_proto_checksum(const rnet_u8 *data, size_t len)
 }
 ```
 
-Three line-oriented UTF-8 text protocols sit beside the binary one: `RNETBC1` for LAN beacon announces, `RNETDJ1` for direct join and RTT, and `RNET_LAN_LOBBY_3` for the same-machine room file. [Machine-readable surfaces](/docs/agents/machine-surfaces) collects the fleet's other programmable interfaces.
+Three line-based UTF-8 text protocols sit beside the binary one: `RNETBC1` for LAN beacon announces, `RNETDJ1` for direct join and RTT, and `RNET_LAN_LOBBY_3` for the same-machine room file. [Machine-readable surfaces](/docs/agents/machine-surfaces) collects the fleet's other programmable interfaces.
 
 ## Building it
 
@@ -399,11 +411,11 @@ target_link_libraries(your_host PRIVATE recomp_net)
 
 ## Where the documents contradict the code
 
-This is the one place the repository's own documentation is wrong, and it matters because it changes what a host must have on hand before it may run a tick.
+The repository's own documentation is wrong here, and it changes what a host needs in hand before it may run a tick.
 
-[`docs/architecture.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/docs/architecture.md) and [`docs/protocol.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/docs/protocol.md) both state that admitting sim tick `T` requires remote rows at wire `T + D`. The shipped code does not do that. It consumes at `play_wire = sim_tick` while sampling local input for `sample_wire = sim_tick + D`, so `D` is a cushion behind the simulation rather than a lookahead in front of it. The public header agrees with the code: `rnet_session_try_admit` "Returns 1 when gameplay inputs for sim_tick (wire=sim) are present for every remote".
+[`docs/architecture.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/docs/architecture.md) and [`docs/protocol.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/docs/protocol.md) both say that admitting sim tick `T` needs remote rows at wire `T + D`. The shipped code does not do that. It reads at `play_wire = sim_tick` while sampling local input for `sample_wire = sim_tick + D`, so `D` sits behind the simulation as a cushion, not ahead of it. The public header agrees with the code: `rnet_session_try_admit` "Returns 1 when gameplay inputs for sim_tick (wire=sim) are present for every remote".
 
-**Trust the code and `session.h`, not those two document pages.** retcomm-rbengine names the code behaviour REAL-DELAY and the documented behaviour the legacy ZERO-DELAY mode, which is now opt-in through `RBE_RB_ZERO_DELAY=1`. If you are writing a host against this library, the practical consequence is that peer input for the tick you are about to run normally arrived `D` frames ago, which is why the stall path keeps retransmitting the input bundle while the simulation is frozen.
+**Trust the code and `session.h`, not those two document pages.** retcomm-rbengine calls the code behaviour REAL-DELAY and the documented behaviour the legacy ZERO-DELAY mode, which is now opt-in through `RBE_RB_ZERO_DELAY=1`. For a host writer this means peer input for the tick you are about to run normally arrived `D` frames ago. That is why the stall path keeps resending the input bundle while the simulation is frozen.
 
 ## Source
 

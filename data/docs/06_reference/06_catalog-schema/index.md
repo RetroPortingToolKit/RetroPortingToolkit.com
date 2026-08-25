@@ -1,20 +1,22 @@
 ---
 title: "Catalog schema"
-summary: "Field-by-field reference for retcomm-catalog: the index file, the per-title manifest, how a title is verified, released, built, launched and matched online, and the two validators that no longer agree."
+summary: "Field by field for retcomm-catalog: the index file, the per-title manifest, how a title is verified, released, built, launched and matched online, and the two validators that no longer agree."
 pageType: "reference"
 tags: ["Schema", "Catalogue", "Agents", "PlayStation"]
 repos:
   - "https://github.com/TechnicallyComputers/retcomm-catalog"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-[retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog) is a machine-readable list of the ports a launcher can install. Its README describes it as the "Official title catalog for [RetComM Launcher](https://github.com/TechnicallyComputers/RetComM-Launcher). JSON manifests listing supported recomp/decomp titles, ROM/BIOS identity, and GitHub release asset patterns. The launcher downloads this catalog independently of app updates." That makes it the one place in this fleet where a program, rather than a person, can ask what has been ported, how to tell whether the user's game file is the right one, where the builds live, and whether the title has netplay. This page documents both files completely.
+[retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog) is a machine-readable list of the ports a launcher can install. Its README calls it the "Official title catalog for [RetComM Launcher](https://github.com/TechnicallyComputers/RetComM-Launcher). JSON manifests listing supported recomp/decomp titles, ROM/BIOS identity, and GitHub release asset patterns. The launcher downloads this catalog independently of app updates."
 
-> **Note.** The repository has no LICENSE file. The terms under which these manifests or this schema may be mirrored are not stated anywhere in it, so this page does not claim any.
+So a program, and not a person, can ask what has been ported, how to tell whether a player's game file is the right one, where the builds are, and whether a title has netplay. Both files are documented below.
+
+> **Note.** The repository has no LICENSE file. It states no terms for copying these manifests or this schema, so this page states none either.
 
 ## What is in it today
 
-At the time the fleet was surveyed the catalogue carried `schema_version: 1`, twelve titles, all of them `psx`, a `catalog_date` of `"2026-08-20T02:48:35Z"` and a `release_tag` of `"v2026.08.20.024835.20"`. Eight of the twelve declare a `netplay` object. The `snes`, `n64` and `genesis` paths that the schema describes had no live example.
+When the fleet was surveyed the catalogue carried `schema_version: 1`, twelve titles, all of them `psx`, a `catalog_date` of `"2026-08-20T02:48:35Z"` and a `release_tag` of `"v2026.08.20.024835.20"`. Eight of the twelve declare a `netplay` object. The `snes`, `n64` and `genesis` paths the schema describes had no live example.
 
 ## The two files
 
@@ -37,7 +39,7 @@ The three names have to agree: the `titles/<id>.json` filename, the `id` field i
 | `platform_defaults.<platform>.bios_identity` | object | No | absent | "Applied to titles on that platform that omit `bios_identity`" |
 | `titles` | array of strings | Yes | none | Title ids, each of which must have a matching `titles/<id>.json` |
 
-The head of the shipped file, showing how a platform default is written.
+The head of the shipped file, showing how a platform default is written:
 
 From [`index.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/index.json):
 
@@ -69,7 +71,7 @@ From [`index.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob
     },
 ```
 
-Inheritance has an explicit opt-out: "Title manifests may still set `bios_identity` to override the default, or `"bios_identity": null` to opt out of inheritance."
+A title can refuse the default: "Title manifests may still set `bios_identity` to override the default, or `"bios_identity": null` to opt out of inheritance."
 
 ## `titles/<id>.json`: identity
 
@@ -87,9 +89,9 @@ Inheritance has an explicit opt-out: "Title manifests may still set `bios_identi
 
 ## `titles/<id>.json`: verification
 
-`rom_identity` is required, and it is how the launcher decides that the file a player already owns is the one this port was built for.
+`rom_identity` is required. It is how the launcher decides that the file a player already owns is the one this port was built for.
 
-> **You provide this.** Every entry here describes a game file you supply yourself. The catalogue stores digests, sizes and filename hints so a scan can recognise your copy; it stores no game content, and this repository distributes none. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
+> **You provide this.** Every entry here describes a game file you supply yourself. The catalogue stores digests, sizes and filename hints so a scan can recognise your copy. It stores no game content, and this repository distributes none. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
 | Field | Type | Required | Default | Meaning |
 |---|---|---|---|---|
@@ -110,7 +112,7 @@ Inheritance has an explicit opt-out: "Title manifests may still set `bios_identi
 | `bios_identity.sizes` | array of numbers | No | `[]` | "Byte lengths to consider while scanning" |
 | `bios_identity.filenames` | array of strings | No | `[]` | "Basename hints (e.g. `SCPH1001.BIN`)" |
 
-The matching rule is generous by design and stated exactly once: "A title is considered to have a ROM identity when **any** of `crc32`, `md5`, `sha1`, `sha256`, or `disc_serials` is non-empty. Matching succeeds if **any** configured digest matches the scanned file". The CI validator enforces that same condition, so a manifest with every digest array empty is rejected.
+The matching rule is loose on purpose, and it is stated once: "A title is considered to have a ROM identity when **any** of `crc32`, `md5`, `sha1`, `sha256`, or `disc_serials` is non-empty. Matching succeeds if **any** configured digest matches the scanned file". The CI validator checks the same thing, so a manifest with every digest array empty is rejected.
 
 ## `titles/<id>.json`: release
 
@@ -156,7 +158,7 @@ Optional. When present and enabled, the launcher prefers building over downloadi
 | `netplay.transports` | array of strings | No | absent | "Optional UI hints: `"lan"`, `"ice"`, `"direct"`" |
 | `netplay.match_caps_schema` | string | No | absent | "Optional host-settings family (`psx-v1`, `snes-v1`)" |
 
-`game_name` and `game_version` are not decoration. The lobby server keys rooms on that pair, and `game_version` has to equal the version baked into the shipped binary or players will not see each other's rooms. [recomp-net API](/docs/reference/recomp-net-api) is the library behind it.
+`game_name` and `game_version` matter. The lobby server keys rooms on that pair, and `game_version` has to equal the version baked into the shipped binary, or players will not see each other's rooms. [recomp-net API](/docs/reference/recomp-net-api) is the library behind it.
 
 ## A complete entry
 
@@ -224,7 +226,7 @@ From [`SCHEMA.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/
 
 The preferred path is the submission form, which "auto-fills digests and release globs from the source repo and opens a review issue. A maintainer with write access adds the **`approved`** label to merge `titles/<id>.json`, update `index.json`, and publish a new `catalog.zip` release (use **`approved-update`** only to overwrite an existing id)."
 
-The label is what runs the machinery. `approve-submission.yml` calls `apply_submission.py`, which takes the **last** fenced `json` block in the issue body, validates it, writes `titles/<id>.json` with `indent=2`, and appends the id to `index.json` if it is absent. It prints `added:<id>` or `updated:<id>` on stdout, and exits non-zero on any validation failure or on a duplicate id without `--allow-update`. `stamp_catalog_release.py` then writes `catalog_date` and `release_tag`, and the workflow zips `index.json`, `titles`, `SCHEMA.md` and `README.md` into `catalog.zip` and creates the release.
+The label is what starts the machinery. `approve-submission.yml` calls `apply_submission.py`. That script takes the **last** fenced `json` block in the issue body, checks it, writes `titles/<id>.json` with `indent=2`, and adds the id to `index.json` if it is missing. It prints `added:<id>` or `updated:<id>` on stdout, and exits non-zero on any validation failure, or on a duplicate id without `--allow-update`. Then `stamp_catalog_release.py` writes `catalog_date` and `release_tag`, and the workflow zips `index.json`, `titles`, `SCHEMA.md` and `README.md` into `catalog.zip` and creates the release.
 
 | Script | Flag | Type | Default | What it does |
 |---|---|---|---|---|
@@ -244,7 +246,7 @@ The manual route is six steps: create `titles/<id>.json`, append `"<id>"` to the
 
 ## Two validators, and where they have drifted
 
-There are two independent implementations of this schema, and the repository's own rule is that they must stay in agreement. They no longer do.
+Two separate programs implement this schema, and the repository's own rule is that they stay in agreement. They no longer do.
 
 | Behaviour | `apply_submission.py` (CI) | `worker/src/index.js` (submission form) |
 |---|---|---|
@@ -254,17 +256,17 @@ There are two independent implementations of this schema, and the repository's o
 | `require_cue` | Left as written | Set automatically from `track_counts` |
 | `kind`, `install_dir_name` | Enum checked, presence required | Coerced and defaulted |
 
-`SCHEMA.md` documents the `require_cue` rule. It does not document the psx extension filter or the lowercasing, so those two normalisations exist only in the Worker's source.
+`SCHEMA.md` documents the `require_cue` rule. It says nothing about the psx extension filter or the lowercasing, so those two live only in the Worker's source.
 
-**Neither document names one as authoritative, so this page will not either.** What can be determined is narrower and more useful: only `apply_submission.py` runs on the path that writes into the repository, so it decides what actually ships. The practical consequence is the one the survey recorded: a manifest hand-written into an issue body reaches `titles/` unnormalised, because the Worker that would have tidied it was never involved. If you are writing a manifest by hand, write it in the normalised form yourself.
+**Neither document names one of them as authoritative, and this page will not pick one.** What can be said is more useful. Only `apply_submission.py` runs on the path that writes into the repository, so it decides what ships. A manifest typed into an issue body therefore reaches `titles/` untidied, because the Worker never saw it. If you write a manifest by hand, write it in the tidy form yourself.
 
 ## Documented fields with no live example
 
-Across the twelve manifests present at survey time, `saves`, `bios_identity`, `romm.igdb_ids`, `netplay.lobby_url` and `build.sdk` never appear. BIOS identity for psx and gba is supplied through `index.json` `platform_defaults` instead. Treat those fields as specified but unexercised.
+In the twelve manifests present at survey time, `saves`, `bios_identity`, `romm.igdb_ids`, `netplay.lobby_url` and `build.sdk` never appear. BIOS identity for psx and gba comes from `index.json` `platform_defaults` instead. Treat those fields as specified but untested.
 
-## Consuming the catalogue
+## Fetching the catalogue
 
-Two stable entry points. The raw index file is `https://raw.githubusercontent.com/TechnicallyComputers/retcomm-catalog/main/index.json`, and the packaged artefact is the `catalog.zip` asset on the latest release, which the launcher fetches from `https://github.com/TechnicallyComputers/retcomm-catalog/releases/latest/download/catalog.zip`. `catalog_date` and `release_tag` are the freshness keys.
+Two stable entry points. The raw index file is `https://raw.githubusercontent.com/TechnicallyComputers/retcomm-catalog/main/index.json`. The packaged form is the `catalog.zip` asset on the latest release, which the launcher fetches from `https://github.com/TechnicallyComputers/retcomm-catalog/releases/latest/download/catalog.zip`. `catalog_date` and `release_tag` tell you how fresh it is.
 
 One publishing rule applies to anything built from this repository: "Never put ROM bytes or generated `src/gen` / `generated/` into catalog or pack artifacts."
 
@@ -277,5 +279,5 @@ One publishing rule applies to anything built from this repository: "Never put R
 
 - [Machine-readable surfaces](/docs/agents/machine-surfaces) collects the rest of what an agent can drive in this fleet.
 - [recomp-net API](/docs/reference/recomp-net-api) is the library a title advertises through the `netplay` block.
-- [Every repository](/docs/fleet/repositories) is the human-readable index this catalogue is the machine-readable half of.
+- [Every repository](/docs/fleet/repositories) is the same list written for people.
 - [PlayStation](/docs/platforms/playstation) is the toolchain every live entry currently belongs to, and [Glossary](/docs/concepts/glossary) defines ROM identity, disc image and title id as the fleet uses them.

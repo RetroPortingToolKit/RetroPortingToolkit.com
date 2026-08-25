@@ -1,22 +1,24 @@
 ---
 title: "Configuration"
-summary: "Every psxrecomp configuration key this site can verify, grouped by the file it belongs to: the BIOS profile, game.toml, the widescreen block, player overrides, environment variables and build options, with types, defaults and the resolution order between them."
+summary: "Every psxrecomp configuration key this site can verify, grouped by the file it lives in: the BIOS profile, game.toml, the widescreen block, player overrides, environment variables and build options, with types, defaults and which one wins."
 pageType: "reference"
 tags: ["Configuration", "PlayStation", "TOML"]
 repos:
   - "https://github.com/mstan/psxrecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-Configuration for [psxrecomp](https://github.com/mstan/psxrecomp) is almost all TOML, parsed with the vendored `toml11`, and it is split across distinct schemas that are read by different programs at different times. This page lists the keys, grouped by the file they belong to. Each row gives the exact dotted key path, its type, its default and what it does. Other toolchains in the fleet have their own configuration; this page is the PlayStation one. Flags belong to the [command line reference](/docs/reference/cli), and the mod package schema to the [mod manifest reference](/docs/reference/mod-manifest).
+[psxrecomp](https://github.com/mstan/psxrecomp) is configured almost entirely in TOML, parsed with the bundled `toml11`. The keys are split across several files, and different programs read them at different times. Every key below is grouped by the file it lives in, with its full dotted path, its type, its default and what it does.
+
+This is the PlayStation toolchain. Others in the fleet have their own configuration. Flags are in the [command line reference](/docs/reference/cli), and the mod package schema is in the [mod manifest reference](/docs/reference/mod-manifest).
 
 ## How a setting resolves
 
-At run time, later wins:
+At run time, the first of these that sets a value wins:
 
 `environment > CLI > settings.toml > game.toml > compiled-in default`
 
-Build-time settings do not participate. A BIOS profile is read only by the recompiler front ends, and a `[runtime]` block inside one is rejected outright, because a BIOS profile states facts about an image and never runtime preferences.
+Build-time settings are not part of that. Only the recompiler front ends read a BIOS profile, and a `[runtime]` block inside one is rejected. A profile states facts about an image, not runtime preferences.
 
 | File | Read by | When |
 |---|---|---|
@@ -28,7 +30,7 @@ Build-time settings do not participate. A BIOS profile is read only by the recom
 
 ## BIOS profile: `bios/<STEM>.toml`
 
-A profile describes one BIOS image: where it loads, where it starts, and every bulk copy the boot code makes out of ROM into RAM. From [`bios/SCPH1001.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/SCPH1001.toml):
+A profile describes one BIOS image: where it loads, where it starts, and every block copy the boot code makes from ROM into RAM. From [`bios/SCPH1001.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/SCPH1001.toml):
 
 ```toml title="bios/SCPH1001.toml"
 [program]
@@ -94,7 +96,7 @@ deliver_event_ret = "0x80001720"
 | `[[recompiler.address_model.copy]].dispatch_key` | `"ram"` or `"rom"` | required | Which side of the copy owns the dispatch key. `ram` folds ROM to RAM, `rom` folds the RAM alias back to ROM |
 | `[[recompiler.address_model.copy]].kernel_bless` | bool | `false` | The runtime may byte-verify the window and then run native code for it |
 
-Semantic invariants are enforced at load and a violation refuses to build: copy windows must be disjoint, fold outputs must not intersect fold inputs, and there may be only one blessed window.
+Three rules are checked when the profile loads, and breaking one stops the build. Copy windows must not overlap. Fold outputs must not touch fold inputs. Only one window may be blessed.
 
 ### `[[recompiler.install_slots]]`
 
@@ -118,7 +120,7 @@ Semantic invariants are enforced at load and a violation refuses to build: copy 
 
 ## Game config: `game.toml`
 
-One file per title. The scaffold writes a starting point with the optional keys commented out. From [`tools/new_project_layout/templates/game.toml.in`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/templates/game.toml.in), where `@NAME@` tokens are substituted by the scaffold script:
+One file per title. The scaffold writes a starting point with the optional keys commented out. From [`tools/new_project_layout/templates/game.toml.in`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/templates/game.toml.in); the scaffold script fills in the `@NAME@` tokens:
 
 ```toml title="tools/new_project_layout/templates/game.toml.in"
 [game]
@@ -237,11 +239,11 @@ strict = true
 |---|---|---|---|
 | `[audit]` | table | none | Audit regions and address normalisation for `tools/audit_config.py` |
 
-A `[prepare_disc]` section also exists and drives disc preparation, whose digest verification `psxrecomp_cli.py generate --skip-hash-check` skips. Its individual keys are not covered here.
+A `[prepare_disc]` section also exists. It drives disc preparation, and `psxrecomp_cli.py generate --skip-hash-check` skips its digest check. Its own keys are not covered here.
 
 ## Widescreen: the `[widescreen]` block
 
-Every key is optional and the block is inert if absent. It is read by `psxrecomp-game`, so changing a key that affects emitted code needs a regeneration. From [`WIDESCREEN.md`](https://github.com/mstan/psxrecomp/blob/master/WIDESCREEN.md):
+Every key is optional, and with the block absent nothing changes. `psxrecomp-game` reads it, so changing a key that affects generated code means regenerating. From [`WIDESCREEN.md`](https://github.com/mstan/psxrecomp/blob/master/WIDESCREEN.md):
 
 ```toml title="WIDESCREEN.md"
 [video]
@@ -283,11 +285,11 @@ result   = 1                           # forced comparison result, 0 or 1
 | `[widescreen.cull.aspect_cone]` | table | none | Horizontal-only frustum envelope: `forward_addr`, `object_type_offset`, `object_reg`, `x_reg`, `z_reg`, `y_reg`, `hysteresis_pixels`, `queue_reserve`, `queue_count_addrs`, `queue_capacities`, `queue_type_masks`, plus `[[...sites]]` entries with `address`, `expected`, optional `cosine_threshold`, register overrides and `queue_guard` |
 | `backdrop.x_sites`, `backdrop.unsquash_funcs` | array of hex strings | empty | 2D parallax backdrop screen-X squash sites, and the depth-gated GTE un-squash driver |
 
-Every one of these defaults to inert, which is what makes `aspect_ratio = "4:3"` an output identity: the squash factor reduces to 1 and is short-circuited, and `psx_ws_x_margin()` returns exactly 0, so the widened comparisons produce the original results. [PlayStation](/docs/platforms/playstation) states that claim precisely.
+All of these default to off. That is what makes `aspect_ratio = "4:3"` give back exactly the original picture: the squash factor becomes 1 and is skipped, `psx_ws_x_margin()` returns 0, and the widened comparisons produce their original results. [PlayStation](/docs/platforms/playstation) states it precisely.
 
 ## Choosing a BIOS
 
-BIOS selection is spread over several keys and one file, so it is collected here.
+Choosing a BIOS involves several keys and one file, so they are collected here.
 
 | Setting | Where | Effect |
 |---|---|---|
@@ -299,15 +301,15 @@ BIOS selection is spread over several keys and one file, so it is collected here
 | `bios.cfg` | beside the executable | Remembers a retail BIOS choice. Clearing it or deleting the file returns to OpenBIOS |
 | `recompiler.runtime_exports.*` | BIOS profile | Per-image anchors. An absent anchor means the dependent feature is structurally unavailable on that image |
 
-Four profiles exist in the tree and they live in two places: `bios/OpenBIOS.toml` and `bios/SCPH1001.toml`, plus repo-root `SCPH1001.toml`, `SCPH101.toml` and `SCPH5552.toml`. The two SCPH1001 profiles differ in their `rom` path. `SCPH101.toml` and `SCPH5552.toml` describe the PSOne and European images and both record that boot and kernel are byte-identical to SCPH1001 while the shell differs and runs through the dirty-RAM interpreter.
+Four profiles live in two places: `bios/OpenBIOS.toml` and `bios/SCPH1001.toml`, plus `SCPH1001.toml`, `SCPH101.toml` and `SCPH5552.toml` at the repository root. The two SCPH1001 files differ in their `rom` path. `SCPH101.toml` and `SCPH5552.toml` describe the PSOne and European images, and both record that boot and kernel are byte-identical to SCPH1001, while the shell differs and runs through the dirty-RAM interpreter.
 
-Two things to know before relying on a non-default image. Savestates are BIOS specific and refuse to load across images, because kernel RAM layout differs; memory cards are unaffected. And [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md) says a build compiles in exactly one retail image, currently SCPH-1001, alongside OpenBIOS, while the CLI's own help advertises OpenBIOS, SCPH1001, SCPH101 and SCPH5552. Whether a build with a non-SCPH1001 retail stem is a supported configuration is not stated anywhere in the repository.
+Two things to know before you rely on a non-default image. Savestates belong to one BIOS and will not load across images, because the kernel RAM layout differs; memory cards are unaffected. And [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md) says a build compiles in exactly one retail image, currently SCPH-1001, next to OpenBIOS, while the CLI's own help lists OpenBIOS, SCPH1001, SCPH101 and SCPH5552. Nothing in the repository says whether a build with a different retail stem is supported.
 
-> **Note.** `SCPH5552.toml` sets `seeds = "seeds/phase2_ghidra_seeds_SCPH5552.json"` while the sibling `SCPH101.toml` uses a `recompiler/seeds/...` path for the same kind of file. This site did not verify whether some caller changes directory first, so treat that profile's seed path as unconfirmed.
+> **Note.** `SCPH5552.toml` sets `seeds = "seeds/phase2_ghidra_seeds_SCPH5552.json"`, while the sibling `SCPH101.toml` uses a `recompiler/seeds/...` path for the same kind of file. This site did not check whether some caller changes directory first, so treat that seed path as unconfirmed.
 
 ## Player overrides: `settings.toml` and `bios.cfg`
 
-`settings.toml` holds the player's own overrides and sits between `game.toml` and the CLI in precedence. The launcher persists the aspect selection and `[video] adaptive_view` there. Two keys are deliberately outside a player's reach: `runtime.openbios`, which is a compatibility statement by the title, and `audio.buffer_ms`, which is a per-game developer choice. `bios.cfg` beside the executable remembers a retail BIOS choice, and deleting it returns to OpenBIOS. Mod package state lives separately again, in `mods/state.toml`, format 2.
+`settings.toml` holds the player's own overrides. It beats `game.toml` and loses to the CLI. The launcher saves the aspect selection and `[video] adaptive_view` there. Two keys stay out of a player's reach on purpose: `runtime.openbios`, which is the title stating what it is compatible with, and `audio.buffer_ms`, which is a per-game developer choice. `bios.cfg` beside the executable remembers a retail BIOS choice, and deleting it returns to OpenBIOS. Mod package state lives separately again, in `mods/state.toml`, format 2.
 
 ## Environment variables
 
@@ -359,11 +361,11 @@ CMake options, set with `-D<name>=<value>`.
 
 ## Source
 
-From [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/config_schema.md`](https://github.com/mstan/psxrecomp/blob/master/docs/config_schema.md) is the schema document behind most of the tables above, and [`recompiler/src/config_loader.h`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/config_loader.h) and [`recompiler/src/config_loader.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/config_loader.cpp) are the parser and the defaults. Examples come from [`bios/SCPH1001.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/SCPH1001.toml), [`bios/OpenBIOS.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/OpenBIOS.toml) and [`tools/new_project_layout/templates/game.toml.in`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/templates/game.toml.in). The widescreen block is documented in [`WIDESCREEN.md`](https://github.com/mstan/psxrecomp/blob/master/WIDESCREEN.md) and parsed in [`recompiler/src/main_psx.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/main_psx.cpp). BIOS selection comes from [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md), build options from [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md), the PGO keys from [`docs/LOCAL_CODEGEN_SDK.md`](https://github.com/mstan/psxrecomp/blob/master/docs/LOCAL_CODEGEN_SDK.md), and the unreachable-key disposition from [`ENHANCEMENTS.md`](https://github.com/mstan/psxrecomp/blob/master/ENHANCEMENTS.md).
+From [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/config_schema.md`](https://github.com/mstan/psxrecomp/blob/master/docs/config_schema.md) is the schema document behind most of the tables above, and [`recompiler/src/config_loader.h`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/config_loader.h) and [`recompiler/src/config_loader.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/config_loader.cpp) are the parser and the defaults. Examples come from [`bios/SCPH1001.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/SCPH1001.toml), [`bios/OpenBIOS.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/OpenBIOS.toml) and [`tools/new_project_layout/templates/game.toml.in`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/templates/game.toml.in). The widescreen block is documented in [`WIDESCREEN.md`](https://github.com/mstan/psxrecomp/blob/master/WIDESCREEN.md) and parsed in [`recompiler/src/main_psx.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/main_psx.cpp). BIOS selection comes from [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md), build options from [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md), the PGO keys from [`docs/LOCAL_CODEGEN_SDK.md`](https://github.com/mstan/psxrecomp/blob/master/docs/LOCAL_CODEGEN_SDK.md), and the unreachable key from [`ENHANCEMENTS.md`](https://github.com/mstan/psxrecomp/blob/master/ENHANCEMENTS.md).
 
 ## Next
 
 - [Command line reference](/docs/reference/cli), for the flags that override these keys.
-- [PlayStation](/docs/platforms/playstation), for what the tiers, renderers and BIOS backends these keys select actually do.
+- [PlayStation](/docs/platforms/playstation), for what the tiers, renderers and BIOS backends these keys select do.
 - [Mod manifest schema](/docs/reference/mod-manifest) for `manifest.toml` inside a `.psxmod`, and [code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) for the overlay cache the backend keys feed.
 - [Port a game](/docs/guides/port-a-game) to see a `game.toml` written from scratch, with terms defined in the [glossary](/docs/concepts/glossary).
