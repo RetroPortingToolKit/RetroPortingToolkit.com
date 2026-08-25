@@ -73,7 +73,7 @@ A licensing term this fleet needs because a runner can link code under a stronge
 
 ### Co-simulation
 
-Running two versions of the same machine from the same reset, stopping both at the same point in guest time, comparing the whole machine, and halting at the first difference. It either agrees or it names the exact checkpoint where it stopped agreeing. See [Co-simulation](/docs/concepts/co-simulation).
+Comparing the port against something that already runs the console correctly, an emulator or real hardware. Both run the same game from the same reset, both stop at the same point in guest time, the whole machine is compared, and the run halts at the first difference. See [Co-simulation](/docs/concepts/co-simulation).
 
 ### Coverage
 

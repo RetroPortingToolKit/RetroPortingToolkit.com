@@ -7,7 +7,6 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/SuperMarioWorldRecomp"
-  - "https://github.com/mstan/MinishCapRecomp"
 updated: "2026-08-25"
 ---
 
@@ -60,9 +59,7 @@ A build that produced a program has proved nothing about how it behaves. Two che
 
 **First, missed jumps.** A dispatch miss is a jump to an address with no generated function behind it, which means the game quietly skipped part of itself. Several toolchains call this game breaking and want it cleared before any other debugging. Read the log the port writes beside the program, add what it names to your configuration, regenerate, and repeat until the log is empty. That is the path back to stage 2.
 
-**Second, co-simulation.** A second program that already runs this console correctly, written by somebody else, runs beside the port and is kept in step with it. Both are stopped at the same moments and compared, and the run halts the first time they disagree. Agreeing with yourself does not count, as [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md) says at the top of its scorecard:
-
-> **Self-agreement is NOT accuracy.**
+**Second, co-simulation.** The name sounds fancy, but it is just comparing: an emulator or real hardware that already runs this console correctly runs beside the port, kept in step. Both are stopped at the same moments and compared, and the run halts the first time they disagree. The comparison target has to be something outside the port, because a port agreeing with itself proves nothing.
 
 [Proving it with co-simulation](/docs/concepts/co-simulation) is the technique, [debug a divergence](/docs/guides/debug-a-divergence) is what to do when it halts, and [what correct enough means](/docs/concepts/accuracy-and-burndowns) is how a clean run turns into a claim.
 
@@ -74,16 +71,15 @@ Only now does anything get added. Widescreen, mods, live translation, save state
 
 Stages 2 to 5 are a cycle you go round hundreds of times. A missed jump found at stage 5 becomes a starting point for the search at stage 2. A wrong pixel traced back to the recompiler is a toolchain fix, and a toolchain fix means regenerating every game built on it.
 
-nesrecomp writes its own version of that cycle down as nine steps: run the recompiler, build the game, play it for a few seconds, look at a screenshot, work out which layer the bug is in, fix that layer, go back to the top. [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) tracks its bring up as ten milestones, six of which are comparisons against something known to be right.
+Different consoles put the loop together differently, and the steps vary to an extent from system to system. What does not vary: a bug is traced to the layer that owns it, the fix lands there, and the loop starts again from the top.
 
-How long the loop takes depends on the framework, not on the game. Where a console framework is already mature, adding a new game is quick: [Street Fighter Alpha 3](/games/street-fighter-alpha-3) took about five minutes of game-specific work. Months went into building the framework, and more go into this loop, taking one game from booting to feeling finished.
+How long the loop takes depends on the framework, not on the game. As a console's framework matures, adding a new game to it takes less and less work, and this loop is where the remaining time goes, taking that game from booting to feeling finished.
 
 ## Source
 
-- [nesrecomp](https://github.com/mstan/nesrecomp): [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md), [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md).
+- [nesrecomp](https://github.com/mstan/nesrecomp): [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md).
 - [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/ARCHITECTURE.md`](https://github.com/mstan/psxrecomp/blob/master/docs/ARCHITECTURE.md), [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md).
-- [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp): [`CLAUDE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/CLAUDE.md), [`RELEASE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/RELEASE.md). [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp): [`CLAUDE.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/CLAUDE.md).
-- [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp): [`CLAUDE.md`](https://github.com/mstan/MinishCapRecomp/blob/main/CLAUDE.md).
+- [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp): [`CLAUDE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/CLAUDE.md), [`RELEASE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/RELEASE.md).
 
 ## Next
 

@@ -102,10 +102,10 @@ Repository path, branch, and the rule files the next session must read first.
 ## Branch and commit state
 Tip commit, what is committed but not pushed, and where the rollback points are.
 
-## What is PROVEN
+## What is PROVEN?
 One item per line, each with the measurement that proved it.
 
-## What is NOT the problem
+## What is NOT the problem?
 Ruled out, with: do not re-open any of the above without producing measured
 evidence that contradicts it.
 

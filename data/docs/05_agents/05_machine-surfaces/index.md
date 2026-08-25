@@ -227,7 +227,7 @@ The tool an agent calls to prove Ghidra is up is named the same everywhere: `mcp
 
 > **Warning.** Three repositories gate all work on Ghidra MCP being reachable and ship no `.mcp.json` at all: nesrecomp, Megaman3NESRecomp and YoshiNESRecomp. An agent there has no configured server to reach, and the working configuration lives outside the tree. [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game) covers a gate you cannot satisfy.
 
-## What is not automated
+## What is not automated?
 
 Nothing in this fleet watches your change for you. Four repositories carry a workflow file, and none of the 36 agent instruction files mentions continuous integration at all.
 

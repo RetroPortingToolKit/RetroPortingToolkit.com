@@ -13,7 +13,7 @@ updated: "2026-08-25"
 
 This is the shortest path in this fleet from an empty directory to a static recompiler you built, a real binary you recompiled, and a native program that runs the result. It uses [psxrecomp](https://github.com/mstan/psxrecomp), and it needs no game file of your own: the binary you recompile is the openly licensed PlayStation BIOS image the repository ships. You will not have a game running at the end of it. What you get is every stage of the pipeline working on your own machine. If you would rather aim at a game you own, go to [recomp your own game](/docs/start/recomp-your-own-game).
 
-## Why this one
+## Why this one?
 
 Three reasons to trust the commands below.
 
@@ -108,7 +108,7 @@ With no arguments it uses the bundled OpenBIOS. This repository's own release is
 
 ## What this did not get you
 
-- **A game.** Games live in their own repositories, each pinning a framework commit and carrying that game's configuration. [Port a game](/docs/guides/port-a-game) is the procedure, and it starts from a disc image you supply. On PlayStation a scaffolding tool does most of the setup: [Street Fighter Alpha 3](/games/street-fighter-alpha-3) took about five minutes of game-specific work. Taking a game from booting to finished is the long part.
+- **A game.** Games live in their own repositories, each pinning a framework commit and carrying that game's configuration. [Port a game](/docs/guides/port-a-game) is the procedure, and it starts from a disc image you supply. On PlayStation a scaffolding tool does most of the setup. Taking a game from booting to finished is the long part.
 - **Any statement about a game's compatibility.** psxrecomp says a generated project is "a practical starting point, not a promise that every game works without game-specific fixes".
 - **A debug server.** Release builds do not have one. Configure with `-DCMAKE_BUILD_TYPE=RelWithDebInfo` if you want the TCP debug protocol, which is how everything in this fleet is actually observed.
 - **Anything redistributable from your own disc.** Generated game and retail BIOS C is derived from your files. See [the game file you supply](/docs/concepts/the-game-file-you-supply) and [provenance](/docs/fleet/provenance).

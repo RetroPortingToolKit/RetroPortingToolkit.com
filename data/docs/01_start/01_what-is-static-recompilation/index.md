@@ -10,7 +10,7 @@ repos:
 updated: "2026-08-25"
 ---
 
-A console game is a binary: compiled machine code, built for a machine nobody makes any more. It is not source code, and your computer cannot run it. Static recompilation reads that binary before the game ever runs and translates it into source code in an ordinary programming language. That source is compiled for the computer you actually own. What comes out is a normal program. Your computer runs the game's own logic directly, instead of running an emulator that reads the game's instructions and acts them out one at a time while you play. Static means the translation happens ahead of time, once, on a developer's machine. The translated code is joined to a runtime, a library that stands in for the console's hardware. The projects here write C, but the technique does not require C.
+A console game is a binary: compiled machine code, built for a machine nobody makes any more. It is not source code, and your computer cannot run it. Static recompilation reads that binary before the game ever runs and translates it into source code in an ordinary programming language. That source is compiled for the computer you actually own. What comes out is a normal program. Your computer runs the game's own logic directly, instead of running an emulator that reads the game's instructions and acts them out one at a time while you play. Static means the translation happens ahead of time, once, on a developer's machine. The translated code is joined to a runtime, a library that stands in for the console's hardware. It can be done in any language; the projects here write C.
 
 ## What the recompiler writes
 
@@ -20,7 +20,7 @@ It works out where each of the game's own functions begins and writes one functi
 
 Nothing about the result is exotic. The projects here emit C, so an ordinary C compiler builds it and you can read the output. [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime) shows what that generated code looks like, and each [platform page](/docs/platforms) shows one console's version of it.
 
-## Why not just emulate it
+## Why not just emulate it?
 
 An emulator is a second program. While you play, it reads the game's binary one instruction at a time and acts each one out. That is called interpreting, and it is what emulation means here. It pays for the same work over and over: read an instruction, work out what it means, do it, start again. A loop the game runs a million times pays that cost a million times.
 
@@ -38,13 +38,13 @@ Some games keep code where the recompiler cannot see it ahead of time. [Code you
 
 ## What it costs
 
-**Building the framework, not adding the game.** On a mature console framework, standing up a new game takes about five minutes of game-specific work. [Street Fighter Alpha 3](/games/street-fighter-alpha-3) is this site's example. Months went into building that framework. More months go into taking one game from booting to feeling finished. Not every framework here is mature. PlayStation can scaffold a new game project, most of the others cannot, and starting a port there means copying a working port by hand. [Recomp your own game](/docs/start/recomp-your-own-game) says which is which.
+**Building the framework, not adding the game.** The months of work go into a console's framework, not into each game. Once a framework is mature, adding a game to it is quick, and as these ecosystems mature the time from a disc to a running build keeps shrinking. Not every framework is there yet: some are in more active development and less stable than others. More months go into taking one game from booting to feeling finished. [Recomp your own game](/docs/start/recomp-your-own-game) says where each console stands.
 
 **Telling code from data.** A binary is one flat block of bytes. Nothing in it marks where a function begins, or which bytes are instructions at all rather than a picture or a piece of music. Getting that wrong is the central difficulty of the whole technique, and it has its own page: [telling code from data](/docs/concepts/code-discovery).
 
-**No promise about any one game.** psxrecomp's own README calls what its tool generates "a practical starting point, not a promise that every game works without game-specific fixes". Whether a particular game works is a question about that game, and the [status vocabulary](/docs/reference/status-vocabulary) unpacks the careful words the projects use to answer it.
+**No promise about any one game.** No ecosystem here guarantees that a game can be done in one shot. That is the end goal: the frameworks are a foundation that does most of the work, and the aspiration is all of it. Until a particular game is done, there can be gaps specific to that game. The [status vocabulary](/docs/reference/status-vocabulary) unpacks the careful words the projects use to say where a game stands.
 
-> **You provide this.** Nothing here ships a game. Every port needs a game file that you supply from your own media, and the port checks it before it starts. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the full contract.
+> **You provide this.** No project here ships a game. You supply your own game file, and the port checks it before it starts. [The game file you supply](/docs/concepts/the-game-file-you-supply) explains what is checked and why.
 
 ## Where emulation comes in
 

@@ -13,7 +13,7 @@ repos:
 updated: "2026-08-25"
 ---
 
-A recompiler turns a game's machine code into code you can compile, and nothing about the result proves it still behaves like the console. Co-simulation is how these projects find out. Two versions of the same console run the same game from the same reset. Both stop at the same point in game time, called a checkpoint. Everything that could affect what happens next is squeezed into one number, a hash. Matching hashes, keep going. The first checkpoint where they differ is where the two versions stopped agreeing, and everything after it is consequence.
+A recompiler turns a game's machine code into code you can compile, and nothing about the result proves it still behaves like the console. Co-simulation is how these projects find out. The name sounds fancy, but it is just comparing the port against something that already runs the console correctly: an emulator, or real hardware. Two versions of the same console run the same game from the same reset. Both stop at the same point in game time, called a checkpoint. Everything that could affect what happens next is squeezed into one number, a hash. Matching hashes, keep going. The first checkpoint where they differ is where the two versions stopped agreeing, and everything after it is consequence.
 
 ## Why this and not another debugging tool
 

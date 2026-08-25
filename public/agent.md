@@ -190,9 +190,13 @@ Match it or the post will read as foreign to the site.
 - **No em dashes or en dashes anywhere.** Commas, colons, periods.
 - The recompiler reads a game's binary and writes code in an ordinary
   programming language. The projects here emit C, but do not define the
-  technique as producing C. Emulation in these ports is a fallback: a missed
-  instruction becomes a slow moment, not a crash. Never claim categorically
-  that no emulation is involved. The game is the program, never "inside" it.
+  technique as producing C. The runtime is a library, not an emulator; the
+  word emulator belongs only to the fallback interpreter, a temporary safety
+  net that goes inert as coverage fills in. A completed project has 100%
+  static coverage and does not use it. A missed instruction becomes a slow
+  moment, not a crash. Never claim categorically that no emulation is ever
+  involved along the way. The game is the program, never "inside" it. A
+  heading that is a question carries a question mark.
 - Say "core project" or "core team", never "first-party". Never "real code".
 - "Pokémon" keeps its accent.
 - Do not invent facts about a project. If you cannot source a claim, leave it

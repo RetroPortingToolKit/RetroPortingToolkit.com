@@ -155,15 +155,26 @@ a bare path as the whole info string works when the block has no language
 - The recompiler reads a game's binary, its compiled machine code, and writes
   code in an ordinary programming language. The projects here emit C, but do
   not define the technique as producing C, and never say it produces "text".
-- Call interpretation what it is: emulation. In these ports emulation is a
-  fallback, a small interpreter that catches what the recompiler missed, so a
-  missed instruction becomes a slow moment instead of a crash. Never claim
-  categorically that no emulation is involved. The game is the program, never
-  "inside" the program.
-- On a mature console framework, standing up a new game takes minutes (the
-  Street Fighter Alpha 3 page is the source). The months live in building each
-  framework and in making one game feel finished. Do not write "months of work
-  per game".
+- Call interpretation what it is: emulation. The runtime is not an emulator,
+  it is an ordinary library standing in for the console, the way any program
+  uses the system it runs on. The word emulator belongs only to the fallback
+  interpreter: a safety net that catches what the translation has not reached
+  yet, so a missed instruction becomes a slow moment instead of a crash. The
+  fallback is temporary by design: as coverage fills in it goes inert, and a
+  completed project does not have, or will not use, a fallback interpreter.
+  It has 100% static coverage. Never claim categorically that no emulation is
+  ever involved along the way. The game is the program, never "inside" the
+  program.
+- The months live in building each console's framework and in making one game
+  feel finished; as an ecosystem matures, the time from a disc to a running
+  build keeps shrinking. Do not write "months of work per game", and do not
+  assert the five-minute figure as a general claim: it belongs only on the
+  Street Fighter Alpha 3 pages, attributed to the team that cites it.
+- A heading that is a question carries a question mark. A noun phrase does
+  not.
+- The start section speaks for the ecosystem generally. Name a specific
+  project there only when the page is about it or a kept quote requires
+  attribution; deeper sections cite freely.
 - "core project" or "core team", never "first-party". Never "real code".
 - "Pokémon" keeps its accent.
 - Do not invent facts about a project. If a claim cannot be sourced, leave it

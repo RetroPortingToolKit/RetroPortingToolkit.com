@@ -22,7 +22,7 @@ A release here is one archive per platform, built by a script. It holds the exec
 Every packaging document here is built around the same rule. gbarecomp states it most directly, in [`packaging/README.md`](https://github.com/mstan/gbarecomp/blob/main/packaging/README.md):
 
 ```text title="packaging/README.md"
-## What is never packaged
+## What is never packaged?
 
 The ROM and the BIOS. A recompiled binary already embeds translated ROM code, so
 these scripts are for building **your own** copy from **your own** dump — not for

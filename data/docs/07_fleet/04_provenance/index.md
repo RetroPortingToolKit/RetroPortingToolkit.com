@@ -172,7 +172,7 @@ be isolated as a separately licensed development tool, but it must not be used
 as source text for the player implementation or enter a player/recompiler build.
 ```
 
-## Why keep a record like this
+## Why keep a record like this?
 
 Each piece is cheap to write and answers a question that cannot be answered
 later. Where the DS1216 clock came from has a row, a data sheet URL and a test

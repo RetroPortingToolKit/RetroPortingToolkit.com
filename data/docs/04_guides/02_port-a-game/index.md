@@ -216,7 +216,7 @@ After the first run, resolve every dispatch miss before any other debugging. The
 
 ## How long a port actually takes
 
-On a mature framework, standing up a new game is fast. [Street Fighter Alpha 3](/games/street-fighter-alpha-3) took about five minutes of game-specific work to go from a disc to a running native build. The months went somewhere else: into building each console's framework, and into taking one game from booting to feeling finished.
+On a mature framework, standing up a new game is fast, and as an ecosystem matures the time from a disc to a running build keeps shrinking. The months go somewhere else: into building each console's framework, and into taking one game from booting to feeling finished.
 
 Booting is not the finish line. MinishCap's bring-up checklist has ten milestones, from file hash verified to save and load round-tripping, and six of them are comparisons against a reference implementation. That is why [co-simulation](/docs/concepts/co-simulation) comes early rather than late, and [debug a divergence](/docs/guides/debug-a-divergence) is how you localise what it reports.
 
