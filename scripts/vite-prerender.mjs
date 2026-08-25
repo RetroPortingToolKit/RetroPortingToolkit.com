@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
+import GithubSlugger from "github-slugger";
 import { SITE } from "./site-config.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -327,9 +328,59 @@ function itemJsonLd(item, url, image) {
 // This is what makes the site readable to crawlers and LLM browsing tools,
 // which otherwise see an empty client-rendered shell.
 
+// One attribute value, for text escapeHtml() has already been through: only the
+// quote is left to deal with, and escapeAttr() would double-escape the "&".
+function quoteAttr(escaped) {
+  return escaped.replace(/"/g, "&quot;");
+}
+
+// ![alt](src) in an article body. src/components/Markdown.tsx renders it as a
+// figure: the image, with the alt doubling as the visible caption.
+//
+// Only a file this script can name a working URL for becomes an <img>. A
+// relative "./shot.png" (and an absolute "/data/..." one) is a data/ asset that
+// the bundler hashes into /assets/, and resolveKey() in src/lib/content.ts
+// reads that map from inside the app; nothing here can see it, so pointing an
+// <img> at "./shot.png" would only promise a file that is not at that address.
+// The caption is kept instead of the image, because on a documentation page the
+// alt is a whole sentence carrying the diagram's argument and dropping it loses
+// the point of the figure.
+function mediaHtml(alt, src) {
+  const caption = alt ? `<span class="md-figcaption">${alt}</span>` : "";
+  // Videos are embedded, never re-hosted: ![caption](https://youtu.be/ID) is a
+  // player on the page, and a link to it is what that degrades to.
+  if (/youtu\.?be/.test(src)) return `<a href="${quoteAttr(src)}">${alt || src}</a>`;
+  // The half of resolveKey() that does not need the bundler's map: a public/
+  // asset and a remote file are served at the address they are written at.
+  const asWritten = /^https?:/.test(src) || (src.startsWith("/") && !src.startsWith("/data/"));
+  if (!asWritten || VIDEO_EXT.test(src)) return caption;
+  return `<img src="${quoteAttr(src)}" alt="${quoteAttr(alt)}" />`;
+}
+
 function mdInline(text) {
-  return escapeHtml(text)
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, "")
+  // Text that is literal once it is parsed (a code span's contents, an
+  // autolink's URL) is parked here so the rules below cannot chew on it, and
+  // put back at the end. headingText() in src/lib/toc.ts parks for the same
+  // reason: `ws_cfg_num * 3 > ws_cfg_den * 4` is a C expression, and the
+  // emphasis rule used to eat both multiplications out of the middle of it.
+  const literals = [];
+  const park = (html, plain) =>
+    `\u0000${literals.push({ html, plain: plain ?? html }) - 1}\u0000`;
+  const restore = (s, key) =>
+    s.replace(/\u0000(\d+)\u0000/g, (_, i) => literals[+i][key]);
+
+  const html = escapeHtml(text)
+    // Code spans, before every other rule: a reference table is mostly
+    // `--flags` and paths, literal backticks read badly as plain text, and
+    // nothing inside a code span is markup.
+    .replace(/`([^`\n]+)`/g, (_, code) => park(`<code>${code}</code>`, code))
+    // An alt is a plain string on the React side, so any code span in it comes
+    // back as its text and the result is parked whole: nothing in a caption is
+    // markup either.
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => {
+      const caption = restore(alt, "plain");
+      return park(mediaHtml(caption, restore(src, "plain")), caption);
+    })
     // citation markers ([src](cite:...)) are a client-side affordance; in the
     // static text they would be dead links, so drop them entirely
     .replace(/\s*\[[^\]]*\]\(cite:[^)]*\)/g, "")
@@ -337,11 +388,27 @@ function mdInline(text) {
       const safe = escapeAttr(href);
       return `<a href="${safe}">${t}</a>`;
     })
-    // Code spans, before the emphasis rules: a reference table is mostly
-    // `--flags` and paths, and literal backticks read badly as plain text.
-    .replace(/`([^`\n]+)`/g, "<code>$1</code>")
+    // <https://example.com> is a link. Parked whole, because its URL is not
+    // prose: an underscore or an asterisk in it is part of the address.
+    .replace(/&lt;((?:https?|mailto):[^\s]+?)&gt;/g, (_, url) =>
+      park(`<a href="${quoteAttr(url)}">${url}</a>`, url),
+    )
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/(^|\s)\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, "$1<em>$2</em>");
+  return restore(html, "html");
+}
+
+// The text of a rendered fragment. This is what rehype-slug slugs on the React
+// side (hast-util-to-string over the heading element), so it is what a heading
+// id has to be derived from here. Tags come out before the entities go back,
+// or the "&lt;id&gt;" inside a code span would be read as one.
+function htmlText(html) {
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, "&");
 }
 
 // A table row's cells, on unescaped pipes, with the optional outer pipes gone.
@@ -421,7 +488,7 @@ function codeBlockHtml(info, code) {
 // Paragraph-level blocks, split on blank lines. Fenced code never reaches here:
 // mdToHtml lifts it out first, because a fence may contain blank lines and
 // would otherwise be torn into pieces.
-function mdBlocks(md) {
+function mdBlocks(md, slugger) {
   const blocks = md.split(/\n{2,}/);
   const out = [];
   for (const raw of blocks) {
@@ -430,7 +497,15 @@ function mdBlocks(md) {
     const h = b.match(/^(#{1,4})\s+(.+)$/s);
     if (h) {
       const lvl = Math.min(h[1].length + 1, 5);
-      out.push(`<h${lvl}>${mdInline(h[2].trim())}</h${lvl}>`);
+      const inner = mdInline(h[2].trim());
+      // Every heading carries the id the React render gives it, or the "#..."
+      // links a page makes to its own sections land nowhere for a reader
+      // without JavaScript. Same github-slugger, over the same heading text, in
+      // the same document order as rehype-slug (and as src/lib/toc.ts, which
+      // builds the contents list from the source). An id that differs between
+      // the two renders would be worse than no id at all.
+      const id = slugger.slug(htmlText(inner));
+      out.push(`<h${lvl} id="${escapeAttr(id)}">${inner}</h${lvl}>`);
       continue;
     }
     const lines = b.split("\n");
@@ -438,7 +513,7 @@ function mdBlocks(md) {
       out.push(tableHtml(lines));
       continue;
     }
-    if (/^[-*]\s+/m.test(b) && b.split("\n").every((l) => /^[-*]\s+|^\s/.test(l))) {
+    if (/^[-*]\s+/m.test(b) && lines.every((l) => /^[-*]\s+|^\s/.test(l))) {
       const lis = b
         .split(/\n(?=[-*]\s+)/)
         .map((l) => `<li>${mdInline(l.replace(/^[-*]\s+/, "").trim())}</li>`)
@@ -446,12 +521,30 @@ function mdBlocks(md) {
       out.push(`<ul>${lis}</ul>`);
       continue;
     }
+    // The numbered steps a guide is mostly made of. Its own branch rather than
+    // the bullet one above, because these have to come out as <ol><li> and
+    // because the numbering has to survive: a step whose body holds a fenced
+    // block ends the block here (mdToHtml lifts the fence out), so the rest of
+    // the list arrives as a block of its own starting at "2.", and the start
+    // attribute is what keeps it step 2 instead of step 1 again.
+    if (/^\d+[.)]\s+/.test(b) && lines.every((l) => /^\d+[.)]\s+|^\s/.test(l))) {
+      const first = parseInt(b, 10);
+      const lis = b
+        .split(/\n(?=\d+[.)]\s+)/)
+        .map((l) => `<li>${mdInline(l.replace(/^\d+[.)]\s+/, "").trim())}</li>`)
+        .join("");
+      out.push(`<ol${first > 1 ? ` start="${first}"` : ""}>${lis}</ol>`);
+      continue;
+    }
     if (b.startsWith(">")) {
       // Back through the top of the renderer, because pages quote whole
       // passages: a quotation can hold its own paragraphs, list, table or
       // fenced block, and one <p> of raw markdown would swallow all of it.
-      const inner = b.replace(/^ {0,3}>\s?/gm, "").trim();
-      out.push(`<blockquote>${mdToHtml(inner)}</blockquote>`);
+      // " ?" and not "\s?": on a lone ">" line \s matched the NEWLINE, which
+      // pulled the blank line out from under the quote and left a nested
+      // quotation glued to the paragraph above it as literal "&gt;" text.
+      const inner = b.replace(/^ {0,3}> ?/gm, "").trim();
+      out.push(`<blockquote>${mdToHtml(inner, slugger)}</blockquote>`);
       continue;
     }
     out.push(`<p>${mdInline(b)}</p>`);
@@ -462,7 +555,12 @@ function mdBlocks(md) {
 // The crawlable text. Documentation pages lean on fenced code and tables, and
 // neither survives a blank-line split, so the fences come out in one line pass
 // and everything between them goes through mdBlocks() above.
-export function mdToHtml(md) {
+//
+// One slugger per document, made here and handed down: github-slugger numbers
+// a repeated heading ("Notes", then "notes-1"), so it has to see every heading
+// on the page, once, in source order, exactly as rehype-slug does on the React
+// side. A quotation renders through here again and passes its parent's along.
+export function mdToHtml(md, slugger = new GithubSlugger()) {
   if (!md) return "";
   const lines = md.replace(/\r\n/g, "\n").split("\n");
   const out = [];
@@ -471,7 +569,7 @@ export function mdToHtml(md) {
     if (!buf.length) return;
     const text = buf.join("\n");
     buf = [];
-    if (text.trim()) out.push(mdBlocks(text));
+    if (text.trim()) out.push(mdBlocks(text, slugger));
   };
   for (let i = 0; i < lines.length; i++) {
     const open = lines[i].match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
