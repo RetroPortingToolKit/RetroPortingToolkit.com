@@ -8,27 +8,29 @@ tags: ["Tutorial", "PlayStation"]
 layout: "article"
 ---
 
-This is the whole path, from a PlayStation disc image you own to a native build running on your own machine. It is written for a person at a terminal, and every command below is copied from the framework's own documentation or from the script that executes it. Nothing is paraphrased, because a command that is almost right is worse than no command at all.
+This is the whole path. A PlayStation disc image you own goes in. A native program for your own machine comes out.
 
-Read [what static recompilation is](/docs/start/what-is-static-recompilation) first if the idea is new to you. The short version: the original program is translated from MIPS machine code into C ahead of time, compiled for your CPU, and linked against a runtime that stands in for the console's hardware.
+New to the idea? Read [what static recompilation is](/docs/start/what-is-static-recompilation) first. The short version: the game on the disc is a program made of MIPS machine code. A recompiler reads that binary and writes source code that does the same work. The projects here write C. You compile it for your own CPU and link it against a runtime that stands in for the console's hardware. The result is an ordinary program for your computer. It does not contain a copy of the game. It is the game.
 
 ## Why this one is fast
 
-[Street Fighter Alpha 3](/games/street-fighter-alpha-3) is the reason to start here. It is a community port, and the team cites roughly five minutes of game specific work between the disc and a running native build. Its README records how: "Scaffolded with the New Project Layout."
+Start with PlayStation, because PlayStation has a script. [Street Fighter Alpha 3](/games/street-fighter-alpha-3) is a community port, and the team cites roughly five minutes of game specific work between the disc and a running native build. Its README records how: "Scaffolded with the New Project Layout."
 
-That is not luck, and it is not a claim about how easy porting is in general. It is a claim about one script. [`psxrecomp`](https://github.com/mstan/psxrecomp) ships [`tools/new_project_layout/`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/), and in a single invocation that tooling:
+Five minutes is real, and it helps to know what it measures. The long work went into building the PlayStation framework, and that work is done. Every new game inherits it. What is left per game is small, and most of it is answering prompts. Taking that first build from booting to feeling finished is a different job, and that one still takes months.
 
-- creates the repository, with `CMakeLists.txt`, `game.toml`, `codegen_setup.c`, a `.gitignore` that already excludes disc images and generated code, `VERSION` and a README stub
-- adds the framework as a root level submodule and detaches it at a fetched commit, so your project is pinned rather than floating
-- probes your disc for its identity, writes the Track 01 digests and a `psxrecomp-toc-v1` fingerprint into `game.toml`, and derives a first pass seed list from the boot executable
+[`psxrecomp`](https://github.com/mstan/psxrecomp) ships [`tools/new_project_layout/`](https://github.com/mstan/psxrecomp/blob/master/tools/new_project_layout/). One command does all of this:
+
+- creates the repository, with `CMakeLists.txt`, `game.toml`, `codegen_setup.c`, `VERSION`, a README stub, and a `.gitignore` that already excludes disc images and generated code
+- adds the framework as a submodule, pinned at a fetched commit, so your project does not drift
+- probes your disc, writes the Track 01 digests and a `psxrecomp-toc-v1` fingerprint into `game.toml`, and derives a first pass seed list from the boot executable
 - fills in the packaging script, and the GitHub Actions release workflow if you ask for it
-- optionally runs the first generate and the first build for you
+- runs the first generate and the first build, if you ask it to
 
-The other eight toolchains in this ecosystem have no equivalent. On NES, SNES, Game Boy Advance, Game Boy, Genesis, Master System, Virtual Boy or DS you copy the shape of a working port by hand. Do not read this article as a promise about those.
+The other eight toolchains here have no equivalent. On NES, SNES, Game Boy Advance, Game Boy, Genesis, Master System, Virtual Boy or DS you copy the shape of a working port by hand.
 
 ## Before you start
 
-You need `git`, CMake 3.20 or newer, Ninja, a C and C++ toolchain, and Python 3. The framework's [`BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) lists the per platform packages:
+You need `git`, CMake 3.20 or newer, Ninja, a C and C++ toolchain, and Python 3. The framework's [`BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) lists the packages per platform:
 
 ```sh
 # Windows, in an MSYS2 MinGW64 shell:
@@ -44,9 +46,9 @@ sudo apt install build-essential cmake ninja-build
 
 On Windows, prefer MSYS2 MinGW over MSVC: that is the configuration release builds use.
 
-You do not need a BIOS dump. The framework bundles the MIT licensed OpenBIOS and builds against it by default. A retail `SCPH1001.BIN` can be supplied later with `--bios` if a title turns out to need one, which you discover when the game misbehaves rather than in advance.
+You do not need a BIOS dump. The framework bundles OpenBIOS, which is MIT licensed, and builds against it by default. If a game turns out to need a retail BIOS, pass `--bios` with your own `SCPH1001.BIN` later. You learn that when the game misbehaves, not in advance.
 
-> **You provide this.** You supply the disc image, from a copy you own, as a `.cue` with its `.bin` tracks beside it. Nothing here distributes game data and nothing here will help you obtain any. Prefer a full multi track Redump style cue: a single track dump will warn, and will fail the online multi track gates. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
+> **You provide this.** You supply the disc image, from a copy you own: a `.cue` file with its `.bin` tracks beside it. Nothing here distributes game data or helps you find any. Use a full multi track dump. A single track dump warns, and it fails the gates online play uses. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
 ## 1. Get the framework
 
@@ -56,7 +58,7 @@ cd psxrecomp
 git submodule update --init --recursive
 ```
 
-**You should see** a `psxrecomp` directory containing `recompiler/`, `runtime/`, `tools/`, `docs/` and `psxrecomp_cli.py`. If `tools/new_project_layout/setup_project.sh` is not there, you are on an older checkout and the rest of this will not apply.
+**You should see** a `psxrecomp` directory containing `recompiler/`, `runtime/`, `tools/`, `docs/` and `psxrecomp_cli.py`. If `tools/new_project_layout/setup_project.sh` is missing, your checkout is too old and the rest of this will not apply.
 
 ## 2. Run the scaffold
 
@@ -68,9 +70,9 @@ sh tools/new_project_layout/setup_project.sh \
   --dir ~/src
 ```
 
-`--disc` is the one path the script will not prompt for. Missing it exits with a nag, deliberately, because tab completing a path is something your shell does better than a prompt. `--dir` is the parent directory the new repository is created in, and it defaults to the current directory.
+`--disc` is the one path the script never prompts for. Leave it out and it exits and tells you. `--dir` is the parent directory the new repository is created in, and it defaults to the current directory.
 
-Everything else is asked, in this order, with these defaults:
+The script asks for everything else, in this order, with these defaults:
 
 | Prompt | Default |
 |---|---|
@@ -89,13 +91,13 @@ Everything else is asked, in this order, with these defaults:
 | `Configure & build psx-runtime after Generate?` | `Y` |
 | `Create GitHub repo with gh (needs auth)?` | `N` |
 
-Two of those are worth thinking about before you press return. Answer `1` to the players question for a single player game and the netplay prompts are skipped entirely. Answer `Y` to Generate and the script will build the emitters and translate the game before it finishes, which is the difference between a tree of stubs and something you can run tonight.
+Two answers matter. Answer `1` to the players question for a single player game, and both netplay prompts are skipped. Answer `Y` to Generate and the script translates the game and builds it before it finishes. That is the difference between a tree of stubs and something you can run tonight.
 
-**You should see** the script print its phases as it goes: `== External disc (no full copy) ==`, then `== Probing disc (identity + seeds + TOC fp) ==`, then `== Sync symbols header ==`, and finally a `== Done ==` block listing next steps and the number of seeds the probe found. If the probe failed it says so and leaves a template `game.toml` behind for you to fill in by hand.
+**You should see** the script print its phases: `== External disc (no full copy) ==`, then `== Probing disc (identity + seeds + TOC fp) ==`, then `== Sync symbols header ==`, then a `== Done ==` block listing next steps and the number of seeds the probe found. If the probe failed it says so, and leaves a template `game.toml` for you to fill in by hand.
 
 ## 3. Read what the probe found
 
-Change into the new repository and open `game.toml`. This is the file the rest of the toolchain reads, and the probe has already filled most of it in. Street Fighter Alpha 3's, written by exactly this flow:
+Change into the new repository and open `game.toml`. The rest of the toolchain reads this file, and the probe has already filled most of it in. Here is Street Fighter Alpha 3's, written by exactly this flow:
 
 ```toml title="game.toml"
 [game]
@@ -117,26 +119,26 @@ cue_name = "Street Fighter Alpha 3 (USA).cue"
 boot_exe = "SLUS_008.21"
 ```
 
-The serial, the boot executable, the load address and the entry point all come off the disc. So do the digests, which the runtime uses to check that the disc it is handed at run time is the one the build was made for.
+All of that comes off the disc: the serial, the boot executable, the load address, the entry point and the digests. The runtime uses the digests to check that the disc it is handed at run time is the one the build was made for.
 
-Then open `seeds/ghidra_funcs.txt`. These are the addresses the recompiler starts from: the entry point plus every direct call target inside the boot executable's text. That file has 1168 lines in the Street Fighter Alpha 3 repository. It is a first pass, not a complete map, and growing it is most of the work described at the end of this article.
+Now open `seeds/ghidra_funcs.txt`. These are the addresses the recompiler starts from: the entry point, plus every direct call target inside the boot executable's text. In the Street Fighter Alpha 3 repository that file has 1168 lines. It is a first pass, not a complete map, and growing it is most of the work described below.
 
 ## 4. Generate
 
-If you answered `N` to the Generate prompt, run the local development loop by hand. From `GAME_PROJECT_SETUP.md`:
+If you answered `N` to the Generate prompt, run the loop by hand. From `GAME_PROJECT_SETUP.md`:
 
 ```bash
 ./psxrecomp/tools/ci/build_emitters.sh
 ```
 
-That builds `psxrecomp-game` and `psxrecomp-bios`. It is once per machine, and again whenever the framework changes.
+That builds `psxrecomp-game` and `psxrecomp-bios`. You do it once per machine, and again whenever the framework changes.
 
 ```bash
 python3 psxrecomp/psxrecomp_cli.py generate \
   --config game.toml --project-root . --disc disc/game.cue
 ```
 
-**You should see** a `generated/` directory appear, containing the OpenBIOS backend and the game's translated C, named after the boot executable. `generated/` is gitignored and never committed: it is build output, and it is rebuilt from the disc every time.
+**You should see** a `generated/` directory appear, holding the OpenBIOS backend and the game's translated C, named after the boot executable. `generated/` is gitignored and never committed. It is build output, rebuilt from the disc every time.
 
 ## 5. Build
 
@@ -145,7 +147,7 @@ cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release --target psx-runtime -j"$(nproc)"
 ```
 
-**You should see** a binary under `build-release/`. Its name comes from the window title rather than the folder name, because every title instantiates the same CMake target: a project named `MyGameRecomp` produces a window title of `MyGame Recompiled` and a binary called `MyGame_Recompiled`. `ls build-release` will show you which.
+**You should see** a binary under `build-release/`. Its name comes from the window title, not the folder name, because every title uses the same CMake target. A project named `MyGameRecomp` gives a binary called `MyGame_Recompiled`. Run `ls build-release` to see what you got.
 
 ## 6. Run it
 
@@ -153,13 +155,13 @@ cmake --build build-release --target psx-runtime -j"$(nproc)"
 ./build-release/MyGame_Recompiled --game game.toml
 ```
 
-Substitute the binary name you actually got. `--game` points the runtime at the config, which is the single source of truth for the disc path, the memory card directory, the window title and the debug port. `--disc` overrides the disc path from the config if you need it to.
+Use the binary name you actually got. `--game` points the runtime at the config, which holds the disc path, the memory card directory, the window title and the debug port. `--disc` overrides the disc path.
 
-**You should see** the game boot. Or not, which is the normal case the first time and the subject of the rest of this article.
+**You should see** the game boot. Or not. That is normal the first time, and it is what the rest of this article is about.
 
 ## A build is not a finished port
 
-Most tutorials stop at the previous section. That is where the misunderstanding starts, so here is the framework's own document on the subject, quoted in full:
+The framework's own document lists what is left:
 
 ```markdown title="psxrecomp/docs/GAME_PROJECT_SETUP.md"
 ### After scaffold (still not automatic)
@@ -175,40 +177,47 @@ playable tree (OpenBIOS / optional retail BIOS C). You still must:
    setup-host **without** `generated/` — end users run Generate locally / via wizard)
 ```
 
-**Boot and soak** is where the time goes, and it is the step people underestimate by an order of magnitude. Static analysis finds the code it can prove is code. Anything reached only through a computed jump, an overlay loaded at run time, or a pointer the analysis could not resolve is simply absent from the translation, and its absence does not show up at startup. It shows up as a crash or a hang an hour into the game, at whichever point the program first tries to call something that was never translated. You play, you find one, you add its address as a seed, you regenerate, you build, you play again. That loop is the port.
+**Boot and soak** is where the time goes. The recompiler finds the code it can prove is code. Code reached only through a jump the game computes while it runs, or through an overlay loaded from the disc, can be missing from the translation. You do not see that at startup. You see it an hour in, the first time the game calls something that was never translated.
 
-**Netplay QA** applies only if the title has multiplayer and you enabled it. LAN first, then the lobby, confirming that the disc digests and the TOC fingerprint gate correctly so a partial dump cannot go online against a full one.
+The runtime carries a small interpreter as a fallback. psxrecomp's README states the bound:
 
-**Polish** means labelling what you have learned. `symbols.toml` is a progressive map: you name a function, run `python3 tools/sync_symbols.py`, and it becomes a `PSX_FN_*` entry in `psx_symbols.h` that the rest of your work can refer to by name.
+> **The worst case is always performance, never correctness** — anything not yet
+> native simply runs interpreted, correctly.
 
-**Ship** is the setup host model. The release zip contains the sources, the framework and the setup host, and deliberately does not contain `generated/`, a retail BIOS, or any disc data. Each player runs Generate once, locally, against their own copy of the game. That is why ports in this ecosystem ship as source rather than as a finished executable.
+That covers code the game writes into RAM while it runs: the interpreter picks it up and play continues, so a miss there costs speed, not correctness. A function the static pass never found is handled the other way on purpose. The runtime does not interpret around it, because that would hide the gap. It records the address and stops.
 
-[Port a game](/docs/guides/port-a-game) is the guide for everything after your first build.
+Either way the fix is the same. You play, you find one, you add its address as a seed, you regenerate, you build, and you play again. That loop is the port.
+
+**Netplay QA** applies only if the title has multiplayer and you turned it on. Test LAN, then the lobby. You are checking that the disc digests and the TOC fingerprint gate correctly, so a partial dump cannot go online against a full one.
+
+**Polish** means naming functions in `symbols.toml`. Run `python3 tools/sync_symbols.py` and each name becomes a `PSX_FN_*` entry in `psx_symbols.h`.
+
+**Ship** is the setup host model. The release zip holds the sources, the framework and the setup host. It holds no `generated/`, no retail BIOS and no disc data. Each player runs Generate once, on their own machine, against their own copy of the game. That is why ports here ship as source, not as a finished executable.
 
 ## When it goes wrong
 
-**`Cannot find source file: .../generated/OpenBIOS_full.c`, followed by `No SOURCES given to target: psx-runtime`.** The BIOS C was never generated. CMake does not fall back to anything here, by design: it fails at configure time. Run the generate step before configuring, and re-run it whenever the recompiler's emitter changes, because a stale `generated/` raises a fingerprint mismatch warning instead.
+**`Cannot find source file: .../generated/OpenBIOS_full.c`, followed by `No SOURCES given to target: psx-runtime`.** The BIOS C was never generated. CMake has no fallback here by design: it fails at configure time. Run generate before you configure, and run it again whenever the recompiler's emitter changes. A stale `generated/` gives you a fingerprint mismatch warning instead.
 
-**`dispatch_misses.log` next to the executable is not empty.** This is the one that looks like noise and is not. Each line is code the game reached that the recompiler never translated. The fleet's rule is blunt about it: a dispatch miss is a silent, game breaking bug, and a game with dispatch misses is fundamentally broken. Do not debug anything else while that file has contents. Add the addresses to your seeds, regenerate, rebuild, run again, and repeat until it is empty. The debug server also reports `dispatch_miss_total` on every ping, so you can watch it without reading the file.
+**The game stops and reports a dispatch miss.** It jumped to an address with no generated function behind it. The runtime is loud about this on purpose. Read the ring of misses with the `unknown_dispatch_log` debug command, and watch the count live with `ping`, which returns `dispatch_miss_total` on every heartbeat. Add the addresses to your seeds, regenerate, rebuild, run again. Debug nothing else first: the fleet's rule is that a game with dispatch misses is fundamentally broken.
 
-**The compiler exits with no diagnostic at all, or a bare code -1.** That is resource exhaustion, not a code error. Parallel builds of this tree can crash the compiler on a memory constrained machine. Retry with `-j 2` or `-j 1` instead of `-j"$(nproc)"`.
+**The compiler exits with no message, or a bare code -1.** That is the machine running out of memory, not an error in the code. A parallel build of this tree can crash the compiler when RAM is tight. Retry with `-j 2` or `-j 1` instead of `-j"$(nproc)"`.
 
-**MinGW reports `Error: too many sections`.** Windows COFF objects have a 32,768 section limit, and the generated game C can exceed it. Add `-Wa,-mbig-obj` to that translation unit's compile options. Binutils 2.40 and newer generally handle these files without the flag.
+**MinGW reports `Error: too many sections`.** Windows COFF object files have a limit of 32,768 sections, and the generated game C can go past it. Add `-Wa,-mbig-obj` to that file's compile options. Binutils 2.40 and newer usually handle these files without the flag.
 
-**`ninja: error: loading 'build.ninja': GetLastError() = 2`, or CMake's `Error: could not load cache`.** Both mean you built a directory that was never successfully configured. The cache file is written before the generate step, so a failed configure leaves a cache and no build file, and the build then fails on the wrong error. Fix the original configure failure and re-run the same `cmake -S ... -B ...`; if it keeps failing, delete the build directory so a stale cache cannot poison the retry.
+**`ninja: error: loading 'build.ninja': GetLastError() = 2`, or CMake's `Error: could not load cache`.** Both mean you built a directory that never configured successfully. CMake writes the cache before it writes the build file, so a failed configure leaves one without the other, and the build then fails on the wrong error. Fix the configure failure and run the same `cmake -S ... -B ...` again. If it still fails, delete the build directory.
 
 ## Two rules that are not negotiable
 
-**Never edit generated code.** Anything under `generated/` is overwritten on the next run. Fix the seed list, the config, or the tool. This is the rule the framework has held from the beginning, and it is what keeps the tooling general instead of accumulating one game's hacks.
+**Never edit generated code.** Everything under `generated/` is overwritten on the next run. Fix the seed list, the config, or the tool instead. That is what keeps the tooling general, rather than collecting one game's hacks.
 
 **Never commit disc images, ROMs, BIOS dumps, or anything derived from them.** The scaffold writes a `.gitignore` that already covers `disc/`, `generated/` and the build tree. Leave it alone.
 
 ## Where to go next
 
-- [Port a game](/docs/guides/port-a-game), the full guide for the work after the first build
-- [The PlayStation toolchain](/docs/platforms/playstation), for what `psxrecomp` actually is
+- [Port a game](/docs/guides/port-a-game), the guide for the work after the first build
+- [The PlayStation toolchain](/docs/platforms/playstation), for what `psxrecomp` is
 - [Let your agent do the recompilation](/blog/tutorial-let-your-agent-do-the-recomp), the same job driven by an AI coding agent
-- [Is this emulation?](/docs/start/is-this-emulation), if you want the honest answer rather than the marketing one
-- [`docs/GAME_PROJECT_SETUP.md`](https://github.com/mstan/psxrecomp/blob/master/docs/GAME_PROJECT_SETUP.md), the authority for everything on this page
+- [Is this emulation?](/docs/start/is-this-emulation), for the short answer and the long one
+- [`docs/GAME_PROJECT_SETUP.md`](https://github.com/mstan/psxrecomp/blob/master/docs/GAME_PROJECT_SETUP.md), the authority for this page
 
 `psxrecomp` is licensed under PolyForm Noncommercial 1.0.0, which is not an open source licence. Read it before you plan anything commercial.
