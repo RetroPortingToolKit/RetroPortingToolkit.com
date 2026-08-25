@@ -1503,10 +1503,17 @@ export default function Admin() {
                           <button className="ac-btn ac-btn-gray" onClick={() => patchBool("draft", !q.draft)}>
                             {q.draft ? "Publish" : "Move to draft"}
                           </button>
-                          <label style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "400 12.5px/1 var(--ac-font-text)", color: "var(--ac-label)" }}>
-                            <input type="checkbox" checked={q.featured} onChange={(e) => patchBool("featured", e.target.checked)} style={{ width: "auto", boxShadow: "none" }} />
-                            Featured
-                          </label>
+                          {/* Featured promotes onto the home strips, and those
+                              decks are built by featuredOf() over hardware,
+                              games and blog only (src/lab/labContent.ts), so
+                              featuring a docs page would do nothing. Draft is
+                              the opposite: it works for every kind, so it stays. */}
+                          {openKind !== "docs" && (
+                            <label style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "400 12.5px/1 var(--ac-font-text)", color: "var(--ac-label)" }}>
+                              <input type="checkbox" checked={q.featured} onChange={(e) => patchBool("featured", e.target.checked)} style={{ width: "auto", boxShadow: "none" }} />
+                              Featured
+                            </label>
+                          )}
                           <button className="ac-btn ac-btn-plain" onClick={renameSlug} disabled={slugBusy}>
                             {slugBusy ? "..." : "Change address"}
                           </button>
@@ -1525,16 +1532,22 @@ export default function Admin() {
                           onChange={(e) => patchScalar("desc", e.target.value)}
                         />
                       </Field>
-                      <div style={{ display: "flex", gap: 14 }}>
-                        <Field label={openKind === "games" ? "Kicker (shown above the title)" : "Kicker"} grow>
-                          <input style={styles.input} value={q.kicker} onChange={(e) => patchScalar("kicker", e.target.value)} />
-                        </Field>
-                        {openKind === "blog" && (
-                          <Field label="Date">
-                            <input style={{ ...styles.input, width: 150 }} value={q.date} onChange={(e) => patchScalar("date", e.target.value)} placeholder="YYYY-MM-DD" />
+                      {/* A docs page renders no kicker and no date, and this
+                          row holds only those two, so for docs the row goes
+                          rather than standing empty. DocsPage.tsx puts the
+                          summary under the title instead, edited below. */}
+                      {openKind !== "docs" && (
+                        <div style={{ display: "flex", gap: 14 }}>
+                          <Field label={openKind === "games" ? "Kicker (shown above the title)" : "Kicker"} grow>
+                            <input style={styles.input} value={q.kicker} onChange={(e) => patchScalar("kicker", e.target.value)} />
                           </Field>
-                        )}
-                      </div>
+                          {openKind === "blog" && (
+                            <Field label="Date">
+                              <input style={{ ...styles.input, width: 150 }} value={q.date} onChange={(e) => patchScalar("date", e.target.value)} placeholder="YYYY-MM-DD" />
+                            </Field>
+                          )}
+                        </div>
+                      )}
 
                       {openKind === "games" && (
                         <Field label="Platform">
@@ -1659,32 +1672,41 @@ export default function Admin() {
                               e.target.value = "";
                             }}
                           />
-                          <Field label="Cover image / video">
-                            <input
-                              style={styles.input}
-                              value={q.cover}
-                              onChange={(e) => patchScalar("cover", e.target.value)}
-                              placeholder="./cover.webp, or /previews/slug.webp"
-                            />
-                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
-                              <button
-                                className="cmsx-ghost"
-                                style={{ ...styles.ghostBtn, opacity: uploading ? 0.6 : 1 }}
-                                disabled={uploading}
-                                onClick={() => {
-                                  uploadTarget.current = "cover";
-                                  fileInputRef.current?.click();
-                                }}
-                              >
-                                {uploading ? "Uploading..." : "Upload a cover"}
-                              </button>
-                              {q.cover && (
-                                <button className="cmsx-ghost" style={styles.ghostBtn} onClick={() => patchScalar("cover", "")}>
-                                  Clear
+                          {/* The cover is the picture on a page's card, and a
+                              docs page has no card anywhere: it is not in the
+                              lab media set, and a collection listing docs
+                              renders links instead (CollectionView.tsx).
+                              DocsPage.tsx never reads it either. The panel
+                              below is a different thing and stays for docs:
+                              it manages the diagrams a page embeds in its body. */}
+                          {openKind !== "docs" && (
+                            <Field label="Cover image / video">
+                              <input
+                                style={styles.input}
+                                value={q.cover}
+                                onChange={(e) => patchScalar("cover", e.target.value)}
+                                placeholder="./cover.webp, or /previews/slug.webp"
+                              />
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                                <button
+                                  className="cmsx-ghost"
+                                  style={{ ...styles.ghostBtn, opacity: uploading ? 0.6 : 1 }}
+                                  disabled={uploading}
+                                  onClick={() => {
+                                    uploadTarget.current = "cover";
+                                    fileInputRef.current?.click();
+                                  }}
+                                >
+                                  {uploading ? "Uploading..." : "Upload a cover"}
                                 </button>
-                              )}
-                            </div>
-                          </Field>
+                                {q.cover && (
+                                  <button className="cmsx-ghost" style={styles.ghostBtn} onClick={() => patchScalar("cover", "")}>
+                                    Clear
+                                  </button>
+                                )}
+                              </div>
+                            </Field>
+                          )}
 
                           <Field label="Media in this page">
                             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: assets.length ? 10 : 0, flexWrap: "wrap" }}>
