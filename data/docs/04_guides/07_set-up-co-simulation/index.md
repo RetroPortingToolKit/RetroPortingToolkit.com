@@ -10,14 +10,14 @@ repos:
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-This is the setup work: choosing an oracle, getting two implementations of the same console running from one reset, fixing the checkpoint stride, proving the comparator is not lying to you, and pinning the result so it stays true tomorrow. What co-simulation is and why it halts where it does is [proving it with co-simulation](/docs/concepts/co-simulation); this page assumes you have read that. It stops at the moment a run halts, which is where [debug a divergence](/docs/guides/debug-a-divergence) begins. One warning before you plan a day around this: the harnesses are not uniform, and two projects document an oracle you will not find in the tree.
+This is the setup work: choosing an oracle, getting two implementations of the same console running from one reset, fixing the checkpoint stride, proving the comparator is not lying to you, and pinning the result so it stays true tomorrow. [Proving it with co-simulation](/docs/concepts/co-simulation) explains what co-simulation is. This page stops where a run halts, which is where [debug a divergence](/docs/guides/debug-a-divergence) begins. One warning before you plan a day around this: the harnesses are not the same everywhere, and two projects document an oracle you will not find in the tree.
 
 ## What your project ships
 
-There is no single harness in this fleet. Each project made its own topology decision, and the decision changes what you have to install and what you can prove.
+There is no single harness here. Each project made its own choice, and that choice changes what you have to install and what you can prove.
 
 | Project | How the two sides run | What you need on disk | Where it stands |
 |---|---|---|---|
@@ -28,24 +28,33 @@ There is no single harness in this fleet. Each project made its own topology dec
 | [psxrecomp](https://github.com/mstan/psxrecomp) | Two OS processes plus a Python coordinator over TCP. This is the design every other project transposed. | The same binary twice, one side forced to the interpreter. Beetle PSX built as `libmednafen_psx.a` for the independent pairing. | The gates live in the tool's own docstring. |
 | [snesrecomp](https://github.com/mstan/snesrecomp) | `SNES_COSIM.md` describes a build shape, a TCP protocol and two tracks. | `runner/src/cosim.c` and `cosim_state.c` are in the tree. | A design document. No completed comparison result is recorded. |
 
-Three more repositories carry co-simulation files that this page does not describe: [`cdirecomp/docs/COSIM-SPEC.md`](https://github.com/mstan/cdirecomp/blob/master/docs/COSIM-SPEC.md), [`gcnlle/docs/COSIM_DESIGN.md`](https://github.com/mstan/gcnlle/blob/master/docs/COSIM_DESIGN.md) and [`ndsrecomp/oracle/`](https://github.com/mstan/ndsrecomp/tree/main/oracle). gcnlle's live surface is documented separately: `cosim_status`, `cosim_step`, `cosim_run_to`, `cosim_state`, `cosim_pages` and `cosim_inject` over TCP, gated on `GCN_COSIM=1`, which requires `GCN_DEBUG_PORT`.
+Three more repositories carry co-simulation files that this page does not describe: [`cdirecomp/docs/COSIM-SPEC.md`](https://github.com/mstan/cdirecomp/blob/master/docs/COSIM-SPEC.md), [`gcnlle/docs/COSIM_DESIGN.md`](https://github.com/mstan/gcnlle/blob/master/docs/COSIM_DESIGN.md) and [`ndsrecomp/oracle/`](https://github.com/mstan/ndsrecomp/tree/main/oracle).
 
 > **You provide this.** Every run below takes a game file and you supply your own. The projects do not distribute game files. That is also why the Genesis decoder's ROM-dependent test is left manual and the NES self-tests use synthetic ROMs.
 
-**Checkpoint.** You can name your row in that table, the two implementations you are about to compare, and whether they will run in one process or two.
+**Checkpoint.** You can name your row in that table, the two implementations you are about to compare, and whether they run in one process or two.
 
 ## Choosing and building the oracle
 
-Two [pairings](/docs/concepts/glossary#pairing) prove different things, and you will run both if the project has both. Pairing 1 compares the recompiled code against the project's own interpreter, which proves the recompiler agrees with the project's own model of the machine. Pairing 2 compares against an independently authored emulator, and is the only configuration that can arbitrate a mistake the two shipped backends share.
+Two [pairings](/docs/concepts/glossary#pairing) prove different things, and you run both if the project has both. Pairing 1 compares the recompiled code against the project's own interpreter. It proves the recompiler agrees with the project's own model of the machine. Pairing 2 compares against an emulator somebody else wrote, and it is the only setup that can settle a mistake both shipped backends share.
 
-The real reference implementation, per project: `runtime/src/interpreter.c` and then SameBoy's `Core/` linked in-process on Game Boy; a force-interp backend and then NanoBoyAdvance on GBA; recompiled against recompiled and then Mesen hosted in-process by `nesref` on NES; the clean-room Tier-3 interpreter under `GENESIS_FORCE_INTERP` on Genesis; the same binary under `PSX_FORCE_INTERP` and then Beetle PSX on PlayStation; `interp816.c` and then bsnes through a libretro frontend on SNES.
+What plays the reference implementation, per project:
 
-Two projects document an oracle that is not there, and both matter before you start:
+| Project | Pairing 1 | Pairing 2 |
+|---|---|---|
+| gbrecompiled | `runtime/src/interpreter.c` | SameBoy's `Core/`, linked in-process |
+| gbarecomp | a force-interp backend | NanoBoyAdvance |
+| nesrecomp | recompiled against recompiled | Mesen, hosted by `nesref` |
+| segagenesisrecomp | the clean-room interpreter under `GENESIS_FORCE_INTERP` | retired, see below |
+| psxrecomp | the same binary under `PSX_FORCE_INTERP` | Beetle PSX |
+| snesrecomp | `interp816.c` | bsnes |
 
-- **Genesis pairing 2 has been retired.** [`COSIM.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COSIM.md) opens with it: "**2026-07-27: pairing #2 is gone.** It compared the own backend against the clownmdemu oracle, and that oracle has been deleted along with the emulator core". The 90 to 97 percent chunk-level numbers still in that document are historical. What you can stand up on Genesis today is pairing 1, which is blind to the runner by construction.
-- **gbarecomp's spec was written before its own primary pairing existed**, and still carries the line "⚠️ **This mode does not exist yet.**" for it. That backend was built later the same day. The independent NanoBoyAdvance oracle, which the document places on TCP port 19844, is the part that remains unbuilt.
+Two projects document an oracle that is not there:
 
-On NES the oracle is wired in on the command line, which is the clearest illustration of what pairing 2 costs you: two extra binaries you must already have.
+- **Genesis pairing 2 has been retired.** [`COSIM.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COSIM.md) opens with it: "**2026-07-27: pairing #2 is gone.** It compared the own backend against the clownmdemu oracle, and that oracle has been deleted along with the emulator core". The chunk-level numbers still in that document are historical. On Genesis today you can stand up pairing 1 only.
+- **gbarecomp's spec was written before its own primary pairing existed**, and still says "⚠️ **This mode does not exist yet.**" for it. That backend was built later the same day. The independent NanoBoyAdvance oracle is the part that remains unbuilt.
+
+On NES the oracle is named on the command line, which shows what pairing 2 costs you: two extra binaries you must already have.
 
 From [`tools/nes_cosim.py`](https://github.com/mstan/nesrecomp/blob/master/tools/nes_cosim.py):
 
@@ -55,17 +64,17 @@ python ../nesrecomp/tools/nes_cosim.py abram \
   /f/Projects/nesref/cores/mesen_libretro.dll 900
 ```
 
-The last two paths are the author's; point them at your own `nesref` build and Mesen core. The trailing `900` is the frame count.
+The last two paths are the author's. Point them at your own `nesref` build and Mesen core. The trailing `900` is the frame count.
 
-> **Note.** Co-simulation is a development build only. snesrecomp states the rule for the whole fleet: the entire co-sim compiles only in a dedicated dev target and is "NEVER in the shipping Production config: zero bytes in released exes." Genesis restates it as a release check, that the packaged executable is never a `*_cosim.exe`.
+> **Note.** Co-simulation is a development build only. snesrecomp states the rule for the whole fleet: the co-sim code compiles only in a dev target and is "NEVER in the shipping Production config: zero bytes in released exes."
 
-**Checkpoint.** Both sides launch and neither crashes on its own. On Game Boy, `--oracle-selfcheck` proves the embedded oracle boots and reports reference timing before you compare anything with it.
+**Checkpoint.** Both sides launch and neither crashes on its own. On Game Boy, `--oracle-selfcheck` proves the embedded oracle boots before you compare anything with it.
 
 ## The stride, fixed before anything runs
 
-The stride is how many units of the shared guest clock pass between checkpoints. On Game Boy it is a command-line flag, `--cosim-stride`, defaulting to 456 T-cycles, which is one scanline. On PlayStation and SNES it is read from the environment at launch. Genesis instead selects which clock to key on at all, with `--clock frame|cycle`, because its recompiled code fast-forwards a spin that a pure interpreter actually spins through. Which quantity your project uses as its ruler is covered in [proving it with co-simulation](/docs/concepts/co-simulation), and why the two backends disagree about time in the first place is [timing models](/docs/concepts/timing-models).
+The stride is how many units of the shared guest clock pass between checkpoints. On Game Boy it is a flag, `--cosim-stride`, defaulting to 456 T-cycles, which is one scanline. On PlayStation and SNES it is read from the environment at launch. Genesis instead picks which clock to count at all, with `--clock frame|cycle`, because its recompiled code fast-forwards a spin that a pure interpreter really spins through. [Timing models](/docs/concepts/timing-models) explains why the two backends disagree about time.
 
-What matters operationally is that the stride is fixed before either side executes an instruction, and that the guest stops at a multiple of it rather than when someone tells it to stop. That design was paid for.
+What matters in practice is that the stride is fixed before either side executes an instruction, and that the guest stops at a multiple of it rather than when someone tells it to stop. That design was paid for.
 
 From [`runtime/src/cosim.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/cosim.c):
 
@@ -75,17 +84,17 @@ From [`runtime/src/cosim.c`](https://github.com/mstan/psxrecomp/blob/master/runt
 > racy; two processes noticed the flag at different wall-times and parked at different
 > cycles (a HARNESS nondeterminism, not a guest one).
 
-That is the whole argument for the design. Two processes that notice a stop flag at different wall-times park at different guest cycles, and a comparison of two different guest moments reports a difference. It looks exactly like a guest bug, and it is not one. If a run ever warns that the two sides parked at different cycles, stop and fix that before reading anything else it printed.
+That is the argument for the design. Two processes that notice a stop flag at different wall-times park at different guest cycles, and comparing two different guest moments reports a difference. It looks exactly like a guest bug and it is not one. If a run warns that the two sides parked at different cycles, fix that before reading anything else it printed.
 
-Pick a coarse stride first. Once a divergence window is known, shrink the stride toward 1 inside that window and re-run: the run is deterministic, so the same divergence reproduces.
+Pick a coarse stride first. Once you know the divergence window, shrink the stride toward 1 inside that window and re-run. The run is deterministic, so the same divergence comes back.
 
-Set the determinism knobs at the same time. psxrecomp names headless, single thread, no host audio sink, no resampler and no host throttle. gbarecomp adds `RECOMP_RTC_EPOCH` to pin the real-time clock's host time leak. nesrecomp deletes `saves/*.srm` before each run, because a stale battery save changes the second boot path.
+Set the determinism knobs at the same time. psxrecomp names headless, single thread, no host audio sink, no resampler and no host throttle. gbarecomp adds `RECOMP_RTC_EPOCH` to pin the real-time clock. nesrecomp deletes `saves/*.srm` before each run, because a stale battery save changes the second boot path.
 
-**Checkpoint.** Run one side twice with identical settings and compare the chain hashes. They must be identical. If they are not, nothing below this line will mean anything.
+**Checkpoint.** Run one side twice with identical settings and compare the chain hashes. They must match. If they do not, nothing below this line will mean anything.
 
 ## The four gates, in order
 
-No comparison result is believed until the gates pass. Run them in order and do not skip one because the previous one was green.
+No comparison result is believed until the gates pass. Run them in order, and do not skip one because the previous one was green.
 
 | Gate | What it proves | Game Boy | NES |
 |---|---|---|---|
@@ -98,7 +107,7 @@ Gate 3 is the one people skip and the one that matters most. gbrecompiled states
 
 > **Injected fault halts at the right place and names the subsystem.** "This is the ONLY gate that catches a silently-blind compare (a parse bug or `None == None` compare passes Gate 1 trivially while catching nothing) [snip] **Never skip it.**"
 
-That is not a theoretical risk. A stride-2 parser in the PlayStation coordinator misaligned on the leading status word of a reply, returned `chain=None` for both sides, and made every comparison `None == None`, which is to say equal, forever. The runs were clean and they were measuring nothing. The coordinator now aborts and prints that the tool is blind rather than reporting agreement. Note that gate 3 checks localisation, not just detection: nesrecomp requires the divergence at the injected frame *and* named to the injected subsystem, so a comparator that notices everything and localises nothing still fails.
+That is not a theoretical risk. A stride-2 parser in the PlayStation coordinator misaligned on the leading status word of a reply, returned `chain=None` for both sides, and made every comparison `None == None`, which is to say equal, forever. The runs were clean and they were measuring nothing. Gate 3 also checks localisation, not just detection: nesrecomp requires the divergence at the injected frame *and* named to the injected subsystem, so a comparator that notices everything and localises nothing still fails.
 
 Gate 4 is the cheap insurance behind the hash itself, and it reports its failures as tool bugs in those words.
 
@@ -116,7 +125,7 @@ From [`runtime/src/differential.c`](https://github.com/mstan/gbrecompiled/blob/m
                         checkpoint_index, audit_msg);
 ```
 
-Where the harness is two processes, the fault is injected over the wire, and the whole coordinator vocabulary is small enough to read at once.
+Where the harness is two processes, the fault is injected over the wire, and the coordinator's whole vocabulary is small enough to read at once.
 
 From [`runtime/src/cosim.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/cosim.c):
 
@@ -132,13 +141,13 @@ From [`runtime/src/cosim.c`](https://github.com/mstan/psxrecomp/blob/master/runt
  *   reset                     -> reset incremental hash state
 ```
 
-Read `inject` there as fault injection whatever its number: psxrecomp calls it gate 4, as those command comments say, while gbrecompiled and nesrecomp call it gate 3. The gates are the same, only the numbers move. Genesis drives the same idea from its coordinator with `--inject` and `--inject-at`.
+Read `inject` there as fault injection whatever its number: psxrecomp calls it gate 4, while gbrecompiled and nesrecomp call it gate 3. The gates are the same, only the numbers move. Genesis drives the same idea with `--inject` and `--inject-at`.
 
 **Checkpoint.** Every gate prints PASS. On NES the gates exit non-zero on FAIL, so they can gate CI directly. Only now run the real pairing and believe its first-divergence report.
 
 ## A green run, and how to keep it
 
-A green run is worth more than a one-off result, because the [chain hash](/docs/concepts/glossary#chain-hash) folds every checkpoint into one value. Any past divergence sticks in it, so the final value is a regression baseline you can assert later. gbrecompiled keeps those baselines in a file, with the reasoning at the top.
+A green run is worth more than a one-off result, because the [chain hash](/docs/concepts/glossary#chain-hash) folds every checkpoint into one value. Any past divergence sticks in it, so the final value is a regression baseline you can assert later. gbrecompiled keeps those baselines in a file.
 
 From [`tools/cosim_baselines.tsv`](https://github.com/mstan/gbrecompiled/blob/master/tools/cosim_baselines.tsv):
 
@@ -154,7 +163,7 @@ megaman_xtreme2 456     1000    B02E9D35794D298E
 instr_timing    456     120     5D103AEB0D3F03DB
 ```
 
-Each row is then re-asserted by a single command that exits 0 on match, which turns verification into a ratchet instead of a one-off. The project's own standing gate set is the best worked example of what to re-run after any change to the recompiler or the runtime.
+Each row is re-asserted by one command that exits 0 on a match, which turns verification into a ratchet instead of a one-off. The project's own standing gate set shows what to re-run after any change to the recompiler or the runtime.
 
 From [`CYCLE_EXACT_INITIATIVE.md`](https://github.com/mstan/gbrecompiled/blob/master/CYCLE_EXACT_INITIATIVE.md):
 
@@ -173,15 +182,15 @@ build+run mem_timing / mem_timing-2 / instr_timing   (read screens)
 # mooneye timer + interrupt subsets (tools/mooneye_sweep.sh)
 ```
 
-The comment on the baseline lines is the discipline, and the `# [snip]` above stands in for the file's own record of the last re-pin. Those three chains were re-pinned on 2026-07-02 after the EI one-instruction-delay fix and the CGB double-speed race-window fix, both of which deliberately change guest-visible timing, and the file records that the re-pin was justified by a behaviour change rather than used to mask a regression. Re-pin because you changed behaviour on purpose, never to make a red run go away.
+The comment on the baseline lines is the discipline. Those three chains were re-pinned on 2026-07-02 after two fixes that deliberately change guest-visible timing, and the file records that reason. Re-pin because you changed behaviour on purpose, never to make a red run go away.
 
-Be precise about what green buys. Pairing 1 proves the recompiled code equals the project's own interpreter, and a bug in a model both sides share is invisible to it by construction. Headless numbers are also blind to display and feel: nesrecomp's standing rule is never to ship or flip a default on headless co-sim numbers alone. Turning a green run into an accuracy claim, with its fixture and its scope attached, is [what correct enough means](/docs/concepts/accuracy-and-burndowns).
+Be precise about what green buys. Pairing 1 proves the recompiled code equals the project's own interpreter, so a bug both sides share is invisible to it. Headless numbers are also blind to display and feel: nesrecomp's rule is never to ship or flip a default on headless co-sim numbers alone. Turning a green run into an accuracy claim is [what correct enough means](/docs/concepts/accuracy-and-burndowns).
 
 **Checkpoint.** You have a chain hash, a stride, a frame count and a named fixture written down together, and a command that re-asserts them.
 
 ## When it comes back red
 
-Read the first differing sub-hash, the checkpoint and cycle, and the skew warning, then go to [debug a divergence](/docs/guides/debug-a-divergence), which is organised by symptom from that report down to the one write and the one function.
+Read the first differing sub-hash, the checkpoint and cycle, and the skew warning. Then go to [debug a divergence](/docs/guides/debug-a-divergence), which is organised by symptom.
 
 ## Troubleshooting
 
@@ -209,7 +218,7 @@ Read the first differing sub-hash, the checkpoint and cycle, and the skew warnin
 
 ## Next
 
-- [Debug a divergence](/docs/guides/debug-a-divergence) is the next hour of your life if the run comes back red.
-- [Proving it with co-simulation](/docs/concepts/co-simulation) is the theory this guide acts on, including what gets hashed and what is deliberately left out.
-- [TCP debug protocol](/docs/reference/tcp-protocol) is the wire format behind every two-process harness here.
-- [NES](/docs/platforms/nes) and [Game Boy](/docs/platforms/game-boy) are the platform pages for the two harnesses quoted most here, and [the glossary](/docs/concepts/glossary) defines oracle, pairing, chain hash and ratchet as the fleet uses them.
+- [Debug a divergence](/docs/guides/debug-a-divergence) is what to do when the run comes back red.
+- [Proving it with co-simulation](/docs/concepts/co-simulation) is the theory, including what gets hashed.
+- [TCP debug protocol](/docs/reference/tcp-protocol) is the wire format behind every two-process harness.
+- [NES](/docs/platforms/nes) and [Game Boy](/docs/platforms/game-boy) are the two harnesses quoted most here. [The glossary](/docs/concepts/glossary) defines oracle, pairing, chain hash and ratchet.

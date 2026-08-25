@@ -11,33 +11,31 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/FaxanaduRecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-A mod for a recompiled port does not modify the game file you supplied. There is no patching step, no derived disc image, and nothing to undo. A package declares what it wants changed, the runtime resolves that declaration into guarded operations before the game boots, and those operations are applied to the executable image in memory and to reads as they come off the disc. Turning every feature off returns the authentic game, because the authentic bytes were never overwritten in the first place. That is the design's whole point, and everything below follows from it.
+A mod for a recompiled port does not change the game file you supplied. There is no patching step, no new disc image, and nothing to undo. A package declares what it wants changed. The runtime turns that declaration into guarded operations before the game boots, and applies them to the program image in memory and to disc reads as they happen. Turn every feature off and you get the original game back, because the original bytes were never overwritten.
 
-## The invariant, stated precisely
+## Your game file is never changed
 
-> **You provide this.** You supply your own copy of the game and the project does not distribute one. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the canonical page for that contract. A mod package must contain no part of it: the publication checklist requires that "The archive contains no stock game files, patched disc, secrets, or files without redistribution permission" ([`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md)).
+> **You provide this.** You supply your own copy of the game. The project does not distribute one, and [the game file you supply](/docs/concepts/the-game-file-you-supply) is the page for that contract. A package must contain no part of it. The publication checklist requires "no stock game files, patched disc, secrets, or files without redistribution permission" ([`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md)).
 
-[psxrecomp](https://github.com/mstan/psxrecomp)'s package specification states the contract in one paragraph, and the last sentence is the invariant:
+[psxrecomp](https://github.com/mstan/psxrecomp)'s package specification states the contract in one sentence:
 
 > The player selects a verified stock BIN/CUE. Resolution produces guarded native operations and sparse disc overlays without rewriting or replacing that stock image.
 
-Two mechanisms make that true. Executable writes are applied to the loaded image, not to a file: "`main_exe` writes use PSX guest virtual addresses. Expected bytes are checked after the BIOS loads the executable, then the complete write plan is applied before its entry point. Changed executable ranges use the existing dirty-RAM interpreter/native-overlay machinery; untouched functions remain on the static native path." That last clause is why a mod needs no recompile: patched guest code falls back to the interpreter and overlay path, and everything else stays on the natively compiled path. Disc changes are indexed lookups rather than a rebuilt image: "Enabled payloads are loaded and reverified during resolution, then indexed by target and LBA before boot."
+Two mechanisms make that true. Writes go into the loaded program image, not into a file, and "untouched functions remain on the static native path", so a mod needs no rebuild. Disc changes are indexed lookups, not a rebuilt image.
 
-The rule is fleet-wide, not one project's preference. [cdirecomp](https://github.com/mstan/cdirecomp) writes down the shared version, and attributes it to the sibling projects:
+The rule is fleet-wide. [cdirecomp](https://github.com/mstan/cdirecomp) writes down the shared version:
 
 > Every enhancement is **opt-in**, **off by default**, and **byte-identical to the
-> faithful path when off**. A standard build with all toggles off must produce the
-> exact frames, audio, and RAM state CeDImu produces. If turning a feature off
-> isn't byte-identical, it's a bug, not an enhancement.
+> faithful path when off**.
 
-The same document forbids the shortcut a modder will reach for first: "Generated `*.c` is rebuilt from the recompiler and must never be edited (the project's first law)." Hand-editing generated code is not modding here. It is a change that the next regeneration deletes.
+The same document forbids the shortcut most people reach for first: "Generated `*.c` is rebuilt from the recompiler and must never be edited (the project's first law)." The next regeneration deletes a hand edit.
 
 ## Package, feature, operation
 
-Three words carry the whole model, and [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp) separates them cleanly:
+Three words carry the model, and [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp) separates them cleanly:
 
 > - A **package** is an installation, update, provenance, and trust boundary. A
 >   `.psxmod` archive may contain one feature or many features.
@@ -47,17 +45,17 @@ Three words carry the whole model, and [MegaManX6Recomp](https://github.com/msta
 >   such as a guarded memory write, disc overlay, asset redirect, or function
 >   hook.
 
-Feature identity is always `(package_id, feature_id)`, and "Enabling one feature never enables, disables, or reconfigures another feature." The launcher shows features, not packages. Alternatives belong inside one feature as option values, not as rival features: "Mutually exclusive choices such as US versus Japanese artwork belong inside one feature as option values."
+A feature is identified by `(package_id, feature_id)`, and "Enabling one feature never enables, disables, or reconfigures another feature." The launcher shows features, not packages. Alternatives such as US versus Japanese artwork belong inside one feature as option values.
 
 ## Before you start
 
-You need a built port for the game you are modding, which [Port a game](/docs/guides/port-a-game) covers. You need Python 3 for the packaging script. You need your own verified copy of the game, because a package is pinned to one exact dump. And you need to know the terms in the [glossary](/docs/concepts/glossary) that the manifest uses without explaining: guard, overlay, plan, resolver.
+You need a built port for the game you are modding, which [Port a game](/docs/guides/port-a-game) covers. You need Python 3 for the packaging script. You need your own verified copy of the game, because a package is pinned to one exact dump. The [glossary](/docs/concepts/glossary) defines four words the manifest uses without explaining: guard, overlay, plan, resolver.
 
-The steps below use the [PlayStation](/docs/platforms/playstation) toolchain, which has the most complete published specification. One thing that is deliberately not a package concern: host preferences. The shared rules put "mouse capture and clock seeding" in persistent launcher or player configuration, never in per-game config, so look for those in the [configuration reference](/docs/reference/configuration) rather than in a manifest.
+The steps below use the [PlayStation](/docs/platforms/playstation) toolchain, which has the fullest published specification.
 
 ## Step 1. Pin the exact stock revision
 
-Ask the runtime for the canonical mounted-disc digest. Hashing the container file is the wrong thing to do, because `disc_sha256` "is not the hash of the selected container file. The core runtime supplies a representation-neutral digest for the mounted disc, so equivalent CUE/BIN and CHD representations have the same identity."
+Ask the runtime for the mounted-disc digest. Hashing the container file is wrong. `disc_sha256` "is not the hash of the selected container file. The core runtime supplies a representation-neutral digest for the mounted disc, so equivalent CUE/BIN and CHD representations have the same identity."
 
 From [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md):
 
@@ -72,9 +70,7 @@ sha256sum game/slus_006.64
 sha256sum assets/retranslated-script.bin
 ```
 
-The same document gives PowerShell equivalents, for example `.\build-win\XenogearsRecomp.exe --disc-hash .\game\disc1.cue`.
-
-**Checkpoint.** You have one 64-character lowercase hex digest from `--disc-hash`, and it came from the runtime rather than from `sha256sum` on the `.bin`.
+**Checkpoint.** You have one 64-character lowercase hex digest, and it came from `--disc-hash` rather than from `sha256sum` on the `.bin`.
 
 ## Step 2. Lay out the package directory
 
@@ -90,7 +86,7 @@ my-xenogears-mod/
     `-- title-screen.bin
 ```
 
-`manifest.toml` must be at the archive root, and payload paths are relative to that root and must stay inside it. Installed packages land in an executable-relative catalog, one directory per version, so several versions of a package can coexist and the player picks one. [nesrecomp](https://github.com/mstan/nesrecomp) states the shape most compactly in [`docs/MOD_PACKAGES.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MOD_PACKAGES.md):
+`manifest.toml` must be at the archive root. Payload paths are relative to that root and must stay inside it. Installed packages land in a catalog beside the executable, one directory per version, so several versions can coexist and the player picks one. [nesrecomp](https://github.com/mstan/nesrecomp) shows that shape in [`docs/MOD_PACKAGES.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MOD_PACKAGES.md):
 
 ```text title="docs/MOD_PACKAGES.md"
 mods/
@@ -101,13 +97,13 @@ mods/
         manifest.toml
 ```
 
-A game may also ship reviewed, default-disabled packages already unpacked at `mods/preloaded/packages/<package-id>/<version>/manifest.toml`, staged beside the executable at build time. Framework packages live in the recompiler repository itself under `mods/builtin/packages/`.
+A game may also ship reviewed, default-disabled packages, already unpacked under `mods/preloaded/packages/`. Framework packages live in the recompiler repository under `mods/builtin/packages/`.
 
 **Checkpoint.** `manifest.toml` is at the top of your source folder, not inside a subdirectory.
 
 ## Step 3. Write the manifest
 
-Start from the minimal complete skeleton and replace every placeholder. The header identifies the package and pins the target. From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
+Start from the minimal skeleton and replace every placeholder. The header identifies the package and pins the target. From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
 
 ```toml title="README.md"
 format_version = 1
@@ -125,7 +121,7 @@ game_id = "SLUS-00000"
 disc_sha256 = "0000000000000000000000000000000000000000000000000000000000000000"
 ```
 
-The rest of the same file declares one feature and the single guarded write it owns. Note that `expected` is a complete instruction, not just the byte being changed:
+The rest of the same file declares one feature and the single guarded write it owns. `expected` is a complete instruction, not just the byte being changed:
 
 ```toml title="README.md"
 [[feature]]
@@ -143,13 +139,13 @@ expected = "2a 00 02 24"
 replace = "00 00 02 24"
 ```
 
-That skeleton is structurally representative and is not a real change. The upstream document is explicit: "Do not publish it until every placeholder is replaced and tested against the declared stock target." Every field is catalogued on the [mod manifest](/docs/reference/mod-manifest) reference page.
+That skeleton shows the structure and is not a real change: "Do not publish it until every placeholder is replaced and tested against the declared stock target." Every field is catalogued on the [mod manifest](/docs/reference/mod-manifest) page.
 
 **Checkpoint.** The launcher lists your package with one feature row, disabled.
 
 ## Step 4. Pick the narrowest mechanism that describes your change
 
-Choosing the wrong operation is the most common structural mistake, because several of them can produce the same bytes and only one of them describes what you meant. From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
+Several mechanisms can produce the same bytes, and only one of them describes what you meant. From [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
 
 | Change | Package mechanism |
 |---|---|
@@ -159,7 +155,7 @@ Choosing the wrong operation is the most common structural mistake, because seve
 | Host setting or live game behavior | Trusted static `[[plugin]]`, compiled into the game and selected by a stable id |
 | Several features composing one shared table, bitfield, routine, or allocation | Game-owned `resolver = "builtin:<id>"`, only when declarative operations cannot express the composition |
 
-Two rules catch people out. Guard the whole MIPS instruction rather than only its immediate bytes, because "This detects opcode/register differences and gives collision checking an accurate ownership range". And use `disc_user` for offsets in the 2048-byte data stream, `disc_raw` only when the change is defined in raw 2352-byte sectors: "Verify the coordinate against the exact target image; do not infer it from a filesystem extraction without mapping it back."
+Two rules catch people out. Guard the whole MIPS instruction, not only its immediate bytes, because "This detects opcode/register differences and gives collision checking an accurate ownership range". And use `disc_user` for offsets in the 2048-byte data stream. Use `disc_raw` only when the change is defined in raw 2352-byte sectors.
 
 ## Step 5. Expose choices as typed options, not as more features
 
@@ -188,29 +184,29 @@ expected = "04 00 02 24"
 replace_from = { option = "starting-ap", encoding = "u16le", offset = 0 }
 ```
 
-Encoding is deliberately minimal: `u8`, `u16le`, `u32le`, an optional checked `addend`, and a byte `offset` into the guard. The specification says so in as many words: "There is deliberately no host-endian encoding, signed inference, mask, shift, scale, expression language, or partial-field merge."
+Encoding is deliberately minimal: `u8`, `u16le`, `u32le`, an optional checked `addend`, and a byte `offset` into the guard.
 
-**Checkpoint.** Setting the option to its stock value produces no write at all. Enabling a feature whose generated value equals the stock guard "produces no write and claims no bytes", and `omit_when_default` suppresses a whole patch when the selected value equals the option default.
+**Checkpoint.** Setting the option to its stock value produces no write at all. A value equal to the stock guard "produces no write and claims no bytes", and `omit_when_default` suppresses a whole patch when the selected value equals the option default.
 
 ## Step 6. Behaviour lives in the executable, and a package only switches it on
 
-This is the part that surprises people, so it is worth being blunt about. A mod package cannot carry native code. It "cannot ship DLLs, shared objects, scripts or arbitrary native code, and it cannot select a symbol by name". A `[[plugin]]` entry names a stable registry key for behaviour that is already statically linked into the game executable: "The package archive supplies no native code." Adding a new plugin id, or a `builtin:` resolver, "is a source change to XenogearsRecomp, requires project review". An ordinary third-party author uses patches, options and overlays.
+A mod package cannot carry native code. It "cannot ship DLLs, shared objects, scripts or arbitrary native code, and it cannot select a symbol by name". A `[[plugin]]` entry names a registry key for behaviour that is already compiled into the game executable. Adding a new plugin id, or a `builtin:` resolver, is a source change to the game repository and needs project review. An ordinary author uses patches, options and overlays.
 
-That is a trust decision, not a missing feature. The alternative is a downloaded archive loading arbitrary native libraries into the process, and none of these projects offer a sandbox that would make that safe. [nesrecomp](https://github.com/mstan/nesrecomp) says exactly what the boundary is and is not: "Native plugins are intentionally trusted code, so this is an activation-scope gate rather than a sandbox between plugins." So the trusted code is reviewed into the build ahead of time, where a human reads it, and the untrusted archive is restricted to declarations a validator can check.
+That is a trust decision. The alternative is a downloaded archive loading native libraries into the process, and none of these projects have a sandbox that would make that safe. So trusted code is reviewed into the build ahead of time, where a human reads it, and the archive is limited to declarations a validator can check.
 
-It also does not make installing mods safe, and the projects say so rather than implying otherwise. From [`MODS.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MODS.md): "Only install packages from authors you trust. The package loader validates the archive and does not allow a package to load arbitrary native libraries, but a mod can intentionally change game code, data, and assets." And passing validation "does not establish authorship, legality, gameplay correctness, or compatibility."
+That still does not make installing mods safe, and the projects say so. From [`MODS.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MODS.md): "Only install packages from authors you trust. The package loader validates the archive and does not allow a package to load arbitrary native libraries, but a mod can intentionally change game code, data, and assets."
 
 ## Step 7. Pack the archive
 
-The packer is deliberately dumb, and that is the point: reproducible bytes in, reproducible archive out. From [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md):
+The packer is deliberately dumb: reproducible bytes in, reproducible archive out. From [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md):
 
 ```sh
 python psxmod_pack.py my-xenogears-mod my-xenogears-mod-1.0.0.psxmod
 ```
 
-[`tools/psxmod_pack.py`](https://github.com/mstan/psxrecomp/blob/master/tools/psxmod_pack.py) is 32 lines. It requires `manifest.toml`, sorts entries, fixes timestamps to 1980-01-01 and file modes to `0o100644`, and writes a DEFLATE ZIP. It validates nothing else: "It does not prove that your addresses or expected bytes are correct. Full manifest and target validation happens when the package is installed/resolved by the runtime."
+[`tools/psxmod_pack.py`](https://github.com/mstan/psxrecomp/blob/master/tools/psxmod_pack.py) is 32 lines. It requires `manifest.toml`, sorts entries, fixes timestamps to 1980-01-01 and file modes to `0o100644`, and writes a DEFLATE ZIP. It checks nothing else: "It does not prove that your addresses or expected bytes are correct."
 
-The installer is where the trust boundary is actually enforced. It "accepts stored or DEFLATE-compressed ZIP entries, validates CRCs, rejects encrypted entries and unsafe or absolute paths, limits archives to 4096 files and 256 MiB expanded size, stages extraction, validates the manifest, and publishes the version atomically."
+The installer enforces the trust boundary. It validates CRCs, rejects encrypted entries and unsafe paths, limits an archive to 4096 files and 256 MiB expanded, validates the manifest, and publishes the version atomically.
 
 **Checkpoint.** Packing the same source directory twice produces two identical files.
 
@@ -239,11 +235,11 @@ The publication checklist, verbatim from [`MOD_AUTHORING.md`](https://github.com
   still work.
 ```
 
-With one warning attached: "For gameplay changes, test farther than the first visible result. A patch that works at the title screen can still break a later overlay, save migration, or timing-sensitive transition."
+One warning comes with it: "For gameplay changes, test farther than the first visible result. A patch that works at the title screen can still break a later overlay, save migration, or timing-sensitive transition."
 
 ## A complete real example
 
-Tomba's frame-interpolation package is shipped in [TombaRecomp](https://github.com/mstan/TombaRecomp) and exercises everything a modder needs: a hash-pinned target, one feature, a typed choice option, and a plugin selector. The header, from [`mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml):
+Tomba's frame-interpolation package ships in [TombaRecomp](https://github.com/mstan/TombaRecomp) and uses everything a modder needs: a hash-pinned target, one feature, a typed choice option, and a plugin selector. The header, from [its `manifest.toml`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml):
 
 ```toml title="mods/preloaded/packages/tomba.enhancement.frame-interpolation/1.0.0/manifest.toml"
 format_version = 5
@@ -292,7 +288,7 @@ feature = "frame-interpolation"
 id = "tomba.frame-interpolation"
 ```
 
-And the implementation that id resolves to is 42 lines in total. From [`src/mods/tomba_frame_interpolation_plugin.c`](https://github.com/mstan/TombaRecomp/blob/master/src/mods/tomba_frame_interpolation_plugin.c):
+The implementation that id resolves to is 42 lines. From [`src/mods/tomba_frame_interpolation_plugin.c`](https://github.com/mstan/TombaRecomp/blob/master/src/mods/tomba_frame_interpolation_plugin.c):
 
 ```c title="src/mods/tomba_frame_interpolation_plugin.c"
 static void tomba_frame_interpolation_activate(void) {
@@ -318,11 +314,11 @@ PSX_MOD_CONSTRUCTOR(tomba_register_frame_interpolation_plugin) {
 }
 ```
 
-Tomba ships five packages in total: widescreen, FMV skip, frame interpolation, a hybrid controller mode, and a debug warp whose `author` field credits the reverse engineering separately from the implementation.
+Tomba ships five packages in all: widescreen, FMV skip, frame interpolation, a hybrid controller mode, and a debug warp.
 
-## How toggling and conflict resolution actually work
+## How toggling and conflicts work
 
-Per-feature enabled state and option values live in `mods/state.toml`, which stores selected package versions separately from feature state. Everything is resolved once, before boot:
+Enabled state and option values live in `mods/state.toml`, which stores selected package versions separately from feature state. Everything is resolved once, before boot:
 
 ```text
 Before boot, the manager:
@@ -340,29 +336,19 @@ Before boot, the manager:
 
 Because resolution happens once and disabled features expand to nothing, "Hundreds of installed but disabled features add no meaningful in-game cost."
 
-A conflict is a differing owned byte, not an overlapping operation:
+A conflict is a differing owned byte, not an overlapping operation. Two operations over the same range compose when their expected and replacement bytes agree throughout. When they do not, nothing launches: "Incompatible overlaps fail before launch. Structured diagnostics identify both `(package, feature)` owners and the exact contested target range. The launcher marks both feature rows and lets the user decide what to disable. It never silently chooses a winner." Any error clears the whole plan rather than launching part of it.
 
-> Operation boundaries are not semantic boundaries. Legacy full-record writes
-> compose when both their expected and replacement bytes agree throughout the
-> owned intersection. Format-4 sparse patches collide only on declared owned
-> fields, while their complete guards must remain mutually compatible.
-> Partially overlapping overlays compose when their replacement payload bytes
-> agree. A differing owned byte or incompatible guard produces a diagnostic at
-> that exact location. Exact duplicate operations may be coalesced.
-
-When two features genuinely collide, nothing launches and nothing is silently dropped: "Incompatible overlaps fail before launch. Structured diagnostics identify both `(package, feature)` owners and the exact contested target range. The launcher marks both feature rows and lets the user decide what to disable. It never silently chooses a winner." Any error clears the entire plan rather than launching a partial one.
-
-One more toggle worth knowing about: netplay clears the in-session mod plan entirely, for every session type, without touching your offline selection. [Determinism](/docs/concepts/determinism) explains why rollback cannot tolerate an unsynchronised plan.
+One more toggle worth knowing: netplay clears the in-session mod plan entirely, without touching your offline selection. [Determinism](/docs/concepts/determinism) explains why rollback cannot tolerate an unsynchronised plan.
 
 ## The low-friction path on NES
 
-Not every port uses packages. [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp) and the NES tile and text override systems predate the package format and are still the documented path there. No manifest, no hashes, no packaging step: drop `text_overrides.json` and a `tiles/` directory next to the executable and the game auto-detects them. Dump the tiles first:
+Not every port uses packages. The NES tile and text override systems came before the package format and are still the documented path there. No manifest, no hashes, no packaging step: drop `text_overrides.json` and a `tiles/` directory next to the executable. Dump the tiles first:
 
 ```text
 FaxanaduRecomp.exe --tile-dump
 ```
 
-Edit the PNGs in `tiles/` using the fixed four-colour grayscale palette, where `#000000`, `#555555`, `#AAAAAA` and `#FFFFFF` map to palette indices 0 to 3. Hot reload works here: "Edit a PNG while the game is running and save -- the change appears within ~1 second." Do not delete the companion `.bin` files, which carry the partial-tile lead and trail bytes a PNG cannot represent. Text overrides are a JSON array, from [`MODDING.md`](https://github.com/mstan/FaxanaduRecomp/blob/master/MODDING.md):
+Edit the PNGs in `tiles/` using the fixed four-colour grayscale palette, where `#000000`, `#555555`, `#AAAAAA` and `#FFFFFF` are palette indices 0 to 3. Hot reload works here: "Edit a PNG while the game is running and save -- the change appears within ~1 second." Keep the companion `.bin` files. They carry the partial-tile lead and trail bytes a PNG cannot represent. Text overrides are a JSON array, from [`MODDING.md`](https://github.com/mstan/FaxanaduRecomp/blob/master/MODDING.md):
 
 ```json title="MODDING.md"
 [
@@ -393,22 +379,24 @@ From [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/mast
 
 ## Known limits
 
-Three things a package cannot express at all, collected here because the steps above state them in passing. A package carries data only: it "cannot ship DLLs, shared objects, scripts or arbitrary native code, and it cannot select a symbol by name", and "The package archive supplies no native code", so a `[[plugin]]` entry can only switch on behaviour that is already statically linked into the game. Adding a new plugin id, or a `builtin:` resolver, "is a source change to XenogearsRecomp, requires project review", which puts it outside what an ordinary author can ship. And option encoding is deliberately narrow: "There is deliberately no host-endian encoding, signed inference, mask, shift, scale, expression language, or partial-field merge."
+Option encoding is narrow on purpose: "There is deliberately no host-endian encoding, signed inference, mask, shift, scale, expression language, or partial-field merge."
 
-Two more things the troubleshooting table cannot tell you. Mod support is not on everywhere: on NES it is off at the framework level and is a per-game build opt-in, and SNES is the same. And the documented operations are ahead of what is demonstrably in use. Every mod manifest present in the surveyed clone of the fleet, three psxrecomp builtins and five TombaRecomp preloaded packages, is `format_version = 5` and uses only `[[plugin]]`. The integer, sparse-field and overlay examples in the specifications are explicitly placeholders, so treat those paths as documented rather than as proven by a shipped package.
+Mod support is not on everywhere. On NES it is off at the framework level and is a per-game build opt-in, and SNES is the same.
+
+The documented operations are also ahead of what is demonstrably in use. Every mod manifest in the surveyed clone of the fleet, three psxrecomp builtins and five TombaRecomp preloaded packages, is `format_version = 5` and uses only `[[plugin]]`. The integer, sparse-field and overlay examples in the specifications are placeholders, so treat those paths as documented rather than as proven by a shipped package.
 
 ## Source
 
-- [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md) is the normative specification; [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md) carries the quick-start skeleton and the mechanism table; [`tools/psxmod_pack.py`](https://github.com/mstan/psxrecomp/blob/master/tools/psxmod_pack.py) is the packer; [`runtime/include/mod_plugins.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/mod_plugins.h) is the plugin API.
-- [xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp): [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md) is the end-to-end authoring workflow, and [`MODS.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MODS.md) is the player-facing half.
-- [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp): [`MOD_LOADER.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/MOD_LOADER.md) for the package, feature and operation split and the cost model.
-- [TombaRecomp](https://github.com/mstan/TombaRecomp): [`mods/preloaded/packages/`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages) holds the five shipped packages quoted above.
+- [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md) is the specification; [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md) has the skeleton and the mechanism table; [`tools/psxmod_pack.py`](https://github.com/mstan/psxrecomp/blob/master/tools/psxmod_pack.py) is the packer; [`runtime/include/mod_plugins.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/mod_plugins.h) is the plugin API.
+- [xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp): [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md) is the authoring workflow, [`MODS.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MODS.md) the player-facing half.
+- [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp): [`MOD_LOADER.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/MOD_LOADER.md) for the three-word split and the cost model.
+- [TombaRecomp](https://github.com/mstan/TombaRecomp): [`mods/preloaded/packages/`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages) holds the five shipped packages.
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`docs/MOD_PACKAGES.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MOD_PACKAGES.md) and [`MODDING.md`](https://github.com/mstan/nesrecomp/blob/master/MODDING.md). [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp): [`MODDING.md`](https://github.com/mstan/FaxanaduRecomp/blob/master/MODDING.md) for the file-drop path.
-- [cdirecomp](https://github.com/mstan/cdirecomp): [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md) restates the shared cross-project enhancement rules.
+- [cdirecomp](https://github.com/mstan/cdirecomp): [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md) for the shared enhancement rules.
 
 ## Next
 
-- [Mod manifest](/docs/reference/mod-manifest), every field with its type, whether it is required, and its default.
-- [Add widescreen](/docs/guides/add-widescreen), the hardest enhancement to build and the one with the most documented failure modes.
-- [Translate a game](/docs/guides/translate-a-game), which uses a separate table format rather than a mod package.
-- [Determinism](/docs/concepts/determinism), for why save states, rewind and netplay constrain what a mod may do.
+- [Mod manifest](/docs/reference/mod-manifest), every field with its type and default.
+- [Add widescreen](/docs/guides/add-widescreen), the hardest enhancement to build.
+- [Translate a game](/docs/guides/translate-a-game), which uses a table format instead.
+- [Determinism](/docs/concepts/determinism), for why netplay and rewind constrain a mod.

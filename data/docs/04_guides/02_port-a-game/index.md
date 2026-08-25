@@ -10,14 +10,14 @@ repos:
   - "https://github.com/mstan/MegaManX6Recomp"
   - "https://github.com/mstan/MinishCapRecomp"
   - "https://github.com/Shy/BoktaiRecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-A port in this fleet is a repository that records how to turn one specific game file into a native program. It does not contain the game and holds little hand-written code: a pinned recompiler framework, the identity of the dump you supply, the facts the recompiler could not work out from the bytes alone, and a thin runtime shim. This guide follows the shape the fleet's 64 game ports share, and its one idea is that a game-specific fix is configuration, never an edit to the generated C.
+A port here is a repository that records how to turn one game file into a native program. It does not contain the game, and it holds very little hand-written code. It holds four things: a pinned recompiler framework, the identity of the file you supply, the facts the recompiler could not work out from the bytes alone, and a thin runtime shim. All 64 game ports share that shape, and one rule: a game-specific fix is configuration, never an edit to the generated code.
 
 ## Before you start
 
-This guide begins where [build a toolchain](/docs/guides/build-a-toolchain) ends: a framework built for your console, your copy of the game in hand. The console picks the framework.
+This guide begins where [build a toolchain](/docs/guides/build-a-toolchain) ends. You have a framework built for your console, and your own copy of the game. The console picks the framework.
 
 | Console | Framework | Example port |
 |---|---|---|
@@ -31,7 +31,7 @@ This guide begins where [build a toolchain](/docs/guides/build-a-toolchain) ends
 | Virtual Boy | vbrecomp | [MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp) |
 | Nintendo DS | ndsrecomp | [MetroidPrimeHuntersRecomp](https://github.com/mstan/MetroidPrimeHuntersRecomp) |
 
-Two N64 repositories sit outside it, building against forks of N64Recomp. [Every repository](/docs/fleet/repositories) has the map.
+Two Nintendo 64 repositories sit outside that table. [Nintendo 64](/hardware/nintendo-64) covers them, and [every repository](/docs/fleet/repositories) has the full map.
 
 ## What a port repository contains
 
@@ -57,25 +57,25 @@ Almost every port is seven things plus variation: a README, a pinned framework s
 | `baserom.md` or `DISC.md` | 10 and 8 | identity record for your file |
 | `symbols/` | 6 | GBA pattern: `imported_symbols.tsv`, `boundaries.tsv` |
 
-Three things are invariant: the README exists in all 64, the framework is a pinned submodule rather than vendored source, and the generated C is never hand-edited. What varies most is where the recompiler input lives: SNES `recomp/bank*.cfg`, PS1 `seeds/*.txt` plus a large `game.toml`, NES everything in `game.toml`, GBA `symbols/*.tsv` plus `config/<region>.toml` or `variants/<name>/` per region.
+Three things never change. The README exists in all 64. The framework is a pinned submodule, not copied source. The generated code is never hand-edited. What varies most is where the recompiler input lives: SNES uses `recomp/bank*.cfg`, PS1 uses `seeds/*.txt` plus a large `game.toml`, NES puts everything in `game.toml`, GBA uses `symbols/*.tsv` plus one file per region.
 
 ## Step 1. Record the identity of the file you supply
 
 > **You provide this.** The repositories do not ship a game file, and most ports will not run on one they do not recognise. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the canonical page for that contract.
 
-Write the identity record first. Cartridge ports call it `baserom.md`, PS1 ports `DISC.md`, and repositories with neither put the table in the README under a `## ROM` heading. It carries every hash and header field for the revision you build against, one row per revision, plus what you reject: MinishCap rejects trimmed, IPS or UPS-patched and decomp-built ROMs, because recompiler output is keyed to specific opcodes at specific addresses, so a patched file is a different game.
+Write the identity record first. Cartridge ports call it `baserom.md`, PS1 ports call it `DISC.md`, and repositories with neither put the table in the README. It carries every hash and header field for the revision you build against, plus what you reject. MinishCap rejects trimmed, IPS or UPS-patched and decomp-built ROMs. Recompiler output is keyed to specific opcodes at specific addresses, so a patched file is a different game.
 
-Then write a verifier that checks more than the hash. [BoktaiRecomp](https://github.com/Shy/BoktaiRecomp) has the fleet's most thorough one, [`tools/verify_rom_hash/main.cpp`](https://github.com/Shy/BoktaiRecomp/blob/main/tools/verify_rom_hash/main.cpp), reporting on SHA-1, CRC32, exact size, whether the size is a power of two rather than trimmed or overdumped, header invariants, the complement check, the logo, the save chip type and the RTC signature. Run it after step 3: `./build/verify_rom_hash variants/boktai1_usa/roms/boktai1_usa.gba`. Exit 0 is verified, 1 mismatch, 2 usage or IO error.
+Then write a verifier that checks more than the hash. [BoktaiRecomp](https://github.com/Shy/BoktaiRecomp) has the most thorough one, [`tools/verify_rom_hash/main.cpp`](https://github.com/Shy/BoktaiRecomp/blob/main/tools/verify_rom_hash/main.cpp). It checks two hashes, the exact size, header fields, the logo, the save chip type and the RTC signature. Run it after step 3: `./build/verify_rom_hash variants/boktai1_usa/roms/boktai1_usa.gba`. Exit 0 is verified, 1 is a mismatch, 2 is a usage or IO error.
 
 ## Step 2. Fetch the repository and its pinned framework
 
-The framework is a submodule pinned at a gitlink SHA, so a clone without submodules cannot build. Clone with `git clone --recurse-submodules <repository url>`, or repair an existing clone with `git submodule update --init --recursive`. Faxanadu wraps that in `chmod +x setup.sh && ./setup.sh`, which also links the oracle core it is compared against.
+The framework is a submodule pinned at a gitlink SHA, so a clone without submodules cannot build. Clone with `git clone --recurse-submodules <repository url>`. Repair an existing clone with `git submodule update --init --recursive`. Faxanadu wraps that in `chmod +x setup.sh && ./setup.sh`.
 
 **You should now see** a populated framework directory and `recomp-ui/`, both at the commits this repository recorded, not at their branch tips.
 
 ## Step 3. Build the recompiler, then regenerate the game C
 
-Two stages, and the first is cached: build the recompiler once from the framework submodule, then rerun it over your game file whenever the configuration changes. [Klonoa-Door-to-Phantomile](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile) gives the PS1 sequence in six lines.
+Two stages, and the first is cached. Build the recompiler once from the framework submodule. Then rerun it over your game file whenever the configuration changes. [Klonoa-Door-to-Phantomile](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile) gives the PS1 sequence.
 
 From [`README.md`](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile/blob/master/README.md):
 
@@ -88,7 +88,7 @@ cmake -S . -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release --target psx-runtime
 ```
 
-`disc/<your>.cue` is your own image, staged into a gitignored `disc/` by `python3 psxrecomp/tools/prepare_disc.py --config game.toml <dump>`, with the boot executable extracted by `extract_psx_exe.py`. Cartridge consoles place the ROM where `game.toml` points.
+`disc/<your>.cue` is your own image. `python3 psxrecomp/tools/prepare_disc.py --config game.toml <dump>` stages it into a gitignored `disc/`. Cartridge consoles place the ROM where `game.toml` points.
 
 | Console | Regenerate with, from the repository named |
 |---|---|
@@ -104,7 +104,7 @@ cmake --build build-release --target psx-runtime
 
 Committed: `game.toml`, `recomp/*.cfg`, `seeds/`, `symbols/*.tsv`, `annotations/*.csv`, the Ghidra scripts, `CMakeLists.txt`, `tools/`, the docs. That small set is the entire description of your port.
 
-Generated and normally ignored: `generated/` or `src/gen/`, `recomp/funcs.h`, overlay caches and captures, saves, memory cards, build trees, the game file itself. Two repositories commit their output anyway, [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp) and [SuperMarioBrosNESRecomp](https://github.com/mstan/SuperMarioBrosNESRecomp), and Faxanadu says why in the `.gitignore`:
+Generated and normally ignored: `generated/` or `src/gen/`, `recomp/funcs.h`, overlay caches, saves, build trees, the game file itself. Two repositories commit their output anyway, and Faxanadu says why in its `.gitignore`:
 
 > `# DO NOT ignore generated/ — committed for reproducibility`
 
@@ -114,11 +114,11 @@ That is the exception. The rule about editing that output has none:
 >
 > [SuperMarioWorldRecomp `CLAUDE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/CLAUDE.md)
 
-Generated sources are derivative of a copyrighted game file, which also shapes what you can distribute: [release a port](/docs/guides/release-a-port).
+Generated sources are derived from a copyrighted game file, which also decides what you can distribute. See [release a port](/docs/guides/release-a-port).
 
 ## Step 5. Put each fix in the layer that owns it
 
-This decides whether your port stays maintainable, and it is where new porters go wrong. Six mechanisms sit at different points in the pipeline, and picking the wrong one is not a style error: it decides whether your fix survives the next regeneration, and whether anyone else benefits.
+This is where new porters go wrong. Six mechanisms sit at different points in the pipeline. Which one you pick decides whether your fix survives the next regeneration, and whether anyone else benefits from it.
 
 | Mechanism | What it changes | Where it lives | Seen in |
 |---|---|---|---|
@@ -131,7 +131,7 @@ This decides whether your port stays maintainable, and it is where new porters g
 
 ### Recompiler hints
 
-Hints tell the recompiler what it cannot derive from the bytes. Faxanadu declares an MMC1 bank-switch trampoline this way, and eight dispatch tables in the same file as `[[known_table]]` and `[[split_table]]` entries.
+Hints tell the recompiler what it cannot work out from the bytes. Faxanadu declares an MMC1 bank-switch trampoline this way, plus eight dispatch tables in the same file.
 
 From [`game.toml`](https://github.com/mstan/FaxanaduRecomp/blob/master/game.toml):
 
@@ -145,11 +145,11 @@ inline_bytes = 3
 bs_fn_addr = 0xCC1A
 ```
 
-Every such hint marks a place automatic [code discovery](/docs/concepts/code-discovery) did not reach, which matters for the rule below. The SNES equivalent is a per-bank cfg of directives such as `auto_vectors` and `tier_down_stubs`.
+Every hint marks a place automatic [code discovery](/docs/concepts/code-discovery) did not reach, which matters for the rule below. The SNES equivalent is a per-bank cfg of directives.
 
 ### Hooks that change behaviour without changing generated code
 
-A `[[ram_read_hook]]` routes reads of a named RAM address through a game callback, which decides per call site, identified by the CPU program counter, whether to alter the value. SMB1 widens draw and cull decisions with it while leaving the simulation alone.
+A `[[ram_read_hook]]` routes reads of a named RAM address through a game callback. The callback decides, per call site, whether to change the value. Call sites are identified by the CPU program counter. SMB1 widens draw and cull decisions this way and leaves the simulation alone.
 
 From [`game.toml`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/game.toml):
 
@@ -166,13 +166,13 @@ addr = 0x071A           # ScreenLeft_PageLoc (indexed base: ScreenEdge_PageLoc,y
 indexed = true
 ```
 
-Read the comment as carefully as the two lines of configuration: it names what is widened, what is left alone, and what the default is. SMB1's `WIDESCREEN.md` makes that a rule, keeping the spawn windows, the player edge clamp, the loop-command rewind and the area parser vanilla because they are dual-purpose state, not draw logic. `[[mod_function_hook]]` is the heavier version, marking a generated function an enabled mod can take over, with roughly 80 lines of commentary recording per address which sibling was rejected and why.
+Read the comment as carefully as the two lines of configuration. It names what is widened, what is left alone, and what the default is. SMB1's rule is that anything which is both draw logic and game state, such as the spawn windows, stays vanilla. `[[mod_function_hook]]` is the heavier version, marking a generated function an enabled mod can take over.
 
-Only SuperMarioWorld has the fourth layer. Its overrides sit outside `src/gen/` because the generated banks are rewritten on every regeneration, so `tools/apply_overrides.py` re-applies each at build time. A rule with no matching body fails the build, which is why candidates stay commented out.
+Only SuperMarioWorld has the fourth layer. Its overrides sit outside `src/gen/`, because the generated banks are rewritten on every regeneration, so `tools/apply_overrides.py` re-applies each one at build time.
 
 ### The rule: fix the framework, not the game
 
-Every repository with a written opinion has the same one. MegaManX6 puts it in a line: "A fix that only this game needs is a smell; prefer a class fix that the next title inherits." SuperMarioWorld makes it rule zero.
+Every repository with a written opinion has the same one. SuperMarioWorld makes it rule zero.
 
 > "We do not fix individual visible bugs in isolation. Each visible
 > symptom is a probe into a recompiler / framework gap. The goal is
@@ -183,22 +183,15 @@ Every repository with a written opinion has the same one. MegaManX6 puts it in a
 >
 > [SuperMarioWorldRecomp `ISSUES.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/ISSUES.md)
 
-MinishCap states it from the framework side, naming the anti-pattern.
+[MinishCapRecomp](https://github.com/mstan/MinishCapRecomp/blob/main/CLAUDE.md) states it from the framework side and bans the anti-pattern by name: a hardware corner that Minish Cap happens to hit is fixed in `gbarecomp/src/gba/` with a hardware-test citation, never behind a check for the game's name.
 
-> "**No Minish Cap special cases in the GBA core.** If we discover
-> that Minish Cap exercises an obscure hardware corner, the fix
-> lives in `gbarecomp/src/gba/` with a hardware-test citation,
-> not behind `if (game == \"minish_cap\")`."
->
-> [MinishCapRecomp `CLAUDE.md`](https://github.com/mstan/MinishCapRecomp/blob/main/CLAUDE.md)
+Here is why. A per-game hint records something the recompiler failed to work out by itself, and the next game on that mapper will need the same hint. The shim hides a general defect behind a local fix: the symptom leaves your port, the bug stays in the framework, and every future port pays again. Boktai went the other way and merged its PPU bitmap modes, a shared GPIO port, a save chip override and the solar sensor into gbarecomp.
 
-Say the reason out loud, because "put it in config" sounds like the safe choice and often is not. A per-game hint describes something the recompiler failed to work out for itself, and a hand-declared dispatch table is a table discovery missed, which the next game on that mapper will have too. The shim therefore hides a general defect behind a local fix: the symptom leaves your port, the class of bug stays in the framework, and every future port pays again. Configuration is the right home for facts genuinely specific to one game, and the wrong home for a pattern the recompiler should have handled generically. Boktai shows the rule followed the other way, merging its PPU bitmap modes, a shared GPIO port, a save chip override, the solar sensor and non-Windows self-healing into gbarecomp instead.
-
-Player-facing changes are a third category, belonging in a default-off mod package rather than either place. [Write a mod](/docs/guides/write-a-mod) covers that layer.
+Player-facing changes are a third category. They belong in a default-off mod package, not in either place. [Write a mod](/docs/guides/write-a-mod) covers that layer.
 
 ## Step 6. Build the runtime and run it
 
-This compiles the generated C with the framework's runner, the launcher and your shims. On MegaManX6, three commands, the last being the game.
+This compiles the generated C together with the framework's runner, the launcher and your shims. On MegaManX6 it is three commands, and the last one runs the game.
 
 From [`README.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/README.md):
 
@@ -208,7 +201,7 @@ cmake --build build -j16
 ./build/mmx6-runtime.exe
 ```
 
-**You should now see** the launcher rather than the game, because it asks for your file first. What it does with a file it does not recognise is not uniform across the fleet, and that difference matters when diagnosing a bad start.
+**You should now see** the launcher rather than the game, because it asks for your file first. What happens with a file it does not recognise differs by console, and that matters when you are diagnosing a bad start.
 
 | Console | What happens when the file is wrong |
 |---|---|
@@ -217,21 +210,17 @@ cmake --build build -j16
 | GBA (Boktai, MinishCap) | Refuses to launch on an unrecognised hash; the BIOS must verify too. |
 | PS1 (MegaManX6, Xenogears) | Warns about the header, region or serial and tries to run it anyway. |
 
-> **Warning.** PS1 identity is advisory, so a wrong or wrongly converted disc gets past the launcher and fails later in ways that look like recompiler bugs.
+> **Warning.** PS1 identity is advisory. A wrong or wrongly converted disc gets past the launcher and fails later, in ways that look like recompiler bugs.
 
-After the first run, resolve every dispatch miss before any other debugging, as troubleshooting describes. Then pin what works: 24 of the 64 repositories carry `tests/`, and the pattern to copy is Faxanadu's, comparing per-frame hashes against a committed baseline and failing hard on a mismatch.
+After the first run, resolve every dispatch miss before any other debugging. Then pin what works: 24 of the 64 repositories carry `tests/`, and Faxanadu's pattern is the one to copy, comparing per-frame hashes against a committed baseline.
 
 ## How long a port actually takes
 
-Months, not an afternoon, and the fleet says so. Every mstan-family README opens with it:
+On a mature framework, standing up a new game is fast. [Street Fighter Alpha 3](/games/street-fighter-alpha-3) took about five minutes of game-specific work to go from a disc to a running native build. The months went somewhere else: into building each console's framework, and into taking one game from booting to feeling finished.
 
-> "**These are in-development previews, not finished ports — expect rough edges**, and depth will keep landing over months, not days."
->
-> [SuperMarioWorldRecomp `README.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/README.md)
+Booting is not the finish line. MinishCap's bring-up checklist has ten milestones, from file hash verified to save and load round-tripping, and six of them are comparisons against a reference implementation. That is why [co-simulation](/docs/concepts/co-simulation) comes early rather than late, and [debug a divergence](/docs/guides/debug-a-divergence) is how you localise what it reports.
 
-Three measurements give that a shape. The engineering ledgers run from 2 lines to 3,129, with SuperMarioWorld at 1,255, MinishCap at 1,318 and Faxanadu at 585, holding root-cause write-ups rather than bug counts. The configuration carries as much prose as data: SMB1 seeds more than 150 addresses harvested from a public disassembly, and Xenogears' widescreen table is preceded by 40 comment lines recording which candidate sites were deliberately not widened. And most repositories call themselves a preview, an alpha or a bring-up, which the [status vocabulary](/docs/reference/status-vocabulary) unpacks term by term.
-
-Booting is not the finish line either. MinishCap's bring-up checklist has ten milestones, from file hash verified to save and load round-tripping, and six are comparisons against a reference implementation, which is why [co-simulation](/docs/concepts/co-simulation) is a prerequisite rather than a later refinement. Localising what it reports is its own discipline: [debug a divergence](/docs/guides/debug-a-divergence).
+The finishing work leaves a trail. The engineering ledgers in these repositories run from 2 lines to 3,129 and hold root-cause write-ups, not bug counts. Each port states its own status in its own README, and the [status vocabulary](/docs/reference/status-vocabulary) explains those words one by one.
 
 ## Troubleshooting
 
@@ -241,27 +230,27 @@ The submodules were not fetched. Run `git submodule update --init --recursive`, 
 
 ### The runner refuses to start and prints a hash
 
-Your file is not the one the port was built against. DKC2 reports size and computed SHA-256 with the refusal, which you compare against the identity record. Trimmed, IPS or UPS-patched and decomp-built ROMs are rejected deliberately, and on Boktai a sensor-hacked dump fails by design because it removes the hardware reads the port exists to run.
+Your file is not the one the port was built against. DKC2 prints the size and computed SHA-256 with the refusal, and you compare those against the identity record. Patched and decomp-built ROMs are rejected on purpose. On Boktai a sensor-hacked dump fails by design, because it removes the hardware reads the port exists to run.
 
 ### The standalone verifier passes but the game still refuses
 
-Do not treat a standalone verifier as the authority. MinishCap's `tools/verify_rom_hash/main.cpp` is an admitted stub returning success unconditionally, so at least one repository's verifier does not do what its `baserom.md` implies. The runner's gate decides.
+Do not treat a standalone verifier as the authority. MinishCap's `tools/verify_rom_hash/main.cpp` is an admitted stub that always returns success. The runner's gate decides.
 
 ### The game runs but behaves strangely on PS1
 
-Check you did not convert the disc image to ISO. MegaManX6's `DISC.md` explains that a 2048-byte cooked ISO discards the Mode-2 Form-2 XA sectors used for streaming FMV and audio. Re-check the serial too, since a mismatch only warns.
+Check that you did not convert the disc image to ISO. MegaManX6's `DISC.md` explains that a 2048-byte cooked ISO throws away the Mode-2 Form-2 XA sectors used for streaming FMV and audio. Re-check the serial too, since a mismatch only warns.
 
 ### Dispatch misses in the log
 
-Resolve these before anything else: MegaManX6's contract is that after every run, all dispatch misses are resolved first. A dispatch miss is a call to an address the recompiler produced no entry for, defined with the fleet's other terms in the [glossary](/docs/concepts/glossary). You fix it by adding seeds or dispatch-table declarations and regenerating, never by patching around it.
+Resolve these before anything else. MegaManX6's contract is that all dispatch misses are resolved first, after every run. A dispatch miss is a call to an address the recompiler produced no entry for. Fix it by adding seeds or dispatch-table declarations and regenerating, never by patching around it. The [glossary](/docs/concepts/glossary) defines the term.
 
 ### Your fix vanished after a regeneration
 
-You edited generated code. Move it into `game.toml`, a `bank*.cfg`, or on SuperMarioWorld into `overrides/`, the only layer designed to survive regeneration.
+You edited generated code. Move it into `game.toml`, into a `bank*.cfg`, or on SuperMarioWorld into `overrides/`, the only layer designed to survive regeneration.
 
 ### The game is slow at first and gets faster as you play
 
-Not a defect on the frameworks that report it. Boktai, Emerald and MegaManZero describe coverage as incomplete by design: an uncovered target falls back to the interpreter, is reported, then compiles to native and caches. The report is the useful half, since that target can be folded into a later static corpus.
+Not a defect on the frameworks that report it. Boktai, Emerald and MegaManZero describe coverage as incomplete by design. When the port reaches code the recompiler did not cover, a small interpreter runs that code instead, reports it, then compiles it to native and caches it. A missed target becomes a slow moment rather than a crash. The report is the useful half: that target can go into a later static pass.
 
 ## Source
 
