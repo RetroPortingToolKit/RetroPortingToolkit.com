@@ -1,6 +1,6 @@
 ---
 title: "Every repository"
-summary: "All 86 repositories in the fleet, grouped by role, each linked and each attributed to the toolchain it belongs to, plus the dependency map showing which shared component is consumed by which project."
+summary: "All 83 repositories in the fleet, grouped by role, each linked and each attributed to the toolchain it belongs to, plus the dependency map showing which shared component is used by which project."
 pageType: "reference"
 tags: ["Fleet", "Repositories", "Index"]
 repos:
@@ -12,11 +12,10 @@ repos:
   - "https://github.com/mstan/m68k-recomp-core"
   - "https://github.com/mstan/z80-recomp-core"
   - "https://github.com/TechnicallyComputers/recomp-net"
-  - "https://github.com/N64Recomp/N64Recomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-This is the index the rest of this wiki hangs off. The fleet is 86 repositories: twelve per-console projects, seven shared components, 64 game ports and three upstream projects it takes its ideas from. Every one is listed here with its role and the toolchain it belongs to, because that attribution is the fact you usually need first and no single repository states it. If you are looking for what a console's toolchain does rather than where it lives, the [platform pages](/docs/platforms) are the technical write-ups and these are the addresses.
+The fleet is 83 repositories: twelve per-console projects, seven shared components and 64 game ports. Every one is listed here with its role and the toolchain it belongs to. That attribution is usually the first fact you need, and no single repository states it. For what a console's toolchain does rather than where it lives, read the [platform pages](/docs/platforms).
 
 ## The count
 
@@ -25,16 +24,15 @@ This is the index the rest of this wiki hangs off. The fleet is 86 repositories:
 | Per-console projects | 12 |
 | Shared components consumed as submodules | 7 |
 | Game ports | 64 |
-| Upstream projects | 3 |
-| **Total** | **86** |
+| **Total** | **83** |
 
-Three of the 86 turned up only by resolving relative submodule URLs: `m68k-recomp-core`, `z80-recomp-core` and `recomp-ui`. No listing in the fleet surfaces them, and nothing else on this site links to them, which is why they get their own group below rather than a footnote. `recomp-ui` in particular is a substantial shared component pinned by 58 of the 64 game ports.
+Three of the 83 turned up only by resolving relative submodule URLs: `m68k-recomp-core`, `z80-recomp-core` and `recomp-ui`. No listing in the fleet shows them, and nothing else on this site links to them. `recomp-ui` is a large shared component, pinned by 58 of the 64 game ports.
 
-> **Note.** Default branches vary. Of these 86 repositories, 48 default to `main` and 38 to `master`. A `blob/main` file URL is wrong for 38 of them.
+> **Note.** Default branches vary. Of these 83 repositories, 45 default to `main` and 38 to `master`. A `blob/main` file URL is wrong for 38 of them.
 
 ## Per-console projects
 
-Eleven of these are a recompiler and runtime pair for one machine, and a game port is a thin repository on top of one of them. The twelfth, `xboxlle-probe`, is an instrument rather than a toolchain and runs no games at all. Status wording is each project's own, never upgraded.
+Eleven of these are a recompiler and a runtime for one machine. A game port is a thin repository on top of one of them. The twelfth, `xboxlle-probe`, is an instrument rather than a toolchain and runs no games. Status wording is each project's own, never upgraded.
 
 | Repository | Console | What it is | Status in its own words |
 |---|---|---|---|
@@ -53,7 +51,7 @@ Eleven of these are a recompiler and runtime pair for one machine, and a game po
 
 ## Shared components
 
-Separately versioned repositories that other projects consume as git submodules. The first three are the ones no listing surfaces.
+Separately versioned repositories that other projects consume as git submodules. The first three are the ones no listing shows.
 
 | Repository | What it is | Consumed by |
 |---|---|---|
@@ -67,7 +65,7 @@ Separately versioned repositories that other projects consume as git submodules.
 
 ## Game ports
 
-64 repositories, each a thin layer over one toolchain: a CMake glue file, per-game recompiler input, a small hand-written runtime shim, a `tools/` directory and a README. None of them contains a game file, and none contains the generated C. See [Port a game](/docs/guides/port-a-game) for what that layer actually consists of.
+64 repositories, each a thin layer over one toolchain: a CMake glue file, per-game recompiler input, a small hand-written runtime shim, a `tools/` directory and a README. None of them holds a game file, and none holds the generated C. See [Port a game](/docs/guides/port-a-game) for what that layer contains.
 
 ### PlayStation, on psxrecomp
 
@@ -127,7 +125,7 @@ Eight repositories. Seven pin snesrecomp as a submodule; one vendors it.
 | [mstan/DKC2Recomp](https://github.com/mstan/DKC2Recomp) | Points its snesrecomp and recomp-ui submodules at `Nicktendonick` forks. MIT at the root over a noncommercial framework |
 | [Team-Resurgent/MegaManX-X](https://github.com/Team-Resurgent/MegaManX-X) | Vendors snesrecomp as a plain tree, and declares recomp-ui in `.gitmodules` while shipping no gitlink for it, so a clean clone cannot configure |
 
-One further SNES repository is part of the fleet and is deliberately not named or linked here. Its license file says the repository is proprietary, confidential and intended to remain private, so this site holds it back pending a check with its owner. The same treatment is applied on [Licenses](/docs/fleet/licenses).
+One more SNES repository is in the fleet and is not named or linked here. Its license file says the repository is proprietary, confidential and meant to stay private, so this site holds it back until its owner has been asked. [Licenses](/docs/fleet/licenses) does the same.
 
 ### Game Boy Advance, on gbarecomp
 
@@ -181,24 +179,12 @@ Three repositories, all pinning gbrecompiled at path `gb-recompiled` over an SSH
 |---|---|---|---|
 | [mstan/MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp) | Virtual Boy | vbrecomp | The only vbrecomp port. Its license is scoped to build glue, CMake wiring and documentation only |
 | [mstan/MetroidPrimeHuntersRecomp](https://github.com/mstan/MetroidPrimeHuntersRecomp) | Nintendo DS | ndsrecomp | The only ndsrecomp port, and it consumes the framework through an `ndsrecomp.pin` file rather than a submodule |
-| [mstan/PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) | Nintendo 64 | N64Recomp fork | One of the two repositories in the fleet that actually contain upstream code. Uses RT64 for rendering |
-| [mstan/PocketMonstersStadiumRecomp](https://github.com/mstan/PocketMonstersStadiumRecomp) | Nintendo 64 | N64Recomp fork | The other one. Consumes the framework through an `n64recomp.pin` file |
-
-## Upstream projects
-
-Three repositories this fleet learned from. Only the two N64 ports above contain any of their code; everywhere else the relationship is conceptual. See [Lineage and credit](/docs/fleet/lineage-and-credit) for exactly where that line falls.
-
-| Repository | What it is | License |
-|---|---|---|
-| [N64Recomp/N64Recomp](https://github.com/N64Recomp/N64Recomp) | "a tool to statically recompile N64 binaries into C code that can be compiled for any platform". Ships a runtime recompilation backend as well as the ahead-of-time one | MIT |
-| [N64Recomp/N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime) | The runtime half of the same pair, which the generated C links against | GPL-3.0 |
-| [rt64/rt64](https://github.com/rt64/rt64) | The renderer those ports use. Its texture tooling is not uniformly MIT: one shipped tool is GPL | MIT |
-
-> **Warning.** All three ship an identical `CONTRIBUTING.md` whose first line is "AI must not be used to generate code for contributions to this project." This documentation is agent-facing and this fleet is built with AI assistance, so that policy is stated here plainly rather than left for an agent to discover after opening a pull request. Compare psxrecomp, which welcomes them. See [Contributing as an agent](/docs/agents/contributing-as-an-agent).
+| [mstan/PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) | Nintendo 64 | Not written by this fleet, see [Nintendo 64](/hardware/nintendo-64) | One of the two ports here built on an outside framework. Archived |
+| [mstan/PocketMonstersStadiumRecomp](https://github.com/mstan/PocketMonstersStadiumRecomp) | Nintendo 64 | Not written by this fleet, see [Nintendo 64](/hardware/nintendo-64) | The other one. Reaches its framework through a pin file rather than a submodule |
 
 ## What consumes what
 
-Reading every `.gitmodules` file and every gitlink in the fleet turns up 158 submodule references spread over 70 of the 86 repositories. Fifteen repositories declare none. This table is the dependency graph collapsed to one row per shared component: it is what tells you how far a change to a shared repository actually reaches.
+Fifteen of the 83 repositories declare no submodules at all. The rest declare at least one, and this table collapses every declaration to one row per shared component. It tells you how far a change to a shared repository reaches.
 
 | Component | Consumers | Who |
 |---|---|---|
@@ -215,19 +201,18 @@ Reading every `.gitmodules` file and every gitlink in the fleet turns up 158 sub
 | [smsggrecomp](https://github.com/mstan/smsggrecomp) | 2 | Both Sega 8-bit ports |
 | [vbrecomp](https://github.com/mstan/vbrecomp) | 1 | The Virtual Boy port |
 | [retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | 1 | psxrecomp, at `lib/retcomm-rbengine` |
-| [N64Recomp](https://github.com/N64Recomp/N64Recomp) | 1 | N64ModernRuntime |
 
-Three details from that survey are worth knowing before you assume a shared component is uniform across its consumers.
+A shared component is not the same everywhere it is used. Three details.
 
-**recomp-ui is shared in intent and fanned out in practice.** Its 58 gitlinks pin 19 distinct commits, ranging from one commit behind its default branch to 231 behind. Two consumers point their submodule URL at a fork rather than the original, three suppress status reporting for it with `ignore = all`, and three pin named feature branches instead of the default one.
+**recomp-ui is shared in intent and fanned out in practice.** Its 58 gitlinks pin 19 different commits. The closest is one commit behind its default branch, the furthest 231 behind. Two consumers point their submodule URL at a fork instead of the original, three suppress status reporting with `ignore = all`, and three pin a named feature branch.
 
-**The two CPU cores are in much better shape.** Both z80-recomp-core consumers pin the identical commit, which is also that repository's only commit. The two m68k-recomp-core consumers are 14 commits apart on one line of development, with cdirecomp behind rather than forked, and the shared decoder and validator are byte-identical between the two pins. All the drift is in the Genesis profile, which is exactly the split that repository's README prescribes.
+**The two CPU cores are in much better shape.** Both z80-recomp-core consumers pin the identical commit, which is that repository's only commit. The two m68k-recomp-core consumers are 14 commits apart on one line of development, with cdirecomp behind rather than forked. Their shared decoder and validator are byte-identical between the two pins. All the drift sits in the Genesis profile, which is the split that repository's README asks for.
 
-**A vendored copy inside a game port is not the framework.** `PeriBluGaming/ToyStory2Recomp` and `Team-Resurgent/MegaManX-X` each carry a partial snapshot of a framework rather than a submodule, including older attribution files with materially different content. For any statement about a framework, read the framework repository.
+**A vendored copy inside a game port is not the framework.** `PeriBluGaming/ToyStory2Recomp` and `Team-Resurgent/MegaManX-X` each carry a partial snapshot of a framework instead of a submodule, including older attribution files that say different things. For any statement about a framework, read the framework repository.
 
 ## Two repositories that are no longer reachable
 
-`TechnicallyComputers/Crash-Team-Racing-Recomp` and `TechnicallyComputers/Crash-Bash-Recomp` are referenced by game pages elsewhere on this site and no longer resolve. A control repository in the same organisation resolves normally, so this is not a network artefact: both have gone private or been deleted. They are recorded here rather than quietly dropped, and they are deliberately not linked, because a link would send a reader to a 404. Neither could be read, so this documentation says nothing about what they contained.
+`TechnicallyComputers/Crash-Team-Racing-Recomp` and `TechnicallyComputers/Crash-Bash-Recomp` are named by game pages elsewhere on this site and no longer resolve. Another repository in the same organisation resolves normally, so this is not a network fault: both have gone private or been deleted. They are not linked here, because a link would send you to a 404. Neither could be read, so nothing here says what they held.
 
 ## Source
 
@@ -235,11 +220,10 @@ Three details from that survey are worth knowing before you assume a shared comp
 - The dependency map comes from every `.gitmodules` file and every gitlink in the fleet, read together.
 - Status quotations come from the README of the repository being quoted. Toolchain READMEs: [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/README.md), [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/README.md), [snesrecomp](https://github.com/mstan/snesrecomp/blob/main/README.md), [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/README.md), [gbrecompiled](https://github.com/mstan/gbrecompiled/blob/master/README.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/README.md), [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/README.md), [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/README.md), [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/README.md), [cdirecomp](https://github.com/mstan/cdirecomp/blob/master/README.md), [gcnlle](https://github.com/mstan/gcnlle/blob/master/README.md), [xboxlle-probe](https://github.com/mstan/xboxlle-probe/blob/main/README.md).
 - Shared component descriptions: [`m68k-recomp-core/README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md), [`recomp-net/README.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/README.md), [`recomp-net-server/README.md`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).
-- The upstream contribution policy: [`CONTRIBUTING.md`](https://github.com/N64Recomp/N64Recomp/blob/main/CONTRIBUTING.md), and its identical siblings in N64ModernRuntime and [rt64](https://github.com/rt64/rt64/blob/main/CONTRIBUTING.md).
 
 ## Next
 
 - [Licenses](/docs/fleet/licenses) for what each of these repositories declares, including the 48 that declare nothing.
-- [Lineage and credit](/docs/fleet/lineage-and-credit) for which two of them contain upstream code and which only share its ideas.
-- [Port a game](/docs/guides/port-a-game) for what is inside one of the 64 game port repositories and how it consumes its toolchain.
+- [Lineage and credit](/docs/fleet/lineage-and-credit) for how these projects descend from each other.
+- [Port a game](/docs/guides/port-a-game) for what is inside one of the 64 game port repositories and how it uses its toolchain.
 - [Glossary](/docs/concepts/glossary) for the vocabulary every one of these repositories assumes you already have.

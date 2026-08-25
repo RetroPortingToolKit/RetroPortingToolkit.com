@@ -1,6 +1,6 @@
 ---
 title: "Provenance"
-summary: "How cdirecomp records where every line of its device code came from, step by step and quoted, and what each toolchain in the fleet says about BIOS and firmware it does or does not ship."
+summary: "How cdirecomp records where every line of its device code came from, quoted step by step, and what each toolchain in the fleet says about BIOS and firmware it does or does not ship."
 pageType: "concept"
 tags: ["Provenance", "Attribution", "BIOS", "Engineering practice"]
 repos:
@@ -9,21 +9,19 @@ repos:
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-A recompiler runs on hardware nobody has documented completely, so its authors
-read specifications, run other people's emulators, and inherit code from their
-own earlier projects. Provenance is the record of which of those a given line
-came from. [cdirecomp](https://github.com/mstan/cdirecomp) keeps that record as
-a 57 line file ending in a standing rule, and it is the only document in the
-fleet that sets the practice out as a rule rather than a habit. This page
-reports that practice and then reports what each toolchain says about BIOS and
-firmware, in the projects' own words.
+Nobody has documented these consoles completely. So the people writing a
+recompiler read hardware specifications, run other people's emulators, and reuse
+code from their own earlier projects. Provenance is the record of which of those
+a given line of code came from.
+[cdirecomp](https://github.com/mstan/cdirecomp) keeps that record in a 57 line
+file, and it is the only project here that writes the practice down as a rule.
 
-## The distinction the record turns on
+## The line the record draws
 
-The file opens by saying what it covers and by drawing one line.
+The file opens by drawing one line.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
@@ -35,18 +33,16 @@ This record covers the source that builds `CdiRuntime` and the author-owned
 black-box validation tools.
 ```
 
-Everything else follows from that sentence. An implementation input is something
-you write code from. A validation tool is something you only compare against.
-Once the two are named separately, every component has to be filed under one of
-them.
+An implementation input is something you write code from. A validation tool is
+something you only compare against. Once they have separate names, every
+component has to be filed under one of them.
 
 ## The practice, step by step
 
-### Name a basis and a test for every device
+### A basis and a test per device
 
-The body of the file is a table with three columns: the component, the
-independent basis its implementation was written from, and the project's own
-evidence that the result is right. Three of its rows:
+The body is a table: the component, the independent basis it was written from,
+and the project's own evidence that the result is right. Three rows of it:
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
@@ -58,14 +54,12 @@ From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE
 | DS1216 phantom clock/NVRAM | Analog Devices DS1216 data sheet: serial key, register layout, oscillator, BCD calendar, and SRAM pass-through | `runner/tests/cdi_nvram_test.c` |
 ```
 
-The middle column says what the code was written from. The right column names
-the test file that pins the result. No row cites another emulator as an
-implementation basis.
+The middle column says where the code came from. The right column names the test
+that pins it. No row cites another emulator as a basis.
 
 ### Publish the specification sources
 
-A basis is only checkable if a reader can open it, so the file lists the
-documents by URL rather than by name.
+A basis is only checkable if you can open it, so the file gives URLs.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
@@ -77,9 +71,9 @@ Specification locations used during the rewrite:
 - ICDIA CD-i technical-document catalog: <https://www.icdia.co.uk/techdocs/>
 ```
 
-### State the rule about third-party emulators explicitly
+### What an emulator is for
 
-Three sentences carry the weight of the whole document.
+Three sentences carry the whole document.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
@@ -89,13 +83,12 @@ emulator source. Optional emulators may be run as black-box behavioral
 comparators; their output is test evidence, not implementation authority.
 ```
 
-"Test evidence, not implementation authority" is the phrase to lift. An oracle
-tells you that you are wrong. It does not tell you what to write.
+"Test evidence, not implementation authority" is the line to keep. An emulator
+can tell you that you are wrong. It cannot tell you what to write.
 
-### Run a mechanical similarity audit and record its exact result
+### Measure, then print the number
 
-The project does not assert independence, it measures something and reports the
-number it got.
+The project does not assert independence. It measures and reports.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
@@ -107,9 +100,9 @@ resynchronizations, timing mismatches, or cumulative cycle drift; all focused
 unit tests and Release shell/media/navigation smokes passed.
 ```
 
-### Isolate the oracle so it cannot leak into a build
+### Keep the oracle out of the build
 
-The comparator is named, and the file states where it is not.
+The comparator is named, and the file says where it is not.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
@@ -121,14 +114,14 @@ patches, and resulting `CdiOracle` binary are not part of this repository's
 player or recompiler targets and are never packaged.
 ```
 
-The same section states that production packaging is runtime only, and that the
-recompiler, the oracle, development tools, user-supplied ROM and disc images,
-traces and build outputs are never packaged into a runtime release.
+A release contains the runtime only. The recompiler, the oracle, development
+tools, user-supplied ROM and disc images, traces and build outputs are all
+excluded.
 
-### When a dependency is removed, remove it from history too
+### Remove it from history too
 
-Deleting a vendored tree from the working copy leaves it in every earlier
-commit. This project says what it did about that.
+Deleting a vendored tree leaves it in every earlier commit. This project says
+what it did.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
@@ -141,15 +134,15 @@ Ahead of this repository's public release the entire `external/clown68000` and
 vendored third-party emulator source remains in any commit.
 ```
 
-The recompiler subtree carries a matching note, adding that CD-i cycle emission
-now uses the project's own SCC68070 timing model transcribed from the user
-manual, and that no third-party CPU core is compiled, linked, or needed.
+The recompiler subtree carries a matching note: CD-i cycle timing now comes from
+the project's own SCC68070 model, transcribed from the user manual, and no
+third-party CPU core is compiled or linked.
 
-### Record inherited code as an inheritance, with a commit
+### Record inherited code with a commit
 
-Code that came from the author's own earlier project is recorded as precisely as
-code that came from a specification: repository, branch, commit, what was
-copied, and the date.
+Code from the author's own earlier project is recorded as precisely as code
+written from a specification: repository, branch, commit, what was copied, and
+the date.
 
 From [`recompiler/PROVENANCE.txt`](https://github.com/mstan/cdirecomp/blob/master/recompiler/PROVENANCE.txt):
 
@@ -164,10 +157,9 @@ The frontend came from another repository by the same author and has since
 diverged for CD-i. GenesisRom naming remains pending shared-module extraction.
 ```
 
-### Write the rule down as a standing rule
+### Write the rule down
 
-The file ends by turning the record into a policy for work that has not happened
-yet, which is the part that makes it a discipline rather than a description.
+The file ends by turning the record into policy.
 
 From [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md):
 
@@ -180,26 +172,17 @@ be isolated as a separately licensed development tool, but it must not be used
 as source text for the player implementation or enter a player/recompiler build.
 ```
 
-## Why a project would keep a record like this
+## Why keep a record like this
 
-Nothing above is expensive at the time it is written, and each piece answers a
-question that is otherwise unanswerable later.
-
-- **A question about origin gets a file-level answer.** "Where did the DS1216
-  clock come from" has a row, a data sheet URL and a test file, rather than
-  somebody's recollection.
-- **A claim is bounded by what was measured.** The audit reports a token
-  threshold and a result, rather than saying "clean" and leaving the reader to
-  guess what was checked.
-- **A development tool cannot become a shipped one by accident.** The oracle is
-  git-ignored, excluded from the player and recompiler targets, and named in the
-  file as excluded.
-- **A removed dependency is actually gone.** Stripping it from history means a
-  later reader does not find it and draw a conclusion from it.
+Each piece is cheap to write and answers a question that cannot be answered
+later. Where the DS1216 clock came from has a row, a data sheet URL and a test
+file, not somebody's memory. The audit gives a threshold and a result, so the
+claim is bounded. The oracle is git-ignored and named as excluded, so a
+development tool cannot ship by accident.
 
 [ndsrecomp](https://github.com/mstan/ndsrecomp) applies the same reasoning to a
-decision made before any code was written: a dependency was rejected, and the
-reason was recorded next to the one chosen instead.
+choice made before any code was written. A dependency was rejected, and the
+reason was recorded next to the one picked instead.
 
 From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md):
 
@@ -215,13 +198,9 @@ enhanced", so xBR-lv2 is the same algorithm family without that cost. No
 DeSmuME source is used.
 ```
 
-## The limits the projects state about themselves
+## What the projects have not proved
 
-The practice is only useful if it does not oversell. Two of these documents
-state their own limits, and one records a mistake it found and fixed.
-
-ndsrecomp ran the same kind of similarity audit as cdirecomp and immediately
-said what it does not establish.
+ndsrecomp ran the same kind of audit and said at once what it does not establish.
 
 From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md):
 
@@ -234,7 +213,7 @@ authorship; provenance comments and the repository history remain the primary
 record.
 ```
 
-The same file carries a dated self-correction naming a notice that was missing.
+The same file carries a dated correction naming a notice that was missing.
 
 From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md):
 
@@ -247,11 +226,8 @@ From [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main
 ```
 
 cdirecomp's [`BIOS-CLOSEOUT.md`](https://github.com/mstan/cdirecomp/blob/master/BIOS-CLOSEOUT.md)
-closes a milestone: the non-launching CD-RTOS player shell on the user-supplied
-CD-i 490 system ROM, closed on 2026-07-14, with application loading and gameplay
-explicitly out of scope. It lists what the recompiled ROM now does, names the
-regression that proves it, and records the evidence retained. Then it says what
-it did not prove.
+closed a milestone on 2026-07-14: the non-launching CD-RTOS player shell running
+on a user-supplied CD-i 490 system ROM. Then it says what it did not prove.
 
 From [`BIOS-CLOSEOUT.md`](https://github.com/mstan/cdirecomp/blob/master/BIOS-CLOSEOUT.md):
 
@@ -266,18 +242,18 @@ BIOS shell that does not use them; the Hotel Mario loader path will drive their
 implementation and add focused regressions when it reaches them.
 ```
 
-That regression is named rather than described: `tools/bios_options_smoke.py`
-creates a fresh battery image, lets the real BIOS initialise it, reboots from
-that image, clicks through Options, Storage and Exit via relative IKAT reports,
-and confirms that headless execution neither loads nor rewrites player NVRAM.
+The regression that proves the milestone is `tools/bios_options_smoke.py`. It
+creates a fresh battery image, lets the real BIOS set it up, reboots from that
+image, clicks through Options, Storage and Exit, and confirms that a headless run
+neither loads nor rewrites player NVRAM.
 
 ## The same discipline elsewhere in the fleet
 
 Other repositories apply pieces of it without writing a `PROVENANCE.md`.
 
 **Only metadata crosses from a decompilation.**
-[MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) states exactly what
-enters the repository from an open decompilation project.
+[MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) states what enters
+its repository from an open decompilation project.
 
 From [`README.md`](https://github.com/mstan/MinishCapRecomp/blob/main/README.md):
 
@@ -288,10 +264,9 @@ never its C source, PC-port runner, or toolchain. **The ROM is never
 redistributed**; you supply your own legally-dumped copy.
 ```
 
-**An unlicensed upstream is handled as an assumption, not a grant.**
+**An unlicensed upstream is an assumption, not a grant.**
 [SuperMarioBrosNESRecomp](https://github.com/mstan/SuperMarioBrosNESRecomp)
-refuses to claim more than it knows about a repository that publishes no
-license.
+claims no more than it knows about a repository that publishes no license.
 
 From [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/THIRD-PARTY-LICENSES/README.md):
 
@@ -304,33 +279,30 @@ is a project publication assumption, not a verified upstream license grant or
 a legal conclusion about the upstream repository.
 ```
 
-The same file explains why a submodule is not a redistribution: it records a URL
-and a commit, and the ingest script copies only names and addresses, no ROM
-bytes, no instruction text, and none of the disassembly's own commentary.
+The same file explains why a submodule is not redistribution. It records a URL
+and a commit, and the ingest script copies only names and addresses: no ROM
+bytes, no instruction text, no commentary.
 
 **A vendoring with a reproducible transform.**
-[snesrecomp](https://github.com/mstan/snesrecomp)'s attribution file records the
-exact steps to regenerate its vendored 65816 core from upstream, and names the
-directed opcode harness that validates the result.
+[snesrecomp](https://github.com/mstan/snesrecomp)'s attribution file gives the
+steps to regenerate its vendored 65816 core from upstream, and names the opcode
+harness that checks the result.
 
-**A boundary statement instead of a bare license.**
-[gcnlle](https://github.com/mstan/gcnlle)'s notices name the subsystems the
-runtime retains exclusive ownership of even while adapting an upstream design,
-and [xboxlle-probe](https://github.com/mstan/xboxlle-probe)'s `NOTICE.md`
-records the source commit, the original author, and what the standalone version
-added.
+**A boundary instead of a bare license.**
+[gcnlle](https://github.com/mstan/gcnlle)'s notices name the subsystems its
+runtime keeps exclusive ownership of while adapting an upstream design.
+[xboxlle-probe](https://github.com/mstan/xboxlle-probe)'s `NOTICE.md` records the
+source commit, the author, and what the standalone version added.
 
 ## The BIOS question, per project
 
-A console BIOS is the sharpest case for all of this, because it is a file the
-project neither wrote nor owns. The fleet's answers differ by console, and each
-repository words its own.
+A console BIOS is the sharpest case: a file the project neither wrote nor owns.
+The answers differ by console, in each repository's own words.
 
-### PlayStation: one image is bundled, the retail image is not
+### PlayStation: one image is bundled
 
-[psxrecomp](https://github.com/mstan/psxrecomp) is the only project in the fleet
-that redistributes a console image, and it is a from-scratch replacement rather
-than a dump.
+[psxrecomp](https://github.com/mstan/psxrecomp) is the only project here that
+ships a console image, and it is a from-scratch replacement, not a dump.
 
 From [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md):
 
@@ -347,8 +319,7 @@ the retail image is never shipped and comes from the player. Which backend runs
 is decided when the game launches, not when it is built.
 ```
 
-The `bios/` directory contains exactly four files, and what is absent is as
-informative as what is present.
+The `bios/` directory holds four files. What is missing matters too.
 
 | File | What it is |
 |---|---|
@@ -357,8 +328,7 @@ informative as what is present.
 | `OpenBIOS.toml` | Build profile, upstream pins, image identity |
 | `SCPH1001.toml` | Build profile for the retail backend. No retail image is present |
 
-The image's identity and its redistributable status are recorded in the config
-rather than asserted in prose.
+The image's identity and redistributable status live in the config, not in prose.
 
 From [`bios/OpenBIOS.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/OpenBIOS.toml):
 
@@ -369,10 +339,9 @@ license         = "MIT"
 redistributable = true
 ```
 
-The user-facing contract is that no BIOS chosen means OpenBIOS, and a BIOS the
-player explicitly chose means that BIOS. One caveat is easy to lose when
-summarising: OpenBIOS can be switched off per title, and then a retail dump is
-required and the player is prompted for one.
+No BIOS chosen means OpenBIOS. A BIOS the player chose means that BIOS. OpenBIOS
+can also be switched off per title, and then the player must supply a retail
+dump.
 
 From [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md):
 
@@ -382,8 +351,8 @@ incompatibility. Per-title compatibility is not implied by the framework
 supporting OpenBIOS — verify a title before shipping it that way.
 ```
 
-The document closes with the attribution and packaging obligations, including
-the one that the notice and the image travel together.
+The document closes with one packaging rule: the notice and the image travel
+together.
 
 From [`docs/BIOS_SELECTION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BIOS_SELECTION.md):
 
@@ -403,24 +372,20 @@ Retail BIOS images are **not** redistributable and are never shipped. A player
 using one supplies their own dump.
 ```
 
-The vendored notice also credits [uC-sdk](https://github.com/grumpycoders/uC-sdk),
-whose permissively licensed code is linked into the OpenBIOS binary and whose
-own terms require the mention, so both PCSX-Redux and uC-sdk are named wherever
-this site describes that binary in detail.
+The notice also credits [uC-sdk](https://github.com/grumpycoders/uC-sdk), whose
+permissively licensed code is linked into the OpenBIOS binary and whose own terms
+require the mention.
 
 ### CD-i: nothing is bundled
 
 cdirecomp ships no BIOS at all. Its `README.md` says it ships no copyrighted
-material, no BIOS ROM, no disc images and no game-derived generated code, and
-that the player system ROM comes from the user. What it documents instead is the
-closeout above: a whole BIOS milestone completed against a user-supplied system
-ROM, with the evidence and the remaining gaps both written down. See
-[CD-i](/docs/platforms/cd-i).
+material, no BIOS ROM, no disc images and no game-derived generated code. The
+player system ROM comes from the user. See [CD-i](/docs/platforms/cd-i).
 
-### Game Boy Advance: mandatory, never bundled
+### Game Boy Advance: required, never bundled
 
-gbarecomp needs the console BIOS and does not ship it, because it interprets the
-real BIOS rather than stubbing it.
+gbarecomp needs the console BIOS and does not ship it. It runs the real BIOS
+instruction by instruction rather than stubbing it.
 
 From [`bios/README.md`](https://github.com/mstan/gbarecomp/blob/main/bios/README.md):
 
@@ -431,14 +396,13 @@ Drop your own dump of the GBA BIOS here as `gba_bios.bin`. The binary
 matches between developer machines.
 ```
 
-The same file gives the reasoning: gbarecomp runs the actual GBA BIOS
-instruction by instruction, does not high level emulate the SWIs, does not stub
-the intro, and does not fast-forward through boot, because the BIOS is part of
-what it recompiles through. See [High level and low level](/docs/concepts/hle-and-lle).
+That is also why it does not high level emulate the SWIs, stub the intro, or
+fast-forward through boot: the BIOS is part of what it recompiles through. See
+[High level and low level](/docs/concepts/hle-and-lle).
 
-### Nintendo DS: retail dumps are the default, a free replacement is opt-in
+### Nintendo DS: retail dumps by default
 
-ndsrecomp offers both, and is explicit about which is authoritative.
+ndsrecomp offers both and says which one is authoritative.
 
 From [`README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md):
 
@@ -461,16 +425,14 @@ menu), and the retail-dump path remains the default and the oracle-diffed
 source of truth.
 ```
 
-### SNES: coprocessor firmware is required and is not shipped
+### SNES: coprocessor firmware is not shipped
 
-Some SNES cartridges carry a coprocessor with its own internal data ROM, which
-is not part of the game ROM. snesrecomp does not redistribute the Cx4 data ROM,
-`.gitignore` refuses it, and the loader reports loudly rather than silently
-computing on zeros when it is absent. The claim that it is required is measured,
-not assumed: on Mega Man X2's boot self-test the Cx4 program reads all 1024
-data-ROM entries. Where no firmware is available, the independently derived
-DSP-1 high level model handles only the command set it has verified and stops
-rather than fabricating output on an unverified command.
+Some SNES cartridges carry a coprocessor with its own data ROM, separate from the
+game ROM. snesrecomp does not redistribute the Cx4 data ROM, `.gitignore` refuses
+it, and the loader reports loudly when it is missing instead of computing on
+zeros. The requirement is measured: on Mega Man X2's boot self-test the Cx4 program
+reads all 1024 data-ROM entries. Where no firmware exists, the DSP-1 high level
+model answers only the commands it has verified.
 
 ## Source
 
@@ -486,12 +448,10 @@ rather than fabricating output on an unverified command.
 
 ## Next
 
-- [Licenses](/docs/fleet/licenses) for what each repository declares and what
-  the toolchains bundle or link.
+- [Licenses](/docs/fleet/licenses) for what each repository declares.
 - [The game file you supply](/docs/concepts/the-game-file-you-supply) for the
-  contract on the other side of the BIOS question.
-- [PlayStation](/docs/platforms/playstation) and [CD-i](/docs/platforms/cd-i)
-  for the two toolchains that answer the BIOS question most differently.
-- [Lineage and credit](/docs/fleet/lineage-and-credit) for where the technique
-  came from, and [Every repository](/docs/fleet/repositories) for the rest of
-  the fleet.
+  other side of the BIOS question.
+- [PlayStation](/docs/platforms/playstation) and [CD-i](/docs/platforms/cd-i),
+  the two toolchains that answer it most differently.
+- [Lineage and credit](/docs/fleet/lineage-and-credit) for how these projects
+  descend from each other.

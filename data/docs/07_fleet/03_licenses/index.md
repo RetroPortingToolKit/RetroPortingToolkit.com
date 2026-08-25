@@ -1,6 +1,6 @@
 ---
 title: "Licenses"
-summary: "A repository-by-repository license census for the fleet, including the 48 repositories that carry no license file, plus the third-party licenses each toolchain bundles or links."
+summary: "A repository-by-repository license census for the fleet, including the 48 that carry no license file, plus the third-party licenses each toolchain bundles or links."
 pageType: "reference"
 tags: ["Licensing", "Attribution", "Fleet"]
 repos:
@@ -11,23 +11,20 @@ repos:
   - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/gcnlle"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-This is the license census for the fleet, taken from the license files
-themselves rather than from README summaries. It records what each repository
-declares, and it records the 48 repositories that declare nothing, because a
-missing license file is information a reader needs and omitting it would be the
-misleading choice. This page reports what the files say. It is not legal advice,
-and segagenesisrecomp's own inventory ends with exactly that sentence about
-itself.
+Every license below was read from the license file itself, not from a README
+summary. The 48 repositories that declare nothing are listed too: a missing
+license file is a fact you need. This is what the files say. It is not legal
+advice.
 
 ## The census in numbers
 
 | Measure | Count |
 |---|---|
-| Repositories surveyed | 86 |
-| Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | 38 |
+| Repositories surveyed | 83 |
+| Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | 35 |
 | Carrying no license file at all | 48 |
 | Distinct license identities found | 5 |
 
@@ -52,13 +49,10 @@ copyright holder.
 | [mstan/gbrecompiled](https://github.com/mstan/gbrecompiled) | **None** | no license file | Development fork of `arcanite24/gb-recompiled`. The upstream terms are not stated in the repository |
 | [mstan/xboxlle-probe](https://github.com/mstan/xboxlle-probe) | MIT | [`LICENSE`](https://github.com/mstan/xboxlle-probe/blob/main/LICENSE) | Restated in [`SECURITY.md`](https://github.com/mstan/xboxlle-probe/blob/main/SECURITY.md) |
 
-## Shared services and upstream projects
+## Shared services and components
 
 | Repository | License | Source file | Notes |
 |---|---|---|---|
-| [N64Recomp/N64Recomp](https://github.com/N64Recomp/N64Recomp) | MIT | [`LICENSE`](https://github.com/N64Recomp/N64Recomp/blob/main/LICENSE) | `Copyright (c) 2024 Wiseguy` |
-| [N64Recomp/N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime) | GNU GPL v3 | [`COPYING`](https://github.com/N64Recomp/N64ModernRuntime/blob/main/COPYING) | Carries no project copyright line |
-| [rt64/rt64](https://github.com/rt64/rt64) | MIT | [`LICENSE`](https://github.com/rt64/rt64/blob/main/LICENSE) | `Copyright (c) 2024 RT64 Contributors`. Its texture tooling is not uniformly MIT: one shipped tool is GPL |
 | [TechnicallyComputers/recomp-net](https://github.com/TechnicallyComputers/recomp-net) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/recomp-net/blob/main/LICENSE) | |
 | [TechnicallyComputers/recomp-net-server](https://github.com/TechnicallyComputers/recomp-net-server) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/LICENSE) | |
 | [TechnicallyComputers/retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/LICENSE) | |
@@ -87,17 +81,16 @@ copyright holder.
 | [mstan/DKC2Recomp](https://github.com/mstan/DKC2Recomp) | MIT | `LICENSE` | `Copyright (c) 2026 DKC2 Port contributors`. An MIT game repo built on a PolyForm-NC framework |
 | [mstan/MetroidPrimeHuntersRecomp](https://github.com/mstan/MetroidPrimeHuntersRecomp) | MIT | `LICENSE` | Built on the MIT `ndsrecomp`, whose runner binary is GPL-3.0-or-later |
 | [mstan/MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp) | MIT | `LICENSE.md` | The grant is explicitly scoped. See below |
-| [mstan/PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) | GNU GPL v3 | `COPYING` | Also ships `licenses/OFL-1.1.txt` |
-| [mstan/PocketMonstersStadiumRecomp](https://github.com/mstan/PocketMonstersStadiumRecomp) | GNU GPL v3 | `COPYING` | |
+| [mstan/PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) | GNU GPL v3 | `COPYING` | GPLv3 because of what it builds on, see [Nintendo 64](/hardware/nintendo-64) and [Pokémon Stadium](/games/pokemon-stadium). Also ships `licenses/OFL-1.1.txt` |
+| [mstan/PocketMonstersStadiumRecomp](https://github.com/mstan/PocketMonstersStadiumRecomp) | GNU GPL v3 | `COPYING` | GPLv3 for the same reason, see [Pocket Monsters Stadium](/games/pocket-monsters-stadium) |
 
-One further repository in the fleet carries a proprietary all rights reserved
-notice. Because that same file states the repository is intended to remain
-private, this site does not name, link or describe it pending a check with its
-owner.
+One more repository in the fleet carries a proprietary all rights reserved
+notice. That same file says the repository is meant to stay private, so this
+site does not name, link or describe it until its owner has been asked.
 
 ## Repositories with no license file
 
-48 of the 86. This site does not state or imply a license for any of them.
+48 of the 83. This site does not state or imply a license for any of them.
 
 **mstan, Game Boy Advance (11).** `DragonBallZLegacyOfGokuRecomp`,
 `DragonBallZLegacyofGokuIIRecomp`, `EmeraldRecomp`, `FireRedLeafGreenRecomp`,
@@ -129,8 +122,8 @@ owner.
 
 ### Repositories that state the position themselves
 
-Several of these say it in the README, and where a project says it, this site
-quotes the project rather than asserting it.
+Several of them say so in the README. Where a project says it, the project is
+quoted.
 
 From [`README.md`](https://github.com/mstan/SonicBlastGGRecomp/blob/main/README.md):
 
@@ -158,12 +151,12 @@ redistribution.
 identical third wording, adding that vendored dependencies under `third_party/`
 retain their own licenses.
 
-One repository in this group uses a different phrase.
+One repository uses a different phrase.
 [MetroidNESRecomp](https://github.com/mstan/MetroidNESRecomp)'s `README.md`
-describes the nesrecomp framework and its own game code as "provided as-is for
-educational and research purposes". That sentence belongs to MetroidNESRecomp.
-The nesrecomp framework it names is PolyForm Noncommercial 1.0.0, so the phrase
-is not the framework's license text and does not generalise to the fleet.
+calls the nesrecomp framework and its own game code "provided as-is for
+educational and research purposes". That sentence is MetroidNESRecomp's. The
+nesrecomp framework it names is PolyForm Noncommercial 1.0.0, so the phrase is
+not the framework's license text and does not apply to the rest of the fleet.
 
 ## Where a headline license is narrower than it looks
 
@@ -245,14 +238,13 @@ for what a build contains, not the README.
 | JRickey/gba-recomp | ShadowVerifier and colour-science core, re-implemented in C | MIT OR Apache-2.0, "used with permission" |
 | SDL2 | Windowing, input, audio, via game repos | zlib |
 
-psxrecomp classifies TinyCC as aggregation rather than linkage, and gives its
-reason: TinyCC is not vendored in the repository, it is invoked as a separate
-subprocess by `tools/compile_overlays.py` to build overlay shards into a DLL,
-and, in the attribution file's words, "Nothing in the runtime links against
-libtcc, so this is aggregation with a separate program rather than LGPL
-linkage." The same file records that the end-user overlay toolchain bundle is
-not populated by any script in the repository, so if release packaging supplies
-it, the TinyCC license notice must be shipped alongside it there.
+psxrecomp calls TinyCC aggregation rather than linkage, and says why. TinyCC is
+not vendored in the repository. `tools/compile_overlays.py` runs it as a
+separate program to build overlay shards into a DLL. In the attribution file's
+words, "Nothing in the runtime links against libtcc, so this is aggregation with
+a separate program rather than LGPL linkage." The same file notes that no script
+in the repository fills the end-user overlay toolchain bundle, so if release
+packaging supplies it, the TinyCC notice has to travel with it there.
 
 ### snesrecomp
 
@@ -334,7 +326,7 @@ The largest attribution file in the fleet, at 252 lines.
 | tinyfiledialogs | Native ROM file picker | zlib |
 | Lato | Launcher typeface | SIL Open Font License 1.1 |
 
-Its compliance notes are the fleet's clearest statement of the whole model.
+Its compliance notes set out the whole model in four lines.
 
 From [`THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/THIRD-PARTY-LICENSES.md):
 
@@ -350,9 +342,9 @@ From [`THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob
 - This inventory is informational, not legal advice.
 ```
 
-The same file records a retired dependency: current source, recompiler and
-native release paths contain no clownmdemu, clown68000 or clownz80, and those
-retired oracle components exist only in Git history.
+The same file records a dependency that was dropped. No clownmdemu, clown68000
+or clownz80 remains in the current source, the recompiler or the native release
+paths. Those retired oracle components exist only in git history.
 
 ### gcnlle
 
@@ -376,12 +368,11 @@ execution, and guest memory writes."
 | [mstan/MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp) `THIRD-PARTY-LICENSES/` | xdelta3 3.0.11 relicensed Apache-2.0 by its original author, so no GPL obligation. `error_recalc` is GPLv3-or-later and invoked as a separate process |
 | [mstan/SuperMarioBrosNESRecomp](https://github.com/mstan/SuperMarioBrosNESRecomp) `THIRD-PARTY-LICENSES/` | An unlicensed upstream, handled as an explicit publication assumption rather than a license grant |
 
-DKC2Recomp records why an image ships at all: the North American retail cover is
-included "only to identify the supported game and region", the art and
-trademarks remain copyright Nintendo and Rare, and the project claims no
-ownership.
+DKC2Recomp records why an image ships at all. The North American retail cover is
+there "only to identify the supported game and region", the art and trademarks
+stay copyright Nintendo and Rare, and the project claims no ownership.
 
-MegaManX6Recomp states the packaging consequence of its one GPL tool.
+MegaManX6Recomp states what its one GPL tool means for packaging.
 
 From [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/THIRD-PARTY-LICENSES/README.md):
 
@@ -403,7 +394,6 @@ From [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/MegaManX6Recomp
 | mstan/MarioTennisVirtualBoyRecomp | MIT scoped to build glue, CMake wiring and documentation; the vbrecomp framework and the GPL Beetle VB core are outside it |
 | mstan/segagenesisrecomp | Two license files in one repository whose text differs |
 | mstan/snesrecomp | PolyForm-NC framework; ISC and MIT vendored cores; GPLv3 and non-commercial oracle cores that are not vendored |
-| rt64/rt64 | MIT project; texture tooling not uniformly MIT, one shipped tool is GPL |
 
 ## Deviations and open questions
 
@@ -425,10 +415,9 @@ Three PolyForm files in the fleet do not carry it: `OpokXeno/xenogears-recomp`,
 `mstan/SonicTheHedgehogRecomp`, and `mstan/segagenesisrecomp`'s `LICENSE.md`.
 
 **PolyForm text with no copyright holder.** `mstan/SonicTheHedgehogRecomp`'s
-`LICENSE.md` and `mstan/segagenesisrecomp`'s `LICENSE.md` are byte identical to
-each other and name no licensor. The only copyright string in either file is
-PolyForm's own worked example. Who the licensor is for those two repositories is
-not established by the license file.
+`LICENSE.md` and `mstan/segagenesisrecomp`'s `LICENSE.md` are byte identical and
+name no licensor. The only copyright string in either file is PolyForm's own
+worked example. The license file does not say who the licensor is.
 
 **Two license files in one repository.** `mstan/segagenesisrecomp` has both
 `LICENSE-recompiler`, 100 lines with a named holder and the appended paragraph,
@@ -438,22 +427,22 @@ and `LICENSE.md`, 73 lines with neither. A consumer repository's README,
 **A community repository carrying the framework author's copyright.**
 `Alexbeav/syphon-filter-2-recompiled`'s `LICENSE` names
 `Copyright (c) 2026 Matthew Stan` although the repository owner is Alexbeav.
-Whether that is intended is not established. `Shy/BoktaiRecomp` and
+Nothing says whether that is intended. `Shy/BoktaiRecomp` and
 `OpokXeno/xenogears-recomp` both name their own owners, so the fleet is not
 uniform here.
 
 **Do not read a framework's license from a vendored copy.**
-`PeriBluGaming/ToyStory2Recomp` and `Team-Resurgent/MegaManX-X` each contain a
-partial snapshot of a framework, including an older attribution file with
-materially different content: the ToyStory2 copy documents an sljit overlay
-backend and has no OpenBIOS or TinyCC section at all. `OpokXeno/xenogears-recomp`
-carries psxrecomp as a submodule pointing at that owner's own fork. For any
-framework fact, read `mstan/psxrecomp` and `mstan/snesrecomp` directly.
+`PeriBluGaming/ToyStory2Recomp` and `Team-Resurgent/MegaManX-X` each hold a
+partial snapshot of a framework, including an older attribution file that says
+different things. The ToyStory2 copy documents an sljit overlay backend and has
+no OpenBIOS or TinyCC section at all. `OpokXeno/xenogears-recomp` carries
+psxrecomp as a submodule pointing at that owner's own fork. For any framework
+fact, read `mstan/psxrecomp` and `mstan/snesrecomp` directly.
 
 **Not established from the files.** The license of `mstan/gbrecompiled`'s
-upstreams; the license of `TechnicallyComputers/retcomm-catalog`; and whether
-release archives actually ship the notices their repositories require, since
-this census read repositories rather than built packages.
+upstreams. The license of `TechnicallyComputers/retcomm-catalog`. And whether
+release archives really ship the notices their repositories require, because
+this census read repositories, not built packages.
 
 ## Source
 
@@ -470,15 +459,14 @@ this census read repositories rather than built packages.
 - [mstan/SonicBlastGGRecomp](https://github.com/mstan/SonicBlastGGRecomp): [`README.md`](https://github.com/mstan/SonicBlastGGRecomp/blob/main/README.md)
 - [mstan/StarFoxSNESRecomp](https://github.com/mstan/StarFoxSNESRecomp): [`README.md`](https://github.com/mstan/StarFoxSNESRecomp/blob/main/README.md)
 - The shared components: [`m68k-recomp-core/LICENSE`](https://github.com/mstan/m68k-recomp-core/blob/main/LICENSE), [`z80-recomp-core/LICENSE`](https://github.com/mstan/z80-recomp-core/blob/main/LICENSE), [`recomp-ui/LICENSE`](https://github.com/mstan/recomp-ui/blob/master/LICENSE)
-- [N64Recomp/N64Recomp](https://github.com/N64Recomp/N64Recomp), [N64Recomp/N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime), [rt64/rt64](https://github.com/rt64/rt64)
 
 ## Next
 
 - [Every repository](/docs/fleet/repositories) for what each of these
-  repositories actually is and which toolchain it belongs to.
-- [Provenance](/docs/fleet/provenance) for how one project documents where its
+  repositories is and which toolchain it belongs to.
+- [Provenance](/docs/fleet/provenance) for how one project records where its
   code came from, and for the BIOS question across the fleet.
-- [Lineage and credit](/docs/fleet/lineage-and-credit) for what this fleet
-  inherits from the N64 projects and what it does not.
+- [Lineage and credit](/docs/fleet/lineage-and-credit) for how these projects
+  descend from each other.
 - [The game file you supply](/docs/concepts/the-game-file-you-supply) for the
   one thing no license in this table covers.

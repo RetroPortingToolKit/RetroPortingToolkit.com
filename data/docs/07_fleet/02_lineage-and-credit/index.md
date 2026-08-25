@@ -1,94 +1,167 @@
 ---
 title: "Lineage and credit"
-summary: "Exactly which repositories in this fleet contain upstream N64Recomp code, which only share its ideas, and what our documentation owes each upstream project."
+summary: "How the projects in this fleet descend from each other: the framework the others were modelled on, the two CPU cores several toolchains share, the shared netplay stack, and the commit each game port pins."
 pageType: "concept"
 tags: ["Lineage", "Credit", "Licensing"]
 repos:
-  - "https://github.com/N64Recomp/N64Recomp"
-  - "https://github.com/N64Recomp/N64ModernRuntime"
-  - "https://github.com/rt64/rt64"
-  - "https://github.com/mstan/PokemonStadiumRecomp"
-  - "https://github.com/mstan/PocketMonstersStadiumRecomp"
-updated: "2026-08-23"
+  - "https://github.com/mstan/psxrecomp"
+  - "https://github.com/mstan/m68k-recomp-core"
+  - "https://github.com/mstan/z80-recomp-core"
+  - "https://github.com/mstan/recomp-ui"
+  - "https://github.com/TechnicallyComputers/recomp-net"
+updated: "2026-08-25"
 ---
 
-This fleet owes the upstream N64 static recompilation stack a real debt, and almost all of it is a debt of ideas rather than of code. Two repositories here build against forks of that stack and are licensed accordingly. Everywhere else the relationship is conceptual: the same technique, the same architectural split, the same distribution model, written independently for consoles that share no instruction set with the N64. "Built on" and "inspired by" are different claims, and this page keeps them apart.
+The toolchains here are not independent projects. One of them is the model the
+others were built from. Two CPU frontends were pulled out of one framework and
+are now shared repositories. The netplay code is a single library that four
+toolchains link. Every game port records the exact framework commit it was built
+against. Those are the lines of descent inside the fleet, and each one can be
+checked in the repositories themselves.
 
-## The two repositories that inherit code
+## psxrecomp is the model the others name
 
-[PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) and [PocketMonstersStadiumRecomp](https://github.com/mstan/PocketMonstersStadiumRecomp) are downstream of that stack in the legal sense, and say so themselves:
+[psxrecomp](https://github.com/mstan/psxrecomp) is the PlayStation toolchain.
+The others name it as their model, by name, in their own documents.
 
-> It is built on the N64Recomp toolchain and depends on a set of companion
-> forks maintained alongside it:
->
-> - [N64Recomp](https://github.com/mstan/N64Recomp) — the static recompiler
-> - [N64ModernRuntime](https://github.com/mstan/N64ModernRuntime) — the runtime that stands in for the N64's operating system
-> - [rt64](https://github.com/mstan/rt64) — the graphics renderer
+- [snesrecomp](https://github.com/mstan/snesrecomp) calls its accuracy scorecard
+  "modeled on the psxrecomp `ACCURACY_BURNDOWN.md` 7-axis methodology", ports its
+  timing plan from psxrecomp's, and cites psxrecomp's co-simulation document as
+  the "proven PSX reference impl".
+- [nesrecomp](https://github.com/mstan/nesrecomp) models the same scorecard
+  "1:1". It also refused part of the design and wrote down why. psxrecomp has
+  several execution tiers for code that only arrives while the game is running.
+  A NES cartridge is complete before the build starts, so those tiers would have
+  nothing to do.
+- [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) mirrors
+  psxrecomp's co-simulation harness, counts guest cycles the psxrecomp way, and
+  injects widescreen the PSX way.
+- [gbarecomp](https://github.com/mstan/gbarecomp) takes the same scorecard, the
+  same co-simulation design, and the idea of treating the console BIOS as an
+  ordinary program.
+- [ndsrecomp](https://github.com/mstan/ndsrecomp) models its dispatch tiers on
+  psxrecomp and lists itself in the same family.
+- [gcnlle](https://github.com/mstan/gcnlle) states the goal in one line.
 
-Both track those forks through a `n64recomp.pin` file their setup scripts read and enforce, and both ship a `COPYING` file containing GPLv3, which is the correct consequence of linking N64ModernRuntime. Their READMEs name the component licenses accurately: N64ModernRuntime GPL-3.0, N64Recomp MIT, rt64 MIT. The pin file even records what copyleft demands, noting that "the v0.4.0-beta RELEASE binary was built against 62a4754 (below); re-release against this sha to keep the GPL source-correspondence exact." The contents of those three forks are not documented here beyond what those two repositories say about them.
+From [`docs/DESIGN.md`](https://github.com/mstan/gcnlle/blob/master/docs/DESIGN.md):
 
-PokemonStadiumRecomp is archived. Its README gives the reason in the first person, that N64Recomp's "architecture is structurally unsound", which is a maintainer's judgement about fit for their own purposes and not a claim this site makes.
+```text title="docs/DESIGN.md"
+Build a **static recompiler for the Nintendo GameCube**, in the same mold as
+our existing PlayStation project (`psxrecomp`).
+```
 
-No other repository in this fleet is a fork of N64Recomp, contains its code, or is derived from it.
+The copying is not only design. Every PlayStation game port builds its releases
+from a workflow copied out of psxrecomp, and the copy says so in its first line.
 
-## What the rest of the fleet inherits
+## Two CPU cores are shared repositories now
 
-Three things, all of them designs.
+[m68k-recomp-core](https://github.com/mstan/m68k-recomp-core) is the Motorola
+68000 frontend. It did not start as a shared repository. The Genesis toolchain
+wrote it, the CD-i toolchain copied it, and the copy then went its own way.
 
-**Static recompilation as a technique you can ship.** N64Recomp made it practical for whole console games, and does not claim to have invented it: its README says "This is not the first project that uses static recompilation on game console binaries", crediting jamulator and the IDO static recompilation project, "my main inspiration for making this." [psxrecomp](https://github.com/mstan/psxrecomp)'s own notes call N64Recomp a "proven static recompilation model for N64".
+From [`PROVENANCE.md`](https://github.com/mstan/m68k-recomp-core/blob/main/PROVENANCE.md):
 
-**The recompiler and runtime split.** Every toolchain here repeats it as directory structure, `recompiler/` beside `runtime/` or `runner/`. Ten independent codebases do not arrive at the same two directories by accident, so the repetition is itself the evidence of a shared inheritance. Upstream's version of the split, a generic operating system layer in `ultramodern` and a recompiler-specific adapter in `librecomp`, is the clearest published statement of the pattern. See [the recompiler and the runtime](/docs/concepts/recompiler-and-runtime).
+```text title="PROVENANCE.md"
+The author-owned frontend originated in `segagenesisrecomp`. CD-i copied the
+frontend from `segagenesisrecomp` commit `5aa0c4f` on 2026-05-28 and developed
+SCC68070/OS-9 behavior independently afterward.
+```
 
-**The distribution model.** Ship the translated executable, never the assets. psxrecomp names upstream when it states this:
+Both now consume the extracted repository, at `external/m68k-recomp-core`. The
+shared decoder and validator are byte-identical between the two pins. All the
+difference sits in the Genesis profile, which is the split the README asks for.
 
-> Release executables (and per-game overlay caches) contain statically recompiled (machine-translated) builds of the original code, the same distribution model used by other static recompilation projects such as N64: Recompiled.
+[z80-recomp-core](https://github.com/mstan/z80-recomp-core) does the same for
+the Zilog Z80, a chip that turns up in two different roles. On the Master System
+and Game Gear it is the console's main CPU. On the Genesis it drives the
+cartridge sound. Both toolchains pin the identical commit, which is also that
+repository's only commit.
 
-Shared dependencies are not lineage. N64Recomp and psxrecomp both vendor rabbitizer for MIPS decoding, and both sides vendor sljit. Each carries its own credit: rabbitizer by Decompollaborate, sljit by Zoltan Herczeg under BSD-2-Clause.
+[recomp-ui](https://github.com/mstan/recomp-ui), the launcher and settings
+screen, began the same way, inside one console's project.
 
-## What is independent here
+From [`README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md):
 
-**Low level BIOS as foundation and oracle.** psxrecomp (see [PlayStation](/docs/platforms/playstation)) architects everything around a recompiled BIOS, which it calls "the foundation and the correctness oracle", with [high level emulation](/docs/concepts/glossary) optional and opt-out. [gbarecomp](https://github.com/mstan/gbarecomp) recompiles the real GBA BIOS with high level emulation opt-in, and [gcnlle](https://github.com/mstan/gcnlle) is named for the approach. There is no upstream equivalent: `ultramodern` "is a reimplementation of much of the core functionality of libultra", high level emulation of the operating system layer. The N64 has no user facing BIOS in the PlayStation sense, so this is a difference of situation as much as of philosophy.
+```text title="README.md"
+It is the reusable extraction of the SNES-recomp "launcher_ng" launcher,
+generalized behind a small C ABI.
+```
 
-**Co-simulation against an oracle.** Also absent upstream: no oracle directory, no lockstep harness and no reference emulator integration in any of the three repositories. This fleet has `oracle/` in cdirecomp, gbarecomp, gcnlle and ndsrecomp, and `cosim/` in snesrecomp. Even the fleet's own N64 fork added it, as "additive ares-oracle cosim hooks".
+Today 58 game ports pin it, across eight consoles.
 
-**Interpreter tiers, and one claim to avoid.** Upstream has no interpreter in its shipping path: a missing function prints, asserts and exits. Several runtimes here keep a small interpreter tier deliberately. But N64Recomp is **not** ahead of time only. It ships LiveRecomp, an sljit backend that recompiles at run time, plus a roadmap item for loading code at runtime for mod support. The difference is purpose, not capability: upstream recompiles at run time to run mods, psxrecomp to reach game code that only exists after a disc read.
+## One netplay stack, four consumers
 
-Two smaller points. The shared `recomp-ui` launcher is a Dear ImGui extraction of the SNES-recomp launcher, written here rather than inherited. And most toolchains here are PolyForm Noncommercial 1.0.0, which is not OSI approved and not GPL compatible, so this fleet is not open source in the same sense the upstream tools are. The [license census](/docs/fleet/licenses) has the detail.
+Netplay is not rewritten per console. Four repositories under
+`TechnicallyComputers` hold it.
 
-## Why no attribution file names N64Recomp
+| Repository | What it does | Who uses it |
+|---|---|---|
+| [recomp-net](https://github.com/TechnicallyComputers/recomp-net) | The netcode library. C11, version 0.1.0 | psxrecomp, nesrecomp, snesrecomp, segagenesisrecomp |
+| [retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | Rollback host policy. recomp-net owns the wire, this owns the feel | psxrecomp |
+| [recomp-net-server](https://github.com/TechnicallyComputers/recomp-net-server) | The lobby and signalling service, in Rust | Run as a service, not linked |
+| [retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog) | JSON manifests of shipped titles | The RetComM Launcher, over HTTP |
 
-There are eleven third party attribution and notice files across the fleet, and not one mentions N64Recomp, N64ModernRuntime, RT64, ultramodern, librecomp or Wiseguy. That is correct rather than an oversight. An attribution file records code a repository carries or links, and those toolchains carry none of it. The two repositories that do consume upstream code credit it in their README license sections instead, because neither has a `THIRD_PARTY_ATTRIBUTION.md`.
+Only one part of that stack is console-specific: a packet type in recomp-net for
+Game Boy Advance link cable transfers.
 
-## What our pages owe each upstream project
+## Small parts that travelled
 
-Documentation containing no upstream code triggers no license obligation. Naming things correctly is owed anyway, and copying source changes the picture at once.
+Two components moved between projects and are credited at every stop.
 
-| project | license | copyright line | what we must do |
-|---|---|---|---|
-| [N64Recomp](https://github.com/N64Recomp/N64Recomp) | The MIT License (MIT) | "Copyright (c) 2024 Wiseguy" | Call it **N64: Recompiled**, link it, credit the design to Wiseguy, and repeat its own credit to prior art. Ship the full `LICENSE` with any copied source. |
-| [N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime) | GNU General Public License, Version 3 | none in the file, FSF preamble only | Attribute to the N64ModernRuntime contributors, invent no copyright holder, name both `ultramodern` and `librecomp`, and say that anything linking them must be conveyed under GPL-3.0 with corresponding source. |
-| [RT64](https://github.com/rt64/rt64) | MIT License | "Copyright (c) 2024 RT64 Contributors" | Attribute to the collective, not an individual, and carry the README caveat that emulator plugin support and ray tracing "are not available in this repository yet." |
+The screen colour table in snesrecomp is adapted from psxrecomp, and
+snesrecomp's attribution file records the exact revision it was taken from.
+[DKC2Recomp](https://github.com/mstan/DKC2Recomp) then vendors that
+psxrecomp-derived component under `third_party/psxrecomp_color_lut/`, carrying
+all three of its license texts.
 
-One subtlety our pages must not get wrong: RT64's texture tooling is not uniformly MIT. Rice hashing "is licensed under GPL, making it incompatible with RT64's licensing", so "RT64 includes a separate tool licensed under the GPL to work around the problems mentioned above." The renderer is MIT, and at least one shipped tool is not.
+The ShadowVerifier and the colour science core came from outside the fleet, from
+[JRickey/gba-recomp](https://github.com/JRickey/gba-recomp), with the author's
+permission. gbarecomp and snesrecomp implemented it first. segagenesisrecomp
+credits it as ported "through the gbarecomp/snesrecomp implementations with
+permission". psxrecomp and [vbrecomp](https://github.com/mstan/vbrecomp) carry
+their own versions in C.
 
-## Contributing upstream
+## Every game port pins a commit
 
-All three upstream repositories carry an identical `CONTRIBUTING.md`, and its first line is their policy:
+A game port is a thin repository over one framework, joined by a git submodule
+pinned to a single commit. That pin records which version of the framework the
+port was built against.
 
-> AI must not be used to generate code for contributions to this project.
+The pins are not uniform. The 58 recomp-ui gitlinks point at 19 different
+commits. The furthest behind is 231 commits back from the default branch and the
+closest is one. Two ports point the submodule URL at a fork instead of the
+original, and three pin a named feature branch. Two other repositories have left
+the submodule mechanism and carry a snapshot of a framework as an ordinary
+directory, so a fact about a framework should be read in the framework
+repository, never in one of those copies.
 
-Their reasons include that "AI-generated code is based upon sources of unknown origins and may not be compatible with the license of the project", and the file addresses automated contributors directly. We report that as their policy and respect it. This fleet is built with AI assistance and these pages are read by agents, so the instruction is plain: if you are preparing a patch for any of those three repositories, write it yourself. The policy covers contributions. It says nothing about reading, using, linking to or documenting these projects, and the licenses above govern those.
+## Code that came from outside the fleet
+
+Three cases, all of them stated by the repository itself.
+
+- [gbrecompiled](https://github.com/mstan/gbrecompiled) is a development fork.
+  Its README names the canonical project, `arcanite24/gb-recompiled`, and the
+  second upstream whose runtime work was merged in.
+- gcnlle vendors a fork of `ExpansionPak/DolRecomp` as its recompiler and
+  records the upstream base commit, the fork commit and the dates in
+  [`recompiler/UPSTREAM.md`](https://github.com/mstan/gcnlle/blob/master/recompiler/UPSTREAM.md).
+  That code is GPL-3.0-or-later.
+- Two Nintendo 64 ports build on a framework this fleet did not write and are
+  GPLv3 as a result. That platform's history is on
+  [Nintendo 64](/hardware/nintendo-64) and on each game's page.
 
 ## Source
 
-- [N64Recomp](https://github.com/N64Recomp/N64Recomp): [`LICENSE`](https://github.com/N64Recomp/N64Recomp/blob/main/LICENSE), [`README.md`](https://github.com/N64Recomp/N64Recomp/blob/main/README.md), [`CONTRIBUTING.md`](https://github.com/N64Recomp/N64Recomp/blob/main/CONTRIBUTING.md).
-- [N64ModernRuntime](https://github.com/N64Recomp/N64ModernRuntime): [`COPYING`](https://github.com/N64Recomp/N64ModernRuntime/blob/main/COPYING), [`README.md`](https://github.com/N64Recomp/N64ModernRuntime/blob/main/README.md).
-- [RT64](https://github.com/rt64/rt64): [`LICENSE`](https://github.com/rt64/rt64/blob/main/LICENSE), [`README.md`](https://github.com/rt64/rt64/blob/main/README.md), [`TEXTURE-PACKS.md`](https://github.com/rt64/rt64/blob/main/TEXTURE-PACKS.md).
-- [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): [`README.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/README.md), [`n64recomp.pin`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/n64recomp.pin), [`setup.sh`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/setup.sh). [PocketMonstersStadiumRecomp](https://github.com/mstan/PocketMonstersStadiumRecomp): [`README.md`](https://github.com/mstan/PocketMonstersStadiumRecomp/blob/main/README.md).
+- psxrecomp as the named model: [`SNES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_ACCURACY_BURNDOWN.md) and [`SNES_COSIM.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_COSIM.md), [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md) and [`docs/MULTITIER_PORT_PROPOSAL.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MULTITIER_PORT_PROPOSAL.md), [`COSIM.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COSIM.md), [`GBA_ACCURACY_BURNDOWN.md`](https://github.com/mstan/gbarecomp/blob/main/GBA_ACCURACY_BURNDOWN.md), [`ndsrecomp/README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md), [`gcnlle/docs/DESIGN.md`](https://github.com/mstan/gcnlle/blob/master/docs/DESIGN.md). The copied release workflow: [`TombaRecomp/.github/workflows/release.yml`](https://github.com/mstan/TombaRecomp/blob/master/.github/workflows/release.yml).
+- The shared cores: [`m68k-recomp-core/PROVENANCE.md`](https://github.com/mstan/m68k-recomp-core/blob/main/PROVENANCE.md) and [`README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md).
+- The netplay stack: [`recomp-net/README.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`recomp-net-server/README.md`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).
+- The travelling parts: [`snesrecomp/THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/snesrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md), [`segagenesisrecomp/THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/THIRD-PARTY-LICENSES.md).
+- Code from outside: [`gbrecompiled/README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md), [`gcnlle/recompiler/UPSTREAM.md`](https://github.com/mstan/gcnlle/blob/master/recompiler/UPSTREAM.md).
+- The pins come from every `.gitmodules` file and every gitlink in the fleet, read together.
 
 ## Next
 
-- [Licenses](/docs/fleet/licenses), the full census, including repositories with no license file.
-- [Every repository](/docs/fleet/repositories), for where each project named here sits.
-- [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime), the inherited design, in code.
-- [Contributing as an agent](/docs/agents/contributing-as-an-agent), for how contribution works inside this fleet, which is not upstream.
+- [Every repository](/docs/fleet/repositories) for the full dependency map and where each project named here sits.
+- [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime) for the shared design, in code.
+- [Licenses](/docs/fleet/licenses) for what each repository declares.
+- [Provenance](/docs/fleet/provenance) for how one project records where its code came from.
