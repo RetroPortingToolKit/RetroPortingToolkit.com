@@ -1,8 +1,6 @@
 ---
 title: "NES"
 summary: "nesrecomp translates a NES cartridge's 6502 code into C and links it against an SDL2 runner that simulates the PPU, APU and mapper: this page covers its status, its mapper handling, its commands, and where its own documents have fallen behind its code."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["NES", "6502", "Mappers"]
 repos:

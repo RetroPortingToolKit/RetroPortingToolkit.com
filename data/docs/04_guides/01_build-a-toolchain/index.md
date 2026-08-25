@@ -1,8 +1,6 @@
 ---
 title: "Build a toolchain"
 summary: "Clone to built binary for every framework in the fleet: what each one requires, the exact command sequence its own documentation gives, how to verify the result without a game file, and what to do when the build fails."
-section: "guides"
-sectionTitle: "Guides"
 pageType: "guide"
 tags: ["Building", "CMake", "Toolchain"]
 repos:

@@ -1,7 +1,6 @@
 ---
 title: "Guides"
 summary: "Eight task pages with numbered steps and real commands, covering building a toolchain, porting a game, modding, translating, widescreen, debugging a divergence and releasing."
-section: "guides"
 sectionTitle: "Guides"
 pageType: "reference"
 tags: ["Guides"]

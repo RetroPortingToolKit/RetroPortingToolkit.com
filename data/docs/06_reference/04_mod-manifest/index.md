@@ -1,8 +1,6 @@
 ---
 title: "Mod manifest"
 summary: "Field-by-field reference for the `manifest.toml` that psxrecomp, nesrecomp and snesrecomp mod packages share: types, requiredness, defaults, the operation blocks, and the clearly marked places where projects in the fleet genuinely differ."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Modding", "Schema", "PlayStation", "NES"]
 repos:

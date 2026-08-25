@@ -1,8 +1,6 @@
 ---
 title: "Xbox"
 summary: "xboxlle-probe is not a recompiler and runs no games: it is a small agent that answers fixed read-only measurement questions on a real original Xbox, wrapped in unusually strict safety documentation."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["Xbox", "Hardware probe", "Safety"]
 repos:

@@ -1,8 +1,6 @@
 ---
 title: "Nintendo DS"
 summary: "ndsrecomp lifts both DS processors to C ahead of time and interleaves them on one event scheduler, and this page separates the performance HLE architecture the project has written from the much smaller part of it that ships."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["Nintendo DS", "ARM", "Dual CPU", "HLE"]
 repos:

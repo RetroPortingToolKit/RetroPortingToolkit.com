@@ -1,8 +1,6 @@
 ---
 title: "Port a game"
 summary: "How a game file you supply becomes a running native port: the repository shape 64 ports share, the commands that drive the recompiler, and why a game-specific fix belongs in configuration rather than in generated code."
-section: "guides"
-sectionTitle: "Guides"
 pageType: "guide"
 tags: ["Porting", "Recompiler", "Configuration"]
 repos:

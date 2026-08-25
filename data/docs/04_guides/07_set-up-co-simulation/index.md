@@ -1,8 +1,6 @@
 ---
 title: "Set up co-simulation"
 summary: "Standing up an oracle and a comparison harness on a real project: which toolchains ship one, what each needs on disk, how the stride is fixed, the four gates in the order they must run, and how a green run is pinned as a baseline."
-section: "guides"
-sectionTitle: "Guides"
 pageType: "guide"
 tags: ["Correctness", "Testing", "Co-simulation"]
 repos:

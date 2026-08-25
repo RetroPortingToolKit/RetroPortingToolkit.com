@@ -1,7 +1,6 @@
 ---
 title: "For agents"
 summary: "Written in second person for an agent working in one of these repositories: what to read first, the rules that hold everywhere, the commands that prove you succeeded, and what to do when you cannot run the game."
-section: "agents"
 sectionTitle: "For agents"
 pageType: "reference"
 tags: ["Agents"]

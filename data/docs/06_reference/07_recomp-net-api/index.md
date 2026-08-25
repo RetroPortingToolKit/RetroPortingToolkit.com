@@ -1,8 +1,6 @@
 ---
 title: "recomp-net API"
 summary: "The public C surface of recomp-net: the four-pointer host vtable a port implements, the session config every peer must agree on, the admission loop, the three transports, the rollback layer, and the wire format."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Netplay", "Rollback", "API", "Schema"]
 repos:

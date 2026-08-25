@@ -1,8 +1,6 @@
 ---
 title: "Timing models"
 summary: "How finely a recompiled build models the passage of guest time, from one host call per instruction to a whole frame at a time, what each choice costs in speed, and what breaks under a coarser one."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Timing", "Accuracy", "Correctness"]
 repos:

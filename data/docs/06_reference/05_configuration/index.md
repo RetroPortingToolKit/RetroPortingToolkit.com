@@ -1,8 +1,6 @@
 ---
 title: "Configuration"
 summary: "Every psxrecomp configuration key this site can verify, grouped by the file it belongs to: the BIOS profile, game.toml, the widescreen block, player overrides, environment variables and build options, with types, defaults and the resolution order between them."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Configuration", "PlayStation", "TOML"]
 repos:

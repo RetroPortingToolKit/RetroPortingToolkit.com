@@ -1,8 +1,6 @@
 ---
 title: "What correct enough means"
 summary: "How the fleet turns accuracy into something measurable: a seven-axis burndown per console, a two-condition gate before any axis counts as done, and the current state of each console in its own words."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Correctness", "Testing", "Accuracy"]
 repos:

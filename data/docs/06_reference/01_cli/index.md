@@ -1,8 +1,6 @@
 ---
 title: "Command line reference"
 summary: "Every command line tool in the fleet worth driving: one real invocation and a full flag table with type, default and meaning, for the recompilers, the runtimes, the packagers and the debug clients."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["CLI", "Reference", "Tooling"]
 repos:

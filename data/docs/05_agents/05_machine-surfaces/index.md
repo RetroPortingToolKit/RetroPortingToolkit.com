@@ -1,8 +1,6 @@
 ---
 title: "Machine-readable surfaces"
 summary: "Every part of this fleet an agent can drive programmatically: the TCP debug servers, JSON and JSONL outputs, exit code conventions including the CTest 77 skip, the artefact files written next to a build, the input script language, and the four Ghidra MCP configurations."
-section: "agents"
-sectionTitle: "Agents"
 pageType: "reference"
 tags: ["Agents", "Tooling", "Verification"]
 repos:

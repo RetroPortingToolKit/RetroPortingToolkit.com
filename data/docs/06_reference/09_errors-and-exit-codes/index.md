@@ -1,8 +1,6 @@
 ---
 title: "Errors and exit codes"
 summary: "What every tool in the fleet returns when it fails, how the debug protocol reports errors, and the documented failure modes with their causes and fixes, so a script or an agent can act on a result instead of guessing."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Reference", "Errors", "Exit codes"]
 repos:

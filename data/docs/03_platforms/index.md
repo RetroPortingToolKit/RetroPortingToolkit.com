@@ -1,7 +1,6 @@
 ---
 title: "Platforms"
 summary: "One technical page per console toolchain, all twelve written to the same spine so you can compare them: status in the project's own words, the hardware, the commands, and the known limits."
-section: "platforms"
 sectionTitle: "Platforms"
 pageType: "reference"
 tags: ["Platforms"]

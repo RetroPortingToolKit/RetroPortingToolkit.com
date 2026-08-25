@@ -1,8 +1,6 @@
 ---
 title: "Sega Genesis"
 summary: "segagenesisrecomp translates a cartridge's 68000 code to C, and this page explains how the console's second processor, the Z80 sound CPU, keeps running beside it."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["Sega", "68000", "Dual CPU", "Audio", "Widescreen"]
 repos:

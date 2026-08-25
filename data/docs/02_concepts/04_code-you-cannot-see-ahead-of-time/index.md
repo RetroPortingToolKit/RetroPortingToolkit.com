@@ -1,8 +1,6 @@
 ---
 title: "Code you cannot see ahead of time"
 summary: "PS1 games stream code off the disc into RAM while they run, so a build-time pass never sees it: psxrecomp captures those bytes at CD DMA, compiles them out of process, caches the result by address and checksum, and re-checks live memory against that checksum on every dispatch."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Overlays", "PlayStation", "Code discovery", "Nintendo DS", "Game Boy Advance"]
 repos:

@@ -72,7 +72,26 @@ a path like `./shot.png` or `/covers/name.jpg`.
   navigation, when that should differ from the page title) and `order` (a
   number, which overrides the folder's prefix so the sidebar can be reordered
   without renaming folders and changing addresses). It takes no `date` and no
-  `year`: a docs page is maintained, not published on a day.
+  `year`: a docs page is maintained, not published on a day. It takes `updated`
+  instead, a `YYYY-MM-DD` date meaning the day the page's content last changed.
+  The code treats it as optional, but write it: every docs page carries one. It
+  renders as the "Last updated" stamp at the foot of the page, and in the page's
+  own `.md` twin and in `llms-full.txt`. `repos` is a YAML list of the
+  repository URLs the page documents, one URL per line under the key, never a
+  bare string. It is optional, and the pattern is that a page inside a section
+  carries it while a section's own page does not. Only `scripts/gen-llms.mjs`
+  reads it, printing it as "Source repositories" in those same two places; the
+  rendered page never shows it.
+
+  Frontmatter `updated` deliberately outranks the date of the last commit that
+  touched the page, and `scripts/gen-docs-dates.mjs` sets out why at the top of
+  the file. The short version is that git cannot be trusted to answer: a page
+  written through the CMS is untracked between the write and the commit that
+  publishes it, and the deploy is a shallow clone, where the one fetched commit
+  looks like it added every file. Git is only the fallback for a page with no
+  `updated`, and where git can speak it audits instead: a page committed after
+  the date it claims is named in the build log. So set `updated` when you change
+  what the page says.
 
 `featured: true` promotes an item onto the home page. `draft: true` holds it
 back: it leaves every listing, the feeds and the sitemap, but keeps its own URL

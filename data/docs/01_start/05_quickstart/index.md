@@ -1,8 +1,6 @@
 ---
 title: "Quickstart"
 summary: "Build psxrecomp from source, recompile a real PlayStation BIOS image into C, compile that C into a native program, and verify it with the repository's own test suite, using no game file of your own."
-section: "start"
-sectionTitle: "Start here"
 pageType: "guide"
 tags: ["Quickstart", "Build", "PlayStation"]
 repos:

@@ -1,8 +1,6 @@
 ---
 title: "Game Boy Advance"
 summary: "gbarecomp lifts ARM7TDMI cartridge code into sharded C++, and the hard part is interworking: keeping ARM and Thumb apart when a game switches instruction set while it runs."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["Game Boy Advance", "ARM7TDMI", "Interworking", "Recompiler"]
 repos:

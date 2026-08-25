@@ -1,8 +1,6 @@
 ---
 title: "Debug a divergence"
 summary: "A co-simulation run has halted, or a port looks wrong: how to read the halt report, prove the comparator is not blind, and localise the fault to one write and one function, organised by the symptom you actually have."
-section: "guides"
-sectionTitle: "Guides"
 pageType: "guide"
 tags: ["Debugging", "Co-simulation", "Correctness"]
 repos:

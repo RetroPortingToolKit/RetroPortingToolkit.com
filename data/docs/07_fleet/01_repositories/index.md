@@ -1,8 +1,6 @@
 ---
 title: "Every repository"
 summary: "All 86 repositories in the fleet, grouped by role, each linked and each attributed to the toolchain it belongs to, plus the dependency map showing which shared component is consumed by which project."
-section: "fleet"
-sectionTitle: "Fleet"
 pageType: "reference"
 tags: ["Fleet", "Repositories", "Index"]
 repos:

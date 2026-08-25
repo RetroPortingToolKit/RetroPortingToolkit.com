@@ -1,8 +1,6 @@
 ---
 title: "Licenses"
 summary: "A repository-by-repository license census for the fleet, including the 48 repositories that carry no license file, plus the third-party licenses each toolchain bundles or links."
-section: "fleet"
-sectionTitle: "Fleet"
 pageType: "reference"
 tags: ["Licensing", "Attribution", "Fleet"]
 repos:

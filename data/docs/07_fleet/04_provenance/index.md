@@ -1,8 +1,6 @@
 ---
 title: "Provenance"
 summary: "How cdirecomp records where every line of its device code came from, step by step and quoted, and what each toolchain in the fleet says about BIOS and firmware it does or does not ship."
-section: "fleet"
-sectionTitle: "Fleet"
 pageType: "concept"
 tags: ["Provenance", "Attribution", "BIOS", "Engineering practice"]
 repos:

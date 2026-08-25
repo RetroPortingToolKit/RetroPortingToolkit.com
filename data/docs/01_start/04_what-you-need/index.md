@@ -1,8 +1,6 @@
 ---
 title: "What you need"
 summary: "Two things before you start: a normal set of programming tools, which is the same five for every project here, and your own copy of the game, which no repository ships."
-section: "start"
-sectionTitle: "Start here"
 pageType: "guide"
 tags: ["Prerequisites", "Build", "Game files"]
 repos:

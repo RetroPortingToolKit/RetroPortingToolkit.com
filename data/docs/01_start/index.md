@@ -1,7 +1,6 @@
 ---
 title: "Start here"
 summary: "Five pages that take you from never having heard of static recompilation to having something running on your own machine."
-section: "start"
 sectionTitle: "Start here"
 pageType: "reference"
 tags: ["Orientation"]

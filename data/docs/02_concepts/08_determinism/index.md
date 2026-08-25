@@ -1,8 +1,6 @@
 ---
 title: "Determinism"
 summary: "Save states, rewind and rollback netplay are one property in three costumes, and this is what that property costs a recompiled port: complete snapshots, legal stopping points, a build-keyed guard, and a simulation that re-runs identically on someone else's machine."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Correctness", "Netplay", "Save states"]
 repos:

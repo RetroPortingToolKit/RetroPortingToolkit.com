@@ -1,8 +1,6 @@
 ---
 title: "Add widescreen"
 summary: "What it actually takes to widen a game's view on a recompiled port, treated separately for 3D and 2D engines: the two families of technique, the culling, sprite-wrap, spawning and collision failures each produces, which consoles make it hardest, and what the byte-identical 4:3 claim does and does not mean."
-section: "guides"
-sectionTitle: "Guides"
 pageType: "guide"
 tags: ["Widescreen", "Enhancements", "PlayStation", "Sega Genesis", "NES", "SNES"]
 repos:

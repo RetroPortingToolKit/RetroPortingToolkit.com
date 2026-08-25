@@ -1,8 +1,6 @@
 ---
 title: "TCP port registry"
 summary: "Which localhost port every debug server in this fleet listens on, which ports several projects claim at once, how to move a port in each project, and the failure that a second listener on the same port produces."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Protocol", "Debugging", "Tooling", "Agents"]
 repos:

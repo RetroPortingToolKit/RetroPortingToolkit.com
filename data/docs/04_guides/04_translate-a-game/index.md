@@ -1,8 +1,6 @@
 ---
 title: "Translate a game"
 summary: "Translating a recompiled port with human-editable TOML tables: the three substitution layers, the exact table keys, how a table is reloaded into a running game, and the capture, author, verify, re-capture loop a translator actually works in."
-section: "guides"
-sectionTitle: "Guides"
 pageType: "guide"
 tags: ["Translation", "Localization", "PlayStation", "NES"]
 repos:

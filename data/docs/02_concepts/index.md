@@ -1,7 +1,6 @@
 ---
 title: "Concepts"
 summary: "The ten ideas every repository in this fleet assumes you already have, from the recompiler and runtime split to what the projects mean when they say a port is correct enough."
-section: "concepts"
 sectionTitle: "Concepts"
 pageType: "reference"
 tags: ["Concepts"]

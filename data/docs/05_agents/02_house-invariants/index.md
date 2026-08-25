@@ -1,8 +1,6 @@
 ---
 title: "Rules of the codebase"
 summary: "The twelve engineering rules that recur across the fleet's 36 agent instruction files, each quoted and cited, plus the thirteen places where repositories instruct differently on the same question."
-section: "agents"
-sectionTitle: "For agents"
 pageType: "reference"
 tags: ["Agents", "Conventions", "Correctness"]
 repos:

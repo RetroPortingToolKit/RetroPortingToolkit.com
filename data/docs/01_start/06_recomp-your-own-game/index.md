@@ -1,8 +1,6 @@
 ---
 title: "Recomp your own game"
 summary: "The one page to hand an AI agent when you want a game you own turned into a native port, covering what works today, what does not, and the exact commands."
-section: "start"
-sectionTitle: "Start here"
 pageType: "guide"
 tags: ["Tutorial", "Agents", "PlayStation"]
 repos:

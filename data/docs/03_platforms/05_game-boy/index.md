@@ -1,8 +1,6 @@
 ---
 title: "Game Boy and Game Boy Color"
 summary: "gbrecompiled translates SM83 ROMs into portable C, one file per bank, and backs it with the fleet's most rigorous correctness programme: three legs of verification and five gates that must pass before a divergence report is believed."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["Game Boy", "Game Boy Color", "SM83", "Cycle exact", "Co-simulation"]
 repos:

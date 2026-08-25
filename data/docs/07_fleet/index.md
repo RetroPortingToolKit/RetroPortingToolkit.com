@@ -1,7 +1,6 @@
 ---
 title: "The fleet"
 summary: "The map: all 86 repositories with their roles and dependencies, what this fleet inherits from upstream and what it does not, the license census, and how one project documents where its code came from."
-section: "fleet"
 sectionTitle: "The fleet"
 pageType: "reference"
 tags: ["Fleet"]

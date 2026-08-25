@@ -1,8 +1,6 @@
 ---
 title: "Lineage and credit"
 summary: "Exactly which repositories in this fleet contain upstream N64Recomp code, which only share its ideas, and what our documentation owes each upstream project."
-section: "fleet"
-sectionTitle: "Fleet"
 pageType: "concept"
 tags: ["Lineage", "Credit", "Licensing"]
 repos:

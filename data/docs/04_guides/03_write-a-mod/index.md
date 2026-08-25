@@ -1,8 +1,6 @@
 ---
 title: "Write a mod"
 summary: "Building a mod package for a recompiled port: how a package targets one exact game dump by hash, how features and typed options toggle independently, how collisions are diagnosed before boot, and why the game file you supply is never written."
-section: "guides"
-sectionTitle: "Guides"
 pageType: "guide"
 tags: ["Modding", "PlayStation", "NES", "Configuration"]
 repos:

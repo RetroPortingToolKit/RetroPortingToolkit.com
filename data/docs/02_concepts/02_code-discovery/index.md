@@ -1,8 +1,6 @@
 ---
 title: "Telling code from data"
 summary: "No dump says which bytes are instructions, so every toolchain here seeds from guaranteed entry points, walks what is reachable, guesses at the rest, validates the guesses and catches the misses at run time: that shape is console-agnostic, and what fills it in is not."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Code discovery", "Recompiler", "NES", "SNES", "Game Boy Advance", "PlayStation", "Sega"]
 repos:

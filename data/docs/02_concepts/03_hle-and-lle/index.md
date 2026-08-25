@@ -1,8 +1,6 @@
 ---
 title: "High level and low level"
 summary: "Every toolchain in this fleet runs the real firmware as its baseline, so the live argument is not low level against high level, it is whether a high level shortcut may ever become the default, and two projects have landed on opposite answers."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Architecture", "LLE", "HLE", "Correctness"]
 repos:

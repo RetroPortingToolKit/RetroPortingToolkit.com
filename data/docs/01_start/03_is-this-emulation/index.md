@@ -1,8 +1,6 @@
 ---
 title: "Is this emulation"
 summary: "The short honest answer. The game's own code is turned into a normal program before you play. The console around the game is imitated by software while you play. No project here promises that emulation plays no part."
-section: "start"
-sectionTitle: "Start here"
 pageType: "concept"
 tags: ["Emulation", "Execution model", "Honesty"]
 repos:

@@ -1,8 +1,6 @@
 ---
 title: "Glossary"
 summary: "Forty-three terms this fleet uses as if they were common knowledge, each defined the way the repositories actually use it, with the console-specific ones named as such and the places the fleet contradicts itself marked rather than smoothed over."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "reference"
 tags: ["Glossary", "Vocabulary", "Reference"]
 repos:

@@ -1,8 +1,6 @@
 ---
 title: "TCP debug protocol"
 summary: "The wire specification for the debug servers this fleet runs: framing and envelopes, both accepted spellings of the error key, the 26 command core set with arguments and responses, per-console extensions, and where a repository's protocol document disagrees with its own code."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Protocol", "Debugging", "Agents", "Tooling"]
 repos:

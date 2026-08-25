@@ -1,8 +1,6 @@
 ---
 title: "If you are an agent, start here"
 summary: "Orientation for an agent dropped into one of these repositories: what to read first, the rules that hold everywhere, the commands that decide whether you succeeded, and the capabilities this fleet does not have."
-section: "agents"
-sectionTitle: "For agents"
 pageType: "project"
 tags: ["Agents", "Conventions", "Verification"]
 repos:

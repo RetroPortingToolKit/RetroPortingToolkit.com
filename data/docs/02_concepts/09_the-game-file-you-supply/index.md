@@ -1,8 +1,6 @@
 ---
 title: "The game file you supply"
 summary: "The contract every port in this fleet makes with its user: you supply the disc image, cartridge dump or system ROM, the runtime verifies it before anything runs, and the repositories state that they distribute none of it."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Game files", "Verification", "Licensing"]
 repos:

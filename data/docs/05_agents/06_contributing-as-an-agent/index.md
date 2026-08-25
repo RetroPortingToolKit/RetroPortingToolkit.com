@@ -1,8 +1,6 @@
 ---
 title: "Contributing as an agent"
 summary: "How to work in these repositories without breaking them: what to read before you start, the commit conventions and the places they disagree, what never goes into a commit, a ten point handoff template synthesised from nine real handoffs, and the upstream projects that do not accept AI-generated contributions."
-section: "agents"
-sectionTitle: "Agents"
 pageType: "guide"
 tags: ["Agents", "Conventions"]
 repos:

@@ -1,8 +1,6 @@
 ---
 title: "SNES"
 summary: "SNESRecomp translates a cartridge's 65816 code into C and links it against a C model of the rest of the console, and this page explains the runtime mode flags that make the 65816 unusually hard to translate ahead of time."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["SNES", "65816", "Static recompilation", "Timing"]
 repos:

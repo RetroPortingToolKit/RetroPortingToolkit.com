@@ -1,8 +1,6 @@
 ---
 title: "Virtual Boy"
 summary: "vbrecomp recompiles NEC V810 cartridge code to C under a constitution that permits no interpreter, no HLE layer and no stubs, and this page covers the V810, the two eyes it renders but does not fuse, and what happens when a stub aborts."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["Virtual Boy", "V810", "Stereoscopy", "Oracle"]
 repos:

@@ -1,8 +1,6 @@
 ---
 title: "How changes go wrong here"
 summary: "A field guide to the failure modes specific to static recompilation, organised by symptom, most of which are silent: a skipped subroutine, a hand edit that vanishes at the next regeneration, a per-game fix hiding a recompiler bug, and a measurement that was an artefact of how you ran it."
-section: "agents"
-sectionTitle: "Agents"
 pageType: "reference"
 tags: ["Agents", "Correctness", "Verification"]
 repos:

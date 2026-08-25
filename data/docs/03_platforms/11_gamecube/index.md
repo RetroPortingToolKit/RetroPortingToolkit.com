@@ -1,8 +1,6 @@
 ---
 title: "GameCube"
 summary: "gcnlle statically recompiles the GameCube IPL and models the hardware under it; it calls itself research software that is not ready for ordinary game use, and it is where this wiki explains what recomp, lle and probe mean."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["GameCube", "Early development", "LLE"]
 repos:

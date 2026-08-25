@@ -1,8 +1,6 @@
 ---
 title: "How a port is made"
 summary: "The whole process as one story, from the game file you supply through discovery, translation, compilation and checking to enhancement, naming the six stages the rest of this site uses."
-section: "start"
-sectionTitle: "Start here"
 pageType: "concept"
 tags: ["Porting", "Pipeline", "Recompiler"]
 repos:

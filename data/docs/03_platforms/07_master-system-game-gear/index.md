@@ -1,8 +1,6 @@
 ---
 title: "Master System and Game Gear"
 summary: "One Z80 toolchain covers both Sega 8-bit machines, and its flat step emission mode is what lets a Z80 be recompiled as somebody else's coprocessor."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["Sega", "Z80", "Flat step", "Accuracy"]
 repos:

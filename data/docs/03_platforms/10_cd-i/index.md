@@ -1,8 +1,6 @@
 ---
 title: "CD-i"
 summary: "cdirecomp recompiles the Philips CD-i system ROM and runs CD-RTOS itself as native code instead of stubbing it, and its README says gameplay is not yet reachable."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["CD-i", "Early development", "Provenance"]
 repos:

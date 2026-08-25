@@ -1,8 +1,6 @@
 ---
 title: "Co-simulation"
 summary: "The fleet's decision procedure for correctness: two implementations of the same console stepped on a shared guest clock, full architectural state hashed at every checkpoint, halting at the first checkpoint that differs."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Correctness", "Testing", "Co-simulation"]
 repos:

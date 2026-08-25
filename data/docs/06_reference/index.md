@@ -1,7 +1,6 @@
 ---
 title: "Reference"
 summary: "Nine lookup pages: every command line flag, the TCP debug protocol and its port registry, the mod manifest and configuration schemas, the catalog and netcode APIs, the status words and the exit codes."
-section: "reference"
 sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Reference"]

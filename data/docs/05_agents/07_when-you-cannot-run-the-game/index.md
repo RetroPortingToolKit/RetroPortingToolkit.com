@@ -1,8 +1,6 @@
 ---
 title: "When you cannot run the game"
 summary: "What an agent can still verify with no display, no game file, no Ghidra or no oracle process, what the persistent artefacts do and do not prove, and what to write down so a human can finish the check."
-section: "agents"
-sectionTitle: "For agents"
 pageType: "guide"
 tags: ["Agents", "Verification", "Testing"]
 repos:

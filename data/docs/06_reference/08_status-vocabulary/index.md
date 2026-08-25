@@ -1,8 +1,6 @@
 ---
 title: "Status vocabulary"
 summary: "The two status vocabularies in play, the one each repository writes about itself and the one this site applies to its catalogue, what every term in each means, and how the two relate where they do not agree."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Status", "Vocabulary", "Fleet", "Catalogue"]
 repos:

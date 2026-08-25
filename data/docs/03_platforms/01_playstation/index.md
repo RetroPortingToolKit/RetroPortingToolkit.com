@@ -1,8 +1,6 @@
 ---
 title: "PlayStation"
 summary: "psxrecomp translates a PS1 game's MIPS R3000A code and a full PS1 BIOS into C, then resolves each control transfer through three tiers, statically compiled code first and a dirty-RAM interpreter last: this page covers its status, the GTE, the renderers, the commands, its limits, and where its documents have fallen behind its code."
-section: "platforms"
-sectionTitle: "Platforms"
 pageType: "project"
 tags: ["PlayStation", "MIPS R3000A", "GTE", "Overlays"]
 repos:

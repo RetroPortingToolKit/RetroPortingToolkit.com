@@ -1,8 +1,6 @@
 ---
 title: "Release a port"
 summary: "Packaging a port for other people: what the fleet's release documents require, why several projects ship tools rather than game binaries, and how the allowlist packagers make it impossible to sweep game data into a zip."
-section: "guides"
-sectionTitle: "Guides"
 pageType: "guide"
 tags: ["Releasing", "Packaging", "Compliance"]
 repos:

@@ -1,8 +1,6 @@
 ---
 title: "Catalog schema"
 summary: "Field-by-field reference for retcomm-catalog: the index file, the per-title manifest, how a title is verified, released, built, launched and matched online, and the two validators that no longer agree."
-section: "reference"
-sectionTitle: "Reference"
 pageType: "reference"
 tags: ["Schema", "Catalogue", "Agents", "PlayStation"]
 repos:

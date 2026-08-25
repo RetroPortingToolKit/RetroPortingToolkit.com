@@ -1,8 +1,6 @@
 ---
 title: "The recompiler and the runtime"
 summary: "Every static recompilation toolchain splits into a build-time tool that writes C and a library that C links against, and this page shows the exact interface between them."
-section: "concepts"
-sectionTitle: "Concepts"
 pageType: "concept"
 tags: ["Architecture", "Recompiler", "Runtime"]
 repos:

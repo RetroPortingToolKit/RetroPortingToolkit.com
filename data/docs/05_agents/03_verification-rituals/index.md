@@ -1,8 +1,6 @@
 ---
 title: "Checking your own work"
 summary: "The build command, test command and extra gates for every repository in the fleet that documents one, and what each gate actually catches, so you are running a check rather than performing a ritual."
-section: "agents"
-sectionTitle: "For agents"
 pageType: "reference"
 tags: ["Agents", "Testing", "Verification"]
 repos:

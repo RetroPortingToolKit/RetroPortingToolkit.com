@@ -1,8 +1,6 @@
 ---
 title: "What static recompilation is"
 summary: "The idea the rest of this site rests on: a game's own code is rewritten as C before it ever runs, compiled into a normal program, and joined to a library that stands in for the console, and what that buys and costs."
-section: "start"
-sectionTitle: "Start here"
 pageType: "concept"
 tags: ["Static recompilation", "Recompiler", "Runtime"]
 repos:
