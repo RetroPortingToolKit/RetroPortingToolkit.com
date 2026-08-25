@@ -1,6 +1,6 @@
 ---
 title: "Checking your own work"
-summary: "The build command, test command and extra gates for every repository in the fleet that documents one, and what each gate actually catches, so you are running a check rather than performing a ritual."
+summary: "The build command, test command and extra gates for every repository in the fleet that documents one, and what each gate can actually detect."
 pageType: "reference"
 tags: ["Agents", "Testing", "Verification"]
 repos:
@@ -10,14 +10,14 @@ repos:
   - "https://github.com/mstan/SuperMetroidRecomp"
   - "https://github.com/mstan/MegaManZeroRecomp"
   - "https://github.com/mstan/DKC2Recomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-This is what each repository in the fleet tells an agent to run to check its own work. The commands are as the repositories write them, and none of them has been executed here, so treat the table as an index into the repositories rather than as a tested script. The second half of the page matters more than the first: a command you run without knowing what it can detect is a ritual, and a ritual that passes tells you nothing about whether you were right.
+This is what each repository tells an agent to run to check its own work. The commands are copied as the repositories write them, and none has been run here, so treat the table as an index into the repositories, not as a tested script. The second half says what each gate can detect, which is the part that decides whether a pass means anything.
 
 ## What to run, by repository
 
-Where a cell says UNKNOWN, the repository does not document one. That is a real finding about that repository, not a gap in this table.
+Where a cell says UNKNOWN, the repository does not document one. That is a fact about the repository, not a gap in the table.
 
 | Repository | Build | Test or verify | Other gates |
 |---|---|---|---|
@@ -45,11 +45,11 @@ Where a cell says UNKNOWN, the repository does not document one. That is a real 
 | [TombaRecomp](https://github.com/mstan/TombaRecomp), [Tomba2Recomp](https://github.com/mstan/Tomba2Recomp), [ApeEscapeRecomp](https://github.com/mstan/ApeEscapeRecomp), [TsumuLightRecomp](https://github.com/mstan/TsumuLightRecomp), [MegaManX4Recomp](https://github.com/mstan/MegaManX4Recomp), [MegaManX5Recomp](https://github.com/mstan/MegaManX5Recomp), [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp) | defers to `psxrecomp-v4/CLAUDE.md` | UNKNOWN. None of the six documents a test command | after every run, resolve all dispatch misses before any other debugging |
 | [SonicTheHedgehogRecomp](https://github.com/mstan/SonicTheHedgehogRecomp), [SonicTheHedgehog2Recomp](https://github.com/mstan/SonicTheHedgehog2Recomp) | `_build_native.bat`, `_build_oracle.bat`, `regen.bat` | defers to `segagenesisrecomp` | engine commit order: the submodule first, then the pointer bump |
 
-The deferring rows are the ones to be careful with. The six PlayStation game repositories and the two Sonic release repositories have no test command of their own; they point at a framework checkout reached by a Windows directory junction or a workspace sibling, which is not present in a fresh clone. If you are in one of those, the framework row above is the row that applies to you, and [If you are an agent, start here](/docs/agents/start-here) explains how those deferrals are meant to work.
+Be careful with the deferring rows. The six PlayStation game repositories and the two Sonic release repositories have no test command of their own. They point at a framework checkout reached by a Windows directory junction or a workspace sibling, and neither is in a fresh clone. If you are in one of those, the framework row applies to you.
 
-Three commands are worth reading closely because they encode a gate rather than just an invocation.
+Three commands are worth reading closely. In the first, the flag is the gate.
 
-From [`CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md) in SuperMetroidRecomp, lines 27 to 30, where the flag is the check:
+From [`CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md) in SuperMetroidRecomp, lines 27 to 30:
 
 ```sh
 # --strict-idempotent regenerates twice and requires byte-identical output.
@@ -66,71 +66,71 @@ cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
 ```
 
-From [`AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) in xboxlle-probe, lines 55 to 57, the only repository that states what verification remains when the privileged resource is unavailable:
+From [`AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) in xboxlle-probe, lines 55 to 57, the only repository that says what verification remains when the resource it depends on is unavailable:
 
 ```sh
 python -m unittest discover -s tests -v
 python -m py_compile host/xbox_probe.py
 ```
 
-## What each gate actually catches
+## What each gate catches
 
-A green build catches nothing except a compile error. Every gate below exists because something got through the build. Where a term is unfamiliar, the [glossary](/docs/concepts/glossary) defines it as the fleet uses it.
+A green build catches a compile error and nothing else. Every gate below exists because something got past the build. The [glossary](/docs/concepts/glossary) defines the terms as the fleet uses them.
 
 ### The dispatch-miss artefact
 
-Catches code the recompiler never found. When the dispatcher has no generated function for an address, the game skips that subroutine and continues, so nothing crashes and nothing prints. The file sits next to the executable and is checked after every run: `dispatch_misses.toml` in [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp), `dispatch_misses.log` in [ndsrecomp](https://github.com/mstan/ndsrecomp) per CPU, in [vbrecomp](https://github.com/mstan/vbrecomp) and in [smsggrecomp](https://github.com/mstan/smsggrecomp), and `recomp_master_misses.toml.frag` in [gbarecomp](https://github.com/mstan/gbarecomp). Empty means clean. It does not catch code that was found and translated wrongly.
+Catches code the recompiler never found. The dispatcher has no generated function for an address, so the game skips that subroutine and carries on, with no crash and no message. The file sits next to the executable and is read after every run: `dispatch_misses.toml` in [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp), `dispatch_misses.log` in [ndsrecomp](https://github.com/mstan/ndsrecomp) per CPU, in [vbrecomp](https://github.com/mstan/vbrecomp) and in [smsggrecomp](https://github.com/mstan/smsggrecomp), and `recomp_master_misses.toml.frag` in [gbarecomp](https://github.com/mstan/gbarecomp). Empty means clean. It does not catch code that was found and translated wrongly.
 
 ### The coverage report
 
-Catches code that ran but did not run as compiled native code. [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md) requires the report to read FULLY STATIC with zero interpreted and zero healed-from-cache, and it prints in the exit banner. [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md) requires the same zeroes plus zero unmapped accesses and zero unhandled I/O. This is the gate that catches a fallback quietly carrying the game.
+Catches code that ran, but not as compiled native code. [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md) requires the report to read FULLY STATIC with zero interpreted and zero healed-from-cache, and prints it in the exit banner. [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md) requires the same zeroes plus zero unmapped accesses and zero unhandled I/O. This is the gate that catches a fallback quietly carrying the game.
 
 ### Oracle comparison and first divergence
 
-Catches wrong behaviour, which is the only gate that does. A reference implementation runs beside the recompiled build and their state is compared. [gbarecomp](https://github.com/mstan/gbarecomp) requires `python oracle/diff_frame.py --scan 1 240 1` to report IDENTICAL. [cdirecomp](https://github.com/mstan/cdirecomp)'s `tools/first_divergence.py` pages both program-counter streams from sequence 0. [nesrecomp](https://github.com/mstan/nesrecomp)'s co-simulation gates go further and check the checker: `gate1` proves the recompiled side is deterministic against itself, `gate2` proves the oracle is, and `gate3` injects a one-byte flip and requires the diff to halt at the injected frame in the injected subsystem, which is what proves the hasher is not blind. See [proving it with co-simulation](/docs/concepts/co-simulation) and [debug a divergence](/docs/guides/debug-a-divergence).
+Catches wrong behaviour, and it is the only gate that does. A reference implementation runs beside the recompiled build and the two states are compared. [gbarecomp](https://github.com/mstan/gbarecomp) requires `python oracle/diff_frame.py --scan 1 240 1` to report IDENTICAL. [cdirecomp](https://github.com/mstan/cdirecomp)'s `tools/first_divergence.py` pages both program-counter streams from sequence 0. [nesrecomp](https://github.com/mstan/nesrecomp)'s co-simulation gates also check the checker: `gate1` proves the recompiled side is deterministic against itself, `gate2` proves the oracle is, and `gate3` injects a one-byte flip and requires the diff to halt at the injected frame in the injected subsystem. That last one proves the hasher is not blind. See [proving it with co-simulation](/docs/concepts/co-simulation) and [debug a divergence](/docs/guides/debug-a-divergence).
 
 ### Idempotent regeneration
 
-Catches nondeterminism in the recompiler itself. `./tools/regen.sh --strict-idempotent` in [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp) regenerates twice and requires byte-identical output. A generator that is not deterministic makes every downstream comparison unreliable, and the failure is invisible until two people get different results from the same input.
+Catches nondeterminism in the recompiler itself. `./tools/regen.sh --strict-idempotent` in [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp) regenerates twice and requires byte-identical output. A generator that is not deterministic makes every comparison after it unreliable, and the failure stays invisible until two people get different results from the same input.
 
 ### Unit tests and ctest
 
-Catches regressions in the framework's own logic, which is a narrower thing than it sounds. [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp) runs game-side tests through `ctest --test-dir build` and the framework suite through `python3 snesrecomp/tests/v2/run_tests.py`. [vbrecomp](https://github.com/mstan/vbrecomp) runs `python -m unittest discover recompiler/tests`. [DKC2Recomp](https://github.com/mstan/DKC2Recomp) requires the complete suite before and after a milestone. [gbrecompiled](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md) takes the opposite line and says not to run unit tests as the primary driver, but to run the game; that disagreement is recorded on [Rules of the codebase](/docs/agents/house-invariants).
+Catches regressions in the framework's own logic, which is narrower than it sounds. [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp) runs game-side tests through `ctest --test-dir build` and the framework suite through `python3 snesrecomp/tests/v2/run_tests.py`. [vbrecomp](https://github.com/mstan/vbrecomp) runs `python -m unittest discover recompiler/tests`. [DKC2Recomp](https://github.com/mstan/DKC2Recomp) requires the complete suite before and after a milestone. [gbrecompiled](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md) takes the other line: do not run unit tests as the primary driver, run the game.
 
 ### Runner purity
 
-Catches per-game data leaking into shared code. [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp)'s `tools/audit_runner_purity.py` enforces the rule that per-game values reach the runner through `g_game_spec` and `g_game_layout` rather than as literal hex in shared code. It catches a class of change that works perfectly for the game in front of you and breaks the next one.
+Catches per-game data leaking into shared code. [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp)'s `tools/audit_runner_purity.py` enforces that per-game values reach the runner through `g_game_spec` and `g_game_layout`, not as literal hex. It catches the change that works perfectly for the game in front of you and breaks the next one.
 
 ### Hash verification at launch
 
-Catches the wrong input file. The runtimes verify what they were handed and refuse to start otherwise: [ndsrecomp](https://github.com/mstan/ndsrecomp) checks three dumps, [gbarecomp](https://github.com/mstan/gbarecomp) requires both the BIOS path and the game path to hash-verify. This gate protects every measurement downstream of it, because a comparison against an oracle running a different revision produces a divergence report that is entirely real and entirely useless.
+Catches the wrong input file. The runtimes check what they were handed and refuse to start otherwise: [ndsrecomp](https://github.com/mstan/ndsrecomp) checks three dumps, [gbarecomp](https://github.com/mstan/gbarecomp) requires both the BIOS path and the game path to hash-verify. Comparing against an oracle running a different revision produces a divergence report that is real and useless.
 
 ### The debug server responding
 
-Catches a runtime that came up but is not observable. [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md) makes it a milestone condition that TCP `ping` returns `{"ok":true}`. It is the cheapest check on this page and it is worth running first, because every other observation in the fleet arrives over that socket. See [the TCP debug protocol](/docs/reference/tcp-protocol).
+Catches a runtime that started but cannot be observed. [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md) makes it a milestone condition that TCP `ping` returns `{"ok":true}`. It is the cheapest check here, and worth running first, because every other observation arrives over that socket. See [the TCP debug protocol](/docs/reference/tcp-protocol).
 
 ### Exit codes
 
-Catches failures in a scripted run, where nobody is watching the screen. [nesrecomp](https://github.com/mstan/nesrecomp)'s co-simulation gates print PASS or FAIL and exit non-zero on FAIL, which is what makes them usable as a gate at all. Its input-script language has an `EXIT [code]` command, so a scripted play session is itself a pass or fail. [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp)'s `sm_widescreen_visual_smoke` skips with code 77, the CTest skip convention, when its artefacts are missing, which means a suite can report success while that test never ran. Check for skips. See [errors and exit codes](/docs/reference/errors-and-exit-codes).
+Catches failures in a scripted run, where nobody is watching the screen. [nesrecomp](https://github.com/mstan/nesrecomp)'s co-simulation gates print PASS or FAIL and exit non-zero on FAIL. Its input-script language has an `EXIT [code]` command, so a scripted play session is itself a pass or a fail. [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp)'s `sm_widescreen_visual_smoke` skips with code 77, the CTest skip convention, when its artefacts are missing, so a suite can report success while that test never ran. Check for skips. See [errors and exit codes](/docs/reference/errors-and-exit-codes).
 
 ### Screenshots and frame dumps
 
-Catches what the other gates were not looking at. [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) requires a screenshot before asserting anything about visible state. [gbrecompiled](https://github.com/mstan/gbrecompiled) dumps frames at fixed indices and expects them to be read. The formats differ per toolchain, and the repositories disagree on whether captures should be automatic at all, so follow the local rule.
+Catches what the other gates were not looking at. [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) requires a screenshot before you assert anything about visible state. [gbrecompiled](https://github.com/mstan/gbrecompiled) dumps frames at fixed indices and expects them to be read. Formats differ per toolchain, and repositories disagree on whether captures should be automatic, so follow the local rule.
 
 ## The four repositories that say what done means
 
-Four repositories out of thirty-four state a definition of done precise enough to settle an argument. They are the model, and they are quoted here because the other thirty leave the question implicit.
+Four repositories out of thirty-four state a definition of done precise enough to settle an argument.
 
-From [`CLAUDE.md`](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md) in MegaManZeroRecomp, lines 19 to 23, the strictest and the most mechanical:
+From [`CLAUDE.md`](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md) in MegaManZeroRecomp, lines 19 to 23, the most mechanical:
 
 > Run `tools/verify-strict.ps1` for the smoke route and the named campaign being
 > changed. A strict pass must report zero dispatch misses, interpreted
 > instructions, healed/cache code, unmapped accesses, and unhandled I/O. Visual
 > or timing claims should cite the independent oracle and the exact checkpoints.
 
-[gbarecomp](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md) states the same shape as one readable line: repeat the regenerate, rebuild and re-run cycle "until the coverage report reads FULLY STATIC (zero interpreted / healed-from-cache)".
+[gbarecomp](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md) states the same shape in one line: repeat the regenerate, rebuild and re-run cycle "until the coverage report reads FULLY STATIC (zero interpreted / healed-from-cache)".
 
-[psxrecomp](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) sets the bar at the user-visible end state instead of at a counter, and it is worth reading in full because it names the failure it was written against:
+[psxrecomp](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) sets the bar at the end state a user can see:
 
 > Phase completion requires the user-visible end state, not "I think it
 > should work now". Phase 3 is "Sony logo displays on screen". Not "the
@@ -138,27 +138,21 @@ From [`CLAUDE.md`](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.m
 > command stream looks right in the debug server". **The pixels appear
 > on screen, or the phase is not done.**
 
-[segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md) puts the decision with a person: the user verifies end to end, and a fix is not called fixed without their confirmation. [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/CLAUDE.md) says the same.
+[segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md) and [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/CLAUDE.md) put the decision with a person: the user verifies end to end, and a fix is not fixed without that confirmation.
 
-Everywhere else, done is implicit. In practice that means the agent decides, and the only stated constraint is the one in [`nesrecomp/AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md), the shortest file in the corpus, which does not define done but does define who may claim it:
+Everywhere else, done is implicit, which means the agent decides. The one stated constraint is [`nesrecomp/AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md), quoted in full on [contributing as an agent](/docs/agents/contributing-as-an-agent): do not declare a patch validated until you have validated it yourself, prefer a runtime check when the change affects rendering, input, timing or visible behaviour, and record the comparison you used.
 
-> Do not declare a patch committed, ready to merge, or validated until you have
-> validated it yourself. Prefer runtime checks with TCP input/screenshot tooling
-> when the change affects rendering, input, timing, or visible game behavior.
-> Record both the before/after condition or the regression comparison used.
-
-If your repository is one of the thirty, adopt one of the four above, say in your report which one you adopted, and record the measurement rather than the conclusion. [Contributing as an agent](/docs/agents/contributing-as-an-agent) covers how to write that report.
+If your repository is one of the thirty, adopt one of the four above, say which one you adopted, and record the measurement rather than the conclusion.
 
 ## Source
 
 - The verification sections of the 36 agent instruction files, principally [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md), [`gbarecomp/CLAUDE.md`](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md), [`MegaManZeroRecomp/CLAUDE.md`](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md), [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md) and [`psxrecomp/CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md).
-- [`nesrecomp/COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md), the fullest description of a gate suite in the fleet, including the fault-injection gate that checks the checker.
+- [`nesrecomp/COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md), the fullest gate suite in the fleet, including the fault-injection gate that checks the checker, and [`nesrecomp/AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md) on who may claim a patch is validated.
 - [`xboxlle-probe/AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) and [`.github/workflows/ci.yml`](https://github.com/mstan/xboxlle-probe/blob/main/.github/workflows/ci.yml), the only repository that documents verification without its privileged resource.
-- [`nesrecomp/AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md), on who may claim a patch is validated.
 
 ## Next
 
-- [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game), because most of this table assumes a launch you may not be able to perform.
-- [Rules of the codebase](/docs/agents/house-invariants), for the rules these gates enforce and the places repositories disagree.
-- [Machine-readable surfaces](/docs/agents/machine-surfaces), for the JSON modes, log formats and exit codes behind these gates.
-- [How changes go wrong here](/docs/agents/failure-modes), for the failures that pass every gate above.
+- [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game), because this table assumes a launch you may not manage.
+- [Rules of the codebase](/docs/agents/house-invariants), the rules these gates enforce.
+- [Machine-readable surfaces](/docs/agents/machine-surfaces), the JSON modes, log formats and exit codes behind them.
+- [How changes go wrong here](/docs/agents/failure-modes), the failures that pass every gate above.

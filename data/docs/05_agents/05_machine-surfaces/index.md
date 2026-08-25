@@ -1,6 +1,6 @@
 ---
 title: "Machine-readable surfaces"
-summary: "Every part of this fleet an agent can drive programmatically: the TCP debug servers, JSON and JSONL outputs, exit code conventions including the CTest 77 skip, the artefact files written next to a build, the input script language, and the four Ghidra MCP configurations."
+summary: "Every part of this fleet you can drive with a program: the TCP debug servers, JSON and JSONL outputs, exit codes including the CTest 77 skip, the artefact files written next to a build, the input script language, and the four Ghidra MCP configurations."
 pageType: "reference"
 tags: ["Agents", "Tooling", "Verification"]
 repos:
@@ -11,10 +11,10 @@ repos:
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/SuperMetroidRecomp"
-updated: "2026-08-23"
+updated: "2026-08-25"
 ---
 
-Most of this fleet is driven by a human watching a game window, but not all of it. There is a debug server you can open a socket to, output modes that emit JSON instead of prose, exit codes you can branch on, artefact files written next to every build, a scripting language for controlled play sessions, and four Ghidra MCP configurations. This page is the inventory, with enough detail to use each surface without reading the repositories first. Where a project has not documented something, this page says so rather than guessing. If you have not read [if you are an agent, start here](/docs/agents/start-here) and [rules of the codebase](/docs/agents/house-invariants), read those first: they govern when you are allowed to use any of this.
+Most of this fleet is driven by a human watching a game window. Not all of it. There is a debug server you can open a socket to, output modes that emit JSON, exit codes you can branch on, artefact files next to every build, a script language for controlled play sessions, and four Ghidra MCP configurations. This is the inventory. Where a project has documented nothing, it says UNKNOWN instead of guessing. Read [if you are an agent, start here](/docs/agents/start-here) and [rules of the codebase](/docs/agents/house-invariants) first: they govern when you may use any of this.
 
 ## What you can drive
 
@@ -29,7 +29,7 @@ Most of this fleet is driven by a human watching a game window, but not all of i
 
 ## The TCP debug protocol
 
-Nine repositories ship a protocol document: `TCP.md` in SuperMarioBrosNESRecomp, YoshiNESRecomp, cdirecomp, gbarecomp, ndsrecomp, nesrecomp and vbrecomp, and `TCP_COMMANDS.md` in psxrecomp and gcnlle. All nine describe the same transport. The full specification, with argument and return shapes per command, is [the TCP debug protocol reference](/docs/reference/tcp-protocol); what follows is what you need to open a connection and know what you are looking at.
+Nine repositories ship a protocol document: `TCP.md` in SuperMarioBrosNESRecomp, YoshiNESRecomp, cdirecomp, gbarecomp, ndsrecomp, nesrecomp and vbrecomp, and `TCP_COMMANDS.md` in psxrecomp and gcnlle. All nine describe the same transport. The argument and return shapes per command are in [the TCP debug protocol reference](/docs/reference/tcp-protocol); below is enough to open a connection and read what comes back.
 
 ### Transport
 
@@ -46,14 +46,14 @@ Nine repositories ship a protocol document: `TCP.md` in SuperMarioBrosNESRecomp,
 
 ### The two error key spellings
 
-This is the one place the transport genuinely differs, and a client that works across the fleet must accept both spellings.
+This is the one place the transport really differs. A client that works across the fleet must accept both spellings.
 
 | Lineage | Failure envelope | Documented in |
 |---|---|---|
 | NES | `{"ok":false,"err":"..."}` | [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp, [`TCP.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/TCP.md) in YoshiNESRecomp |
 | PlayStation, Game Boy Advance, Virtual Boy, CD-i, GameCube | `{"id": N, "ok": false, "error": "<msg>"}` | [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp, and the same envelope in gbarecomp, vbrecomp, cdirecomp and gcnlle |
 
-The psxrecomp envelope also puts `id` first and is the one gcnlle copies verbatim. Read `ok` to decide success, then read whichever of `err` or `error` is present.
+The psxrecomp envelope also puts `id` first, and gcnlle copies it verbatim. Read `ok` to decide success, then read whichever of `err` or `error` is present.
 
 ### The common core
 
@@ -83,7 +83,7 @@ Most servers are not always running.
 | gbarecomp | Active whenever `debug.ini` is present, or the `--verify` or `--oracle` CLI flags are set, including Release builds |
 | gcnlle | Set the `GCN_DEBUG_PORT` environment variable, for example `4380` |
 
-Ports are assigned per project and they collide: 4380 is claimed by the psx-beetle oracle, Yoshi's native runtime, cdirecomp's native runtime and segagenesisrecomp at once, and 4370 by psx-runtime and five different NES games. The stated convention is native port plus one for the oracle, although the Game Boy Advance pair 19842 and 19843 does not match the wording that names an odd native port. The full allocation is on [the TCP port registry](/docs/reference/tcp-port-registry).
+Ports are assigned per project and they collide. Port 4380 is claimed at once by the psx-beetle oracle, Yoshi's native runtime, cdirecomp's native runtime and segagenesisrecomp. Port 4370 is claimed by psx-runtime and five different NES games. The stated convention is native port plus one for the oracle, though the Game Boy Advance pair 19842 and 19843 does not match it. The full allocation is on [the TCP port registry](/docs/reference/tcp-port-registry).
 
 ### A client, in two forms
 
@@ -106,7 +106,7 @@ def send_cmd(cmd, port=4370):
     return json.loads(data.decode().strip())
 ```
 
-The same file warns that inline Python in bash often fails due to shell escaping on Windows, and says to write a `.py` file rather than using `python -c "..."`. For a single query, the shell form is easier. From [`CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) in LegendOfZeldaNESRecomp:
+The same file warns that inline Python inside bash often fails on Windows because of shell escaping, and says to write a `.py` file instead. For a single query the shell form is easier. From [`CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) in LegendOfZeldaNESRecomp:
 
 ```bash
 # One-shot command
@@ -116,7 +116,7 @@ echo '{"cmd":"zelda_state"}' | ncat localhost 4370
 echo '{"cmd":"read_ram","addr":847,"len":12}' | ncat localhost 4370
 ```
 
-If the query you need does not exist, three repositories document the same ritual for adding one: write the handler, register it in the dispatch table, mirror it on the oracle side, document it in that repository's protocol file, and rebuild. All three end with the same prohibition, stated in nesrecomp as "**Never** add a side-channel debug log instead. If TCP can't see it, TCP needs to grow until it can."
+If the query you need does not exist, three repositories give the same steps for adding one: write the handler, register it in the dispatch table, mirror it on the oracle side, document it in that repository's protocol file, rebuild. All three end with the same prohibition, stated in nesrecomp as "**Never** add a side-channel debug log instead. If TCP can't see it, TCP needs to grow until it can."
 
 ## JSON and structured output
 
@@ -144,7 +144,7 @@ If the query you need does not exist, three repositories document the same ritua
 | Frame comparison tool | Writes an absolute-difference PPM and returns a failing exit code for any mismatch | DKC2Recomp |
 | Documented failure path | Terminates immediately with exit code 3 | MinishCapRecomp, [`ISSUES.md`](https://github.com/mstan/MinishCapRecomp/blob/main/ISSUES.md) |
 
-Code 77 is the trap worth naming twice. CTest treats it as a skip, so a suite containing nothing but skipped tests still reports success. Branch on the per test result, not the suite's exit status. The wider table of error strings and codes is on [errors and exit codes](/docs/reference/errors-and-exit-codes).
+Code 77 is worth naming twice. CTest treats it as a skip, so a suite of nothing but skipped tests still reports success. Branch on the per test result, not on the suite's exit status. The wider table of error strings and codes is on [errors and exit codes](/docs/reference/errors-and-exit-codes).
 
 ## Artefacts written next to the build
 
@@ -164,7 +164,7 @@ These are files, not commands, and reading them is often faster than driving the
 
 ## The input script language
 
-nesrecomp and Megaman3NESRecomp document the same script language verbatim, which turns a play session into something an agent can run unattended and assert on.
+nesrecomp and Megaman3NESRecomp document the same script language, word for word. It turns a play session into something an agent can run unattended and assert on.
 
 | Command | Description |
 |---------|-------------|
@@ -186,7 +186,7 @@ Invoked as, from [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CL
 GameRecomp.exe rom.nes --script C:/temp/session.txt > C:/temp/stdout.txt 2>&1
 ```
 
-Note one interaction with [how changes go wrong here](/docs/agents/failure-modes): `TURBO ON` can change what you measure, so a script used to reproduce a divergence should not use it. The button bitmask, for setting input over TCP rather than by script, is documented in [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp:
+`TURBO ON` can change what you measure, so a script used to reproduce a divergence should not use it. See [how changes go wrong here](/docs/agents/failure-modes). The button bitmask, for setting input over TCP rather than by script, is in [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp:
 
 ```text title="TCP.md"
 0x01 = Right    0x08 = Up
@@ -223,13 +223,13 @@ The complete file, from [`.mcp.json`](https://github.com/mstan/psxrecomp/blob/ma
 }
 ```
 
-The tool an agent calls to prove Ghidra is up is named consistently across repositories: `mcp__ghidra__get_program_info`, with `mcp__ghidra__get_code` for a disassembly at an address. Both names appear in nesrecomp, gbrecompiled and Megaman3NESRecomp.
+The tool an agent calls to prove Ghidra is up is named the same everywhere: `mcp__ghidra__get_program_info`, with `mcp__ghidra__get_code` for a disassembly at an address. Both appear in nesrecomp, gbrecompiled and Megaman3NESRecomp.
 
-> **Warning.** Three repositories gate all work on Ghidra MCP being reachable and ship no `.mcp.json` at all: nesrecomp, Megaman3NESRecomp and YoshiNESRecomp. An agent in those repositories has no configured server to reach, and the working configuration lives outside the tree. [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game) covers what to do about a gate you cannot satisfy.
+> **Warning.** Three repositories gate all work on Ghidra MCP being reachable and ship no `.mcp.json` at all: nesrecomp, Megaman3NESRecomp and YoshiNESRecomp. An agent there has no configured server to reach, and the working configuration lives outside the tree. [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game) covers a gate you cannot satisfy.
 
 ## What is not automated
 
-Nothing in this fleet watches your change on your behalf. Four repositories carry a workflow file, and none of the 36 agent instruction files mentions continuous integration at all.
+Nothing in this fleet watches your change for you. Four repositories carry a workflow file, and none of the 36 agent instruction files mentions continuous integration at all.
 
 | Repository | Workflow | Triggers | What it runs |
 |---|---|---|---|
@@ -238,7 +238,7 @@ Nothing in this fleet watches your change on your behalf. Four repositories carr
 | [snesrecomp](https://github.com/mstan/snesrecomp) | `native-analyzer.yml`, `cli-release.yml` | `pull_request`, `push` to main, `workflow_dispatch`, `release` | Three OS matrix; on Linux `cargo fmt -- --check` and `cargo clippy --locked --release --all-targets -- -D warnings`; plus pyinstaller packaging and `python tools/smoke_cli_package.py` |
 | [TombaRecomp](https://github.com/mstan/TombaRecomp) | `.github/workflows/release.yml` | `workflow_dispatch` with version and bump inputs | The multi platform release template for a PlayStation game repository |
 
-The psxrecomp workflow explains its own deliberate absence from pull requests, and the reasoning is worth reading before you propose adding a check anywhere in this fleet. From [`.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml):
+Read the psxrecomp workflow before you propose adding a check anywhere in this fleet. It explains why it stays out of pull requests. From [`.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml):
 
 ```yaml title=".github/workflows/cli-release.yml"
 # Release packaging ONLY. Deliberately does NOT run on pull_request or on
@@ -252,17 +252,14 @@ The psxrecomp workflow explains its own deliberate absence from pull requests, a
 
 ## Source
 
-- [mstan/nesrecomp](https://github.com/mstan/nesrecomp): [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md)
-- [mstan/psxrecomp](https://github.com/mstan/psxrecomp): [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md), [`.mcp.json`](https://github.com/mstan/psxrecomp/blob/master/.mcp.json), [`.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml)
-- [mstan/vbrecomp](https://github.com/mstan/vbrecomp): [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), and [mstan/gbarecomp](https://github.com/mstan/gbarecomp): [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md)
-- [mstan/ndsrecomp](https://github.com/mstan/ndsrecomp): [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), and [mstan/cdirecomp](https://github.com/mstan/cdirecomp): [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md)
-- [mstan/gcnlle](https://github.com/mstan/gcnlle): [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md)
-- [mstan/SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp): [`CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md), and [mstan/gbrecompiled](https://github.com/mstan/gbrecompiled): [`AGENTS.md`](https://github.com/mstan/gbrecompiled/blob/master/AGENTS.md)
-- [mstan/LegendOfZeldaNESRecomp](https://github.com/mstan/LegendOfZeldaNESRecomp): [`CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md)
+- The nine protocol documents, principally [`nesrecomp/TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), [`vbrecomp/TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`gbarecomp/TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md), [`ndsrecomp/TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), [`cdirecomp/TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md), [`psxrecomp/TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) and [`gcnlle/docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md).
+- [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md) for the script language, the traces and the gates; [`LegendOfZeldaNESRecomp/CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) for the shell client.
+- [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md) and [`gbrecompiled/AGENTS.md`](https://github.com/mstan/gbrecompiled/blob/master/AGENTS.md) for the JSON surfaces.
+- [`psxrecomp/.mcp.json`](https://github.com/mstan/psxrecomp/blob/master/.mcp.json) and [`psxrecomp/.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml).
 
 ## Next
 
-- [The TCP debug protocol](/docs/reference/tcp-protocol) for the normative wire format, the full command tables and the per console extensions.
-- [Checking your own work](/docs/agents/verification-rituals) for which of these surfaces each repository expects you to use before claiming a result.
-- [How changes go wrong here](/docs/agents/failure-modes) for what the miss logs, coverage reports and skip codes above are actually catching.
+- [The TCP debug protocol](/docs/reference/tcp-protocol) for the wire format, the full command tables and the per console extensions.
+- [Checking your own work](/docs/agents/verification-rituals) for which of these surfaces each repository expects you to use before you claim a result.
+- [How changes go wrong here](/docs/agents/failure-modes) for what the miss logs, coverage reports and skip codes above are catching.
 - [Contributing as an agent](/docs/agents/contributing-as-an-agent) for how to record what a tool told you, in a form the next session can use.
