@@ -25,7 +25,7 @@ At the end you have the recompiler binaries, C translated from a real PlayStatio
 
 ## Before you start
 
-You need a C and C++ toolchain, CMake 3.20 or newer, Ninja, and Python 3. [What you need](/docs/start/what-you-need) has the full matrix and the per-platform install lines. The short form is `pacman -S --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache` in an MSYS2 MinGW64 shell on Windows, `brew install ninja cmake` on macOS, and `sudo apt install build-essential cmake ninja-build` on Debian or Ubuntu. On Windows, run every command below in that MSYS2 shell, not in PowerShell.
+You need a C and C++ toolchain, CMake 3.20 or newer, Ninja, and Python 3. [Getting started](/docs/start/what-you-need) has the full matrix and the per-platform install lines. The short form is `pacman -S --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache` in an MSYS2 MinGW64 shell on Windows, `brew install ninja cmake` on macOS, and `sudo apt install build-essential cmake ninja-build` on Debian or Ubuntu. On Windows, run every command below in that MSYS2 shell, not in PowerShell.
 
 ## 1. Clone the repository
 

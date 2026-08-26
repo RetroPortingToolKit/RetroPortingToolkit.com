@@ -1,6 +1,6 @@
 ---
-title: "What you need"
-summary: "Two things before you start: a normal set of programming tools, the same five for every project here, and your own copy of the game, which no repository ships."
+title: "Getting started"
+summary: "For building ports, not just playing them. Two things before you start: a normal set of programming tools, the five nearly every project here uses, and your own copy of the game, which no repository ships."
 pageType: "guide"
 tags: ["Prerequisites", "Build", "Game files"]
 repos:
@@ -9,7 +9,7 @@ repos:
 updated: "2026-08-25"
 ---
 
-Two things. First, a normal set of programming tools, the same ones people use to build any C or C++ program. Second, your own copy of the game, if you want to play something rather than only build it. No repository here ships a game.
+This page is for building ports. If you only want to play one, you do not need any of the tools here: go to the [game's page](/games), download its release, and supply your own game file. For building, you need two things. First, a normal set of programming tools, the same ones people use to build any C or C++ program. Second, your own copy of the game, if you want to play what you build. No repository here ships a game.
 
 ## The five tools
 
@@ -23,7 +23,7 @@ Nearly every project here wants the same five things, and nothing exotic.
 | Ninja | any recent release | Running the build |
 | Python 3 | 3.9 or newer | Driving the helper scripts around the build |
 
-One more, if you want to see a game and not only build one. These projects draw their picture with SDL, so install your system's SDL development package too. Some want SDL2 and some want SDL3.
+One more, if you want to see a game and not only build one: your system's SDL development package. Your console's [platform page](/docs/platforms) and its repository say exactly what to install.
 
 Every console needs a few more steps on top of that. [Build a toolchain](/docs/guides/build-a-toolchain) has the exact commands for each one, and each [platform page](/docs/platforms) says what its project supports. Read your console's page before you spend an evening on it: some of these projects say plainly that a given computer is untested.
 
@@ -37,8 +37,6 @@ Most of these projects expect you to work inside an MSYS2 MinGW64 shell rather t
 pacman -S --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake \
                    mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache
 ```
-
-Two Windows problems come up often enough to warn about. If you have other development tools installed, Windows may find the wrong `cmake` or the wrong `python` first, and the build then fails in a confusing way. Run the one you meant, by its full path. The other one: a very large generated file can defeat the Windows assembler, which complains about too many sections. That needs a newer toolchain or one extra build flag. [Errors and exit codes](/docs/reference/errors-and-exit-codes) has the exact messages and the exact fixes.
 
 ### macOS
 
@@ -56,13 +54,9 @@ sudo apt install build-essential cmake ninja-build libsdl2-dev
 
 Adjust the package names for your distribution.
 
-## Two settings that are not optional
+## Two build settings to know about
 
-**Always say which kind of build you want.** Pass `-DCMAKE_BUILD_TYPE=Release` to CMake. Leave it out and the compiler skips its optimisations. The generated code is so large that the build then takes an unreasonable amount of time.
-
-**Do not ask for too many parallel jobs.** The generated files are huge, and each one takes a lot of memory to compile. Too many at once and your machine runs out, which does not produce a polite error. psxrecomp's [`docs/TESTING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/TESTING.md) records the symptom:
-
-> If `cmake --build` dies with no diagnostic, retry with `-j 2` or `-j 1`; the failure is resource exhaustion, not a code error.
+The build type and the parallel job count both matter, and each project has its own words on them. [Build a toolchain](/docs/guides/build-a-toolchain) quotes them project by project, with the exact symptoms and fixes.
 
 ## The game
 
@@ -100,7 +94,7 @@ On Windows, run them inside the MSYS2 MinGW64 shell you intend to build in, not 
 
 ## Source
 
-- [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) for the prerequisites, the per-platform install lines and the build type rule; [`docs/TESTING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/TESTING.md) for the parallel build warning and for the test suite that needs no game file.
+- [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) for the prerequisites and the per-platform install lines; [`docs/TESTING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/TESTING.md) for the test suite that needs no game file.
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md) for the macOS install line and for a project stating which computers it has and has not been tested on.
 
 ## Next

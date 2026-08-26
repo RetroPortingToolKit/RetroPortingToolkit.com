@@ -175,6 +175,10 @@ a bare path as the whole info string works when the block has no language
 - The start section speaks for the ecosystem generally. Name a specific
   project there only when the page is about it or a kept quote requires
   attribution; deeper sections cite freely.
+- Do not fold several ecosystems into one catch-all claim. Where projects
+  differ, quote each project in the page that owns that detail, or point to
+  the page that does. A warning that is true of one toolchain belongs with
+  that toolchain, not on a general page.
 - "core project" or "core team", never "first-party". Never "real code".
 - "Pokémon" keeps its accent.
 - Do not invent facts about a project. If a claim cannot be sourced, leave it

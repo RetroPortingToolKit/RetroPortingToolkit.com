@@ -51,7 +51,7 @@ Two rules govern this stage, and both come from the repositories. Generated code
 
 The generated code is compiled together with the runtime, the shared launcher and any pieces written by hand for this game. Out comes one program. On most consoles this is an ordinary CMake build.
 
-Two build settings matter on every console here. Always tell CMake which kind of build you want, because generated code compiles unreasonably slowly without optimisation. And do not ask for too many parallel jobs, because a machine that runs out of memory does not fail politely. [What you need](/docs/start/what-you-need) has both in full.
+Two build settings come up again and again: the build type, and the parallel job count. Each project has its own words on both, and [build a toolchain](/docs/guides/build-a-toolchain) quotes them project by project.
 
 ## Verification
 
@@ -85,5 +85,5 @@ How long the loop takes depends on the framework, not on the game. As a console'
 
 - [Port a game](/docs/guides/port-a-game): this process again as a numbered procedure, with the real commands.
 - [Telling code from data](/docs/concepts/code-discovery) and [proving it with co-simulation](/docs/concepts/co-simulation): the two stages that decide whether a port is any good.
-- [What you need](/docs/start/what-you-need), then [quickstart](/docs/start/quickstart) for stages 3 and 4 on your own machine.
+- [Getting started](/docs/start/what-you-need), then [quickstart](/docs/start/quickstart) for stages 3 and 4 on your own machine.
 - [Glossary](/docs/concepts/glossary) for the words this page introduced.

@@ -204,7 +204,7 @@ bring, and stops there.
 
 ## Next
 
-- [What you need](/docs/start/what-you-need) for the practical prerequisites
+- [Getting started](/docs/start/what-you-need) for the practical prerequisites
   before a first build.
 - [Provenance](/docs/fleet/provenance) for the BIOS question across the fleet.
 - [Licenses](/docs/fleet/licenses) for what each repository declares.
