@@ -17,9 +17,10 @@ import "./styles/10-link-previews.css";
 // after 10-link-previews.css so the hover card is not restyled by a docs
 // selector.
 import "./styles/12-docs.css";
-// The documentation's search dialog and the bar affordance that opens it. Its
-// own partial so it can be read on its own; after 12-docs.css because it sits
-// inside that file's bar and uses its measurements.
+// Where the documentation puts the search button. Its own partial so it can be
+// read on its own; after 12-docs.css because it sits inside that file's rail
+// and uses its measurements. The button itself, and the command palette it
+// opens, are 15-search-palette.css at the end of this list.
 import "./styles/13-docs-search.css";
 // The markdown renderer's own class hooks (heading anchors, code figures,
 // callouts, table wrappers). They are emitted on every kind of page, not only
@@ -30,6 +31,11 @@ import "./styles/14-markdown.css";
 // Scoped to .applecms, so it dresses the /admin editor without touching the
 // public site's cascade. Appended last per the partial ordering.
 import "./styles/11-apple-cms.css";
+// The command palette: the button in the nav bar and the dialog it summons.
+// Last, appended rather than inserted, per the partial ordering. It owns the
+// BASE look of that button; 13-docs-search.css only says where the
+// documentation puts it, and stays scoped so it still wins.
+import "./styles/15-search-palette.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Missing #root element");

@@ -412,11 +412,13 @@ function scoreEntry(entry: DocsSearchEntry, terms: string[]): Scored | null {
   return { entry, score, at, summaryAt, headingIndex };
 }
 
-/** The heading a body offset sits under, or -1 when it sits above them all. */
-function headingAt(entry: DocsSearchEntry, at: number): number {
+/** The heading a body offset sits under, or -1 when it sits above them all.
+    Exported because the site-wide palette (src/lib/siteSearch.ts) anchors a
+    documentation hit the same way, and one rule is the point. */
+export function headingAt(headings: DocsSearchHeading[], at: number): number {
   let found = -1;
-  for (let i = 0; i < entry.headings.length; i++) {
-    if (entry.headings[i].at <= at) found = i;
+  for (let i = 0; i < headings.length; i++) {
+    if (headings[i].at <= at) found = i;
     else break;
   }
   return found;
@@ -458,7 +460,7 @@ export function searchDocs(
       hit.headingIndex !== -1
         ? hit.headingIndex
         : hit.at !== -1
-          ? headingAt(entry, hit.at)
+          ? headingAt(entry.headings, hit.at)
           : -1;
     const heading = which !== -1 ? entry.headings[which] : undefined;
     // Show the reader where the match is. A body hit wins; a page matched only

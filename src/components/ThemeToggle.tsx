@@ -1,57 +1,40 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  readStoredTheme,
+  resolveTheme,
+  setTheme,
+  subscribeTheme,
+  systemTheme,
+  type Resolved,
+} from "@/lib/theme";
 
-type Resolved = "light" | "dark";
-
-const STORAGE_KEY = "theme";
-
-function readStored(): Resolved | null {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    return v === "light" || v === "dark" ? v : null;
-  } catch {
-    return null;
-  }
-}
-
-function systemPref(): Resolved {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
-function resolve(): Resolved {
-  return readStored() ?? systemPref();
-}
-
-function apply(theme: Resolved | null) {
-  const root = document.documentElement;
-  if (theme === null) {
-    root.removeAttribute("data-theme");
-  } else {
-    root.setAttribute("data-theme", theme);
-  }
-}
+// The button itself. The mechanism it drives lives in src/lib/theme.ts, because
+// the command palette offers the same three choices and the two must not keep
+// separate ideas of what the page is showing.
 
 export function ThemeToggle() {
   const [resolved, setResolved] = useState<Resolved>(() =>
-    typeof window === "undefined" ? "light" : resolve(),
+    typeof window === "undefined" ? "light" : resolveTheme(),
   );
 
+  // A choice made in the palette ("Theme: dark") has to move this button's icon
+  // too, or the bar goes on offering to switch to the theme already on screen.
+  useEffect(() => subscribeTheme(() => setResolved(resolveTheme())), []);
+
   useEffect(() => {
-    if (readStored() !== null) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => setResolved(systemPref());
+    // Only while nothing is stored, checked per event rather than once: the
+    // palette's "Theme: system" clears the stored choice while this is mounted,
+    // and from that moment the system's preference is the answer again.
+    const onChange = () => {
+      if (readStoredTheme() === null) setResolved(systemTheme());
+    };
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
 
   const toggle = useCallback(() => {
-    const next: Resolved = resolved === "dark" ? "light" : "dark";
-    apply(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, next);
-    } catch {}
-    setResolved(next);
+    setResolved(setTheme(resolved === "dark" ? "light" : "dark"));
   }, [resolved]);
 
   const label = resolved === "dark" ? "Switch to light theme" : "Switch to dark theme";

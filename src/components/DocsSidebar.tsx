@@ -4,7 +4,7 @@ import { Drawer } from "vaul";
 import { DOCS_SECTIONS } from "@/lib/content";
 import { COLLECTION_TITLE } from "@/lib/pageTitle";
 import { entriesInSection } from "./docsNav";
-import { DocsSearch } from "./DocsSearch";
+import { SearchTrigger } from "./SearchPalette";
 
 // The docs sidebar. Built from DOCS_SECTIONS, which is derived from the
 // published docs list, so a draft page cannot appear here while its own URL
@@ -136,16 +136,18 @@ export function DocsNavTree({ currentSlug, onNavigate }: TreeProps) {
 /** The persistent rail. DocsShell mounts it only above the two-column
     breakpoint, where the sheet below takes over.
 
-    The search trigger lives at the top of it. It used to sit in the docs
-    section's own bar; that bar is gone (the site's shared nav bar is the only
-    bar on the page now), and the head of the navigation rail is where a
-    documentation search belongs anyway. DocsShell renders the trigger in its
-    narrow-screen toolbar instead, so exactly one is ever mounted. */
+    The search trigger lives at the top of it, where a reader looks for it. It
+    opens the site's ONE command palette (src/components/SearchPalette.tsx),
+    which searches the documentation, headings and anchors included, alongside
+    everything else the site publishes. There used to be a second, docs-only
+    dialog behind this button; it and the palette both answered Cmd-K, so the
+    docs half was folded into the palette and this is now the same control the
+    nav bar carries, in the place documentation readers expect it. */
 export function DocsSidebar({ currentSlug }: { currentSlug?: string }) {
   return (
     <aside className="docs-sidebar">
       <div className="docs-sidebar-inner">
-        <DocsSearch />
+        <SearchTrigger />
         <DocsNavTree currentSlug={currentSlug} />
       </div>
     </aside>

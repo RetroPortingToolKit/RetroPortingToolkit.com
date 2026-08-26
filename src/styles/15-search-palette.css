@@ -1,0 +1,434 @@
+/* The command palette: the button that summons it, and the dialog itself.
+ *
+ * The last partial, imported after every other one in src/main.tsx; no existing
+ * import moved. It owns the BASE look of the trigger, which two places use (the
+ * nav bar, and the head of the documentation sidebar), so 13-docs-search.css is
+ * now only the documentation's own placement of that same button, scoped under
+ * .docs-sidebar / .docs-toolbar so it still wins here.
+ *
+ * Every colour is a token from 01-base.css, so light and dark both come for
+ * free. The two things worth saying out loud are <mark>, whose user-agent
+ * yellow belongs to neither palette, and the "tint of --ink" trick the bar
+ * already uses: --bg-soft is pure black in the dark palette, so a selected row
+ * painted with it reads as a hole rather than a lift.
+ */
+
+/* -------------------------------- the trigger ----------------------------- */
+
+.site-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  /* Tight on purpose; see the nav bar's own note below. */
+  gap: 6px;
+  height: 30px;
+  padding: 0 7px 0 8px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  /* the same suppression 03-nav.css gives .tab: no grey flash on tap */
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.15s var(--ease),
+    color 0.15s var(--ease),
+    background 0.15s var(--ease);
+}
+.site-search-trigger:hover {
+  color: var(--ink);
+  /* a tint of --ink rather than --bg-soft, which is black in the dark palette
+     and would darken the control instead of lifting it */
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.site-search-trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.site-search-icon {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+/* The word is hidden in the nav bar (see below) and spaced by
+   13-docs-search.css where the documentation shows it, so it needs nothing
+   here beyond the flex gap above. */
+.site-search-trigger-kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  padding: 3px 4px;
+  white-space: nowrap;
+}
+/* No keyboard, no shortcut worth advertising. */
+@media (hover: none) {
+  .site-search-trigger-kbd {
+    display: none;
+  }
+}
+
+/* In the nav bar: the right-hand end of the tab row, beside the theme toggle.
+   The two share one wrapper (.tabs-actions, in Tabs.tsx) because a phone pins
+   them together; margin-left: auto is what pushes that wrapper past the tabs,
+   since the row is a flex container that packs from the left. */
+.tabs-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  margin-left: auto;
+}
+/* 06-responsive.css spaces the toggle from the last tab; inside the wrapper the
+   gap above does that job. */
+.tabs-actions .theme-toggle {
+  margin-left: 0;
+}
+.tabs .site-search-trigger {
+  flex: none;
+}
+/* In the bar, the magnifier and the shortcut ARE the button. The bar is full at
+   its widest: 03-nav.css contracts it into an 840px pill that already holds the
+   brand, five destinations and the theme control, with about 100px to spare, so
+   the word "Search" is the part that does not fit (and "Ctrl K" is wider than
+   "⌘K", so the fit has to hold for the longer one). The documentation sidebar
+   has a full-width box to fill and keeps the word. */
+.tabs .site-search-trigger-label {
+  display: none;
+}
+@media (min-width: 881px) {
+  /* 03-nav.css reserves 64px on the right for the theme toggle, which is out of
+     flow (absolute, 36px wide, 6.5px in). The trigger now ends where that
+     padding starts, so trim the reservation to what the toggle actually needs
+     plus a gap, and give the trigger the rest: the bar has about 100px of slack
+     at its widest and the shortcut hint spends most of it. */
+  .tabs {
+    padding-right: 48px;
+  }
+}
+
+/* --------------------------------- the dialog ----------------------------- */
+
+.site-search-overlay {
+  position: fixed;
+  inset: 0;
+  /* above the sticky page bar (50) and the video lightbox (400) */
+  z-index: 500;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(48px, 12vh, 140px) 16px 24px;
+  background: color-mix(in srgb, var(--bg-soft) 55%, transparent);
+  -webkit-backdrop-filter: blur(10px) saturate(1.3);
+  backdrop-filter: blur(10px) saturate(1.3);
+  animation: site-search-fade 0.16s var(--ease) both;
+}
+@keyframes site-search-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.site-search-panel {
+  width: min(660px, 100%);
+  max-height: min(560px, calc(100vh - 140px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  animation: site-search-rise 0.2s var(--ease) both;
+}
+@keyframes site-search-rise {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.site-search-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 0 16px;
+  height: 54px;
+  flex: none;
+  border-bottom: 1px solid var(--hairline);
+  color: var(--muted);
+}
+.site-search-field .site-search-icon {
+  width: 16px;
+  height: 16px;
+}
+.site-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  /* 16px so an iPhone does not zoom the page when the field takes focus */
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+.site-search-input::placeholder {
+  color: var(--muted);
+}
+.site-search-input:focus {
+  outline: none;
+}
+.site-search-esc {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+.site-search-esc:hover {
+  color: var(--ink);
+}
+.site-search-esc:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.site-search-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.site-search-list {
+  padding: 6px;
+}
+
+/* "Commands" / "Results". Small, quiet, and sticky so the list still says
+   which half is being walked once it has scrolled. */
+.site-search-group-label {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 12px 4px;
+  background: var(--bg);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.site-search-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+}
+.site-search-row--active {
+  /* NOT --bg-soft: in the dark palette that is pure black, and the panel is
+     #1d1d1f, so a selected row painted with it reads as a hole punched in the
+     list rather than as a lift. */
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  border-left-color: var(--accent);
+}
+.site-search-row-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.site-search-row-title {
+  /* takes the free space, so the two labels below sit at the end of the row
+     whether or not there is a section between them */
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.3;
+}
+/* The docs section, and then the kind: "Start here", then "Docs". */
+.site-search-row-section {
+  flex: none;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.site-search-row-kind {
+  flex: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.site-search-row-heading {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.site-search-row-heading::before {
+  content: "#";
+  padding-right: 3px;
+  opacity: 0.6;
+}
+.site-search-row-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  overflow-wrap: break-word;
+  /* two lines is enough to see why something surfaced, and keeps a screenful
+     of rows visible at once */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* "Link copied", for the second the palette stays open to say so. */
+.site-search-row-done {
+  color: var(--accent);
+  font-weight: 550;
+}
+.site-search-mark {
+  /* the user-agent yellow belongs to neither palette */
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--ink);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+
+.site-search-empty {
+  margin: 0;
+  padding: 26px 18px 30px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.site-search-foot {
+  flex: none;
+  display: flex;
+  gap: 16px;
+  padding: 9px 16px;
+  border-top: 1px solid var(--hairline);
+  /* same reason as the active row above: --bg-soft is black in dark */
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.site-search-foot kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  padding: 1px 4px;
+  margin-right: 3px;
+  background: var(--bg);
+}
+
+/* --------------------------------- narrow --------------------------------- */
+
+/* At the width where 06-responsive.css drops the theme toggle into the tab row,
+   the trigger becomes the toggle's twin: a 36px circle carrying just the
+   magnifier. The word and the shortcut hint are what a phone has no room for. */
+@media (max-width: 880px) {
+  .tabs .site-search-trigger {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+    border-color: transparent;
+    border-radius: 999px;
+    color: var(--ink-2);
+  }
+  .tabs .site-search-trigger:hover {
+    background: var(--bg-soft);
+    color: var(--ink);
+  }
+  .tabs .site-search-trigger .site-search-icon {
+    width: 18px;
+    height: 18px;
+  }
+  .tabs .site-search-trigger-kbd {
+    display: none;
+  }
+}
+
+/* Below 761px the tab row scrolls sideways (it is wider than a phone), and a
+   search button you have to scroll to find is not a search button. Pin the two
+   controls to the right edge of the scrollport and let the tabs pass under
+   them. Safe at exactly this width and no wider: the floating-pill treatment in
+   03-nav.css, which makes the bar's own background transparent, starts at
+   761px, and these need something opaque behind them. */
+@media (max-width: 760px) {
+  /* The row's right padding moves INTO the pinned wrapper. A sticky box is held
+     inside its containing block, which is the row's content box, so as long as
+     the padding is the row's the wrapper cannot reach the last 22px and a tab
+     label shows through beside the toggle. Same inset either way, and now the
+     opaque box goes all the way to the edge. */
+  .tabs {
+    padding-right: 0;
+  }
+  .tabs-actions {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background: var(--bg);
+    padding: 0 22px 0 10px;
+  }
+  /* The tabs pass behind it, so they fade out rather than being sliced. */
+  .tabs-actions::before {
+    content: "";
+    position: absolute;
+    right: 100%;
+    top: 0;
+    bottom: 0;
+    width: 26px;
+    background: linear-gradient(to right, transparent, var(--bg));
+    pointer-events: none;
+  }
+}
+
+/* The panel goes near full screen: a phone has no use for a dialog floating in
+   the middle of a page it has covered anyway. */
+@media (max-width: 700px) {
+  .site-search-overlay {
+    padding: 12px 12px 16px;
+  }
+  .site-search-panel {
+    max-height: calc(100vh - 28px);
+  }
+  .site-search-foot {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-search-overlay,
+  .site-search-panel {
+    animation: none;
+  }
+  .site-search-trigger {
+    transition: none;
+  }
+}

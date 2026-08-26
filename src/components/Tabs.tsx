@@ -7,6 +7,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAbout } from "@/lib/about";
 import { COLLECTION_TITLE } from "@/lib/pageTitle";
+import { SearchPalette } from "./SearchPalette";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type TabId = "home" | "hardware" | "game" | "blog";
@@ -212,10 +213,24 @@ export function Tabs({
           >
             {COLLECTION_TITLE.docs}
           </Link>
-          {/* On mobile this sits inline at the end of the tab row so it
-              doesn't crowd the last tab. On desktop CSS pulls it back to
-              the absolute top-right of .tabs-inner. */}
-          <ThemeToggle />
+          {/* The bar's controls, as one thing: on a phone the tab row is wider
+              than the screen and scrolls, and these two are pinned to its right
+              edge (15-search-palette.css) rather than scrolling out of reach,
+              which needs one opaque box behind both.
+
+              The search button is deliberately NOT a .tab: the sliding pill
+              measures querySelectorAll(".tab") against the tabs array by index,
+              and an extra one would scrub the pill onto it. */}
+          <span className="tabs-actions">
+            {/* The command palette's button, and the one palette it opens. This
+                bar renders on every page, so mounting it here is what makes the
+                palette (and Cmd-K) exist everywhere and exactly once. */}
+            <SearchPalette />
+            {/* On mobile this sits inline at the end of the tab row so it
+                doesn't crowd the last tab. On desktop CSS pulls it back to
+                the absolute top-right of .tabs-inner. */}
+            <ThemeToggle />
+          </span>
         </div>
       </div>
     </div>
