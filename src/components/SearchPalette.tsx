@@ -10,7 +10,6 @@ import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ModKbd } from "./ModKbd";
 import { lockBody, unlockBody } from "@/lib/bodyLock";
-import { BLOGS, GAMES, HARDWARE } from "@/lib/content";
 import { buildPaletteCommands } from "@/lib/paletteCommands";
 import {
   closeSearchPalette,
@@ -18,12 +17,8 @@ import {
   registerPaletteFallback,
   useSearchPaletteOpen,
 } from "@/lib/searchPalette";
-import {
-  buildSiteSearchIndex,
-  searchSite,
-  type SiteSearchHit,
-  type SiteSearchIndex,
-} from "@/lib/siteSearch";
+import { searchSite, type SiteSearchHit, type SiteSearchIndex } from "@/lib/siteSearch";
+import { loadSiteSearchIndex } from "@/lib/siteSearchIndex";
 import { setTheme } from "@/lib/theme";
 import type { SnippetPart } from "@/lib/docsSearch";
 
@@ -35,11 +30,9 @@ import type { SnippetPart } from "@/lib/docsSearch";
  * bolted on. Empty, it lists what the site can do; type, and the commands
  * narrow while the whole site's content is ranked underneath them.
  *
- * Nothing is fetched at runtime. Games, Platforms and News are already in the
- * bundle (src/lib/content.ts reads data/ at build time); the documentation
- * arrives as `virtual:docs-search-index`, the build-time index that already
- * existed for the documentation search, dynamically imported so it stays its
- * own chunk and costs nothing until the first open.
+ * Nothing is fetched at runtime. The index is src/lib/siteSearchIndex.ts, built
+ * once per page load on the first open and shared with the WebMCP `search_site`
+ * tool, so the two surfaces can never rank different corpora.
  *
  * The ranking is src/lib/siteSearch.ts, kept pure and asserted without a DOM.
  */
@@ -66,24 +59,6 @@ function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
   const tag = target.tagName;
   return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
-}
-
-// The three flat kinds, whole. Their bodies are in the bundle already, so the
-// index is built from them on the first open rather than shipped twice.
-const CONTENT_ITEMS = [...GAMES, ...HARDWARE, ...BLOGS];
-
-let indexPromise: Promise<SiteSearchIndex> | undefined;
-
-/** Build the index once per session, on the first open. */
-function loadIndex(): Promise<SiteSearchIndex> {
-  if (!indexPromise) {
-    indexPromise = import("virtual:docs-search-index")
-      .then((m) => buildSiteSearchIndex({ items: CONTENT_ITEMS, docs: m.default }))
-      // Without the documentation chunk the palette is still worth having:
-      // everything else is already here.
-      .catch(() => buildSiteSearchIndex({ items: CONTENT_ITEMS }));
-  }
-  return indexPromise;
 }
 
 function Description({ parts }: { parts: SnippetPart[] }) {
@@ -122,7 +97,7 @@ function Dialog() {
 
   useEffect(() => {
     let live = true;
-    loadIndex()
+    loadSiteSearchIndex()
       .then((loaded) => {
         if (!live) return;
         setIndex(loaded);

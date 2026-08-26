@@ -296,6 +296,36 @@ function cmsDevApi(): Plugin {
   };
 }
 
+// The WebMCP tools in src/lib/webmcp.ts need somewhere to register. Chrome
+// serves that API through an origin trial, which needs a token issued for this
+// exact origin; Edge and ChatGPT's browser need nothing. So the token is a
+// build-time slot: set VITE_WEBMCP_OT_TOKEN and the meta tag is emitted, leave
+// it unset and the built HTML is byte for byte what it was. The owner gets a
+// token by registering https://retroportingtoolkit.com at Chrome's origin
+// trials console; it expires, and renewing it means rebuilding with the new
+// value. The prerenderer copies the built index.html into every route, so the
+// tag reaches every page or none.
+function webmcpOriginTrialPlugin(): Plugin {
+  let token = "";
+  return {
+    name: "webmcp-origin-trial",
+    configResolved(cfg) {
+      const env = loadEnv(cfg.mode, process.cwd(), "");
+      token = String(env.VITE_WEBMCP_OT_TOKEN ?? process.env.VITE_WEBMCP_OT_TOKEN ?? "").trim();
+    },
+    transformIndexHtml() {
+      if (!token) return;
+      return [
+        {
+          tag: "meta",
+          attrs: { "http-equiv": "origin-trial", content: token },
+          injectTo: "head" as const,
+        },
+      ];
+    },
+  };
+}
+
 export default defineConfig({
   // agentSurfacesPlugin() must stay AFTER prerenderRoutes(): both write
   // robots.txt at closeBundle and the last one wins. See its comment.
@@ -306,6 +336,7 @@ export default defineConfig({
     agentSurfacesPlugin(),
     docsDataPlugin(),
     cmsDevApi(),
+    webmcpOriginTrialPlugin(),
   ],
   resolve: {
     alias: {

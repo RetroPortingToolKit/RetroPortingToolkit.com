@@ -22,6 +22,37 @@ If you *were* given a token, it looks like `rpt_...`. Never print it back to
 them, never write it into a file, never put it in a URL. Send it only in an
 `Authorization` header. Everything below is for that case.
 
+## If you are running inside a browser
+
+Check for `document.modelContext` (or `navigator.modelContext`). If it is
+there, this site has already registered seven tools on the page through WebMCP.
+Call those instead of parsing HTML. They run in the session the person is
+already signed in with, so there is no token to hold here either.
+
+| Tool | Takes | Returns |
+|---|---|---|
+| `search_site` | `{query}` | up to 10 ranked results across games, consoles, articles and docs |
+| `check_game_ported` | `{title}` | whether the game is already in the catalogue, plus the candidates |
+| `list_platforms` | nothing | every console covered, with its status and maturity |
+| `get_page_markdown` | `{path}` | one documentation page as markdown. `/docs` paths only |
+| `plan_my_port` | `{game_title, console?}` | framework, maturity, the exact commands or the port to copy, and the standing rules |
+| `define_term` | `{term}` | one glossary entry and the link to it |
+| `draft_page` | `{kind, title, desc, body, section?}` | a DRAFT page. Never publishes |
+
+Six of those only read. `draft_page` is the whole write surface, it takes
+`blog` and `docs` only, and it cannot publish: `draft: true` is forced in the
+code, so the page has its own URL and appears in no listing until a person
+publishes it from `/admin`. It writes nothing when nobody is signed in.
+
+Every result is `{ok: true, ...}` or `{ok: false, error}`, and every claim
+carries the absolute URL of the page behind it.
+
+If you are fetching rather than browsing, none of that reaches you. Your read
+surfaces are `/llms.txt`, `/llms-full.txt` and `.md` on any documentation URL,
+and your write surface is the API below.
+
+`/docs/reference/site-tools` documents all seven in full.
+
 ## Post something
 
 One request creates a finished page. Send `POST` to

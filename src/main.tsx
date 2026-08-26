@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import { registerSiteTools } from "./lib/webmcp";
 // Styles are split into ordered partials (cascade order preserved); edit the
 // relevant one instead of one large file. Keep this import order.
 import "./styles/01-base.css";
@@ -44,3 +45,9 @@ createRoot(rootEl).render(
     <App />
   </div>,
 );
+
+// WebMCP: offer this site's tools to a browser that has an agent in it. After
+// the render because nothing on screen waits for it, and once per page load.
+// In a browser with no model context this returns an empty list, logs nothing
+// and changes nothing, which is why it is safe to call unconditionally here.
+void registerSiteTools();

@@ -116,7 +116,8 @@ describe("llms.txt", () => {
 
   it("states plainly what is not supported", () => {
     expect(surfaces.llms).toContain("## Scope and limits");
-    expect(surfaces.llms).toMatch(/no MCP server/);
+    expect(surfaces.llms).toMatch(/no hosted MCP server/);
+    expect(surfaces.llms).toMatch(/WebMCP site tools/);
     // Must not contradict public/agent.md, which says tokens are not issued.
     expect(surfaces.llms).toMatch(/tokens are not currently\s+issued/);
   });

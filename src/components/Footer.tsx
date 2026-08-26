@@ -1,4 +1,6 @@
 import { useAbout } from "@/lib/about";
+import { SITE_TOOLS_PATH } from "@/lib/siteTools";
+import { SmartLink } from "./SmartLink";
 
 export function Footer() {
   const about = useAbout();
@@ -22,6 +24,13 @@ export function Footer() {
           ))}
         </div>
         <div className="site-footer-right">
+          {/* The WebMCP tools this site registers for an agentic browser. One
+              quiet line, in the muted footer style the other links use, on
+              every page: someone whose browser just offered them "site tools"
+              needs somewhere to read what those are. */}
+          <div className="site-footer-elsewhere">
+            <SmartLink href={SITE_TOOLS_PATH}>Site tools for browser agents</SmartLink>
+          </div>
           {mailto && (
             <a href={mailto} className="site-footer-contact">
               {about.email}
