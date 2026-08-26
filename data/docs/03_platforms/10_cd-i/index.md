@@ -129,7 +129,7 @@ From [`runner/src/mcd212_video.c`](https://github.com/mstan/cdirecomp/blob/maste
 
 ## What recomp, lle and probe mean here
 
-cdirecomp is named `recomp`, meaning it is a [static recompiler](/docs/start/what-is-static-recompilation), yet its README describes its philosophy as "**LLE (low-level emulation) and static / native-first**". That is not a contradiction. An `lle` in a repository name records what the project does with the machine's firmware, not which translation technique it uses, and a project can be both, as this one is. The full three-way distinction, including what a `probe` is, is on the [GameCube page](/docs/platforms/gamecube).
+cdirecomp is named `recomp`, meaning it is a [static recompiler](/docs/start/what-is-static-recompilation), yet its README describes its philosophy as "**LLE (low-level emulation) and static / native-first**". That is not a contradiction. An `lle` in a repository name records what the project does with the machine's firmware, not which translation technique it uses, and a project can be both, as this one is. The full three-way distinction, including what a `probe` is, is on the [Xbox page](/docs/platforms/xbox).
 
 ## Source
 

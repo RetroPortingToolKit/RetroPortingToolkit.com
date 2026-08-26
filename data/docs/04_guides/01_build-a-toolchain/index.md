@@ -10,7 +10,6 @@ repos:
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/vbrecomp"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/gbrecompiled"
@@ -32,7 +31,6 @@ This is what each repository claims. It is not a promise that the build works on
 | [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) | The runner builds and runs natively on Windows (MSVC), macOS on Apple Silicon and Intel, and Linux | Recompiler is C11; Visual Studio 17 2022 or Ninja | CMake, CTest | Python for `tools/boot_smoke.py`, `tools/zone_smoke.py`, `tools/package_release.py` | SDL2; submodules `m68k-recomp-core`, `z80-recomp-core`, `recomp-net`; ymfm, superzazu Z80, clowncommon |
 | [ndsrecomp](https://github.com/mstan/ndsrecomp) | Not stated as a platform list; the build is shown with Ninja | C++20 | CMake 3.20 or above | `tools/capture_firmware_images.py`, `tools/export_firmware_bank_configs.py` for firmware bring-up | SDL2 optional at configure time; without it the runner is headless |
 | [cdirecomp](https://github.com/mstan/cdirecomp) | Builds with Visual Studio 17 2022, and is also verified with MinGW gcc plus Ninja | C11 | CMake | `tools/first_divergence.py` and other probes | SDL2 development package |
-| [gcnlle](https://github.com/mstan/gcnlle) | The tested host setup is 64-bit Windows on an AVX2-capable CPU, with MSYS2 MinGW64 GCC, CMake and Ninja | Recompiler is C11; the runtime also builds a C++20 DSP component | CMake plus Ninja, driven by `./build.sh` | `tools/gcn_debug_client.py`, `tools/gcn_cosim.py` | Vulkan optional and auto-detected; defaults to `x86-64-v3`, pass `-DGCN_X86_64_V3=OFF` for an older CPU |
 | [vbrecomp](https://github.com/mstan/vbrecomp) | Windows (MSVC or MinGW), macOS on Apple Silicon and Intel, and Linux | Not stated beyond a C and C++ toolchain | CMake | `python -m unittest discover recompiler/tests` | SDL2, from Homebrew, a distribution package, or a vendored dev pack on Windows. No fiber or coroutine dependency |
 | [smsggrecomp](https://github.com/mstan/smsggrecomp) | Targets Windows (MSVC or MinGW), macOS and Linux | A C toolchain | CMake, with Visual Studio 17 2022 or Ninja | None required for the recompiler | SDL2; recursive submodules for the shared Z80 core |
 | [gbrecompiled](https://github.com/mstan/gbrecompiled) | Desktop platforms unstated. Android is single-ROM only, landscape only, `arm64-v8a` only, controller-first | A C or C++ compiler: Clang, GCC or MSVC | CMake 3.15 or above, Ninja | Tools under `tools/` | SDL2 development libraries. Android additionally needs `gradle`, the Android SDK and NDK, `adb`, and an SDL2 source checkout at `SDL2_SOURCE_DIR` |
@@ -47,7 +45,7 @@ The table covers this fleet's console toolchains. The Xbox probe is not in it. I
 
 > With no `-DCMAKE_BUILD_TYPE`, the framework defaults to **Release** (optimized). The huge generated C compiles unusably slowly at `-O0`, so never build it debug-by-accident.
 
-The build type also decides whether you get debug tools. On psxrecomp, `PSX_DEBUG_TOOLS` is on for Debug and RelWithDebInfo and off for Release, so a Release build has no TCP debug server. [`gcnlle/build.sh`](https://github.com/mstan/gcnlle/blob/master/build.sh) defaults to RelWithDebInfo for the same reason.
+The build type also decides whether you get debug tools. On psxrecomp, `PSX_DEBUG_TOOLS` is on for Debug and RelWithDebInfo and off for Release, so a Release build has no TCP debug server.
 
 **`-j` is a memory setting, not a speed dial.** Two repositories found this out separately. From [`RELEASE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/RELEASE.md) in SuperMarioWorldRecomp:
 
@@ -103,7 +101,7 @@ On Linux and macOS, `sh tools/setup_dev.sh` wraps the same setup. It checks the 
 
 Those three stages, recompiler then regenerate then runner, are the shape the other frameworks repeat. No project publishes that pattern as a rule. It was read out of one real build script, [`build_all.bat`](https://github.com/mstan/FaxanaduRecomp/blob/master/build_all.bat) in FaxanaduRecomp, which numbers the stages and returns a different exit code for each. Treat it as a description of what the scripts do.
 
-> **You provide this.** Nothing on this page needs a game file, and the frameworks do not distribute one. Two optional steps do read a dump you supply yourself: regenerating psxrecomp's retail BIOS backend from `bios/SCPH1001.BIN`, and gcnlle's IPL runtime build from `bios/ipl.bin`. You can skip both. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the contract behind them.
+> **You provide this.** Nothing on this page needs a game file, and the frameworks do not distribute one. One optional step does read a dump you supply yourself: regenerating psxrecomp's retail BIOS backend from `bios/SCPH1001.BIN`. You can skip it. [The game file you supply](/docs/concepts/the-game-file-you-supply) is the contract behind them.
 
 ## Build the other toolchains
 
@@ -200,27 +198,6 @@ python tools/_ping.py --port 4390
 
 **You should now see** a runtime linked against `no_game_linked.c`. It starts, the TCP debug server answers, and no cart code is present. That is the documented result, not a failure.
 
-### gcnlle
-
-One helper script builds everything, and three CTest suites check it:
-
-```bash
-./build.sh
-ctest --test-dir recompiler/build --output-on-failure
-ctest --test-dir runtime/build --output-on-failure
-ctest --test-dir tools/ipl_descramble/build --output-on-failure
-```
-
-The IPL runtime build is a second stage and needs a `bios/ipl.bin` you supply:
-
-```bash
-./build.sh
-./runtime/generate.sh
-cmake -S runtime -B runtime/build-boot -G Ninja \
-  -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGCN_WITH_GENERATED=ON
-cmake --build runtime/build-boot
-```
-
 ### cdirecomp
 
 Recompiler, generated BIOS C, then runtime:
@@ -279,7 +256,7 @@ ninja -C build
 | `regen_bios: no usable recompiler build dir found` | The script builds the BIOS emitter but never configures it | Run stage 1 first. `PSXRECOMP_BIOS_BUILD` overrides the directory and resolves relative to the framework root, not your shell's working directory |
 | `ninja: error: loading 'build.ninja'`, or CMake cannot load the cache | A build was run in a directory that was never successfully configured. `CMakeCache.txt` is written before the generate step, so a failed configure leaves a cache and no generator file | Re-run the same `cmake -S ... -B ...`, read the real error, and delete the build directory if it recurs |
 | `cmake --build` dies with no diagnostic and exit -1 | Memory exhaustion on multi-megabyte translation units | Lower `-j`. psxrecomp recommends `-j 2` or `-j 1` |
-| CMake try-compile reports it is not able to compile a simple test program, under MSYS2 | The msys2 mingw64 gcc needs its own bin directory on PATH for its runtime DLLs | `export PATH="/c/msys64/mingw64/bin:$PATH"` before configuring. `gcnlle/build.sh` does this for you |
+| CMake try-compile reports it is not able to compile a simple test program, under MSYS2 | The msys2 mingw64 gcc needs its own bin directory on PATH for its runtime DLLs | `export PATH="/c/msys64/mingw64/bin:$PATH"` before configuring. |
 | MinGW reports too many sections | Windows COFF objects have a 32,768 section limit and generated C can exceed it on older binutils | Add `-Wa,-mbig-obj` to that file's compile options; binutils 2.40 and newer generally do not need it |
 | `SDL3 3.4+ was not found` | Network access blocked, or `PSX_SDL3_FETCH` turned off | Install a system SDL3 package and set `SDL3_DIR`, or re-enable `-DPSX_SDL3_FETCH=ON` |
 | Configure fails with `FATAL_ERROR` on `PSX_RECOMP_UI=ON` | The `recomp-ui` submodule is absent | Clone with `--recurse-submodules`, or pass `-DPSX_RECOMP_UI=OFF` |
@@ -291,7 +268,7 @@ The full catalogue, with sources and the packaging and runtime failures too, is 
 
 - psxrecomp: [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md), [`docs/TESTING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/TESTING.md), [`runtime/runtime.cmake`](https://github.com/mstan/psxrecomp/blob/master/runtime/runtime.cmake), [`tools/regen_bios.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/regen_bios.sh), [`tools/setup_dev.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/setup_dev.sh)
 - nesrecomp: [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md). snesrecomp: [`README.md`](https://github.com/mstan/snesrecomp/blob/main/README.md). gbarecomp: [`README.md`](https://github.com/mstan/gbarecomp/blob/main/README.md), [`CMakeLists.txt`](https://github.com/mstan/gbarecomp/blob/main/CMakeLists.txt)
-- segagenesisrecomp: [`README.md`](https://github.com/mstan/segagenesisrecomp/blob/master/README.md). vbrecomp: [`README.md`](https://github.com/mstan/vbrecomp/blob/master/README.md). gcnlle: [`README.md`](https://github.com/mstan/gcnlle/blob/master/README.md), [`build.sh`](https://github.com/mstan/gcnlle/blob/master/build.sh)
+- segagenesisrecomp: [`README.md`](https://github.com/mstan/segagenesisrecomp/blob/master/README.md). vbrecomp: [`README.md`](https://github.com/mstan/vbrecomp/blob/master/README.md).
 - cdirecomp: [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md), [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). ndsrecomp: [`README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md). smsggrecomp: [`README.md`](https://github.com/mstan/smsggrecomp/blob/main/README.md). gbrecompiled: [`README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md), [`ANDROID.md`](https://github.com/mstan/gbrecompiled/blob/master/ANDROID.md)
 - The three-stage game build shape: [`FaxanaduRecomp/build_all.bat`](https://github.com/mstan/FaxanaduRecomp/blob/master/build_all.bat)
 

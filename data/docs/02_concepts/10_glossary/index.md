@@ -133,7 +133,7 @@ An ARM7TDMI switching between the 32-bit ARM and 16-bit Thumb instruction sets w
 
 ### LLE (low level emulation)
 
-Running the console's own code, including its firmware where the machine has any, on top of a model of the hardware. gcnlle states it as an order of preference: low level, static recompilation and native execution are the baseline. In snesrecomp the interpreter is the correctness floor, not a last resort.
+Running the console's own code, including its firmware where the machine has any, on top of a model of the hardware. cdirecomp states its philosophy as LLE and static, native first. In snesrecomp the interpreter is the correctness floor, not a last resort.
 
 ### Mapper
 

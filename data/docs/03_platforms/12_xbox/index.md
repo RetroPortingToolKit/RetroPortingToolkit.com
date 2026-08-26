@@ -1,6 +1,6 @@
 ---
 title: "Xbox"
-summary: "xboxlle-probe is not a recompiler and runs no games. It is a small agent that answers fixed read-only measurement questions on a real original Xbox."
+summary: "The Xbox effort is a dynamic recompiler that stays faithful to the machine's own firmware. Its public piece is xboxlle-probe, a small agent that answers fixed read-only measurement questions on a real original Xbox, so the software can be checked against real silicon."
 pageType: "project"
 tags: ["Xbox", "Hardware probe", "Safety"]
 repos:
@@ -8,9 +8,9 @@ repos:
 updated: "2026-08-25"
 ---
 
-[xboxlle-probe](https://github.com/mstan/xboxlle-probe) is not a recompiler, and there is no Xbox port here. It is a measuring instrument: a small homebrew agent that runs on an original Xbox you already own and can already run unsigned code on, plus a Python client that asks it a fixed set of questions over a network socket.
+The Xbox effort here is not a static recompiler. The core team describes `xboxlle` as a dynamic recompiler: it translates the machine's code while the program runs, rather than ahead of time, and it stays faithful to the machine's own firmware. That project is not public yet. Its public piece is [xboxlle-probe](https://github.com/mstan/xboxlle-probe), a measuring instrument: a small homebrew agent that runs on an original Xbox you already own and can already run unsigned code on, plus a Python client that asks it a fixed set of questions over a network socket.
 
-It exists because an emulator needs ground truth. In the repository's words, "It originated as the hardware-oracle component of `xboxlle`: emulator behavior could be compared with measurements from actual silicon instead of assumptions or another emulator." That emulator is a separate project and is not covered here. The catalogue entry for the console is [/hardware/original-xbox](/hardware/original-xbox).
+The probe exists because software like this needs ground truth. In the repository's words, "It originated as the hardware-oracle component of `xboxlle`: emulator behavior could be compared with measurements from actual silicon instead of assumptions or another emulator." The catalogue entry for the console is [/hardware/original-xbox](/hardware/original-xbox).
 
 ## Status, in the project's own words
 
@@ -28,7 +28,7 @@ That last sentence is the honest summary of the whole design. The guards below r
 
 ## What a probe is scoped to do
 
-The fleet uses three suffixes in repository names. A `recomp` project [translates guest machine code ahead of time](/docs/start/what-is-static-recompilation). An `lle` project makes a claim about running the machine's own firmware. A `probe` is neither: it produces no native executable of any guest program, and its entire output is measurements. The full distinction is on the [GameCube page](/docs/platforms/gamecube).
+The fleet uses three suffixes in repository names. A `recomp` project [translates guest machine code ahead of time](/docs/start/what-is-static-recompilation). An `lle` project makes a claim about running the machine's own firmware, whatever translation technique it uses. A `probe` is neither: it produces no native executable of any guest program, and its entire output is measurements.
 
 Concretely, a probe here is a named, fixed, read-only measurement that returns one line of JSON. The README says the named probes "are the intended interface for humans and AI agents". Three exist: `cpu`, `nv2a` and `controller-s-hub`. This is the entire reply from the CPU probe, copied from the README:
 
@@ -146,6 +146,5 @@ Three named probes exist. Two return measurements, one returns a documented refu
 ## Next
 
 - [Original Xbox in the hardware catalogue](/hardware/original-xbox), the shorter entry for this console.
-- [GameCube](/docs/platforms/gamecube), where recomp, lle and probe are defined against each other.
 - [Co-simulation](/docs/concepts/co-simulation), for the oracle role this project fills with hardware instead of a second emulator.
 - [If you are an agent, start here](/docs/agents/start-here), before acting on any of the above.

@@ -9,7 +9,9 @@ repos:
 updated: "2026-08-25"
 ---
 
-This page is for building ports. If you only want to play one, you do not need any of the tools here: go to the [game's page](/games), download its release, and supply your own game file. For building, you need two things. First, a normal set of programming tools, the same ones people use to build any C or C++ program. Second, your own copy of the game, if you want to play what you build. No repository here ships a game.
+**Just playing?** You do not need this page. Every finished port is a normal program: go to the [game's page](/games), download its release, and supply your own game file. That is the whole setup.
+
+**Building?** Keep reading. You need two things. First, a normal set of programming tools, the same ones people use to build any C or C++ program. Second, your own copy of the game, if you want to play what you build. No repository here ships a game.
 
 ## The five tools
 
@@ -68,9 +70,9 @@ This site does not describe how to obtain any of those files.
 
 ## What you do not need
 
-- **A game file, to try any of this.** You can build a toolchain and recompile a real binary without one. That is what the [quickstart](/docs/start/quickstart) does.
+- **A game file, to try any of this.** The [quickstart](/docs/start/quickstart) recompiles a PlayStation BIOS image that ships with psxrecomp, so you can run the whole pipeline end to end before you own anything. To be clear about what that gets you: a recompiled BIOS, not a game.
 - **Any prior knowledge of the console.** You do not need to know how the hardware worked to build one of these projects and run it.
-- **All the extra downloads, every time.** psxrecomp's build document says a plain clone is enough for the recompiler and the runtime, though the [quickstart](/docs/start/quickstart) hit one exception to that. A game project is the opposite: it pulls its toolchain in as a linked copy, and a clone without that copy cannot build.
+- **A separate toolchain download for each game.** A game project pulls its framework in as a linked copy at a pinned commit. Clone with `--recurse-submodules` and the build has everything it needs.
 
 ## Check your setup
 

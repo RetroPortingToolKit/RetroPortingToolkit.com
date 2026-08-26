@@ -1,17 +1,16 @@
 ---
-title: "Quickstart"
-summary: "Build psxrecomp from source, recompile a real PlayStation BIOS image into C, compile that C into a native program, and verify it with the repository's own test suite, using no game file of your own."
+title: "Quickstart: psxrecomp"
+summary: "Build psxrecomp from source, recompile a real PlayStation BIOS image into C, compile that C into a native program, and verify it with the repository's own test suite, using no game file of your own. A BIOS, not a game: the pipeline end to end, on the fleet's most mature framework."
 pageType: "guide"
 tags: ["Quickstart", "Build", "PlayStation"]
 repos:
   - "https://github.com/mstan/psxrecomp"
-  - "https://github.com/mstan/gbrecompiled"
   - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/nesrecomp"
 updated: "2026-08-25"
 ---
 
-This is the shortest path in this fleet from an empty directory to a static recompiler you built, a real binary you recompiled, and a native program that runs the result. It uses [psxrecomp](https://github.com/mstan/psxrecomp), and it needs no game file of your own: the binary you recompile is the openly licensed PlayStation BIOS image the repository ships. You will not have a game running at the end of it. What you get is every stage of the pipeline working on your own machine. If you would rather aim at a game you own, go to [recomp your own game](/docs/start/recomp-your-own-game).
+This is [psxrecomp](https://github.com/mstan/psxrecomp)'s quickstart, and it is the first example on this site because psxrecomp is the fleet's most mature framework. Be clear about what it is before you start: you will be recompiling a PlayStation BIOS image, not a game. The binary you recompile is the openly licensed BIOS the repository ships, so it needs no file of your own, and you will not have a game running at the end. What you get is every stage of the pipeline working on your own machine. If you would rather aim at a game you own, go to [recomp your own game](/docs/start/recomp-your-own-game).
 
 ## Why this one?
 
@@ -19,7 +18,7 @@ Three reasons to trust the commands below.
 
 - **It is the best documented build in the fleet.** [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) gives per-platform prerequisites, the CMake options with their defaults, and a list of build failures with their fixes. The troubleshooting section below comes from it.
 - **It tells you what passing looks like.** Most repositories tell you to build. This one has a verification step with a stated expected result.
-- **It needs nothing from you.** The BIOS it recompiles is OpenBIOS, the PCSX-Redux project's from-scratch, MIT-licensed PS1 BIOS, which is redistributable and is checked into the repository. Nearly every other route here needs a file you supply.
+- **It needs nothing from you.** The BIOS it recompiles is OpenBIOS, the PCSX-Redux project's from-scratch, MIT-licensed PS1 BIOS, which is redistributable and is checked into the repository. A retail BIOS dump you supply works too, and there can be reasons to prefer one over the other; OpenBIOS is the recommended default. Nearly every other route here needs a file you supply.
 
 At the end you have the recompiler binaries, C translated from a real PlayStation binary, a native runtime compiled from that C, and a passing test suite.
 
@@ -74,7 +73,7 @@ cmake -S runtime -B runtime/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPSX_RECO
 cmake --build runtime/build --target psx-runtime
 ```
 
-`PSX_RECOMP_UI` is ON by default and wires in the shared launcher. This page turns it off because the quickstart needs no launcher and builds faster without one. Rewind support stays on, which is why step 1 initialised submodules.
+`PSX_RECOMP_UI` is ON by default and builds the shared launcher. The launcher is [recomp-ui](https://github.com/mstan/recomp-ui), one of the fleet's shared components, like recomp-net. This page turns it off because the quickstart needs no launcher and builds faster without one. Rewind support stays on, which is why step 1 initialised submodules.
 
 **You should now see** `runtime/build/PSXRecomp`, or `PSXRecomp.exe` on Windows. The CMake target is named `psx-runtime` and the executable it produces is named `PSXRecomp`, which is worth knowing before you go looking for a file with the target's name. That binary contains the recompiled BIOS as native code, plus the runtime that stands in for the console's hardware around it.
 
@@ -155,29 +154,6 @@ On MSYS2, the MinGW64 gcc needs its own `bin` directory on `PATH` for its runtim
 
 Two other short paths exist. Both are honest about where they stop.
 
-**Game Boy, if you have your own ROM.** [gbrecompiled](https://github.com/mstan/gbrecompiled) has the fleet's shortest documented route from a clone to a running program, because the recompiler emits a complete CMake project you then build and run.
-
-```bash
-git clone https://github.com/mstan/gbrecompiled.git
-cd gbrecompiled
-cmake -G Ninja -B build .
-ninja -C build
-```
-
-```bash
-# Generate C code from a ROM
-./build/bin/gbrecomp path/to/game.gb -o output/game
-
-# Build the generated project
-cmake -G Ninja -S output/game -B output/game/build
-ninja -C output/game/build
-
-# Run
-./output/game/build/game
-```
-
-You supply `path/to/game.gb` yourself. See [Game Boy and Game Boy Color](/docs/platforms/game-boy) for what that project currently claims about accuracy, and expect interpreter fallbacks in `interp_fallbacks.log` to feed back into your configuration.
-
 **Virtual Boy, with no file at all.** [vbrecomp](https://github.com/mstan/vbrecomp) builds a runtime with no cartridge linked in, and the documented check is a TCP ping rather than a picture:
 
 ```bash
@@ -195,7 +171,6 @@ Its README describes the result exactly: "This produces a `vb-runtime` linked ag
 ## Source
 
 - [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) for every command in steps 1 to 4 and most of the troubleshooting; [`docs/TESTING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/TESTING.md) and [`CONTRIBUTING.md`](https://github.com/mstan/psxrecomp/blob/master/CONTRIBUTING.md) for step 5; [`tools/regen_bios.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/regen_bios.sh) and [`bios/OpenBIOS.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/OpenBIOS.toml) for step 3; [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md) for what the BIOS-only release is; [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/psxrecomp/blob/master/THIRD_PARTY_ATTRIBUTION.md) for OpenBIOS's licence.
-- [gbrecompiled](https://github.com/mstan/gbrecompiled): [`README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md).
 - [vbrecomp](https://github.com/mstan/vbrecomp): [`README.md`](https://github.com/mstan/vbrecomp/blob/master/README.md).
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md).
 

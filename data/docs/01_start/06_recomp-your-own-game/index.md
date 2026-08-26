@@ -24,7 +24,7 @@ difference is tooling, not difficulty.
 | Console | Scaffolding | What starting a port means |
 |---|---|---|
 | PlayStation | Yes | One command creates the project, probes your disc, and can generate and build it |
-| NES, SNES, Game Boy Advance, Game Boy, Genesis, Master System, Virtual Boy, DS | None | You copy the structure of an existing port and adapt it by hand |
+| NES, SNES, Game Boy Advance, Genesis, Master System, Virtual Boy, DS | None | You copy the structure of an existing port and adapt it by hand |
 | CD-i, GameCube, Xbox | Not applicable | Research projects, not a route to a playable port |
 
 [`psxrecomp`](https://github.com/mstan/psxrecomp) ships
@@ -155,7 +155,9 @@ everything it can:
 
 1. Boot and soak the game, fixing missing seeds, overlays and runtime quirks
 2. Test netplay, if the title has it
-3. Add more symbols as you learn the binary
+3. Add more symbols as you learn the binary. If a decompilation project
+   already exists for your game, import its symbols instead of growing your
+   own by hand: it is years of naming work you do not have to repeat
 4. Tag and ship
 
 Code the analysis could not find ahead of time surfaces as a crash or a hang

@@ -54,5 +54,5 @@
 
   <rect class="box" x="16" y="322" width="688" height="52"/>
   <text class="s" x="360" y="346" text-anchor="middle">the LLE baseline: the console's own instructions, recompiled or interpreted</text>
-  <text class="m" x="360" y="364" text-anchor="middle">all three are low level first by constitution, and none of them has conceded</text>
+  <text class="m" x="360" y="364" text-anchor="middle">all three are low level first, and each keeps that floor linked and runnable</text>
 </svg>
