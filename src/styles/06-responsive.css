@@ -39,8 +39,17 @@
   /* one-shot entrance; auto-promotes while playing, no permanent layer */
 }
 
-.modal::-webkit-scrollbar {
-  width: 0;
+/* The modal is the scroll container for every item and collection page, so it
+   shows a scrollbar: it is the only thing telling a reader how long the
+   article is and where they are in it. Thin, matching the docs sidebar and
+   the palette; the browser picks a colour that suits the theme. It also
+   carries tabindex="-1" and takes focus on open, so the keyboard scrolls it. */
+.modal {
+  scrollbar-width: thin;
+}
+.modal:focus,
+.project-split-left:focus {
+  outline: none;
 }
 body.modal-open {
   overflow: hidden;

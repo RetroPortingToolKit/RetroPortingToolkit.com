@@ -7,7 +7,7 @@ import { itemsForKind, pathFor } from "@/lib/content";
 import { ItemDetail, ArticleByline, blogIsSplit } from "./ItemDetail";
 import { Markdown } from "./Markdown";
 import { ProjectCarousel, type Slide } from "./ProjectCarousel";
-import { lockBody, unlockBody } from "@/lib/bodyLock";
+import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
 
 interface Props {
   item: Item;
@@ -257,7 +257,15 @@ function DesktopModal({ item, onClose, covered }: Props) {
     // .modal is the scroll container (overflow-y: auto); .modal-card itself
     // has overflow: hidden and doesn't scroll.
     modalRef.current?.scrollTo({ top: 0, behavior: "auto" });
-  }, [item.slug]);
+    // And whatever scrolls must hold focus, or the keyboard has nothing to
+    // drive: the document can't (body is locked while a modal is open) and
+    // these containers are not focusable on their own, so Space, PageDown,
+    // the arrows and Home/End would all do nothing. Usually that is the
+    // modal, but the split layout keeps the modal at viewport height and
+    // scrolls its left column instead, so ask which one actually overflows.
+    // Covered layers keep their hands off.
+    if (!covered) focusScroller(modalRef.current);
+  }, [item.slug, covered]);
 
   const requestClose = () => {
     if (closing) return;
@@ -289,6 +297,7 @@ function DesktopModal({ item, onClose, covered }: Props) {
           (blogIsSplit(item) ? " modal--demo" : "")
         }
         ref={modalRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={item.title}

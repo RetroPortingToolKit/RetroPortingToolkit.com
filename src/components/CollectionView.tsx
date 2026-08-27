@@ -6,7 +6,7 @@ import { useMobile } from "@/lib/useMobile";
 import { pathFor } from "@/lib/content";
 import { labAll, type LabMedia } from "@/lab/labContent";
 import { SpatialCard } from "./SpatialCard";
-import { lockBody, unlockBody } from "@/lib/bodyLock";
+import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
 
 interface Props {
   title: string;
@@ -161,7 +161,10 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered }: Props)
 
   useEffect(() => {
     modalRef.current?.scrollTo({ top: 0, behavior: "auto" });
-  }, [title]);
+    // Focus the scroll container so the keyboard can drive it; see the same
+    // effect in ItemView.
+    if (!covered) focusScroller(modalRef.current);
+  }, [title, covered]);
 
   const requestClose = () => {
     if (closing) return;
@@ -189,6 +192,7 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered }: Props)
       <div
         className={"modal" + (open ? " open" : "")}
         ref={modalRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={title}
