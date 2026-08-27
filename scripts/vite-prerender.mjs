@@ -250,7 +250,31 @@ function itemImagePath(item) {
   // The page's own cover, which is the only image most items have. Without
   // this an item with a co-located cover shared no image at all: there is no
   // site-wide og/default.jpg to fall back to.
-  return itemCoverPublicPath(item);
+  return itemCoverPublicPath(item) ?? itemCoverAlreadyServed(item);
+}
+
+// The remaining two cover forms need no copy, because each is already a URL a
+// crawler can fetch: a file in public/, served verbatim at that same path, and
+// an absolute URL on somebody else's host, which is how the video posts carry
+// their YouTube thumbnail. Returned as it stands; absoluteImage() decides which
+// one still needs an origin in front of it.
+function itemCoverAlreadyServed(item) {
+  if (/^https?:\/\//.test(item.cover)) return item.cover;
+  if (item.cover.startsWith("/") && !item.cover.startsWith("/data/")) {
+    // A cover naming a file that is not there would emit an og:image that
+    // 404s, and a broken card unfurls worse than no card at all.
+    if (fs.existsSync(path.join(PUBLIC_DIR, item.cover.slice(1)))) {
+      return item.cover;
+    }
+  }
+  return null;
+}
+
+// og:image has to be absolute. A site path gets the serving origin; a cover
+// that is already somebody else's absolute URL is left exactly as it is.
+function absoluteImage(img, origin) {
+  if (!img) return undefined;
+  return /^https?:\/\//.test(img) ? img : `${origin}${img}`;
 }
 
 // Copy every co-located cover to the public path itemCoverPublicPath promised.
@@ -1155,8 +1179,7 @@ export function buildRouteMeta(origin) {
   for (const item of all) {
     const segment = KIND_SEGMENT[item.kind];
     const url = `${origin}/${segment}/${item.slug}`;
-    const imgPath = itemImagePath(item);
-    const image = imgPath ? `${origin}${imgPath}` : defaultImage;
+    const image = absoluteImage(itemImagePath(item), origin) ?? defaultImage;
     const vidPath = itemVideoPath(item);
     const venuePart = item.venue ? ` · ${item.venue}` : "";
     add(`/${segment}/${item.slug}`, {
