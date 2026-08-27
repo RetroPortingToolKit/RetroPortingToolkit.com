@@ -198,11 +198,14 @@ function escapeAttr(s) {
 // audit guarantees every item has a public poster (previews/ or lab-media/).
 const LAB_DIR = { hardware: "hardware", game: "game", blog: "blog", docs: "docs" };
 
-// A cover written as "./file.png" lives beside its index.md under data/, which
-// no URL reaches: Vite bundles it to a content-hashed name for the app, and a
-// hash is no use to a crawler that re-fetches the same og:image URL later. So
-// each one is copied to a stable public path at build time (copyItemCovers)
-// and served from data/ in dev, and both halves agree on this name.
+// Two cover forms name a file under data/: "./file.png" beside the item's own
+// index.md, and "/data/<kind>/<folder>/file.png" for one that lives in another
+// item's folder. src/lib/content.ts resolves both through a Vite glob, so the
+// page itself renders them; what neither reaches is a URL a crawler can use,
+// because Vite gives them content-hashed names and a hash is no use to a
+// crawler that re-fetches the same og:image later. So each one is copied to a
+// stable public path at build time (copyItemCovers) and served from data/ in
+// dev, and both halves agree on this name.
 const OG_ITEM_PREFIX = "/og/items";
 const MIME = {
   ".png": "image/png",
@@ -214,9 +217,13 @@ const MIME = {
 };
 
 function itemCoverSource(item) {
-  if (!item.cover.startsWith("./") || !item.dir) return null;
-  const file = path.join(item.dir, item.cover.slice(2));
-  return fs.existsSync(file) ? file : null;
+  let file = null;
+  if (item.cover.startsWith("./") && item.dir) {
+    file = path.join(item.dir, item.cover.slice(2));
+  } else if (item.cover.startsWith("/data/")) {
+    file = path.join(ROOT, item.cover.slice(1));
+  }
+  return file && fs.existsSync(file) ? file : null;
 }
 
 function itemCoverPublicPath(item) {
