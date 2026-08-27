@@ -198,6 +198,37 @@ function escapeAttr(s) {
 // audit guarantees every item has a public poster (previews/ or lab-media/).
 const LAB_DIR = { hardware: "hardware", game: "game", blog: "blog", docs: "docs" };
 
+// A cover written as "./file.png" lives beside its index.md under data/, which
+// no URL reaches: Vite bundles it to a content-hashed name for the app, and a
+// hash is no use to a crawler that re-fetches the same og:image URL later. So
+// each one is copied to a stable public path at build time (copyItemCovers)
+// and served from data/ in dev, and both halves agree on this name.
+const OG_ITEM_PREFIX = "/og/items";
+const MIME = {
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".avif": "image/avif",
+};
+
+function itemCoverSource(item) {
+  if (!item.cover.startsWith("./") || !item.dir) return null;
+  const file = path.join(item.dir, item.cover.slice(2));
+  return fs.existsSync(file) ? file : null;
+}
+
+function itemCoverPublicPath(item) {
+  const file = itemCoverSource(item);
+  if (!file) return null;
+  // Only real image types: an og:image a crawler cannot decode is worse than
+  // none, and this is also what keeps the dev middleware's Content-Type honest.
+  const ext = path.extname(file).toLowerCase();
+  if (!MIME[ext]) return null;
+  return `${OG_ITEM_PREFIX}/${item.kind}-${item.slug}${ext}`;
+}
+
 function itemImagePath(item) {
   const prev = path.join(PUBLIC_DIR, "previews", `${item.slug}.webp`);
   if (fs.existsSync(prev)) return `/previews/${item.slug}.webp`;
@@ -205,10 +236,29 @@ function itemImagePath(item) {
   // guard path.join() is handed undefined and THROWS, which is how adding a
   // kind used to take the whole build down on its first page.
   const dir = LAB_DIR[item.kind];
-  if (!dir) return null;
-  const still = path.join(PUBLIC_DIR, "lab-media", dir, `${item.slug}.webp`);
-  if (fs.existsSync(still)) return `/lab-media/${dir}/${item.slug}.webp`;
-  return null;
+  if (dir) {
+    const still = path.join(PUBLIC_DIR, "lab-media", dir, `${item.slug}.webp`);
+    if (fs.existsSync(still)) return `/lab-media/${dir}/${item.slug}.webp`;
+  }
+  // The page's own cover, which is the only image most items have. Without
+  // this an item with a co-located cover shared no image at all: there is no
+  // site-wide og/default.jpg to fall back to.
+  return itemCoverPublicPath(item);
+}
+
+// Copy every co-located cover to the public path itemCoverPublicPath promised.
+function copyItemCovers(distDir, items) {
+  const outDir = path.join(distDir, ...OG_ITEM_PREFIX.slice(1).split("/"));
+  let n = 0;
+  for (const item of items) {
+    const src = itemCoverSource(item);
+    const pub = itemCoverPublicPath(item);
+    if (!src || !pub) continue;
+    fs.mkdirSync(outDir, { recursive: true });
+    fs.copyFileSync(src, path.join(distDir, pub.slice(1)));
+    n++;
+  }
+  return n;
 }
 
 function itemVideoPath(item) {
@@ -1296,8 +1346,9 @@ function run(distDir) {
     if (meta.video) withVideo++;
     n++;
   }
+  const covers = copyItemCovers(distDir, collectItems());
   console.log(
-    `[prerender] wrote ${n} routes with social meta (${withVideo} with og:video)`,
+    `[prerender] wrote ${n} routes with social meta (${withVideo} with og:video, ${covers} item covers)`,
   );
   const sitemapCount = writeSitemap(distDir, map);
   writeRobots(distDir);
@@ -1327,6 +1378,19 @@ export function prerenderRoutes() {
     // shared dev link unfurls properly in Discord/iMessage/Slack.
     configureServer(server) {
       return () => {
+        // The build copies co-located covers into dist; in dev they are still
+        // only in data/, so serve them from there under the same URL.
+        server.middlewares.use((req, res, next) => {
+          const urlPath = (req.originalUrl || req.url || "/").split("?")[0];
+          if (!urlPath.startsWith(`${OG_ITEM_PREFIX}/`)) return next();
+          const item = collectItems().find(
+            (i) => itemCoverPublicPath(i) === urlPath,
+          );
+          const file = item && itemCoverSource(item);
+          if (!file) return next();
+          res.setHeader("Content-Type", MIME[path.extname(file).toLowerCase()] ?? "application/octet-stream");
+          res.end(fs.readFileSync(file));
+        });
         server.middlewares.use(async (req, res, next) => {
           try {
             // vite's SPA fallback has already rewritten req.url to
