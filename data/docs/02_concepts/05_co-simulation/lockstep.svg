@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 474" role="img" aria-label="Two implementations stepped to the same guest cycle, each folding a whole-machine hash into a running chain, halting at the first checkpoint whose chains differ.">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 444" role="img" aria-label="The port and a known good emulator stepped to the same guest cycle, each folding a whole-machine hash into a running chain, halting at the first checkpoint whose chains differ.">
   <style>
     /* One ink per theme. A single ink cannot clear 4.5:1 against both a white
        and a near-black page, so each theme gets its own, and each still clears
@@ -25,9 +25,9 @@
   <text class="h" x="170" y="26" text-anchor="middle">the recompiled build</text>
   <text class="m" x="170" y="44" text-anchor="middle">the code under test</text>
 
-  <text class="h" x="550" y="26" text-anchor="middle">an interpreter, or an emulator</text>
-  <text class="m" x="550" y="44" text-anchor="middle">pairing 1: the project's own interpreter</text>
-  <text class="m" x="550" y="58" text-anchor="middle">pairing 2: an independent implementation</text>
+  <text class="h" x="550" y="26" text-anchor="middle">a known good emulator</text>
+  <text class="m" x="550" y="44" text-anchor="middle">the reference, modified so every</text>
+  <text class="m" x="550" y="58" text-anchor="middle">register and memory value can be read</text>
 
   <text class="m" x="360" y="76" text-anchor="middle">both from the same reset</text>
   <line class="rung" x1="16" y1="82" x2="704" y2="82"/>
@@ -93,6 +93,4 @@
 
   <text class="s badt" x="360" y="406" text-anchor="middle">the run halts here</text>
   <text class="m" x="360" y="424" text-anchor="middle">whatever it halts on is the first divergence, by construction</text>
-
-  <text class="m" x="360" y="454" text-anchor="middle">the program counter is deliberately excluded from the compared hash</text>
 </svg>

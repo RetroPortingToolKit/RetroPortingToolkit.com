@@ -8,15 +8,13 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/gbarecomp"
-  - "https://github.com/mstan/gbrecompiled"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/smsggrecomp"
   - "https://github.com/mstan/ndsrecomp"
-  - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/xboxlle-probe"
-updated: "2026-08-25"
+updated: "2026-08-27"
 ---
 
 The repositories here use these forty-five words as though everyone already knows them, and define almost none of them where a newcomer would look. Each entry below is the meaning the repositories attach to the word, not a textbook meaning, with a link to the page that treats it properly.
@@ -61,7 +59,7 @@ The faithful version: the one that ships, and the one any optional extra is chec
 
 ### Chain hash
 
-Every checkpoint's hash in a [co-simulation](#co-simulation) run, folded into one running number. Because it accumulates, any difference anywhere sticks in the final value, which makes that value something to pin as a regression baseline. gbrecompiled commits its baselines to a file and calls the practice a ratchet.
+Every checkpoint's hash in a [co-simulation](#co-simulation) run, folded into one running number. Because it accumulates, any difference anywhere sticks in the final value, which makes that value something to pin as a regression baseline.
 
 ### Code discovery
 
@@ -81,7 +79,7 @@ Two senses. **Recompiler coverage** is how much of the game binary [code discove
 
 ### Cycle exact
 
-Hardware advanced and read at the exact fraction of an instruction rather than at whole instructions. In [gbrecompiled](https://github.com/mstan/gbrecompiled) it is the name of a programme of work, not a claimed state. Do not read the phrase as a status. See [Timing models](/docs/concepts/timing-models).
+Hardware advanced and read at the exact fraction of an instruction rather than at whole instructions. Where a repository uses the phrase it can be naming a programme of work rather than a finished state, so do not read it as a status on its own. See [Timing models](/docs/concepts/timing-models).
 
 ### Disc image
 
@@ -97,7 +95,7 @@ A difference in state between two versions under [co-simulation](#co-simulation)
 
 ### Emulation
 
-Running a program by acting out its instructions in software, one at a time, on a model of the machine it was written for. Static recompilation avoids that for the game's own code. Every port here still keeps an [interpreter](#interpreter) as a fallback and still models the console's devices. See [Is this emulation?](/docs/start/is-this-emulation).
+Running a program by acting out its instructions in software, one at a time, on a model of the machine it was written for. Static recompilation avoids that for the game's own code. Every port here still models the console's devices, and many keep an [interpreter](#interpreter) as a fallback on the way to full static coverage. See [Is this emulation?](/docs/start/is-this-emulation).
 
 ### First divergence
 
@@ -109,7 +107,7 @@ An output mode where one host function runs exactly one guest instruction and re
 
 ### Gate
 
-A pass or fail condition that must hold before a measurement is believed. The word covers three different ladders here, so check which one a document means: gbrecompiled's co-simulation self-checks, the burndown's two conditions for calling an axis done, and ndsrecomp's standing regression gates.
+A pass or fail condition that must hold before a measurement is believed. The word covers three different ladders here, so check which one a document means: the numbered co-simulation self-checks in psxrecomp and nesrecomp, the burndown's two conditions for calling an axis done, and ndsrecomp's standing regression gates.
 
 ### Ground truth
 
@@ -125,7 +123,7 @@ Skipping a piece of the console's own code and having the host do that job its o
 
 ### Interpreter
 
-A small emulator inside a port that reads guest instructions and acts them out one at a time. It is slower than compiled code and it is correct, so a [dispatch miss](#dispatch-miss) lands there and costs speed rather than the game. Several projects also use it as the reference the compiled code is checked against.
+A small emulator inside a port that reads guest instructions and acts them out one at a time. It is slower than compiled code and it is correct, so a [dispatch miss](#dispatch-miss) lands there and costs speed rather than the game. Several projects also compare the compiled code against it as a self-check, which proves agreement, not correctness.
 
 ### Interworking
 
@@ -149,7 +147,7 @@ The 65816 status bits M and X, which pick 8-bit or 16-bit registers. The same by
 
 ### Oracle
 
-The reference version a recompiled build is compared against. A **pairing 1** oracle is the project's own interpreter, which is blind to bugs in the runner. A **pairing 2** oracle is an emulator somebody else wrote, and is the only one that can see those. See [Co-simulation](/docs/concepts/co-simulation).
+The reference a recompiled build is compared against under [co-simulation](#co-simulation): a known good emulator of the console, modified so its registers and memory can be read out and compared while it runs. A project's own interpreter can stand in as a self-check, but only an independent oracle can catch a mistake both halves of one project share. See [Co-simulation](/docs/concepts/co-simulation).
 
 ### Overlay
 
@@ -157,7 +155,7 @@ On PlayStation, a chunk of game code pulled from disc into a fixed area of memor
 
 ### Pairing
 
-Which two versions one [co-simulation](#co-simulation) run compares. Pairing 1 is the recompiled build against the project's own interpreter. Pairing 2 is the recompiled build against an independent emulator. They answer different questions.
+A numbering several repositories use for which two versions one [co-simulation](#co-simulation) run compares. Their pairing 1 is the recompiled build against the project's own interpreter, a self-check. Their pairing 2 is the recompiled build against an independent emulator, the comparison that can arbitrate correctness. See [oracle](#oracle).
 
 ### Probe
 
@@ -189,7 +187,7 @@ Bridging a [dispatch miss](#dispatch-miss) at run time by recompiling the missin
 
 ### Shadow
 
-An optional, more accurate version of a subsystem that runs beside the [canon path](#canon-path), is compared against it continuously, takes over only after a proven run of agreement, reverts loudly, and is off by default. Four projects define it in these terms. It is the one form of [HLE](#hle-high-level-emulation) that vbrecomp permits.
+An optional, more accurate version of a subsystem that runs beside the [canon path](#canon-path), is compared against it continuously, takes over only after a proven run of agreement, reverts loudly, and is off by default. Four projects define it in these terms.
 
 ### Splitgen
 
@@ -201,7 +199,7 @@ Translating a game's binary into source code ahead of time, then compiling that 
 
 ### Stub
 
-Made-up behaviour standing in for real guest code. Forbidden in every toolchain that mentions it. psxrecomp gives the procedure instead: stop, find the real target, fix discovery or code generation. vbrecomp's definition is the widest: code that returns an invented value, swallows an access silently, prints instead of doing the work, or carries a `// TODO` next to control flow.
+Made-up behaviour standing in for real guest code. Forbidden in every toolchain that mentions it. psxrecomp gives the procedure instead: stop, find the real target, fix discovery or code generation.
 
 ### Tier
 
@@ -216,7 +214,6 @@ A reader who notices these is reading correctly. This wiki maps them rather than
 - **One word, three ladders.** [Gate](#gate) names three different sets of conditions.
 - **One word, opposite architectures.** [HLE](#hle-high-level-emulation) in psxrecomp is a swappable BIOS tier that became the default; in ndsrecomp it is a replacement forbidden from deleting the faithful version beneath it.
 - **One mechanism, one console.** [Mode flags](#mode-flags) are a 65816 thing, [interworking](#interworking) an ARM7TDMI thing, a [mapper](#mapper) number an NES number, the [GTE](#gte-geometry-transformation-engine) a PlayStation part. Even the ladder behind [tier](#tier) belongs to one project.
-- **A term this wiki coined and withdrew.** Deferred recompilation was our phrase, not the fleet's. The mechanism is [runtime recompilation](#runtime-recompilation).
 
 ## Source
 
@@ -226,7 +223,7 @@ Every definition above comes from a repository that uses the word seriously. The
 - nesrecomp: [`EXTRACTION.md`](https://github.com/mstan/nesrecomp/blob/master/EXTRACTION.md), [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md). snesrecomp: [`docs/LLE_FIRST_ANALYSIS.md`](https://github.com/mstan/snesrecomp/blob/main/docs/LLE_FIRST_ANALYSIS.md), [`docs/MULTI_TIER.md`](https://github.com/mstan/snesrecomp/blob/main/docs/MULTI_TIER.md)
 - gbarecomp: [`PRINCIPLES.md`](https://github.com/mstan/gbarecomp/blob/main/PRINCIPLES.md). gbrecompiled: [`COSIM_ORACLE.md`](https://github.com/mstan/gbrecompiled/blob/master/COSIM_ORACLE.md), [`GROUND_TRUTH_WORKFLOW.md`](https://github.com/mstan/gbrecompiled/blob/master/GROUND_TRUTH_WORKFLOW.md)
 - segagenesisrecomp: [`PRINCIPLES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/PRINCIPLES.md), [`COVERAGE.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COVERAGE.md). smsggrecomp: [`FLAT_STEP.md`](https://github.com/mstan/smsggrecomp/blob/main/FLAT_STEP.md)
-- ndsrecomp: [`PRINCIPLES.md`](https://github.com/mstan/ndsrecomp/blob/main/PRINCIPLES.md), [`HLE_ARCHITECTURE.md`](https://github.com/mstan/ndsrecomp/blob/main/HLE_ARCHITECTURE.md). vbrecomp: [`STUBS_TO_FIX.md`](https://github.com/mstan/vbrecomp/blob/master/STUBS_TO_FIX.md)
+- ndsrecomp: [`PRINCIPLES.md`](https://github.com/mstan/ndsrecomp/blob/main/PRINCIPLES.md), [`HLE_ARCHITECTURE.md`](https://github.com/mstan/ndsrecomp/blob/main/HLE_ARCHITECTURE.md).
 - cdirecomp: [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md). gcnlle: [`PRINCIPLES.md`](https://github.com/mstan/gcnlle/blob/master/PRINCIPLES.md). xboxlle-probe: [`README.md`](https://github.com/mstan/xboxlle-probe/blob/main/README.md)
 - Ports, for the file contract: [`baserom.md`](https://github.com/mstan/MinishCapRecomp/blob/main/baserom.md) and [`DISC.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/DISC.md)
 

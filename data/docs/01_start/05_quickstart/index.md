@@ -5,9 +5,8 @@ pageType: "guide"
 tags: ["Quickstart", "Build", "PlayStation"]
 repos:
   - "https://github.com/mstan/psxrecomp"
-  - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/nesrecomp"
-updated: "2026-08-25"
+updated: "2026-08-27"
 ---
 
 This is [psxrecomp](https://github.com/mstan/psxrecomp)'s quickstart, and it is the first example on this site because psxrecomp is the fleet's most mature framework. Be clear about what it is before you start: you will be recompiling a PlayStation BIOS image, not a game. The binary you recompile is the openly licensed BIOS the repository ships, so it needs no file of your own, and you will not have a game running at the end. What you get is every stage of the pipeline working on your own machine. If you would rather aim at a game you own, go to [recomp your own game](/docs/start/recomp-your-own-game).
@@ -152,26 +151,13 @@ On MSYS2, the MinGW64 gcc needs its own `bin` directory on `PATH` for its runtim
 
 ## If you would rather aim at a game
 
-Two other short paths exist. Both are honest about where they stop.
+One other short path exists, and it is honest about where it stops.
 
-**Virtual Boy, with no file at all.** [vbrecomp](https://github.com/mstan/vbrecomp) builds a runtime with no cartridge linked in, and the documented check is a TCP ping rather than a picture:
-
-```bash
-python -m unittest discover recompiler/tests
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target vb-runtime
-./build/runtime/vb-runtime --port 4390      # vb-runtime.exe on Windows
-python tools/_ping.py --port 4390
-```
-
-Its README describes the result exactly: "This produces a `vb-runtime` linked against `no_game_linked.c` — the runtime starts, the TCP debug server responds, but no cart code is present."
-
-**NES.** [nesrecomp](https://github.com/mstan/nesrecomp) builds in two commands and recompiles a ROM in one more, but it stops sooner than the other two: "This builds a static library. It does not create a playable game by itself. Each game still needs game-specific configuration and runner integration." [Port a game](/docs/guides/port-a-game) is where that continues.
+**NES.** [nesrecomp](https://github.com/mstan/nesrecomp) builds in two commands and recompiles a ROM in one more, but it stops sooner than this page's path: "This builds a static library. It does not create a playable game by itself. Each game still needs game-specific configuration and runner integration." [Port a game](/docs/guides/port-a-game) is where that continues.
 
 ## Source
 
 - [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) for every command in steps 1 to 4 and most of the troubleshooting; [`docs/TESTING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/TESTING.md) and [`CONTRIBUTING.md`](https://github.com/mstan/psxrecomp/blob/master/CONTRIBUTING.md) for step 5; [`tools/regen_bios.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/regen_bios.sh) and [`bios/OpenBIOS.toml`](https://github.com/mstan/psxrecomp/blob/master/bios/OpenBIOS.toml) for step 3; [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md) for what the BIOS-only release is; [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/psxrecomp/blob/master/THIRD_PARTY_ATTRIBUTION.md) for OpenBIOS's licence.
-- [vbrecomp](https://github.com/mstan/vbrecomp): [`README.md`](https://github.com/mstan/vbrecomp/blob/master/README.md).
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md).
 
 ## Next

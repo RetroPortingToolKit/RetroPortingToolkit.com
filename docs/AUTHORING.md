@@ -179,6 +179,23 @@ a bare path as the whole info string works when the block has no language
   differ, quote each project in the page that owns that detail, or point to
   the page that does. A warning that is true of one toolchain belongs with
   that toolchain, not on a general page.
+- State the current rule and stop. Do not narrate the history of the
+  repositories' own documentation, how this wiki arrived at a wording, or
+  which older document disagrees with a newer one: that is an internal
+  monologue and it does not belong on a page (core developer, 2026-08-27).
+  A practical warning that names the file to trust is still fine.
+- vbrecomp and gbrecompiled do not carry a page's argument: no featured
+  examples, no quoted authorities, no sections built on them (owner and
+  core developer, 2026-08-27). vbrecomp is early and runs exactly one
+  game; gbrecompiled is a development fork of an outside project. Their
+  own platform pages, fleet-wide surveys, registries and citation lists
+  still name and quote them as records of themselves, because leaving
+  them out would make those records false.
+- Co-simulation's reference is a known good emulator of the console, modified
+  so its registers and memory can be read out and compared while it runs,
+  over the same interfaces the recompiled side exposes. A project comparing
+  against its own interpreter is a self-check, not the definition; never
+  define co-simulation by self-comparison.
 - "core project" or "core team", never "first-party". Never "real code".
 - "Pokémon" keeps its accent.
 - Do not invent facts about a project. If a claim cannot be sourced, leave it

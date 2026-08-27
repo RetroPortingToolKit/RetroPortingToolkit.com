@@ -8,9 +8,8 @@ repos:
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/ndsrecomp"
-  - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-25"
+updated: "2026-08-27"
 ---
 
 Two abbreviations turn up in every repository here.
@@ -98,13 +97,9 @@ The layer costs nothing when it is off: "With HLE off the build is byte-identica
 
 A replacement starts off by default. It has to be forced on and proven against the floor. It earns default-on status one item at a time.
 
-A layer is permitted, not required. [vbrecomp](https://github.com/mstan/vbrecomp) allows one shape only, a shadow. A higher fidelity version runs beside the faithful one and is compared against it continuously. It takes over only after a proven run of agreement. It reverts loudly the moment it stops matching. It is off by default, and with it off the output is byte identical.
+A layer is permitted, not required. [snesrecomp](https://github.com/mstan/snesrecomp) states the floor side of the same rule: its interpreter is the correctness floor, not a last resort, and anything built above it answers to that floor. A toolchain that builds no layer at all is following the rule too.
 
-![The floor is the same in all three: the console's own instructions, recompiled or interpreted. What differs is how high above it a replacement may sit. psxrecomp hooks the BIOS entry vector. ndsrecomp allows a hook only at an exact function start. vbrecomp allows only a shadow that runs beside the floor and is diffed against it.](./layering.svg)
-
-## Older documents in the repositories
-
-Some documents inside these repositories phrase this differently. A few still read as a flat ban on HLE of any kind. Those are older than the position above, and they have not all been updated yet. The rule at the top of this page is the current one.
+![The floor is the same in all three: the console's own instructions, recompiled or interpreted. What differs is how high above it a replacement may sit. psxrecomp hooks the BIOS entry vector. ndsrecomp allows a hook only at an exact function start. snesrecomp holds the interpreter as the correctness floor that everything above it answers to.](./layering.svg)
 
 ## Source
 
@@ -112,7 +107,6 @@ Some documents inside these repositories phrase this differently. A few still re
 - [cdirecomp](https://github.com/mstan/cdirecomp): [`PRINCIPLES.md`](https://github.com/mstan/cdirecomp/blob/master/PRINCIPLES.md) and [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md).
 - [psxrecomp](https://github.com/mstan/psxrecomp): [`CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) for the oracle rule, [`runtime/include/bios_hle.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/bios_hle.h) and [`runtime/src/bios_hle.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/bios_hle.c) for the layer.
 - [ndsrecomp](https://github.com/mstan/ndsrecomp): [`PRINCIPLES.md`](https://github.com/mstan/ndsrecomp/blob/main/PRINCIPLES.md), [`HLE_ARCHITECTURE.md`](https://github.com/mstan/ndsrecomp/blob/main/HLE_ARCHITECTURE.md).
-- [vbrecomp](https://github.com/mstan/vbrecomp): [`CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md), [`docs/SHADOW_ENHANCEMENTS.md`](https://github.com/mstan/vbrecomp/blob/master/docs/SHADOW_ENHANCEMENTS.md).
 - [snesrecomp](https://github.com/mstan/snesrecomp): [`docs/LLE_FIRST_ANALYSIS.md`](https://github.com/mstan/snesrecomp/blob/main/docs/LLE_FIRST_ANALYSIS.md).
 
 ## Next

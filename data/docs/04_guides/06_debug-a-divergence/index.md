@@ -6,13 +6,12 @@ tags: ["Debugging", "Co-simulation", "Correctness"]
 repos:
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/gbarecomp"
-  - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/SuperMarioWorldRecomp"
   - "https://github.com/mstan/PokemonStadiumRecomp"
-updated: "2026-08-25"
+updated: "2026-08-27"
 ---
 
 Something is wrong with a port: a comparison halted at a checkpoint, or the screen is black, or the sound is a click. The work that follows goes from the first differing checkpoint down to the one write and the one function behind it. [Proving it with co-simulation](/docs/concepts/co-simulation) explains what co-simulation is and why it halts where it does. Start here once it has printed a report.
@@ -96,7 +95,7 @@ A game with dispatch misses is FUNDAMENTALLY BROKEN. Do not debug
 anything else until resolved.
 ```
 
-vbrecomp, smsggrecomp and cdirecomp state the same rule for their own dispatchers, and all of them call it a silent game-breaking bug. The live equivalent over TCP is `dispatch_miss_info`. psxrecomp attaches the counters to `ping`, so every heartbeat carries `dispatch_miss_total` and `dispatch_miss_unique`. gbrecompiled logs the same idea to `interp_fallbacks.log` and can fold it into a seed manifest with `gbrecomp --harvest <log> --manifest dispatch_misses.toml`.
+vbrecomp, smsggrecomp and cdirecomp state the same rule for their own dispatchers, and all of them call it a silent game-breaking bug. The live equivalent over TCP is `dispatch_miss_info`. psxrecomp attaches the counters to `ping`, so every heartbeat carries `dispatch_miss_total` and `dispatch_miss_unique`.
 
 ### It boots to a black screen
 

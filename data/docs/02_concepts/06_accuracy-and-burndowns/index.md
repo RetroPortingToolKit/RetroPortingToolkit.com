@@ -7,11 +7,9 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/gbarecomp"
-  - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/smsggrecomp"
-  - "https://github.com/mstan/gbrecompiled"
   - "https://github.com/mstan/segagenesisrecomp"
-updated: "2026-08-25"
+updated: "2026-08-27"
 ---
 
 "Does the port work" is not a question anyone can answer, so these projects stopped asking it. Six of them keep a **burndown** instead: a scorecard file, kept in the repository and updated as work lands, that splits the console into seven fixed parts, gives each part a status, names the outside reference it was checked against, and records how it was checked. A burndown is where a project writes down what it has measured and, just as importantly, what it has not.
@@ -77,44 +75,8 @@ Master System, axis 2, from [`SMS_GG_ACCURACY_BURNDOWN.md`](https://github.com/m
 >   boot-offset, not rate drift. Verdict: **JITTER-ONLY** (oscillates, no drift).
 >   `_diag/accuracy/cyc0038_compare.json`.
 
-And the same axis on [vbrecomp](https://github.com/mstan/vbrecomp):
-
-> - [x] **Direct per-instruction cycle Δ MEASURED** via the `RB_CPUHOOK` ring
->   (the `cyc_watch` role; `tools/cpuhook_compare.py`). Over the first 557,125
->   instructions from boot the cumulative cycle Δ (recomp − oracle) stayed
->   within **[−95, 0]**: the flat-base cost model tracks the oracle's
->   guest-cycle counter to **~1e-4**.
 
 Open items are written the same way. The GBA burndown records that memory wait times are fixed at the power-on default, so games that change them "diverge in cycle counts", and that one timing feature is not modelled at all: "NBA models this; we don't."
-
-## The strictest programme in the fleet
-
-[gbrecompiled](https://github.com/mstan/gbrecompiled) shows what done actually costs. On top of the co-simulation self-checks it adds one more, running the public Game Boy test ROMs as fixtures under full-state comparison, because a ROM that prints PASS on screen can still differ mid-run.
-
-A clean run is then pinned so it cannot slip back.
-
-From [`tools/cosim_baselines.tsv`](https://github.com/mstan/gbrecompiled/blob/master/tools/cosim_baselines.tsv):
-
-```text title="tools/cosim_baselines.tsv"
-# Pinned co-simulation A-vs-B (recomp vs interpreter) baselines — the ratchet.
-# The chain hash is the cumulative FNV fold of context-A's full-state hash at
-# every T-cycle checkpoint. A recompiler/runtime change that alters guest
-# behavior changes this hash; that is the regression signal.
-# target        stride  frames  chain
-tetris          456     700     E92927C083145FD7
-megaman_xtreme2 456     1000    B02E9D35794D298E
-instr_timing    456     120     5D103AEB0D3F03DB
-```
-
-Those numbers were re-pinned after two deliberate timing fixes, and the file records why. That is the discipline that keeps a baseline from becoming a rubber stamp: it moves when a behaviour change justifies it, never to make a failure go away.
-
-The scorecard that comes out is not flattering, which is what makes it useful. It reports the CPU, interrupt and HALT tests passing, two memory timing suites failing two subtests each, and one suite failing outright. On another test set the interrupt group is 0 of 5, with the reason stated rather than excused:
-
-> These fail on the per-M-cycle interrupt-*dispatch* axis: our dispatch is
-> instruction-granular (`gb_handle_interrupts` at step/loop boundaries), so the
-> exact-T-cycle checks fail.
-
-The timer group is 9 of 13, with all four failures in one narrow window, which locates the bug instead of just counting it. And the harness runs three ROMs known to pass, to confirm that its pass detection works, "so the FAILs above are real".
 
 ## Where each console stands
 
@@ -128,7 +90,7 @@ Quoted from the burndowns, not upgraded. Read every row with the scope it was me
 | Virtual Boy | All 7 axes recorded as won for one game. Its oracle is "instruction-accurate, not cycle/pipeline-accurate", so the cycle axis cannot be green against that oracle alone. |
 | Master System and Game Gear | All 7 axes validated against two independent oracles, scoped to the exercised path. Its own biggest gap: "**Whole-game validation**: NOT done." |
 | Game Boy and Game Boy Color | Two documents report different results for overlapping ROMs, and neither supersedes the other, so there is no single current number. |
-| Genesis | No seven-axis burndown in the tree. Pairing 1 bit-exact over 2M cycles, pairing 2 gone with the deleted oracle. |
+| Genesis | No seven-axis burndown in the tree. Compiled and its own interpreter agree bit-exact over 2M cycles; the comparison against an outside emulator ended when that oracle was deleted. |
 | PlayStation | Every other burndown names psxrecomp's as the template. That file is not in the repository as cloned, so its per-axis verdicts are not documented here. |
 
 ## What must not be claimed
@@ -136,7 +98,7 @@ Quoted from the burndowns, not upgraded. Read every row with the scope it was me
 These are the projects' own limits on how their numbers may be used.
 
 - Do not say a game "works" or is fully verified. The repositories claim agreement over named tests, with named leftovers.
-- Do not say emulation is absent. Every project models devices, keeps an interpreter as a fallback, and several link somebody else's emulator into development builds.
+- Do not say emulation is absent. Every project models devices, many keep an interpreter as a fallback on the way to full static coverage, and several link somebody else's emulator into development builds.
 - Do not treat co-simulation as proof of hardware correctness. Only an independent oracle arbitrates that.
 - Do not quote a number without its test and its scope, because the projects do not.
 
@@ -144,7 +106,7 @@ These are the projects' own limits on how their numbers may be used.
 
 - nesrecomp: [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md). gbarecomp: [`GBA_ACCURACY_BURNDOWN.md`](https://github.com/mstan/gbarecomp/blob/main/GBA_ACCURACY_BURNDOWN.md)
 - smsggrecomp: [`ACCURACY.md`](https://github.com/mstan/smsggrecomp/blob/main/ACCURACY.md), [`SMS_GG_ACCURACY_BURNDOWN.md`](https://github.com/mstan/smsggrecomp/blob/main/SMS_GG_ACCURACY_BURNDOWN.md). vbrecomp: [`VB_ACCURACY_BURNDOWN.md`](https://github.com/mstan/vbrecomp/blob/master/VB_ACCURACY_BURNDOWN.md)
-- gbrecompiled: [`GATE5_SCORECARD.md`](https://github.com/mstan/gbrecompiled/blob/master/GATE5_SCORECARD.md), [`COSIM_ORACLE.md`](https://github.com/mstan/gbrecompiled/blob/master/COSIM_ORACLE.md), [`tools/cosim_baselines.tsv`](https://github.com/mstan/gbrecompiled/blob/master/tools/cosim_baselines.tsv)
+- gbrecompiled: [`GATE5_SCORECARD.md`](https://github.com/mstan/gbrecompiled/blob/master/GATE5_SCORECARD.md), [`COSIM_ORACLE.md`](https://github.com/mstan/gbrecompiled/blob/master/COSIM_ORACLE.md)
 - snesrecomp: [`SNES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_ACCURACY_BURNDOWN.md). segagenesisrecomp: [`COSIM.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COSIM.md)
 
 ## Next

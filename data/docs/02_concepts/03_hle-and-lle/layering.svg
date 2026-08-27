@@ -44,12 +44,12 @@
   <text class="m" x="272" y="236">body that stays linked</text>
   <line class="ln" x1="367" y1="242" x2="367" y2="322"/>
 
-  <text class="h" x="589" y="28" text-anchor="middle">vbrecomp</text>
-  <text class="m" x="589" y="46" text-anchor="middle">off by default, reverts loudly</text>
+  <text class="h" x="589" y="28" text-anchor="middle">snesrecomp</text>
+  <text class="m" x="589" y="46" text-anchor="middle">the interpreter is the floor</text>
   <rect class="box" x="482" y="250" width="214" height="62"/>
-  <text class="s" x="494" y="272">nowhere above the floor</text>
-  <text class="m" x="494" y="290">no HLE layer, and no interpreter</text>
-  <text class="m" x="494" y="306">a shadow runs beside it, diffed</text>
+  <text class="s" x="494" y="272">above the floor only</text>
+  <text class="m" x="494" y="290">the interpreter is the</text>
+  <text class="m" x="494" y="306">correctness bar, not a last resort</text>
   <line class="ln" x1="589" y1="312" x2="589" y2="322"/>
 
   <rect class="box" x="16" y="322" width="688" height="52"/>

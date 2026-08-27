@@ -9,7 +9,7 @@ repos:
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/ndsrecomp"
-updated: "2026-08-25"
+updated: "2026-08-27"
 ---
 
 Nothing here plays a game on its own. Every port is a program that needs a file
@@ -184,23 +184,16 @@ authorized to use". Those are requirements the projects place on their users.
 This site does not characterise the legality of anything and does not describe
 how to obtain a game file.
 
-The shortest wording in the fleet is also the most restrained. vbrecomp's
-[`LICENSE`](https://github.com/mstan/vbrecomp/blob/master/LICENSE) says, in
-full, "This project ships no ROM data." MetroidNESRecomp takes two sentences:
+The wording is short everywhere. MetroidNESRecomp takes two sentences:
 "**You must supply your own Metroid ROM.** No copyrighted game data is included
-in this repository." Each says what the repository lacks and what you must
+in this repository." It says what the repository lacks and what you must
 bring, and stops there.
-
-> **Note.** Not every repository words it the same way, and a few attach no
-> condition at all. MarioTennisVirtualBoyRecomp's
-> [`README.md`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/README.md)
-> is the shortest: "Provide your own cart dump."
 
 ## Source
 
 - [psxrecomp](https://github.com/mstan/psxrecomp): [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md). [cdirecomp](https://github.com/mstan/cdirecomp): [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md). [ndsrecomp](https://github.com/mstan/ndsrecomp): [`README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md)
 - [gbarecomp](https://github.com/mstan/gbarecomp): [`bios/README.md`](https://github.com/mstan/gbarecomp/blob/main/bios/README.md). [snesrecomp](https://github.com/mstan/snesrecomp): [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/snesrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md). [gcnlle](https://github.com/mstan/gcnlle): [`THIRD_PARTY_NOTICES.md`](https://github.com/mstan/gcnlle/blob/master/THIRD_PARTY_NOTICES.md)
-- Ports: [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) [`baserom.md`](https://github.com/mstan/MinishCapRecomp/blob/main/baserom.md), [BoktaiRecomp](https://github.com/Shy/BoktaiRecomp) [`baserom.md`](https://github.com/Shy/BoktaiRecomp/blob/main/baserom.md), [PokemonYellowRecomp](https://github.com/mstan/PokemonYellowRecomp) [`README.md`](https://github.com/mstan/PokemonYellowRecomp/blob/main/README.md), [vbrecomp](https://github.com/mstan/vbrecomp) [`LICENSE`](https://github.com/mstan/vbrecomp/blob/master/LICENSE), [MetroidNESRecomp](https://github.com/mstan/MetroidNESRecomp) [`README.md`](https://github.com/mstan/MetroidNESRecomp/blob/main/README.md), [Klonoa](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile) [`README.md`](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile/blob/master/README.md)
+- Ports: [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) [`baserom.md`](https://github.com/mstan/MinishCapRecomp/blob/main/baserom.md), [BoktaiRecomp](https://github.com/Shy/BoktaiRecomp) [`baserom.md`](https://github.com/Shy/BoktaiRecomp/blob/main/baserom.md), [PokemonYellowRecomp](https://github.com/mstan/PokemonYellowRecomp) [`README.md`](https://github.com/mstan/PokemonYellowRecomp/blob/main/README.md), [MetroidNESRecomp](https://github.com/mstan/MetroidNESRecomp) [`README.md`](https://github.com/mstan/MetroidNESRecomp/blob/main/README.md), [Klonoa](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile) [`README.md`](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile/blob/master/README.md)
 
 ## Next
 
