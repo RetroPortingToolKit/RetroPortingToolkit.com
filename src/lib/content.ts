@@ -335,7 +335,17 @@ const allItems: Item[] = Object.entries(rawMd)
 // resolves it, so its own URL renders and the editor can preview it.
 export const HARDWARE = allItems.filter((i) => i.kind === "hardware" && !i.draft);
 export const GAMES = allItems.filter((i) => i.kind === "game" && !i.draft);
-export const BLOGS = allItems.filter((i) => i.kind === "blog" && !i.draft);
+// Blog is the one kind where recency is the order a reader expects, so it
+// sorts newest first instead of by folder prefix. Two early posts carry only
+// a year, so the key falls back year, then folder order breaks ties, newer
+// folder first. The feeds already sort by date on their own.
+const blogRecency = (i: Item) => i.date || (i.year ? `${i.year}-01-01` : "0000-00-00");
+export const BLOGS = allItems
+  .filter((i) => i.kind === "blog" && !i.draft)
+  .sort((a, b) => {
+    const d = blogRecency(b).localeCompare(blogRecency(a));
+    return d !== 0 ? d : b.order - a.order;
+  });
 // Docs pages, section index pages included. `slug` is the full path under
 // /docs (a section index is "start", a page is "start/quickstart"), so this
 // list is flat and DOCS_SECTIONS below is the shape a sidebar wants.

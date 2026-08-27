@@ -622,10 +622,20 @@ function wrapStatic(inner) {
 
 function itemListHtml(items, kind) {
   const segment = KIND_SEGMENT[kind];
+  // Blog lists newest first, matching src/lib/content.ts's BLOGS order: date,
+  // then a bare year as January 1st, then folder order breaks ties with the
+  // newer folder first. Other kinds keep their curated folder order.
+  const recency = (i) => i.date || (i.year ? `${i.year}-01-01` : "0000-00-00");
+  const listed = items.filter((i) => i.kind === kind);
+  if (kind === "blog") {
+    listed.sort((a, b) => {
+      const d = recency(b).localeCompare(recency(a));
+      return d !== 0 ? d : b.order - a.order;
+    });
+  }
   return (
     "<ul>" +
-    items
-      .filter((i) => i.kind === kind)
+    listed
       .map((i) => {
         const meta = [i.venue, i.year || i.date].filter(Boolean).join(", ");
         return (

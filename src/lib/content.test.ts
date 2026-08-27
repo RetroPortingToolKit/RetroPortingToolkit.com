@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatArticleDate, isVideoSrc, isYouTubeSrc, youtubeEmbedUrl } from "./content";
+import { formatArticleDate, isVideoSrc, isYouTubeSrc, youtubeEmbedUrl , BLOGS } from "./content";
 
 describe("formatArticleDate", () => {
   it("renders a full date", () => {
@@ -27,5 +27,19 @@ describe("media source detection", () => {
     expect(youtubeEmbedUrl("https://youtu.be/dQw4w9WgXcQ")).toContain(
       "youtube.com/embed/dQw4w9WgXcQ",
     );
+  });
+});
+
+describe("blog ordering", () => {
+  const key = (i: (typeof BLOGS)[number]) =>
+    i.date || (i.year ? `${i.year}-01-01` : "0000-00-00");
+  it("lists newest first", () => {
+    for (let n = 1; n < BLOGS.length; n++) {
+      expect(key(BLOGS[n - 1]) >= key(BLOGS[n])).toBe(true);
+    }
+  });
+  it("puts the most recent dated post at the top", () => {
+    const newest = [...BLOGS].sort((a, b) => key(b).localeCompare(key(a)))[0];
+    expect(BLOGS[0].slug).toBe(newest.slug);
   });
 });
