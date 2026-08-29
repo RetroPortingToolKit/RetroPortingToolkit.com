@@ -18,6 +18,8 @@ The required files vary by platform:
 - Cartridge projects generally use a clean dump in the exact revision the port supports.
 - Some systems also need a separate coprocessor or system ROM.
 
+For PlayStation discs, a Redump-style dump is a useful consistency target: the `.cue` describes the disc's track layout and the `.bin` files preserve those tracks. Follow the toolchain's current checker rather than converting files just to match a filename.
+
 ## Use a clean, matching dump
 
 Generated code is tied to exact bytes and addresses. A trimmed, patched, region-mismatched or otherwise altered image may be rejected—or may compile while behaving incorrectly. The port's own verification file is the authority for the revision it supports.
