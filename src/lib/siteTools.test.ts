@@ -284,9 +284,9 @@ describe("get_page_markdown fetching", () => {
 describe("define_term", () => {
   const page = glossaryPage(DOCS);
 
-  it("reads all forty-five terms out of the glossary, each with an anchor", () => {
+  it("reads all forty-eight terms out of the glossary, each with an anchor", () => {
     const entries = glossaryEntries(page);
-    expect(entries.length).toBe(45);
+    expect(entries.length).toBe(48);
     for (const entry of entries) {
       expect(entry.term, entry.term).toBeTruthy();
       expect(entry.id, entry.term).toBeTruthy();

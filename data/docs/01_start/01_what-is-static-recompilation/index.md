@@ -7,26 +7,40 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/cdirecomp"
-updated: "2026-08-25"
+updated: "2026-08-29"
 ---
 
 A console game is a binary: compiled machine code, built for a machine nobody makes any more. It is not source code, and your computer cannot run it. Static recompilation reads that binary before the game ever runs and translates it into source code in an ordinary programming language. That source is compiled for the computer you actually own. What comes out is a normal program. Your computer runs the game's own logic directly, instead of running an emulator that reads the game's instructions and acts them out one at a time while you play. Static means the translation happens ahead of time, once, on a developer's machine. The translated code is joined to a runtime, a library that stands in for the console's hardware. It can be done in any language; the projects here write C.
 
+> **About the word recompilation.** Recompiling normally means taking code a
+> compiler turned into a binary, turning that binary back into code, and
+> compiling it again. Older machines were not made that way. Games for the NES,
+> the SNES and the Game Boy were written by hand in assembly, so no compiler was
+> involved the first time. Strictly, those are being compiled once here, not
+> re-compiled. The steps are identical either way, so this site uses the one word
+> for all of them.
+
 ## What the recompiler writes
 
-The tool that does the translation is called the recompiler. It reads a binary and writes code.
+Recompiler is the name for the whole tool, and it is made of parts. The part that reads the binary and works out what each instruction does is a decoder: binary goes in, code comes out. An ordinary compiler then builds that code for your machine. What it builds is linked against a runtime, the library that stands in for the console's hardware. The three travel together in these projects, which is why the one word ends up covering all of them.
 
-It works out where each of the game's own functions begins and writes one function of source code for each. It writes a lookup table too, so the program can find the right function when the game asks for an address. Wherever the game reads or writes memory, it writes a call into the runtime instead.
+The decoder works out where each of the game's own functions begins and writes one function of source code for each. It writes a lookup table too, so the program can find the right function when the game asks for an address. Wherever the game reads or writes memory, it writes a call into the runtime instead.
 
 Nothing about the result is exotic. The projects here emit C, so an ordinary C compiler builds it and you can read the output. [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime) shows what that generated code looks like, and each [platform page](/docs/platforms) shows one console's version of it.
 
 ## Why not just emulate it?
 
-An emulator is a second program. While you play, it reads the game's binary one instruction at a time and acts each one out. That is called interpreting, and it is what emulation means here. It pays for the same work over and over: read an instruction, work out what it means, do it, start again. A loop the game runs a million times pays that cost a million times.
+An emulator is a second program. While you play, it reads the game's binary one instruction at a time and acts each one out, just in time: the work happens at the moment the game needs it, never before. That is called interpreting, and it is what emulation means here. It pays for the same work over and over: read an instruction, work out what it means, do it, start again. A loop the game runs a million times pays that cost a million times.
 
 Static recompilation moves that work to build time. Each instruction is read once, ever, and what it does is written down as code. While you play there is nothing left to read and nothing left to work out. There is only compiled code.
 
-Some games keep code where the recompiler cannot see it ahead of time. [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) covers those cases.
+## Static, or native?
+
+Static is a strong claim: every byte of the game's own code was found and translated before the game ever ran. On a real game that is often not fully reachable. A PlayStation game, for one, pulls chunks of code in from the disc while it plays, and code that is not in the executable cannot be read ahead of time.
+
+What happens then is still not interpreting. The chunk is captured as it loads, translated, and kept, so the game ends up running compiled code on your processor either way. It simply was not compiled at build time.
+
+The two words are worth keeping apart. **Native** says the game's own logic runs as compiled code on your machine. **Static** says that translation all happened ahead of time. The aim is static, or as close to it as a game allows; where a game does not allow it, the work moves to run time and what runs is still native, still not an emulator reading instructions and acting them out. [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) covers how each console handles it.
 
 ## What it buys
 
@@ -61,4 +75,4 @@ The game's own code is translated ahead of time and runs as compiled code. The c
 - [How a port is made](/docs/start/how-a-port-is-made): the same idea as a sequence, stage by stage.
 - [Is this emulation?](/docs/start/is-this-emulation): where emulation does and does not come in.
 - [Telling code from data](/docs/concepts/code-discovery): the hard part, on one console.
-- [Quickstart](/docs/start/quickstart) has you run a recompiler yourself. [The glossary](/docs/concepts/glossary) defines every word above.
+- [Quickstart](/docs/start/quickstart) has you run a recompiler yourself. [The glossary](/docs/concepts/glossary) defines every word above, native and decoder included.

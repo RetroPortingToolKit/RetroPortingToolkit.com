@@ -170,6 +170,20 @@ a bare path as the whole info string works when the block has no language
   build keeps shrinking. Do not write "months of work per game", and do not
   assert the five-minute figure as a general claim: it belongs only on the
   Street Fighter Alpha 3 pages, attributed to the team that cites it.
+- **Native and static are different claims, and a page keeps them apart.**
+  Native says the game's own logic runs as compiled code on the player's
+  processor. Static says all the translating happened before the game ran. A
+  game that pulls code in while it plays can still be native: that code is
+  translated at run time and kept, which is not interpretation either. The aim
+  is static, or as near it as a game allows (core developer, 2026-08-28).
+- The "re" in recompilation is loose, and a page may say so once where it
+  helps. A game written by hand in assembly was never compiled in the first
+  place, so NES, SNES and Game Boy titles are being compiled once here rather
+  than re-compiled. The pipeline is the same either way, so one word covers
+  both.
+- Being strict, the part that turns a binary back into code is a decoder.
+  Recompiler is the name for the whole tool: the decoder, the compiler that
+  builds its output, and the runtime that output links against.
 - A heading that is a question carries a question mark. A noun phrase does
   not.
 - The start section speaks for the ecosystem generally. Name a specific

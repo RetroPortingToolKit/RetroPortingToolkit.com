@@ -1,6 +1,6 @@
 ---
 title: "Glossary"
-summary: "Forty-five words this fleet uses as if everyone knows them, each defined the way the repositories actually use it, with the console-specific ones named as such and the contradictions marked rather than smoothed over."
+summary: "Forty-eight words this fleet uses as if everyone knows them, each defined the way the repositories actually use it, with the console-specific ones named as such and the contradictions marked rather than smoothed over."
 pageType: "reference"
 tags: ["Glossary", "Vocabulary", "Reference"]
 repos:
@@ -17,7 +17,7 @@ repos:
 updated: "2026-08-27"
 ---
 
-The repositories here use these forty-five words as though everyone already knows them, and define almost none of them where a newcomer would look. Each entry below is the meaning the repositories attach to the word, not a textbook meaning, with a link to the page that treats it properly.
+The repositories here use these forty-eight words as though everyone already knows them, and define almost none of them where a newcomer would look. Each entry below is the meaning the repositories attach to the word, not a textbook meaning, with a link to the page that treats it properly.
 
 Some of these words describe hardware only one console has. Those entries name the console. An entry that names no console is meant to hold everywhere.
 
@@ -81,6 +81,10 @@ Two senses. **Recompiler coverage** is how much of the game binary [code discove
 
 Hardware advanced and read at the exact fraction of an instruction rather than at whole instructions. Where a repository uses the phrase it can be naming a programme of work rather than a finished state, so do not read it as a status on its own. See [Timing models](/docs/concepts/timing-models).
 
+### Decoder
+
+The part that reads the game's binary and works out what each instruction does, then writes it as source code. Binary in, code out. Being strict, the decoder is what does the translation, not the whole [recompiler](#recompiler): in these projects that one word covers the decoder, the compiler that builds its output, and the [runtime](#runtime) that output links against. See [What static recompilation is](/docs/start/what-is-static-recompilation).
+
 ### Disc image
 
 The disc version of a [baserom](#baserom). On PlayStation the sector format matters: the ports ask for a bin/cue pair in the console's own sector layout, and warn against converting to a plain ISO, which throws away the sectors used for streamed audio and video.
@@ -129,6 +133,10 @@ A small emulator inside a port that reads guest instructions and acts them out o
 
 An ARM7TDMI switching between the 32-bit ARM and 16-bit Thumb instruction sets while it runs. gbarecomp's rule is "Treat it as one CPU, not two." It is the defining difficulty of the Game Boy Advance toolchain, because the recompiler has to know which instruction set was live at every address.
 
+### Just in time
+
+Work done at the moment it is needed rather than before. An [interpreter](#interpreter) reads and acts out each instruction just in time, which is why it pays the same cost every time round a loop. [Runtime recompilation](#runtime-recompilation) is also just in time, but it translates a piece once and keeps the result. The opposite is [ahead of time](#aot-ahead-of-time).
+
 ### LLE (low level emulation)
 
 Running the console's own code, including its firmware where the machine has any, on top of a model of the hardware. cdirecomp states its philosophy as LLE and static, native first. In snesrecomp the interpreter is the correctness floor, not a last resort.
@@ -144,6 +152,10 @@ The `manifest.toml` at the root of a mod package. It declares the package, its v
 ### Mode flags
 
 The 65816 status bits M and X, which pick 8-bit or 16-bit registers. The same bytes mean different things under different settings, so snesrecomp emits one version of a function per setting, with the flags in the name. That is why a SNES port has several functions where an NES port has one. See [SNES](/docs/platforms/snes).
+
+### Native
+
+The game's own logic running as compiled code on your processor instead of being acted out by an [interpreter](#interpreter). Wider than [static](#static-recompilation): a build is still native when some code had to be translated while the game ran, because what finally executes is compiled either way. Native says what runs, static says when the translating happened. See [What static recompilation is](/docs/start/what-is-static-recompilation).
 
 ### Oracle
 
@@ -167,7 +179,7 @@ Two senses. Narrowly, in nesrecomp, a record of how each function was found, so 
 
 ### Recompiler
 
-The build-time program that reads the game's binary and writes source code. It runs on a developer's machine and never while the game does. It is one half of the split every project here repeats. See [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime).
+The build-time program that reads the game's binary and writes source code. It runs on a developer's machine and never while the game does. It is one half of the split every project here repeats. Strictly the part doing the translation is a [decoder](#decoder); the word recompiler is used for the whole tool. See [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime).
 
 ### Ruler
 
@@ -195,7 +207,7 @@ The output mode that writes the recompiled game as one shared header plus a fixe
 
 ### Static recompilation
 
-Translating a game's binary into source code ahead of time, then compiling that into a native program which links against a [runtime](#runtime). The technique needs no particular language; the projects here emit C. It says nothing about how much of the console is simulated. See [What static recompilation is](/docs/start/what-is-static-recompilation) and [Is this emulation?](/docs/start/is-this-emulation).
+Translating a game's binary into source code ahead of time, then compiling that into a [native](#native) program which links against a [runtime](#runtime). The technique needs no particular language; the projects here emit C. It says nothing about how much of the console is simulated. Static is the strict half of the claim: all the translating happened before the game ran. The re is loose too, because a game written by hand in assembly was never compiled to begin with. See [What static recompilation is](/docs/start/what-is-static-recompilation) and [Is this emulation?](/docs/start/is-this-emulation).
 
 ### Stub
 
