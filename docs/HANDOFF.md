@@ -452,3 +452,5 @@ both pages already link their source article under `links:`.
 - Rewrote `recompiler-and-runtime` as a reader-facing concept page without source dumps, repository internals or implementation-specific commands.
 - Simplified `recomp-your-own-game` into a user workflow that points dependency checks and exact commands to the starter repository/agent, and clarified that a successful build is only the start of porting.
 - Added the hardware-decoupling and modifiability benefit to `what-is-static-recompilation` and removed its jarring source appendix.
+- Simplified `code-discovery` to the core reader-facing model (evidence, guesses and runtime fallback), removing source dumps and console-specific implementation detail.
+- Rewrote `the-game-file-you-supply` as concise legal/technical guidance: users bring authorized files, keep them private, and match the exact revision; repository citations and quoted legal text are gone.
