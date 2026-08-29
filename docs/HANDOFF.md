@@ -439,5 +439,5 @@ both pages already link their source article under `links:`.
   URL, and co-located-cover tests. The WebMCP origin-trial plugin rejects an
   expired token during a build; the current token expires 2026-11-17 UTC.
 - Verification after this pass: typecheck green, production build green, 719
-  tests green. Production dependencies still report two moderate
-  `react-router` advisories with an available update.
+  tests green. React Router is on the v7 line; `npm audit --omit=dev` reports
+  zero production vulnerabilities.
