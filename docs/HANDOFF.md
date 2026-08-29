@@ -438,6 +438,6 @@ both pages already link their source article under `links:`.
 - `buildRouteMeta` cover helpers have direct traversal, public-path, external-
   URL, and co-located-cover tests. The WebMCP origin-trial plugin rejects an
   expired token during a build; the current token expires 2026-11-17 UTC.
-- Verification after this pass: typecheck green, production build green, 718
+- Verification after this pass: typecheck green, production build green, 719
   tests green. Production dependencies still report two moderate
   `react-router` advisories with an available update.
