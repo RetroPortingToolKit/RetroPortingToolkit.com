@@ -52,6 +52,21 @@
   /* Clears the fixed bar. `.page-main` supplies the 32px of breathing room. */
   padding-top: calc(var(--docs-bar-h) + 32px);
 }
+.docs-alpha-banner {
+  max-width: var(--docs-max, 1280px);
+  margin: 0 auto 20px;
+  padding: 12px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  border: 1px solid var(--hairline);
+  border-left: 4px solid var(--accent);
+  border-radius: 8px;
+  background: var(--bg-soft);
+  color: var(--ink-2);
+  font-size: 0.9rem;
+}
+.docs-alpha-banner strong { color: var(--ink); }
 
 .docs-layout {
   --docs-rail: 236px;

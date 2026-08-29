@@ -455,3 +455,4 @@ both pages already link their source article under `links:`.
 - Simplified `code-discovery` to the core reader-facing model (evidence, guesses and runtime fallback), removing source dumps and console-specific implementation detail.
 - Rewrote `the-game-file-you-supply` as concise legal/technical guidance: users bring authorized files, keep them private, and match the exact revision; repository citations and quoted legal text are gone.
 - Public rendering now suppresses the contents of every `## Source` appendix while retaining the heading for stable navigation; added a brief Redump-format explanation to the game-file guidance.
+- Added a site-wide documentation preview banner: docs remain available for the v1 launch, but clearly signal that they are early and that linked repositories are the source of truth for exact commands/support.

@@ -70,7 +70,11 @@ export function DocsShell({ currentSlug, rail, children }: Props) {
       />
 
       <main className="page-main docs-main">
-        <div className={"docs-layout" + (isLanding ? " docs-layout--norail" : "")}>
+        <aside className="docs-alpha-banner" role="note">
+          <strong>Documentation preview</strong>
+          <span>These pages are early and may change. For exact commands and current support, follow the linked project repository.</span>
+        </aside>
+        <div className={"docs-layout" + (isLanding ? " docs-layout--norail" : "")}> 
           {isNarrow ? (
             // No rail at this width, so the sheet trigger and the search need
             // somewhere of their own. One slim row above the article, not a
