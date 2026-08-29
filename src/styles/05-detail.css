@@ -139,14 +139,39 @@
 
 .modal-card {
   width: 100%;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--modal-bar-h, 0px));
   background: var(--bg);
   position: relative;
 }
 
+/* The site's navigation bar, carried by the item overlay. The overlay is the
+   whole viewport, so without it an item URL opened directly arrived with no
+   wordmark and no way anywhere else. It is sticky against the overlay's OWN
+   scroll container rather than the document, which is the one it scrolls in.
+   Only an overlay that actually carries the bar reserves room for it: the
+   collection overlays reuse .modal without one, and there the variable stays
+   unset, so every calc() below falls back to 0px and nothing moves. Both
+   values measured in the browser, at the one breakpoint the bar's own metrics
+   change at. Below 761px there is no .modal to measure, because a phone gets
+   the bottom sheet instead, so that breakpoint needs no entry here. */
+.modal:has(> .tabs-wrap) {
+  --modal-bar-h: 52px;
+}
+@media (max-width: 899px) {
+  .modal:has(> .tabs-wrap) {
+    --modal-bar-h: 49px;
+  }
+}
+.modal > .tabs-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 150;
+}
+
 .modal-controls {
   position: fixed;
-  top: 8px;
+  /* Below the bar rather than on top of its search and theme controls. */
+  top: calc(var(--modal-bar-h, 0px) + 8px);
   right: 8px;
   z-index: 200;
   display: flex;
@@ -166,6 +191,11 @@
   top: 8px;
   right: 8px;
   z-index: 200;
+}
+
+/* Back sits under the bar on the left, opposite the controls. */
+.modal .modal-back {
+  top: calc(var(--modal-bar-h, 0px) + 8px);
 }
 
 .modal-close,
@@ -888,7 +918,9 @@ button {
   grid-template-columns: 40fr 60fr;
   align-items: stretch;
   gap: 0;
-  height: 100vh;
+  /* Fills what is left under the overlay's bar. Outside the overlay the
+     variable is unset and this is the full viewport, as before. */
+  height: calc(100vh - var(--modal-bar-h, 0px));
 }
 
 .project-split-left {

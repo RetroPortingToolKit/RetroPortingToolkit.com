@@ -8,6 +8,8 @@ import { ItemDetail, ArticleByline, blogIsSplit } from "./ItemDetail";
 import { Markdown } from "./Markdown";
 import { ProjectCarousel, type Slide } from "./ProjectCarousel";
 import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
+import { Tabs, type TabId } from "./Tabs";
+import { NAV_TABS, TAB_PATH } from "./navTabs";
 
 interface Props {
   item: Item;
@@ -242,6 +244,8 @@ function DesktopModal({ item, onClose, covered }: Props) {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const slideDir = useSlideDirection(item);
 
   useEffect(() => {
@@ -302,6 +306,17 @@ function DesktopModal({ item, onClose, covered }: Props) {
         aria-modal="true"
         aria-label={item.title}
       >
+        {/* The site's own bar, the same component every other section renders.
+            An item URL opened directly (a shared link, a search result) used to
+            arrive with no wordmark and no navigation at all: nothing on screen
+            said which site this was or how to reach anything else. The item's
+            own kind is marked current, so the bar also says where you are. */}
+        <Tabs
+          active={item.kind as TabId}
+          onChange={(id) => navigate(TAB_PATH[id])}
+          tabsRef={barRef}
+          tabs={NAV_TABS}
+        />
         <div
           className="modal-card"
           onClick={(e) => {

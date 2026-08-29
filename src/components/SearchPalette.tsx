@@ -442,7 +442,20 @@ export function SearchTrigger({ className, primary }: TriggerProps) {
  * by Tabs, which renders on every page, so the palette exists everywhere and
  * exactly once.
  */
+/**
+ * The palette's button, for a navigation bar to render.
+ *
+ * The dialog it summons is NOT here: it is mounted once by <SearchPaletteHost>
+ * in App.tsx. More than one bar can be on screen at a time now (the item
+ * overlay carries the site's bar over whichever tab page is behind it), and two
+ * bars each mounting a dialog would stack two of them on the first Cmd-K.
+ */
 export function SearchPalette() {
+  return <SearchTrigger primary />;
+}
+
+/** The one palette. Mounted once, by the app, above every route and overlay. */
+export function SearchPaletteHost() {
   const open = useSearchPaletteOpen();
 
   useEffect(() => {
@@ -464,10 +477,5 @@ export function SearchPalette() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  return (
-    <>
-      <SearchTrigger primary />
-      {open && <Dialog />}
-    </>
-  );
+  return open ? <Dialog /> : null;
 }

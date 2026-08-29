@@ -28,6 +28,7 @@ import {
 import { OverlayOpenContext } from "./lib/overlay";
 import { CollectionView } from "./components/CollectionView";
 import { Footer } from "./components/Footer";
+import { SearchPaletteHost } from "./components/SearchPalette";
 import {
   COLLECTION_KIND,
   itemsForKind,
@@ -316,6 +317,9 @@ function AppRoutes() {
       })}
 
       <Footer />
+      {/* The site's one command palette, above every route and every overlay,
+          so the bars below only have to render its button. */}
+      <SearchPaletteHost />
     </OverlayOpenContext.Provider>
   );
 }
