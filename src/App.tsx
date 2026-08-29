@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { lazy, Suspense } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -14,9 +14,14 @@ import { useEffect, useRef } from "react";
 import Home from "./pages/Home";
 import { ItemPage } from "./pages/ItemPage";
 import { DocsPage } from "./pages/DocsPage";
-// Admin is a static import (NOT lazy): a React.lazy route remounts on every
-// Fast Refresh, which would drop editor focus mid-edit.
-import Admin from "./pages/Admin";
+// The editor is 2300 lines that only ever run on /admin, so it loads from its
+// own chunk rather than riding in the bundle every visitor downloads. It has to
+// be lazy ONLY: a module that is both statically and dynamically imported gets
+// inlined back into the main chunk by the bundler, which is exactly what this
+// is avoiding. (It used to be static, to stop Fast Refresh remounting the
+// editor and dropping focus mid-edit. Editing Admin.tsx refreshes that module
+// rather than this one, so the lazy wrapper here survives it.)
+const Admin = lazy(() => import("./pages/Admin"));
 import { ItemView } from "./components/ItemView";
 import {
   COLLECTION_TITLE,
@@ -331,7 +336,11 @@ export default function App() {
   // remount when the app's route state changes mid-edit. Only a direct URL
   // reaches it: there is no in-app link to /admin.
   if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
-    return <Admin />;
+    return (
+      <Suspense fallback={null}>
+        <Admin />
+      </Suspense>
+    );
   }
   return (
     <BrowserRouter>
