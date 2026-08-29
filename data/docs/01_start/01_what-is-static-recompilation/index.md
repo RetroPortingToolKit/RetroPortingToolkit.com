@@ -34,6 +34,8 @@ An emulator is a second program. While you play, it reads the game's binary one 
 
 Static recompilation moves that work to build time. Each instruction is read once, ever, and what it does is written down as code. While you play there is nothing left to read and nothing left to work out. There is only compiled code.
 
+That separation also frees the port from the original hardware's limits. Because the result is ordinary source code, developers can adapt it to new displays, controls and systems in ways that are difficult or impossible when the game must remain inside an emulator's fixed machine model.
+
 ## Static, or native?
 
 Static is a strong claim: every byte of the game's own code was found and translated before the game ever ran. On a real game that is often not fully reachable. A PlayStation game, for one, pulls chunks of code in from the disc while it plays, and code that is not in the executable cannot be read ahead of time.
@@ -63,12 +65,6 @@ The two words are worth keeping apart. **Native** says the game's own logic runs
 ## Where emulation comes in
 
 The game's own code is translated ahead of time and runs as compiled code. The console around it, its picture, sound, controllers and timing, is imitated by software while you play, and most projects keep a small emulator as a fallback for code the translation could not reach. [Is this emulation?](/docs/start/is-this-emulation) is the full answer.
-
-## Source
-
-- [nesrecomp](https://github.com/mstan/nesrecomp): [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md), [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), and [`recompiler/src/code_generator.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/code_generator.c), which is the smallest emitter in the fleet to read.
-- [psxrecomp](https://github.com/mstan/psxrecomp): [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md), [`docs/ARCHITECTURE.md`](https://github.com/mstan/psxrecomp/blob/master/docs/ARCHITECTURE.md), [`docs/EXECUTION_MODEL.md`](https://github.com/mstan/psxrecomp/blob/master/docs/EXECUTION_MODEL.md).
-- [cdirecomp](https://github.com/mstan/cdirecomp): [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md).
 
 ## Next
 

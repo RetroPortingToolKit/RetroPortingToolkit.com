@@ -446,3 +446,9 @@ both pages already link their source article under `links:`.
   index remains one intentionally lazy ~809 kB chunk. Documentation
   `updated:` stamps were brought forward where later commits changed content,
   so a clean build no longer emits stale-date warnings.
+## Editorial documentation pass (2026-08-29)
+
+- Reworked the public platform index to focus on maintained, clearly scoped toolchains; removed maturity-ranking language and stopped advertising unowned or experimental platform paths.
+- Rewrote `recompiler-and-runtime` as a reader-facing concept page without source dumps, repository internals or implementation-specific commands.
+- Simplified `recomp-your-own-game` into a user workflow that points dependency checks and exact commands to the starter repository/agent, and clarified that a successful build is only the start of porting.
+- Added the hardware-decoupling and modifiability benefit to `what-is-static-recompilation` and removed its jarring source appendix.
