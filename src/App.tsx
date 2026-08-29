@@ -115,6 +115,7 @@ function CollectionAllRoute({
       items={itemsForKind(kind)}
       onClose={onClose}
       covered={covered}
+      active={kind}
     />
   );
 }

@@ -7,6 +7,8 @@ import { pathFor } from "@/lib/content";
 import { labAll, type LabMedia } from "@/lab/labContent";
 import { SpatialCard } from "./SpatialCard";
 import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
+import { Tabs, type NavActive } from "./Tabs";
+import { NAV_TABS, TAB_PATH } from "./navTabs";
 
 interface Props {
   title: string;
@@ -17,6 +19,9 @@ interface Props {
   onClose: () => void;
   /** another modal is stacked on top: stay mounted but ignore all input */
   covered?: boolean;
+  /** what the bar marks as current; "none" for a collection that is not one
+      of its destinations */
+  active?: NavActive;
 }
 
 const CloseIcon = () => (
@@ -145,10 +150,12 @@ export function CollectionView(props: Props) {
   return <DesktopModal {...props} />;
 }
 
-function DesktopModal({ title, eyebrow, intro, items, onClose, covered }: Props) {
+function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active = "none" }: Props) {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setOpen(true));
@@ -197,6 +204,15 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered }: Props)
         aria-modal="true"
         aria-label={title}
       >
+        {/* The site's bar, for the same reason the item overlay carries one:
+            this is the whole viewport, and without it nothing here says which
+            site you are on or offers a way anywhere else. */}
+        <Tabs
+          active={active}
+          onChange={(id) => navigate(TAB_PATH[id])}
+          tabsRef={barRef}
+          tabs={NAV_TABS}
+        />
         <div
           className="modal-card"
           onClick={(e) => {

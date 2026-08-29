@@ -16,8 +16,13 @@ export type TabId = "home" | "hardware" | "game" | "blog";
  * What the bar shows as current. Every tab, plus "docs": the Documentation
  * entry is a link rather than a tab (see the call site below), but it is still
  * a place you can BE, and the bar has to say so on every /docs URL.
+ *
+ * "none" is for a place the bar has no entry for, a topic collection that cuts
+ * across every kind being the case that needs it. Nothing matches, so no pill
+ * and no capsule: the bar still says which site this is without claiming you
+ * are somewhere you are not.
  */
-export type NavActive = TabId | "docs";
+export type NavActive = TabId | "docs" | "none";
 
 interface TabDef {
   id: TabId;

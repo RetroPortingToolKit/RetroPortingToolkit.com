@@ -148,9 +148,9 @@
    whole viewport, so without it an item URL opened directly arrived with no
    wordmark and no way anywhere else. It is sticky against the overlay's OWN
    scroll container rather than the document, which is the one it scrolls in.
-   Only an overlay that actually carries the bar reserves room for it: the
-   collection overlays reuse .modal without one, and there the variable stays
-   unset, so every calc() below falls back to 0px and nothing moves. Both
+   Only an overlay that actually carries the bar reserves room for it, so an
+   overlay without one keeps the variable unset and every calc() below falls
+   back to 0px, leaving it exactly as it was. Both
    values measured in the browser, at the one breakpoint the bar's own metrics
    change at. Below 761px there is no .modal to measure, because a phone gets
    the bottom sheet instead, so that breakpoint needs no entry here. */
@@ -198,6 +198,12 @@
 
 /* Back sits under the bar on the left, opposite the controls. */
 .modal .modal-back {
+  top: calc(var(--modal-bar-h, 0px) + 8px);
+}
+
+/* The collection overlay's close button is a direct child rather than one of
+   .modal-controls, so it needs the same clearance of its own. */
+.modal > .modal-close {
   top: calc(var(--modal-bar-h, 0px) + 8px);
 }
 
