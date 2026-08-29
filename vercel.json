@@ -2,33 +2,103 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/api/cms/(.*)", "destination": "/api/cms?__sub=$1" },
-    { "source": "/rss", "destination": "/rss.xml" },
-    { "source": "/feed", "destination": "/rss.xml" },
-    { "source": "/feed.xml", "destination": "/rss.xml" },
-    { "source": "/atom", "destination": "/atom.xml" },
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/api/cms/(.*)",
+      "destination": "/api/cms?__sub=$1"
+    },
+    {
+      "source": "/rss",
+      "destination": "/rss.xml"
+    },
+    {
+      "source": "/feed",
+      "destination": "/rss.xml"
+    },
+    {
+      "source": "/feed.xml",
+      "destination": "/rss.xml"
+    },
+    {
+      "source": "/atom",
+      "destination": "/atom.xml"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
   ],
   "headers": [
     {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/fonts/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000"
+        }
+      ]
+    },
+    {
+      "source": "/(previews|lab-media|consoles|covers|og)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=600, stale-while-revalidate=604800"
+        }
+      ]
+    },
+    {
       "source": "/(rss|rss\\.xml|feed|feed\\.xml)",
-      "headers": [{ "key": "Content-Type", "value": "application/rss+xml; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/rss+xml; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/(atom|atom\\.xml)",
-      "headers": [{ "key": "Content-Type", "value": "application/atom+xml; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/atom+xml; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/(llms\\.txt|llms-full\\.txt)",
-      "headers": [{ "key": "Content-Type", "value": "text/markdown; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/markdown; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/(docs\\.md|agent\\.md)",
-      "headers": [{ "key": "Content-Type", "value": "text/markdown; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/markdown; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/docs/(.*\\.md)",
-      "headers": [{ "key": "Content-Type", "value": "text/markdown; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/markdown; charset=utf-8"
+        }
+      ]
     }
   ]
 }

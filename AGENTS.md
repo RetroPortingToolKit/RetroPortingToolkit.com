@@ -47,6 +47,17 @@ which is how you show someone a page before it is announced.
   API. If you change what a page needs, change that too.
 - Item identity comes from the folder name (`<order>_<slug>`). Renaming a
   folder changes its URL.
+- **Cache headers live in `vercel.json` and the file cannot explain itself**,
+  so the reasoning is here. Everything Vite writes to `/assets/` carries a
+  content hash, so a URL's bytes never change and it is served `immutable` for
+  a year. Without that rule the platform default applies, `max-age=0,
+  must-revalidate`, and the browser makes a conditional request for every
+  asset before it can reuse its own cache: 15 round trips on the home page and
+  40 on a game page, every visit, before anything paints. Media under
+  `public/` keeps a stable URL while its content can change, so it is never
+  `immutable`; it gets `stale-while-revalidate` instead, which serves the
+  cached copy at once and refreshes behind it. `vercel.json` rejects unknown
+  keys, so do not try to leave a comment in it.
 
 ## Verification
 
