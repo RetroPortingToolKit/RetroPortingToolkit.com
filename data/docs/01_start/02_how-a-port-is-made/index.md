@@ -7,7 +7,7 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/SuperMarioWorldRecomp"
-updated: "2026-08-25"
+updated: "2026-08-26"
 ---
 
 A port here is not a program somebody wrote from nothing. It is a recorded procedure for turning one game file into a normal program, and it is the same six stages on every console. Check the file you supply. Work out which bytes in it are code. Translate those into source code. Compile that together with a runtime. Check the result against something already known to be right. Only then add anything the original hardware could not do. These six names are used everywhere else on this site.

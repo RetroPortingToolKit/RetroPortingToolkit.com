@@ -5,7 +5,7 @@ pageType: "project"
 tags: ["CD-i", "Early development", "Provenance"]
 repos:
   - "https://github.com/mstan/cdirecomp"
-updated: "2026-08-25"
+updated: "2026-08-26"
 ---
 
 [cdirecomp](https://github.com/mstan/cdirecomp) is the fleet's Philips CD-i toolchain, and it is an early research project. It boots the console's system software as native code, and its README says in bold that gameplay is not yet reachable. You cannot use it to play a CD-i game.

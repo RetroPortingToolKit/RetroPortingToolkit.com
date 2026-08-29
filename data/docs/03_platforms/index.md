@@ -4,7 +4,7 @@ summary: "One page per console toolchain, each written to the same shape so you 
 sectionTitle: "Platforms"
 pageType: "reference"
 tags: ["Platforms"]
-updated: "2026-08-25"
+updated: "2026-08-26"
 ---
 
 One page per console toolchain, each written to the same shape: what the toolchain is, its status quoted from its own README, the guest CPU, what this machine makes hard, the commands, what runs today, the known limits, and where to go next in the repository.

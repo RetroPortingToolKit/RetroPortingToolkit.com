@@ -13,7 +13,7 @@ repos:
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/gbrecompiled"
-updated: "2026-08-25"
+updated: "2026-08-26"
 ---
 
 A toolchain here is two programs. The recompiler reads a game's binary, which is compiled machine code, and writes out source code. The projects here emit C. The runtime is the library that generated C links against. Building a toolchain gives you the tools, not a game you can play. That is the right place to stop and check your work, because every framework here can prove it built correctly with no game file present. Every command below comes from the project that publishes it.

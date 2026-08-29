@@ -4,7 +4,7 @@ summary: "Six pages, in order, from never having heard of static recompilation t
 sectionTitle: "Start here"
 pageType: "reference"
 tags: ["Orientation"]
-updated: "2026-08-25"
+updated: "2026-08-26"
 ---
 
 If you have just arrived, read this section in order. It assumes nothing: not that you know what static recompilation is, not that you have used a recompiled port, not that you have a toolchain built. By the end you can hold a conversation about the subject, and you have one console's toolchain running. Everything else on this site assumes you have been through here or already knew it.

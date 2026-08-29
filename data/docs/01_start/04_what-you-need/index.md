@@ -6,7 +6,7 @@ tags: ["Prerequisites", "Build", "Game files"]
 repos:
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/nesrecomp"
-updated: "2026-08-25"
+updated: "2026-08-26"
 ---
 
 **Just playing?** You do not need this page. Every finished port is a normal program: go to the [game's page](/games), download its release, and supply your own game file. That is the whole setup.

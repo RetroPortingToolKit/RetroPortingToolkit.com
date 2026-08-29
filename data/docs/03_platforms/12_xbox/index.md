@@ -5,7 +5,7 @@ pageType: "project"
 tags: ["Xbox", "Hardware probe", "Safety"]
 repos:
   - "https://github.com/mstan/xboxlle-probe"
-updated: "2026-08-25"
+updated: "2026-08-26"
 ---
 
 The Xbox effort here is not a static recompiler. The core team describes `xboxlle` as a dynamic recompiler: it translates the machine's code while the program runs, rather than ahead of time, and it stays faithful to the machine's own firmware. That project is not public yet. Its public piece is [xboxlle-probe](https://github.com/mstan/xboxlle-probe), a measuring instrument: a small homebrew agent that runs on an original Xbox you already own and can already run unsigned code on, plus a Python client that asks it a fixed set of questions over a network socket.

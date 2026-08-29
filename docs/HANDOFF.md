@@ -441,3 +441,8 @@ both pages already link their source article under `links:`.
 - Verification after this pass: typecheck green, production build green, 719
   tests green. React Router is on the v7 line; `npm audit --omit=dev` reports
   zero production vulnerabilities.
+- The build keeps bootstrap JavaScript under 900 kB by splitting catalog,
+  blog, and each documentation section. The deferred documentation search
+  index remains one intentionally lazy ~809 kB chunk. Documentation
+  `updated:` stamps were brought forward where later commits changed content,
+  so a clean build no longer emits stale-date warnings.

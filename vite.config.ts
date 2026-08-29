@@ -355,4 +355,29 @@ export default defineConfig({
     // same network. Vite listens on localhost only without this.
     host: true,
   },
+  build: {
+    // The documentation search index is a deliberately lazy, data-only chunk
+    // (~809 kB minified); keep the warning focused on bootstrap code and
+    // content chunks rather than flagging that one deferred payload.
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        // Content is build-time data, not application code. Keep the large
+        // markdown collections out of the bootstrap chunk so the warning is
+        // actionable and the browser can cache each collection independently.
+        manualChunks(id) {
+          if (id.includes("/data/docs/")) {
+            const section = id.match(/\/data\/docs\/(\d+_[^/]+)\//)?.[1];
+            return section ? `content-docs-${section.replace(/^\d+_/, "")}` : "content-docs";
+          }
+          if (id.includes("/data/blog/")) return "content-blog";
+          if (id.includes("/data/games/") || id.includes("/data/hardware/")) {
+            return "content-catalog";
+          }
+          if (id.includes("/node_modules/js-yaml/")) return "yaml";
+          return undefined;
+        },
+      },
+    },
+  },
 });

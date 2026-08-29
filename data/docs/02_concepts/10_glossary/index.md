@@ -14,7 +14,7 @@ repos:
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/xboxlle-probe"
-updated: "2026-08-27"
+updated: "2026-08-29"
 ---
 
 The repositories here use these forty-eight words as though everyone already knows them, and define almost none of them where a newcomer would look. Each entry below is the meaning the repositories attach to the word, not a textbook meaning, with a link to the page that treats it properly.

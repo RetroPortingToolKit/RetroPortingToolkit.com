@@ -5,7 +5,7 @@ pageType: "guide"
 tags: ["Tutorial", "Agents", "PlayStation"]
 repos:
   - "https://github.com/mstan/psxrecomp"
-updated: "2026-08-25"
+updated: "2026-08-26"
 ---
 
 You have a game you own and you want a native port of it. This page is what to
