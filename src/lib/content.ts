@@ -102,8 +102,29 @@ function resolveKey(key: string): string | undefined {
   return assetUrls[key] ?? (key.startsWith("/data/") ? undefined : key);
 }
 
+// The image pipeline keeps the source file for provenance, while adding a
+// same-stem WebP beside it. Prefer that smaller sibling when Vite knows about
+// it; old frontmatter and Markdown links therefore keep working unchanged.
+function preferredImageKey(key: string): string {
+  if (!/\.(jpe?g|png)$/i.test(key)) return key;
+  const webp = key.replace(/\.[^.]+$/, ".webp");
+  return assetUrls[webp] ? webp : key;
+}
+
+function imageSrcSet(key: string): string | undefined {
+  if (!/\.(jpe?g|png)$/i.test(key)) return undefined;
+  const base = key.replace(/\.[^.]+$/, "");
+  const widths = [640, 1280];
+  const variants = widths
+    .map((width) => ({ width, key: `${base}-${width}.webp` }))
+    .filter(({ key }) => assetUrls[key])
+    .map(({ width, key }) => `${resolveKey(key)} ${width}w`);
+  return variants.length ? variants.join(", ") : undefined;
+}
+
 export interface ResolvedMedia {
   src: string;
+  srcSet?: string;
   srcFallback?: string;
   lqip?: string;
   /** small static poster for videos (<stem>.thumb.webp next to the file) */
@@ -132,7 +153,12 @@ function resolveMedia(
       poster: resolveKey(key.replace(/\.[^.]+$/, ".thumb.webp")),
     };
   }
-  return { src: resolveKey(key) ?? value, lqip: LQIP[key] };
+  const imageKey = preferredImageKey(key);
+  return {
+    src: resolveKey(imageKey) ?? value,
+    srcSet: imageSrcSet(key),
+    lqip: LQIP[imageKey] ?? LQIP[key],
+  };
 }
 
 function asString(v: unknown, fallback = ""): string {
@@ -162,7 +188,7 @@ function asGallery(v: unknown, baseDir: string): GalleryItem[] {
   for (const entry of v) {
     if (typeof entry === "string") {
       const m = resolveMedia(entry, baseDir);
-      if (m) out.push({ src: m.src, srcFallback: m.srcFallback, lqip: m.lqip, poster: m.poster });
+      if (m) out.push({ src: m.src, srcSet: m.srcSet, srcFallback: m.srcFallback, lqip: m.lqip, poster: m.poster });
     } else if (entry && typeof entry === "object") {
       const rec = entry as Record<string, unknown>;
       const rawSrc = asString(rec.src);
@@ -170,7 +196,7 @@ function asGallery(v: unknown, baseDir: string): GalleryItem[] {
       const m = resolveMedia(rawSrc, baseDir);
       if (!m) continue;
       const caption = asString(rec.caption) || undefined;
-      out.push({ src: m.src, srcFallback: m.srcFallback, lqip: m.lqip, poster: m.poster, caption });
+      out.push({ src: m.src, srcSet: m.srcSet, srcFallback: m.srcFallback, lqip: m.lqip, poster: m.poster, caption });
     }
   }
   return out;
@@ -279,6 +305,7 @@ export function parseItem(path: string, raw: string): Item | null {
     kickerColor: asString(fm.kickerColor) || undefined,
     desc: asString(fm.desc),
     cover: coverM?.src,
+    coverSrcSet: coverM?.srcSet,
     coverFallback: coverM?.srcFallback,
     coverLqip: coverM?.lqip,
     coverCaption,

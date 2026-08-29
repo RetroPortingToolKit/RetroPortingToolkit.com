@@ -145,6 +145,7 @@ function CarouselVideo({
 
 export interface Slide {
   src: string;
+  srcSet?: string;
   srcFallback?: string;
   lqip?: string;
   /** small static poster for video slides (thumbnails + <video poster>) */
@@ -592,6 +593,8 @@ export function ProjectCarousel({
                         ) : (
                           <img
                             src={s.src}
+                            srcSet={s.srcSet}
+                            sizes="(max-width: 760px) 92vw, 860px"
                             alt={s.caption ?? ""}
                             draggable={false}
                             onLoad={() => markLoaded(i)}

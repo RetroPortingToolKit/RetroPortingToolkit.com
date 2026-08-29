@@ -8,6 +8,7 @@ import { ItemDetail, ArticleByline, blogIsSplit } from "./ItemDetail";
 import { Markdown } from "./Markdown";
 import { ProjectCarousel, type Slide } from "./ProjectCarousel";
 import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
+import { trapFocus } from "@/lib/focusTrap";
 import { Tabs, type TabId } from "./Tabs";
 import { NAV_TABS, TAB_PATH } from "./navTabs";
 
@@ -305,6 +306,7 @@ function DesktopModal({ item, onClose, covered }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label={item.title}
+        onKeyDown={trapFocus}
       >
         {/* The site's own bar, the same component every other section renders.
             An item URL opened directly (a shared link, a search result) used to
@@ -404,6 +406,7 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
 
   const slides: Slide[] = item.gallery.map((g) => ({
     src: g.src,
+    srcSet: g.srcSet,
     srcFallback: g.srcFallback,
     lqip: g.lqip,
     poster: g.poster,
@@ -448,6 +451,7 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
           <Drawer.Content
             className="proj-sheet"
             aria-describedby={undefined}
+            onKeyDown={trapFocus}
           >
             <Drawer.Title className="sr-only">{item.title}</Drawer.Title>
             <div className="proj-sheet-handle" aria-hidden="true" />

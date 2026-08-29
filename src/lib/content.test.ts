@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatArticleDate, isVideoSrc, isYouTubeSrc, youtubeEmbedUrl , BLOGS } from "./content";
+import { formatArticleDate, isVideoSrc, isYouTubeSrc, youtubeEmbedUrl, BLOGS, GAMES } from "./content";
 
 describe("formatArticleDate", () => {
   it("renders a full date", () => {
@@ -27,6 +27,13 @@ describe("media source detection", () => {
     expect(youtubeEmbedUrl("https://youtu.be/dQw4w9WgXcQ")).toContain(
       "youtube.com/embed/dQw4w9WgXcQ",
     );
+  });
+
+  it("exposes responsive variants when an optimized sibling exists", () => {
+    const bomberman = GAMES.find((item) => item.slug === "bomberman-world");
+    expect(bomberman?.cover).toMatch(/boxart\.webp$/);
+    expect(bomberman?.coverSrcSet).toMatch(/640w/);
+    expect(bomberman?.coverSrcSet).toMatch(/1280w/);
   });
 });
 

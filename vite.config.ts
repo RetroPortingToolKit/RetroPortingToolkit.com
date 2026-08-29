@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
+import { originTrialExpiry } from "./src/lib/originTrial";
 import react from "@vitejs/plugin-react";
 import { fileURLToPath, URL } from "node:url";
 import { renderFeeds, generateFeeds } from "./scripts/gen-feeds.mjs";
@@ -312,6 +313,10 @@ function webmcpOriginTrialPlugin(): Plugin {
     configResolved(cfg) {
       const env = loadEnv(cfg.mode, process.cwd(), "");
       token = String(env.VITE_WEBMCP_OT_TOKEN ?? process.env.VITE_WEBMCP_OT_TOKEN ?? "").trim();
+      const expiry = originTrialExpiry(token);
+      if (token && expiry !== undefined && expiry <= Date.now()) {
+        throw new Error("VITE_WEBMCP_OT_TOKEN has expired; renew it before building");
+      }
     },
     transformIndexHtml() {
       if (!token) return;

@@ -276,6 +276,8 @@ export function SpatialCard({
                 <img
                   className="tvcard-cover"
                   src={media.poster ?? media.src}
+                  srcSet={media.poster ? undefined : media.srcSet}
+                  sizes="(max-width: 760px) 88vw, 320px"
                   alt={media.title}
                   decoding="async"
                   loading="lazy"
@@ -286,6 +288,8 @@ export function SpatialCard({
               <img
                 className="tvcard-cover"
                 src={media.src}
+                srcSet={media.srcSet}
+                sizes="(max-width: 760px) 88vw, 320px"
                 alt={media.title}
                 decoding="async"
                 loading="lazy"

@@ -263,6 +263,8 @@ function GameTile({ game }: { game: Item }) {
           )
         }
         alt=""
+        srcSet={game.coverSrcSet}
+        sizes="(max-width: 760px) 42vw, 210px"
         loading="lazy"
         decoding="async"
       />
@@ -370,6 +372,7 @@ function AdjacentItems({ item }: { item: Item }) {
 function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }) {
   const slides: Slide[] = slidesProp ?? item.gallery.map((g) => ({
     src: g.src,
+    srcSet: g.srcSet,
     srcFallback: g.srcFallback,
     lqip: g.lqip,
     poster: g.poster,
@@ -517,7 +520,14 @@ function DefaultDetail({ item }: { item: Item }) {
         {item.coverFallback && <source src={item.coverFallback} />}
       </video>
     ) : (
-      <img className="img" src={item.cover} alt={item.title} loading="lazy" />
+      <img
+        className="img"
+        src={item.cover}
+        srcSet={item.coverSrcSet}
+        sizes="(max-width: 760px) 92vw, 860px"
+        alt={item.title}
+        loading="lazy"
+      />
     )
   ) : null;
 
@@ -750,4 +760,3 @@ function DefaultDetail({ item }: { item: Item }) {
     </>
   );
 }
-

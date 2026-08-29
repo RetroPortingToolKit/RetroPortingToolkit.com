@@ -25,6 +25,7 @@ export interface LinkRef {
 
 export interface GalleryItem {
   src: string;
+  srcSet?: string;
   /** small static poster for video items (thumbnails, video poster attr) */
   poster?: string;
   // H.264 MP4 fallback when `src` is a WebM (Safari / Vision Pro safety)
@@ -42,6 +43,7 @@ export interface Item {
   kickerColor?: string;
   desc: string;
   cover?: string;
+  coverSrcSet?: string;
   // H.264 MP4 fallback when `cover` is a WebM video
   coverFallback?: string;
   // tiny base64 placeholder for the cover, shown blurred while it loads
@@ -131,4 +133,3 @@ export interface About {
   videoBackground?: string;
   videoBackgroundFallback?: string;
 }
-

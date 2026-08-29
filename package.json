@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.api.json --noEmit",
     "test": "vitest run",
+    "images": "node scripts/gen-image-variants.mjs",
     "feeds": "node scripts/gen-feeds.mjs"
   },
   "dependencies": {

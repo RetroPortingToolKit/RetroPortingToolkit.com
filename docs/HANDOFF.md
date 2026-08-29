@@ -423,3 +423,21 @@ as open questions. They are settled, not pending; do not re-raise them.
 
 There is no `coverCredit` field on items and the site renders no image credit;
 both pages already link their source article under `links:`.
+
+## Performance and accessibility follow-up (2026-08-29)
+
+- `npm run images` generates same-stem WebP siblings plus 640px and 1280px
+  variants for still images larger than 500 KiB. The content loader prefers the
+  WebP and emits `srcset` for cards, game tiles, article covers, and carousels;
+  originals remain beside them for provenance and rollback. The Vite asset glob
+  still emits originals into `dist/`, but browsers no longer request them for
+  these surfaces.
+- Desktop item and collection overlays, plus their mobile Vaul sheets, now keep
+  Tab focus inside the active dialog. Nested dialogs opt out so a video
+  lightbox owns its own focus cycle.
+- `buildRouteMeta` cover helpers have direct traversal, public-path, external-
+  URL, and co-located-cover tests. The WebMCP origin-trial plugin rejects an
+  expired token during a build; the current token expires 2026-11-17 UTC.
+- Verification after this pass: typecheck green, production build green, 718
+  tests green. Production dependencies still report two moderate
+  `react-router` advisories with an available update.

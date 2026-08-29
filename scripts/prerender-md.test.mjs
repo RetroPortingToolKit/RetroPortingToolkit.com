@@ -7,7 +7,14 @@ import { describe, expect, it } from "vitest";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
-import { mdToHtml } from "./vite-prerender.mjs";
+import {
+  absoluteImage,
+  itemCoverAlreadyServed,
+  itemCoverPublicPath,
+  itemCoverSource,
+  itemImagePath,
+  mdToHtml,
+} from "./vite-prerender.mjs";
 
 const DATA_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -34,6 +41,35 @@ function realHeadingIds(md) {
 
 const shellHeadingIds = (md) =>
   [...mdToHtml(md).matchAll(/<h\d id="([^"]*)"/g)].map((m) => m[1]);
+
+describe("prerender cover resolution", () => {
+  const itemDir = path.join(DATA_DIR, "games", "01_tomba");
+  const item = { kind: "game", slug: "cover-test", dir: itemDir, cover: "./tomba-launcher.png" };
+
+  it("copies a co-located cover to a stable public path", () => {
+    expect(itemCoverSource(item)).toBe(path.join(itemDir, "tomba-launcher.webp"));
+    expect(itemCoverPublicPath(item)).toBe("/og/items/game-cover-test.webp");
+    expect(itemImagePath(item)).toBe("/og/items/game-cover-test.webp");
+  });
+
+  it("rejects traversal outside the item's directory", () => {
+    expect(itemCoverSource({ ...item, cover: "./../../package.json" })).toBeNull();
+    expect(itemCoverSource({ ...item, cover: "/data/../package.json" })).toBeNull();
+  });
+
+  it("accepts existing public and external covers without copying", () => {
+    expect(itemCoverAlreadyServed({ cover: "/favicon.svg" })).toBe("/favicon.svg");
+    expect(itemCoverAlreadyServed({ cover: "https://example.test/cover.jpg" })).toBe(
+      "https://example.test/cover.jpg",
+    );
+    expect(absoluteImage("/favicon.svg", "https://example.test")).toBe(
+      "https://example.test/favicon.svg",
+    );
+    expect(absoluteImage("https://cdn.example.test/cover.jpg", "https://example.test")).toBe(
+      "https://cdn.example.test/cover.jpg",
+    );
+  });
+});
 
 /** Every page body under data/, frontmatter removed. */
 function everyBody() {

@@ -14,6 +14,7 @@ export type LabKind = "hardware" | "game" | "blog";
 
 export interface LabMedia {
   src: string;
+  srcSet?: string;
   // H.264 MP4 fallback when `src` is a WebM video (Safari / Vision Pro)
   srcFallback?: string;
   // still image shown when the card is not the focused one, so only a few
@@ -118,6 +119,7 @@ function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
   const src = p.cover ?? (LQIP[labSrc] ? labSrc : svgCover(p.title, p.kicker, color));
   return {
     src,
+    srcSet: p.coverSrcSet,
     lqip: p.coverLqip ?? LQIP[src],
     slug: p.slug,
     title: p.title,

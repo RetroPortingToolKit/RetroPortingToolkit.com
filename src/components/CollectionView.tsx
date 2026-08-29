@@ -7,6 +7,7 @@ import { pathFor } from "@/lib/content";
 import { labAll, type LabMedia } from "@/lab/labContent";
 import { SpatialCard } from "./SpatialCard";
 import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
+import { trapFocus } from "@/lib/focusTrap";
 import { Tabs, type NavActive } from "./Tabs";
 import { NAV_TABS, TAB_PATH } from "./navTabs";
 
@@ -203,6 +204,7 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active =
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        onKeyDown={trapFocus}
       >
         {/* The site's bar, for the same reason the item overlay carries one:
             this is the whole viewport, and without it nothing here says which
@@ -276,6 +278,7 @@ function MobileSheet({ title, eyebrow, intro, items, onClose, covered }: Props) 
         <Drawer.Content
           className="sheet-content"
           aria-describedby={undefined}
+          onKeyDown={trapFocus}
         >
           <Drawer.Title className="sr-only">{title}</Drawer.Title>
           <CloseButton onClose={requestClose} />
