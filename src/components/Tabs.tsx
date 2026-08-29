@@ -222,9 +222,11 @@ export function Tabs({
               measures querySelectorAll(".tab") against the tabs array by index,
               and an extra one would scrub the pill onto it. */}
           <span className="tabs-actions">
-            {/* The command palette's button, and the one palette it opens. This
-                bar renders on every page, so mounting it here is what makes the
-                palette (and Cmd-K) exist everywhere and exactly once. */}
+            {/* The command palette's button. The palette ITSELF is mounted
+                once by the app (SearchPaletteHost in App.tsx), not here: more
+                than one of these bars can be on screen at a time, since the
+                item overlay carries one over whichever tab page is behind it,
+                and a dialog per bar would stack two on the first Cmd-K. */}
             <SearchPalette />
             {/* On mobile this sits inline at the end of the tab row so it
                 doesn't crowd the last tab. On desktop CSS pulls it back to

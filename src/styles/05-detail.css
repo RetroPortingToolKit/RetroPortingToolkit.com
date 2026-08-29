@@ -162,9 +162,12 @@
     --modal-bar-h: 49px;
   }
 }
+/* It scrolls away with the page rather than following it down. The bar is
+   here to say which site this is and where you are, which is a question you
+   have on arrival; once you are reading, the reading is the point and the
+   chrome can leave. Overrides the sticky the bar carries everywhere else. */
 .modal > .tabs-wrap {
-  position: sticky;
-  top: 0;
+  position: static;
   z-index: 150;
 }
 
