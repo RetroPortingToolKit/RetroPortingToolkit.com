@@ -627,10 +627,11 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
   const incomingPaneRef = useRef<HTMLDivElement>(null);
   const isHome = tab === "home";
 
-  // The live pager: which neighbor is being dragged in (mounts its content),
-  // and the gesture's progress as a fraction (drives the tab underline).
+  // The live pager: which neighbor is being dragged in (mounts its content).
+  // The per-frame fraction updates the tab pill imperatively; putting it in
+  // state rerendered every card on Home for every frame of every swipe.
   const [pagerTarget, setPagerTarget] = useState<TabId | null>(null);
-  const [fraction, setFraction] = useState(0);
+  const swipeProgressRef = useRef<((fraction: number) => void) | null>(null);
   const pager = useRef<PagerState>({
     active: false,
     settling: false,
@@ -727,7 +728,7 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         const dir = g.offset >= 0 ? 1 : -1;
         inc.style.transform = `translateX(${dir * vw() - g.offset}px)`;
       }
-      setFraction(g.offset / vw());
+      swipeProgressRef.current?.(g.offset / vw());
     };
     const schedule = () => {
       if (!g.raf) g.raf = requestAnimationFrame(apply);
@@ -767,7 +768,6 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
           const promoted = incomingPaneRef.current;
           flushSync(() => {
             setPagerTarget(null);
-            setFraction(0);
             navigate(TAB_PATH[target]);
           });
           // the pane is PROMOTED to current (same key, same DOM): clear the
@@ -788,7 +788,7 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         const cur = currentPaneRef.current;
         if (cur) cur.style.transform = "";
         setPagerTarget(null);
-        setFraction(0);
+        swipeProgressRef.current?.(0);
       };
       requestAnimationFrame(step);
     };
@@ -837,7 +837,6 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         const promoted = incomingPaneRef.current;
         flushSync(() => {
           setPagerTarget(null);
-          setFraction(0);
           navigate(TAB_PATH[target]);
         });
         if (promoted) promoted.style.transform = "";
@@ -1019,7 +1018,7 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
           onChange={goTab}
           tabsRef={tabsRef}
           tabs={NAV_TABS}
-          swipeFraction={fraction}
+          swipeProgressRef={swipeProgressRef}
         />
         {/* Both panes live in one keyed list: at commit the incoming pane is
             RECONCILED into the current pane (same key = same DOM subtree), so

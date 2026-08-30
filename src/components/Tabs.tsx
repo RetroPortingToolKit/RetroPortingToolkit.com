@@ -2,6 +2,7 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  type MutableRefObject,
   type RefObject,
 } from "react";
 import { Link } from "react-router-dom";
@@ -36,12 +37,9 @@ interface TabsProps {
   onChange: (id: TabId) => void;
   tabsRef: RefObject<HTMLDivElement>;
   tabs: TabDef[];
-  /**
-   * In-progress swipe as a fraction of the panel width, positive = swiping
-   * toward the next tab, negative = toward the previous. 0 (or undefined)
-   * holds the underline on the active tab.
-   */
-  swipeFraction?: number;
+  /** Home writes gesture progress here from its animation frame. Keeping this
+      outside React prevents a pill scrub from rerendering every page card. */
+  swipeProgressRef?: MutableRefObject<((fraction: number) => void) | null>;
 }
 
 export function Tabs({
@@ -49,7 +47,7 @@ export function Tabs({
   onChange,
   tabsRef,
   tabs,
-  swipeFraction = 0,
+  swipeProgressRef,
 }: TabsProps) {
   const tabsRowRef = useRef<HTMLDivElement>(null);
   const about = useAbout(); // draft-aware in the CMS preview
@@ -78,6 +76,7 @@ export function Tabs({
 
   const pillRef = useRef<HTMLSpanElement>(null);
   const pillSettled = useRef(false);
+  const swipeFraction = useRef(0);
 
   // Slide the active capsule with the tab, and interpolate toward the
   // adjacent tab while a swipe is in progress so the pill scrubs with the
@@ -88,7 +87,8 @@ export function Tabs({
     if (!row || !pill) return;
 
     // snap=true repositions without easing (layout shifts: resize, font load)
-    const position = (snap = false) => {
+    const position = (snap = false, fraction = swipeFraction.current) => {
+      swipeFraction.current = fraction;
       const tabEls = Array.from(row.querySelectorAll<HTMLElement>(".tab"));
       // -1 on a /docs URL: the current thing is the Documentation link, which
       // is not a .tab and carries its own static capsule (12-docs.css). The
@@ -107,9 +107,9 @@ export function Tabs({
 
       const from = rect(activeIdx);
       if (!from) return;
-      const dir = swipeFraction > 0 ? 1 : swipeFraction < 0 ? -1 : 0;
+      const dir = fraction > 0 ? 1 : fraction < 0 ? -1 : 0;
       const to = dir !== 0 ? rect(activeIdx + dir) : null;
-      const t = Math.min(Math.abs(swipeFraction), 1);
+      const t = Math.min(Math.abs(fraction), 1);
 
       const left = to ? from.left + (to.left - from.left) * t : from.left;
       const width = to ? from.width + (to.width - from.width) * t : from.width;
@@ -122,7 +122,9 @@ export function Tabs({
       pill.style.width = `${width}px`;
     };
 
-    position();
+    const scrub = (fraction: number) => position(false, fraction);
+    if (swipeProgressRef) swipeProgressRef.current = scrub;
+    position(false, 0);
     // Tab widths move under us (web font swap, bar resize, container
     // changes); a stale pill sits at the wrong offset until the next tab
     // change, so track every layout change and re-pin without animation.
@@ -130,8 +132,11 @@ export function Tabs({
     ro.observe(row);
     for (const el of row.querySelectorAll<HTMLElement>(".tab")) ro.observe(el);
     document.fonts?.ready.then(() => position(true)).catch(() => {});
-    return () => ro.disconnect();
-  }, [active, tabs, swipeFraction]);
+    return () => {
+      ro.disconnect();
+      if (swipeProgressRef?.current === scrub) swipeProgressRef.current = null;
+    };
+  }, [active, tabs, swipeProgressRef]);
 
   // When the active tab changes, make sure it's visible inside the scrollable
   // strip. On mobile the row overflows horizontally, so switching to the last tab
