@@ -14,7 +14,7 @@ import { svgCover } from "@/lab/labContent";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { Markdown } from "./Markdown";
 import { BlurText } from "./BlurText";
-import { ProjectCarousel, type Slide } from "./ProjectCarousel";
+import { LazyProjectCarousel, type Slide } from "./LazyProjectCarousel";
 import { SmartLink } from "./SmartLink";
 import { VideoLightbox } from "./VideoLightbox";
 import type { LinkRef } from "@/lib/types";
@@ -491,7 +491,7 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
           // clip added nothing that the game cards do not say better.
           <PlatformGames item={item} />
         ) : (
-          <ProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
+          <LazyProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
         )}
       </div>
     </div>

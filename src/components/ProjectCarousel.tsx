@@ -153,7 +153,7 @@ export interface Slide {
   caption?: string;
 }
 
-interface Props {
+export interface ProjectCarouselProps {
   slides: Slide[];
   showThumbs?: boolean;
   autoplayDelay?: number;
@@ -280,7 +280,7 @@ export function ProjectCarousel({
   slides,
   showThumbs = false,
   autoplayDelay,
-}: Props) {
+}: ProjectCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
     align: "center",

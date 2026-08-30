@@ -6,7 +6,7 @@ import { useMobile } from "@/lib/useMobile";
 import { itemsForKind, pathFor } from "@/lib/content";
 import { ItemDetail, ArticleByline, blogIsSplit } from "./ItemDetail";
 import { Markdown } from "./Markdown";
-import { ProjectCarousel, type Slide } from "./ProjectCarousel";
+import { LazyProjectCarousel, type Slide } from "./LazyProjectCarousel";
 import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
 import { trapFocus } from "@/lib/focusTrap";
 import { Tabs, type TabId } from "./Tabs";
@@ -432,7 +432,7 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
             allowFullScreen
           />
         ) : (
-          <ProjectCarousel slides={slides} autoplayDelay={3000} />
+          <LazyProjectCarousel slides={slides} autoplayDelay={3000} />
         )}
       </div>
       <Drawer.Root
