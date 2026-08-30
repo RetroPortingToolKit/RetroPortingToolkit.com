@@ -54,6 +54,8 @@ That is the trap.
 
 If the project only needs one game to boot, a hand-written answer may look fine. The game asks for one behavior, the shortcut returns something close enough, and the milestone turns green.
 
+That is why HLE can start to look like a stub. It is not automatically fake behavior, but it can become fake behavior if it replaces the console without being checked against the faithful path.
+
 But a console ecosystem is bigger than one game. The next game may use the same BIOS call, hardware feature, timing detail, or edge case differently. Then the shortcut is no longer a shortcut. It is a game-specific hack that other games inherit.
 
 Enough of those hacks turn the framework into a pile of special cases. They become hard to remove because something already depends on them.

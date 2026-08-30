@@ -75,6 +75,6 @@ That is still powerful. A clean co-sim run is much stronger than "it seems to pl
 ## Next
 
 - [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns)
-- [Why does timing matter?](/docs/concepts/timing-models)
+- [When should timing be changed?](/docs/concepts/timing-models)
 - [How does a project tell code from data?](/docs/concepts/code-discovery)
 - [Set up co-simulation](/docs/guides/set-up-co-simulation)

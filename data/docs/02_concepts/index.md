@@ -17,7 +17,7 @@ Start here when a guide uses a word you do not know yet, or when you want to und
 - [What about code you cannot see ahead of time?](/docs/concepts/code-you-cannot-see-ahead-of-time). What happens when a game creates or loads code while it is running.
 - [How do we compare a port to the original?](/docs/concepts/co-simulation). How projects check whether the translated code still behaves correctly.
 - [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns). How faithfulness becomes a list of concrete problems to fix.
-- [Why does timing matter?](/docs/concepts/timing-models). What changes when a port does not follow the console's clock exactly.
+- [When should timing be changed?](/docs/concepts/timing-models). Why timing changes are advanced work and need measurement.
 - [Why does determinism matter?](/docs/concepts/determinism). Why save states, rewind, and netplay need repeatable behavior.
 - [What is the game file contract?](/docs/concepts/the-game-file-you-supply). What the project expects you to provide, and why the site does not provide it.
 - [What do these terms mean?](/docs/concepts/glossary). Short definitions for common recomp words.

@@ -1,6 +1,6 @@
 ---
-title: "Glossary"
-summary: "Forty-eight words this fleet uses as if everyone knows them, each defined the way the repositories actually use it, with the console-specific ones named as such and the contradictions marked rather than smoothed over."
+title: "What do these terms mean?"
+summary: "Short definitions for common recomp words, written for readers who are still getting comfortable with the technical side."
 pageType: "reference"
 tags: ["Glossary", "Vocabulary", "Reference"]
 repos:
@@ -14,234 +14,239 @@ repos:
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/xboxlle-probe"
-updated: "2026-08-29"
+updated: "2026-08-30"
 ---
 
-The repositories here use these forty-eight words as though everyone already knows them, and define almost none of them where a newcomer would look. Each entry below is the meaning the repositories attach to the word, not a textbook meaning, with a link to the page that treats it properly.
+These are the words this site uses often.
 
-Some of these words describe hardware only one console has. Those entries name the console. An entry that names no console is meant to hold everywhere.
+Some terms are general. Some belong mostly to one console or one project. When that matters, the definition says so.
 
-Terms are alphabetical and every one has its own anchor, so a page can link straight to a definition.
+## A
 
-## The terms
+### AOT
+
+Ahead of time. Work done before the program runs. Static recompilation is usually AOT because the game code is translated before launch.
 
 ### Always-on ring
 
-A buffer that records all the time, from the moment the program starts, and is read backwards afterwards. Every toolchain with a debug server has several. The reason: by the time you have finished setting up a trace, the thing you wanted to see has usually happened.
+A debug buffer that records all the time. Developers read it after a bug happens. This is useful because many bugs are already gone by the time someone knows what to record.
 
-### AOT (ahead of time)
-
-Compiled before the program runs. An AOT body is one guest function translated at build time. [Static recompilation](#static-recompilation) is the technique; AOT is the status of one function that came out of it.
-
-### Arm-then-record
-
-The named bad habit: attach a debugger, set a filter, run the game, read the result. Three projects forbid it by name, because "I saw no events" from a trace you armed late is a lie of omission. The replacement is the [always-on ring](#always-on-ring).
+## B
 
 ### Bank
 
-Two different things, and this is the fleet's most confusing collision. In [ndsrecomp](https://github.com/mstan/ndsrecomp) a bank is a chunk of generated output: one `.c` file plus a dispatch table. In [nesrecomp](https://github.com/mstan/nesrecomp) and the Sega toolchains a bank is a chunk of the cartridge, selected by hardware. See [bank switching](#bank-switching).
+A chunk of game data or generated output. On cartridge systems, a bank often means a piece of ROM that hardware can swap into the CPU's address space. Some projects use the word differently, so read the local context.
 
 ### Bank switching
 
-Hardware putting different parts of a cartridge at the same CPU address at different times, so one address does not name one piece of code. The hardware that does it is a [mapper](#mapper). It is one reason [code discovery](#code-discovery) is hard: you have to know which bank was live.
+Hardware swapping which ROM bank appears at a CPU address. This means one address can refer to different code or data at different times.
 
 ### Baserom
 
-Your own dump of the original cartridge. The project does not ship it and the runner checks it by hash before it starts. Ten cartridge ports carry a file called `baserom.md` saying exactly what they expect. The disc version is a [disc image](#disc-image). See [The game file you supply](/docs/concepts/the-game-file-you-supply).
+A user's own clean dump of a cartridge game. The project does not provide it.
+
+### BIOS
+
+System software from the original console. Some projects need a BIOS or firmware file. Some can use an open-source replacement. This site does not provide copyrighted retail BIOS files.
 
 ### Burndown
 
-A per console accuracy scorecard, kept as a file in the toolchain repository. It lists seven fixed parts of the console and gives each a status, an outside reference and a way it was checked. It is a tracking method, not a claim. See [What correct enough means](/docs/concepts/accuracy-and-burndowns).
+A checklist or scorecard for accuracy work. It records what has been checked, what reference was used, and what still needs work. See [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns).
 
-### Canon path
+## C
 
-The faithful version: the one that ships, and the one any optional extra is checked against. See [shadow](#shadow).
+### Cache
 
-### Chain hash
-
-Every checkpoint's hash in a [co-simulation](#co-simulation) run, folded into one running number. Because it accumulates, any difference anywhere sticks in the final value, which makes that value something to pin as a regression baseline.
+Saved build or runtime output that can be reused later. In some projects, code discovered while playing can be compiled and cached so it runs faster next time.
 
 ### Code discovery
 
-Working out which bytes of a game's binary are instructions, and where each function starts. Also called the function finder. The five step shape is shared: seed, walk, guess, check, catch the rest at run time. What a seed is, and what makes an address ambiguous, is per console. See [Telling code from data](/docs/concepts/code-discovery).
-
-### Combined work
-
-A licensing term this fleet needs because a runner can link code under a stronger license than its own. ndsrecomp is MIT, but its runner links vendored melonDS sources, so the shipped executable goes out under GPL-3.0-or-later while the recompiler and generated banks stay MIT. See [Licenses](/docs/fleet/licenses).
+Finding which bytes in a game file are instructions and where functions begin. See [How does a project tell code from data?](/docs/concepts/code-discovery).
 
 ### Co-simulation
 
-Comparing the port against something that already runs the console correctly, an emulator or real hardware. Both run the same game from the same reset, both stop at the same point in guest time, the whole machine is compared, and the run halts at the first difference. See [Co-simulation](/docs/concepts/co-simulation).
+Running the port beside a trusted reference and comparing them at the same points in game time. See [How do we compare a port to the original?](/docs/concepts/co-simulation).
 
-### Coverage
+### Correctness
 
-Two senses. **Recompiler coverage** is how much of the game binary [code discovery](#code-discovery) found, measured in [dispatch misses](#dispatch-miss). **Test coverage** is how much of the decoder and code generator the tests exercise. gbarecomp adds a rule it calls coverage honesty: do not call a build fully native while any address was interpreted.
+How faithfully the port behaves compared with the original game on the original machine, within a stated scope.
 
-### Cycle exact
+### Cycle
 
-Hardware advanced and read at the exact fraction of an instruction rather than at whole instructions. Where a repository uses the phrase it can be naming a programme of work rather than a finished state, so do not read it as a status on its own. See [Timing models](/docs/concepts/timing-models).
+A small unit of console time. Many timing problems are really cycle problems.
+
+### Cycle accurate
+
+Modeled closely enough that individual cycles matter. Be careful with this phrase: some projects use it as a goal, not a finished status.
+
+## D
 
 ### Decoder
 
-The part that reads the game's binary and works out what each instruction does, then writes it as source code. Binary in, code out. Being strict, the decoder is what does the translation, not the whole [recompiler](#recompiler): in these projects that one word covers the decoder, the compiler that builds its output, and the [runtime](#runtime) that output links against. See [What is static recompilation?](/docs/start/what-is-static-recompilation).
+The part of a recompiler that reads machine instructions and translates them into another form.
+
+### Determinism
+
+The same starting state and same inputs produce the same result. Save states, rewind, recordings, and rollback netplay depend on it. See [Why does determinism matter?](/docs/concepts/determinism).
 
 ### Disc image
 
-The disc version of a [baserom](#baserom). On PlayStation the sector format matters: the ports ask for a bin/cue pair in the console's own sector layout, and warn against converting to a plain ISO, which throws away the sectors used for streamed audio and video.
+A user's own dump of a disc game. On PlayStation, this is often a `.cue` file with matching `.bin` tracks.
+
+### Dispatch
+
+The runtime choosing which translated function should handle a guest address.
 
 ### Dispatch miss
 
-The runtime jumping to a guest address with no generated function behind it. Every toolchain treats it as a failure of [code discovery](#code-discovery) or code generation, not something to patch around. What happens next differs: some interpret and log, gbarecomp recompiles and caches, strict modes stop. See [How changes go wrong here](/docs/agents/failure-modes).
+The game jumped to an address that has no translated function ready. A mature runtime may interpret it, log it, or feed it back into discovery.
 
 ### Divergence
 
-A difference in state between two versions under [co-simulation](#co-simulation). See [first divergence](#first-divergence), which is the only one worth debugging.
+A difference between the port and a reference during testing. The first divergence is the one developers want to find.
+
+## E
 
 ### Emulation
 
-Running a program by acting out its instructions in software, one at a time, on a model of the machine it was written for. Static recompilation avoids that for the game's own code. Every port here still models the console's devices, and many keep an [interpreter](#interpreter) as a fallback on the way to full static coverage. See [Is this emulation?](/docs/start/is-this-emulation).
+Acting like another machine in software. Static recompilation avoids interpreting the main game code when it can, but the runtime still models console hardware. See [Is this emulation?](/docs/start/is-this-emulation).
 
-### First divergence
+## F
 
-The earliest checkpoint where two versions differ. Every debugging protocol here makes you find it rather than investigate the visible symptom, because everything after it is consequence. psxrecomp puts it as "Never debug the final symptom." See [Debug a divergence](/docs/guides/debug-a-divergence).
+### Faithfulness
 
-### Flat step
+The port behaving like the original game. This is the real measurement, not just whether the app opens.
 
-An output mode where one host function runs exactly one guest instruction and returns, so the host takes control back every instruction. smsggrecomp's `--flat-step` exists so a Z80 recompiled by one toolchain can run as the sound chip inside another's scheduler. It is the slowest point on the [timing model](/docs/concepts/timing-models) scale.
+### Fallback interpreter
 
-### Gate
+A small emulator inside the runtime. It can run code that was not translated ahead of time. It is slower than native code, but it keeps correctness first.
 
-A pass or fail condition that must hold before a measurement is believed. The word covers three different ladders here, so check which one a document means: the numbered co-simulation self-checks in psxrecomp and nesrecomp, the burndown's two conditions for calling an axis done, and ndsrecomp's standing regression gates.
+### Firmware
 
-### Ground truth
+System software stored in or used by a console. Similar to BIOS in this context.
 
-Behaviour recorded from a mature emulator and fed back into static analysis as seeds. It improves [coverage](#coverage) and proves nothing about correctness, which is what separates it from [co-simulation](#co-simulation).
+## G
 
-### GTE (geometry transformation engine)
+### Game file
 
-The PlayStation's second coprocessor: the fixed point maths unit a PS1 game uses to transform and project 3D points. No other console here has one, so a sentence about the GTE is never a sentence about the fleet. See [PlayStation](/docs/platforms/playstation).
+The game input the user provides, such as a cartridge dump or disc image. See [What is the game file contract?](/docs/concepts/the-game-file-you-supply).
 
-### HLE (high level emulation)
+### Generated code
 
-Skipping a piece of the console's own code and having the host do that job its own way. Every toolchain here treats [LLE](#lle-low-level-emulation) as the baseline and allows HLE only above a working floor. The word means different things in different repositories: see [High level and low level](/docs/concepts/hle-and-lle).
+Code written by the recompiler. It is build output. Developers should fix the recompiler, runtime, or config instead of hand-editing generated code.
+
+### Guest
+
+The old console or game being recreated. For example, a PlayStation game is guest code running inside a native port.
+
+## H
+
+### HLE
+
+High level emulation. Replacing a piece of console behavior with native code that does the same job at a higher level. HLE is useful, but HLE-first can become a trap. See [What are HLE and LLE?](/docs/concepts/hle-and-lle).
+
+### Host
+
+The modern machine running the port.
+
+## I
 
 ### Interpreter
 
-A small emulator inside a port that reads guest instructions and acts them out one at a time. It is slower than compiled code and it is correct, so a [dispatch miss](#dispatch-miss) lands there and costs speed rather than the game. Several projects also compare the compiled code against it as a self-check, which proves agreement, not correctness.
+Software that reads guest instructions and acts them out one at a time.
 
-### Interworking
+### Interrupt
 
-An ARM7TDMI switching between the 32-bit ARM and 16-bit Thumb instruction sets while it runs. gbarecomp's rule is "Treat it as one CPU, not two." It is the defining difficulty of the Game Boy Advance toolchain, because the recompiler has to know which instruction set was live at every address.
+A hardware event that makes the CPU stop what it is doing and run special code. Timing-sensitive games often care exactly when interrupts happen.
 
-### Just in time
+## L
 
-Work done at the moment it is needed rather than before. An [interpreter](#interpreter) reads and acts out each instruction just in time, which is why it pays the same cost every time round a loop. [Runtime recompilation](#runtime-recompilation) is also just in time, but it translates a piece once and keeps the result. The opposite is [ahead of time](#aot-ahead-of-time).
+### LLE
 
-### LLE (low level emulation)
+Low level emulation. Following the original machine closely, often by running or recompiling its own code. In these projects, faithful LLE is the floor that HLE is checked against.
 
-Running the console's own code, including its firmware where the machine has any, on top of a model of the hardware. cdirecomp states its philosophy as LLE and static, native first. In snesrecomp the interpreter is the correctness floor, not a last resort.
+## M
 
 ### Mapper
 
-Cartridge hardware that swaps which part of the game ROM appears in the CPU's window. It is what performs [bank switching](#bank-switching). The word is used here mostly about the NES, where the cartridge header carries a mapper number. That numbering is the NES's and means nothing elsewhere. See [NES](/docs/platforms/nes).
+Cartridge hardware that changes which ROM data appears at which CPU addresses. This term is especially common for NES.
 
 ### Mod manifest
 
-The `manifest.toml` at the root of a mod package. It declares the package, its version, the features it adds and the exact game dump it targets. Package, feature and operation differ: you install a package, a player switches on a feature, and an operation is what that feature then does. See [Mod manifest](/docs/reference/mod-manifest).
+A file that describes a mod package, its version, its features, and the game version it targets.
 
-### Mode flags
-
-The 65816 status bits M and X, which pick 8-bit or 16-bit registers. The same bytes mean different things under different settings, so snesrecomp emits one version of a function per setting, with the flags in the name. That is why a SNES port has several functions where an NES port has one. See [SNES](/docs/platforms/snes).
+## N
 
 ### Native
 
-The game's own logic running as compiled code on your processor instead of being acted out by an [interpreter](#interpreter). Wider than [static](#static-recompilation): a build is still native when some code had to be translated while the game ran, because what finally executes is compiled either way. Native says what runs, static says when the translating happened. See [What is static recompilation?](/docs/start/what-is-static-recompilation).
+Running as compiled code for the host machine instead of being interpreted one instruction at a time. Native says what runs. Static says when the translation happened.
+
+## O
 
 ### Oracle
 
-The reference a recompiled build is compared against under [co-simulation](#co-simulation): a known good emulator of the console, modified so its registers and memory can be read out and compared while it runs. A project's own interpreter can stand in as a self-check, but only an independent oracle can catch a mistake both halves of one project share. See [Co-simulation](/docs/concepts/co-simulation).
+A trusted reference used for comparison, usually a mature emulator. Co-simulation uses an oracle to decide whether the port still matches.
 
 ### Overlay
 
-On PlayStation, a chunk of game code pulled from disc into a fixed area of memory while the game runs, then written over by the next one. It is not in the executable, so an ahead-of-time recompiler cannot see it. Two other consoles borrow the word, so check which one you are reading. See [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time).
+Code loaded into memory while the game runs, often replacing earlier code at the same address. This is especially important for PlayStation. See [What about code you cannot see ahead of time?](/docs/concepts/code-you-cannot-see-ahead-of-time).
 
-### Pairing
-
-A numbering several repositories use for which two versions one [co-simulation](#co-simulation) run compares. Their pairing 1 is the recompiled build against the project's own interpreter, a self-check. Their pairing 2 is the recompiled build against an independent emulator, the comparison that can arbitrate correctness. See [oracle](#oracle).
+## P
 
 ### Probe
 
-Two senses. A probe is a read-only query against a running process's [always-on ring](#always-on-ring) buffers. Separately, a project named `probe` is an instrument, not a port: [xboxlle-probe](https://github.com/mstan/xboxlle-probe) produces no playable program, and exists so emulator behaviour can be compared against measurements from real hardware. See [Xbox](/docs/platforms/xbox).
+A read-only debugging query or tool. A probe observes behavior; it is not necessarily a playable port.
 
 ### Provenance
 
-Two senses. Narrowly, in nesrecomp, a record of how each function was found, so a weak guess is never promoted to strong evidence. Broadly, the practice of recording where every line of device code came from, which cdirecomp sums up as "test evidence, not implementation authority". See [Provenance](/docs/fleet/provenance).
+Where something came from. In this ecosystem it can mean how code was discovered, where a hardware behavior was learned, or which files are safe to redistribute.
+
+## R
 
 ### Recompiler
 
-The build-time program that reads the game's binary and writes source code. It runs on a developer's machine and never while the game does. It is one half of the split every project here repeats. Strictly the part doing the translation is a [decoder](#decoder); the word recompiler is used for the whole tool. See [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime).
-
-### Ruler
-
-The guest quantity both sides of a [co-simulation](#co-simulation) run count the same way, used to decide when to compare. Projects use a cycle counter, a master clock or a frame number derived from cycles. Choosing one only one side can count is the classic way to build a harness that reports nonsense.
+The build-time tool that reads a game's machine code and writes source code from it. See [What are the recompiler and runtime?](/docs/concepts/recompiler-and-runtime).
 
 ### Runtime
 
-The library the generated code links against, standing in for the console's memory, devices, operating system, saves, controllers and sound. The half that keeps running as long as the game does. Note the collision: "at run time" means while the game runs; "the runtime" means this library.
+The native code that surrounds the translated game and provides console services: memory, graphics, audio, input, saves, timing, and more.
 
 ### Runtime recompilation
 
-Translating guest code to native code while the program runs, because it did not exist to be translated earlier. psxrecomp has no single name for it: it captures each [overlay](#overlay) as it loads, compiles it in a separate process, and caches the result. See [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time).
+Translating code while the game is running because the code was not available earlier. This is different from pure AOT static recompilation, but the result can still be native code.
 
-### Self-healing
+## S
 
-Bridging a [dispatch miss](#dispatch-miss) at run time by recompiling the missing code into a lasting cache, then feeding the address back into a reviewed file so the next build finds it properly. gbarecomp allows it only when loudly logged, because a silent bridge lets a discovery bug ship as a performance problem.
+### Save state
 
-### Shadow
-
-An optional, more accurate version of a subsystem that runs beside the [canon path](#canon-path), is compared against it continuously, takes over only after a proven run of agreement, reverts loudly, and is off by default. Four projects define it in these terms.
-
-### Splitgen
-
-The output mode that writes the recompiled game as one shared header plus a fixed number of numbered source files instead of one enormous file, so the build can compile them in parallel. psxrecomp names it `splitgen`.
+A snapshot of the machine that can be restored later.
 
 ### Static recompilation
 
-Translating a game's binary into source code ahead of time, then compiling that into a [native](#native) program which links against a [runtime](#runtime). The technique needs no particular language; the projects here emit C. It says nothing about how much of the console is simulated. Static is the strict half of the claim: all the translating happened before the game ran. The re is loose too, because a game written by hand in assembly was never compiled to begin with. See [What is static recompilation?](/docs/start/what-is-static-recompilation) and [Is this emulation?](/docs/start/is-this-emulation).
+Translating game code before the game runs, then compiling the result into a native program. See [What is static recompilation?](/docs/start/what-is-static-recompilation).
 
 ### Stub
 
-Made-up behaviour standing in for real guest code. Forbidden in every toolchain that mentions it. psxrecomp gives the procedure instead: stop, find the real target, fix discovery or code generation.
+Made-up behavior standing in for real console or game behavior. Stubs may help during experiments, but they should not become hidden correctness claims.
+
+> **Warning.** Stubs rot quickly, especially when AI is involved. A stub can make
+> a milestone look complete while hiding the real missing behavior. The safer
+> rule is no stubs, ever: stop, find the real behavior, and make the faithful
+> path work.
+
+## T
+
+### Timing model
+
+How the port tracks the original console's time. See [When should timing be changed?](/docs/concepts/timing-models).
 
 ### Tier
 
-A dispatch level, and one of the least portable words here. The ladder people mean is psxrecomp's: tier 1 is native code compiled at build time, tier 2 is code compiled while the game runs and cached, tier 3 is the interpreter. On SNES the middle tier was never ported, so tier 2 there is the interpreter. Read the project's own table first.
-
-## Where the fleet's own words disagree
-
-A reader who notices these is reading correctly. This wiki maps them rather than smoothing them out.
-
-- **The names do not track the technique.** cdirecomp is named `recomp` and describes itself as low level and native-first. gcnlle is named `lle` and is a static recompiler. The categories were never exclusive: static recompilation is a translation technique, low level emulation is a statement about whose code runs, and most of this fleet is both. Only `probe` means something different: an instrument, not a port.
-- **One word, two scopes.** [Bank](#bank), [coverage](#coverage), [probe](#probe) and [provenance](#provenance) each mean two things depending on the repository.
-- **One word, three ladders.** [Gate](#gate) names three different sets of conditions.
-- **One word, opposite architectures.** [HLE](#hle-high-level-emulation) in psxrecomp is a swappable BIOS tier that became the default; in ndsrecomp it is a replacement forbidden from deleting the faithful version beneath it.
-- **One mechanism, one console.** [Mode flags](#mode-flags) are a 65816 thing, [interworking](#interworking) an ARM7TDMI thing, a [mapper](#mapper) number an NES number, the [GTE](#gte-geometry-transformation-engine) a PlayStation part. Even the ladder behind [tier](#tier) belongs to one project.
-
-## Source
-
-Every definition above comes from a repository that uses the word seriously. These are the files to open.
-
-- psxrecomp: [`PRINCIPLES.md`](https://github.com/mstan/psxrecomp/blob/master/PRINCIPLES.md), [`docs/EXECUTION_MODEL.md`](https://github.com/mstan/psxrecomp/blob/master/docs/EXECUTION_MODEL.md), [`SPLITGEN_MIGRATION.md`](https://github.com/mstan/psxrecomp/blob/master/SPLITGEN_MIGRATION.md)
-- nesrecomp: [`EXTRACTION.md`](https://github.com/mstan/nesrecomp/blob/master/EXTRACTION.md), [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md). snesrecomp: [`docs/LLE_FIRST_ANALYSIS.md`](https://github.com/mstan/snesrecomp/blob/main/docs/LLE_FIRST_ANALYSIS.md), [`docs/MULTI_TIER.md`](https://github.com/mstan/snesrecomp/blob/main/docs/MULTI_TIER.md)
-- gbarecomp: [`PRINCIPLES.md`](https://github.com/mstan/gbarecomp/blob/main/PRINCIPLES.md). gbrecompiled: [`COSIM_ORACLE.md`](https://github.com/mstan/gbrecompiled/blob/master/COSIM_ORACLE.md), [`GROUND_TRUTH_WORKFLOW.md`](https://github.com/mstan/gbrecompiled/blob/master/GROUND_TRUTH_WORKFLOW.md)
-- segagenesisrecomp: [`PRINCIPLES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/PRINCIPLES.md), [`COVERAGE.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COVERAGE.md). smsggrecomp: [`FLAT_STEP.md`](https://github.com/mstan/smsggrecomp/blob/main/FLAT_STEP.md)
-- ndsrecomp: [`PRINCIPLES.md`](https://github.com/mstan/ndsrecomp/blob/main/PRINCIPLES.md), [`HLE_ARCHITECTURE.md`](https://github.com/mstan/ndsrecomp/blob/main/HLE_ARCHITECTURE.md).
-- cdirecomp: [`PROVENANCE.md`](https://github.com/mstan/cdirecomp/blob/master/PROVENANCE.md). gcnlle: [`PRINCIPLES.md`](https://github.com/mstan/gcnlle/blob/master/PRINCIPLES.md). xboxlle-probe: [`README.md`](https://github.com/mstan/xboxlle-probe/blob/main/README.md)
-- Ports, for the file contract: [`baserom.md`](https://github.com/mstan/MinishCapRecomp/blob/main/baserom.md) and [`DISC.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/DISC.md)
+A level in a runtime's dispatch path. In psxrecomp, for example, code may run as ahead-of-time native code, runtime-compiled code, or interpreter fallback. Do not assume every console uses the same ladder.
 
 ## Next
 
-- [What is static recompilation?](/docs/start/what-is-static-recompilation) if you want the idea before the vocabulary.
-- [Co-simulation](/docs/concepts/co-simulation) and [High level and low level](/docs/concepts/hle-and-lle) define a third of these terms at length.
-- [Every repository](/docs/fleet/repositories) for which project to open when a definition depends on which one you are in.
-- [If you are an agent, start here](/docs/agents/start-here) if you are about to work in one of these repositories.
+- [What is static recompilation?](/docs/start/what-is-static-recompilation)
+- [How is a port made?](/docs/start/how-a-port-is-made)
+- [What are HLE and LLE?](/docs/concepts/hle-and-lle)
+- [Every repository](/docs/fleet/repositories)
