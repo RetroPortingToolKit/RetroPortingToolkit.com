@@ -1165,14 +1165,23 @@ function readBody(req, cb, limit = 2_000_000) {
 
 const COOKIE = "cms_session";
 
-// Returns the dev middleware. The dev editor is open: it binds to localhost and
-// writes to the working tree, and there is no password to hold. Production auth
-// (GitHub sign-in, agent bearer tokens) lives in api/cms.ts.
+function isLoopbackRequest(req) {
+  const address = String(req.socket?.remoteAddress || "").toLowerCase();
+  return address === "::1" || /^127(?:\.|$)/.test(address) || /^::ffff:127(?:\.|$)/.test(address);
+}
+
+// Returns the dev middleware. Vite serves the public site on the LAN for
+// cross-device testing, but this API writes directly to the working tree and
+// has no password. Keep every CMS route on the loopback interface; production
+// auth (GitHub sign-in, agent bearer tokens) lives in api/cms.ts.
 export function createCmsMiddleware() {
 
   return function cmsMiddleware(req, res, next) {
     const url = (req.originalUrl || req.url || "").split("?")[0];
     if (!url.startsWith("/api/cms/")) return next();
+    if (!isLoopbackRequest(req)) {
+      return send(res, 403, { error: "dev_cms_local_only" });
+    }
     const query = new URLSearchParams((req.originalUrl || req.url || "").split("?")[1] || "");
 
     if (url === "/api/cms/auth" && req.method === "GET") {

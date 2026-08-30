@@ -142,12 +142,13 @@ function seed(root) {
 }
 
 /** Drive one CMS route the way the editor does, without a server. */
-function call(mw, method, url, body) {
+function call(mw, method, url, body, remoteAddress = "127.0.0.1") {
   return new Promise((resolve, reject) => {
     const req = new EventEmitter();
     req.method = method;
     req.url = url;
     req.headers = {};
+    req.socket = { remoteAddress };
     req.destroy = () => reject(new Error("request body limit exceeded"));
     const res = {
       statusCode: 200,
@@ -165,6 +166,32 @@ function call(mw, method, url, body) {
     }
   });
 }
+
+describe("dev middleware network boundary", () => {
+  it("serves CMS routes over IPv4 and IPv6 loopback", async () => {
+    const { mod } = await devBackend();
+    const middleware = mod.createCmsMiddleware();
+
+    const ipv4 = await call(middleware, "GET", "/api/cms/auth");
+    const ipv6 = await call(middleware, "GET", "/api/cms/auth", undefined, "::1");
+
+    expect(ipv4).toMatchObject({ status: 200, body: { env: "dev" } });
+    expect(ipv6).toMatchObject({ status: 200, body: { env: "dev" } });
+  });
+
+  it("rejects a CMS request from another device on the LAN", async () => {
+    const { mod } = await devBackend();
+    const r = await call(
+      mod.createCmsMiddleware(),
+      "GET",
+      "/api/cms/auth",
+      undefined,
+      "192.168.1.42",
+    );
+
+    expect(r).toEqual({ status: 403, body: { error: "dev_cms_local_only" } });
+  });
+});
 
 describe("dev delete: a docs section takes its pages with it", () => {
   it("counts every file it removed, and says how many pages were inside", async () => {
