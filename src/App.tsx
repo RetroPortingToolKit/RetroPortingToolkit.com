@@ -182,13 +182,12 @@ function ScrollManager() {
 const COLLECTION_PATH_RE = /^\/all\/[^/]+\/?$|^\/topic\/[^/]+\/?$/;
 const ITEM_PATH_RE = /^\/(hardware|games|blog)\/[^/]+\/?$/;
 
-// The tab page rendered UNDER an item opened by deep link, keyed by the item's
-// URL segment.
-const ITEM_TAB_PATH: Record<string, string> = {
-  hardware: "/hardware",
-  games: "/games",
-  blog: "/blog",
-};
+// Direct modal URLs have no real page behind them. The modal itself owns the
+// whole viewport and carries the site navigation, so mounting a complete Home
+// catalog underneath only creates hidden cards, observers and media requests.
+function DirectModalUnderlay() {
+  return <div className="modal-direct-underlay" aria-hidden="true" />;
+}
 
 function AppRoutes() {
   const location = useLocation();
@@ -217,21 +216,14 @@ function AppRoutes() {
       }
       layers.unshift(loc);
       if (!bg) {
-        // Deep link / reload straight onto an item: render its TAB page
-        // underneath and the real modal on top, never the bare fallback page.
-        // Must resolve to a tab that RENDERS: /projects, /talks and /writing
-        // are <Navigate> aliases into /work, and putting one here would fire a
-        // redirect that replaces the URL and tears the item back down.
-        if (itemMatch) {
-          pageLocation = {
-            pathname: ITEM_TAB_PATH[itemMatch[1]] ?? "/",
-            search: "",
-            hash: "",
-            state: null,
-            key: "synthetic",
-          };
-        }
-        break; // collection visited directly: page falls back to Home
+        pageLocation = {
+          pathname: "/__modal-underlay",
+          search: "",
+          hash: "",
+          state: null,
+          key: "synthetic",
+        };
+        break;
       }
       loc = bg;
     }
@@ -285,6 +277,7 @@ function AppRoutes() {
             <Route path="/docs/*" element={<DocsPage />} />
             <Route path="/all/:segment" element={<Home />} />
             <Route path="/topic/:topicId" element={<Home />} />
+            <Route path="/__modal-underlay" element={<DirectModalUnderlay />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

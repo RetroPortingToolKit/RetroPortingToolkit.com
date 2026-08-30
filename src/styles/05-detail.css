@@ -109,6 +109,11 @@
 }
 
 /* ---------- DESKTOP MODAL (App Store style) ---------- */
+.modal-direct-underlay {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
