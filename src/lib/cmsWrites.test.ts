@@ -18,6 +18,7 @@ type Body = Record<string, unknown>;
 
 type FakeGitHubHooks = {
   afterContentsGet?: (path: string, count: number, store: Map<string, Buffer>) => void;
+  afterRecursiveTree?: (store: Map<string, Buffer>) => void;
   beforeContentsPut?: (path: string, store: Map<string, Buffer>) => void;
   beforeRefPatch?: (store: Map<string, Buffer>) => void;
   refPatchStatus?: number;
@@ -107,8 +108,12 @@ function fakeGitHub(seed: Record<string, Buffer | string>, hooks: FakeGitHubHook
     if (recursiveTree) {
       const ref = decodeURIComponent(recursiveTree[1]);
       const commit = ref === "main" ? commits.get(head) : commits.get(ref);
-      const source = commit ? trees.get(commit.tree) ?? store : store;
-      return reply({ tree: [...source].map(([p, b]) => ({ path: p, type: "blob", sha: sha(b) })) });
+      const source = trees.get(ref) ?? (commit ? trees.get(commit.tree) : undefined) ?? store;
+      const response = reply({ tree: [...source].map(([p, b]) => ({ path: p, type: "blob", sha: sha(b) })) });
+      const before = treeFingerprint(store);
+      hooks.afterRecursiveTree?.(store);
+      if (treeFingerprint(store) !== before) advanceExternalHead();
+      return response;
     }
     if (/\/git\/ref\/heads\//.test(url)) return reply({ object: { sha: head } });
     const commitGet = /\/git\/commits\/([^/]+)$/.exec(url);
@@ -387,6 +392,169 @@ describe("prod /post writes the fields a kind takes, and only those", () => {
       tags: ["A"],
     });
     expect(fm).not.toHaveProperty("summary");
+  });
+});
+
+describe("prod Git Data mutations use the snapshot they validated", () => {
+  it("creates /new through one Git Data commit", async () => {
+    open();
+    const r = await send("new", { kind: "games", title: "New Game" });
+    expect(r.status).toBe(200);
+    await expect(r.json()).resolves.toMatchObject({ ok: true, id: "data/games/03_new-game/index.md" });
+    expect(gh.store.has("data/games/03_new-game/index.md")).toBe(true);
+    expect(gh.puts()).toBe(0);
+    expect(gh.calls.filter((call) => call.method === "POST" && call.url.endsWith("/git/commits"))).toHaveLength(1);
+  });
+
+  it("does not overwrite a page created after /new allocated its path", async () => {
+    const target = "data/games/03_new-game/index.md";
+    const external = page("Concurrent New Game");
+    let moved = false;
+    open({}, {
+      afterRecursiveTree(store) {
+        if (moved) return;
+        moved = true;
+        store.set(target, Buffer.from(external, "utf8"));
+      },
+    });
+
+    const r = await send("new", { kind: "games", title: "New Game" });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, conflict: true });
+    expect(gh.text(target)).toBe(external);
+  });
+
+  it("does not publish a rename after a colliding slug appears", async () => {
+    const concurrent = "data/games/03_tomba-classic/index.md";
+    const external = page("Concurrent Tomba Classic");
+    let moved = false;
+    open({}, {
+      afterRecursiveTree(store) {
+        if (moved) return;
+        moved = true;
+        store.set(concurrent, Buffer.from(external, "utf8"));
+      },
+    });
+
+    const r = await send("rename", { id: "data/games/01_tomba/index.md", slug: "tomba-classic" });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, conflict: true });
+    expect(gh.store.has("data/games/01_tomba/index.md")).toBe(true);
+    expect(gh.store.has("data/games/01_tomba-classic/index.md")).toBe(false);
+    expect(gh.text(concurrent)).toBe(external);
+  });
+
+  it("does not delete a page the Home page began featuring after validation", async () => {
+    const externalHome = JSON.stringify({ action: [{ page: "/games/tomba" }] }, null, 2) + "\n";
+    let moved = false;
+    open({}, {
+      afterRecursiveTree(store) {
+        if (moved) return;
+        moved = true;
+        store.set("data/home.json", Buffer.from(externalHome, "utf8"));
+      },
+    });
+
+    const r = await send("delete", { id: "data/games/01_tomba/index.md" });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, conflict: true });
+    expect(gh.store.has("data/games/01_tomba/index.md")).toBe(true);
+    expect(gh.text("data/home.json")).toBe(externalHome);
+  });
+
+  it("does not overwrite an asset uploaded during its ref update", async () => {
+    const asset = "data/games/01_tomba/shot.png";
+    const external = Buffer.from("external asset", "utf8");
+    let moved = false;
+    open({}, {
+      beforeRefPatch(store) {
+        if (moved) return;
+        moved = true;
+        store.set(asset, external);
+      },
+    });
+
+    const r = await send("upload", {
+      id: "data/games/01_tomba/index.md",
+      filename: "shot.png",
+      contentBase64: Buffer.from("our upload", "utf8").toString("base64"),
+    });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, conflict: true });
+    expect(gh.store.get(asset)?.equals(external)).toBe(true);
+  });
+
+  it("does not delete an asset replaced after its existence check", async () => {
+    const asset = "data/games/01_tomba/shot.png";
+    const external = Buffer.from("newer asset", "utf8");
+    let moved = false;
+    open({ [asset]: Buffer.from("old asset", "utf8") }, {
+      afterRecursiveTree(store) {
+        if (moved) return;
+        moved = true;
+        store.set(asset, external);
+      },
+    });
+
+    const r = await send("asset/delete", { id: "data/games/01_tomba/index.md", name: "shot.png" });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, conflict: true });
+    expect(gh.store.get(asset)?.equals(external)).toBe(true);
+  });
+
+  it("does not overwrite a duplicate target created after validation", async () => {
+    const target = "data/games/03_tomba-copy/index.md";
+    const external = page("Concurrent Copy");
+    let moved = false;
+    open({}, {
+      afterRecursiveTree(store) {
+        if (moved) return;
+        moved = true;
+        store.set(target, Buffer.from(external, "utf8"));
+      },
+    });
+
+    const r = await send("duplicate", { id: "data/games/01_tomba/index.md" });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, conflict: true });
+    expect(gh.text(target)).toBe(external);
+  });
+
+  it("does not overwrite a /post target created after slug validation", async () => {
+    const target = "data/blog/01_race-post/index.md";
+    const external = page("Concurrent Race Post");
+    let moved = false;
+    open({}, {
+      afterRecursiveTree(store) {
+        if (moved) return;
+        moved = true;
+        store.set(target, Buffer.from(external, "utf8"));
+      },
+    });
+
+    const r = await send("post", { kind: "blog", title: "Race Post", body: "ours" });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, conflict: true });
+    expect(gh.text(target)).toBe(external);
+  });
+
+  it("preserves an unrelated branch advance and surfaces a retryable conflict", async () => {
+    const unrelated = page("Unrelated edit");
+    let moved = false;
+    open({}, {
+      beforeRefPatch(store) {
+        if (moved) return;
+        moved = true;
+        store.set("data/docs/01_start/01_page-one/index.md", Buffer.from(unrelated, "utf8"));
+      },
+    });
+
+    const r = await send("rename", { id: "data/games/01_tomba/index.md", slug: "tomba-classic" });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, conflict: true });
+    expect(gh.text("data/docs/01_start/01_page-one/index.md")).toBe(unrelated);
+    expect(gh.store.has("data/games/01_tomba/index.md")).toBe(true);
+    expect(gh.store.has("data/games/01_tomba-classic/index.md")).toBe(false);
   });
 });
 

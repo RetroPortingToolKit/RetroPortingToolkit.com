@@ -355,14 +355,6 @@ async function ghWriteFileAtVersion(
   return { ok: true, sha: written.content?.sha ?? "" };
 }
 
-/** Writes one file and answers with the blob sha the repo now holds for it,
-    which is the version the editor carries into its next save. */
-async function ghWriteFile(path: string, text: string, message: string, actor?: Actor | null): Promise<string> {
-  const existing = await ghReadFile(path);
-  const result = await ghWriteFileAtVersion(path, text, message, existing, actor);
-  if (!result.ok) throw new Error(`gh_write_409 ${path}`);
-  return result.sha;
-}
 /** One commit that may write and delete several files at once.
     The Contents API is one file per commit, which would mean a commit and a
     rebuild per asset, and cannot express a deletion alongside the edit that
@@ -459,11 +451,26 @@ async function ghCommitAt(
   return { ok: true, sha: commit.sha as string, blobs };
 }
 
-async function ghCommit(changes: Change[], message: string, actor?: Actor | null): Promise<string | null> {
+function mutationConflict() {
+  return {
+    ok: false,
+    conflict: true,
+    error: "The repository changed while this operation was being prepared. Reload, then try again.",
+  } as const;
+}
+
+/** Publish a mutation whose validation used `snapshot`. Any branch movement,
+    even on an unrelated path, leaves the newer branch untouched and asks the
+    caller to retry instead of applying a decision made against older state. */
+async function ghPublishMutation(
+  changes: Change[],
+  message: string,
+  snapshot: GhSnapshot,
+  actor?: Actor | null,
+): Promise<ReturnType<typeof mutationConflict> | null> {
   if (!changes.length) return null;
-  const result = await ghCommitAt(changes, message, await ghSnapshot(), actor);
-  if (!result.ok) throw new Error("gh_ref_conflict");
-  return result.sha;
+  const result = await ghCommitAt(changes, message, snapshot, actor);
+  return result.ok ? null : mutationConflict();
 }
 
 /** Read many files in ONE request. The editor's list needs each page's real
@@ -493,8 +500,11 @@ async function ghReadMany(paths: string[]): Promise<Map<string, string>> {
   return out;
 }
 
-async function ghListTree(): Promise<{ path: string; sha: string }[]> {
-  const r = await fetch(`${GH}/git/trees/${BRANCH}?recursive=1`, { headers: ghHeaders() });
+async function ghListTree(snapshot?: GhSnapshot): Promise<{ path: string; sha: string }[]> {
+  // A tree sha is immutable. Mutations pass the same snapshot they later use
+  // as the commit parent, so validation and publication cannot see two heads.
+  const tree = snapshot?.tree || BRANCH;
+  const r = await fetch(`${GH}/git/trees/${encodeURIComponent(tree)}?recursive=1`, { headers: ghHeaders() });
   if (!r.ok) throw new Error(`gh_tree_${r.status}`);
   const j = (await r.json()) as { tree: { path: string; type: string; sha: string }[] };
   return j.tree.filter((e) => e.type === "blob");
@@ -907,7 +917,8 @@ async function createEditable(payload: Record<string, unknown>, actor?: Actor | 
   const slug = slugify(title);
   if (!slug) return { ok: false, error: "That title has no usable characters for a URL." };
 
-  const paths = (await ghListTree()).map((e) => e.path);
+  const snapshot = await ghSnapshot();
+  const paths = (await ghListTree(snapshot)).map((e) => e.path);
   // Docs pages live inside a section, so a new one has to say which. No section
   // means the new page IS a section: it lands at data/docs/<NN>_<slug>/index.md
   // and is what /docs/<slug> serves.
@@ -928,7 +939,13 @@ async function createEditable(payload: Record<string, unknown>, actor?: Actor | 
   if (!isAllowed(id)) return { ok: false, error: "refused" };
 
   const body = "Write the post here. This body renders as markdown on the item page.\n";
-  await ghWriteFile(id, `---\n${stubFrontmatter(kind, title, actor, section)}\n---\n\n${body}`, `cms: add ${where}/${slug}`, actor);
+  const conflict = await ghPublishMutation(
+    [{ path: id, text: `---\n${stubFrontmatter(kind, title, actor, section)}\n---\n\n${body}` }],
+    `cms: add ${where}/${slug}`,
+    snapshot,
+    actor,
+  );
+  if (conflict) return conflict;
   return { ok: true, id, slug, kind, section };
 }
 
@@ -1134,8 +1151,11 @@ async function uploadAsset(body: Record<string, unknown>, actor?: Actor | null) 
   if (bytes > MAX_ASSET_BYTES) {
     return { ok: false, error: `That file is ${(bytes / 1024 / 1024).toFixed(1)} MB. The limit here is 3 MB.` };
   }
+  const snapshot = await ghSnapshot();
+  if (!(await ghReadFile(id, snapshot.head))) return { ok: false, error: "not_found" };
   const path = `${folder}/${name}`;
-  await ghCommit([{ path, base64 }], `cms: add ${path}`, actor);
+  const conflict = await ghPublishMutation([{ path, base64 }], `cms: add ${path}`, snapshot, actor);
+  if (conflict) return conflict;
   // `path` is what the editor writes into `cover:`, and a cover is resolved
   // against the item's own folder, so it has to be the relative "./name" the
   // dev backend returns. The repo-relative path resolved to nothing and the
@@ -1150,9 +1170,11 @@ async function deleteAsset(body: Record<string, unknown>, actor?: Actor | null) 
   const name = safeAssetName(String(body.name || ""));
   if (!name) return { ok: false, error: "bad_name" };
   const path = `${folder}/${name}`;
-  const exists = (await ghListTree()).some((e) => e.path === path);
+  const snapshot = await ghSnapshot();
+  const exists = (await ghListTree(snapshot)).some((e) => e.path === path);
   if (!exists) return { ok: false, error: "not_found" };
-  await ghCommit([{ path, remove: true }], `cms: remove ${path}`, actor);
+  const conflict = await ghPublishMutation([{ path, remove: true }], `cms: remove ${path}`, snapshot, actor);
+  if (conflict) return conflict;
   return { ok: true, path };
 }
 
@@ -1175,11 +1197,12 @@ async function deleteEditable(body: Record<string, unknown>, actor?: Actor | nul
   const folder = itemFolder(id);
   const slug = itemSlug(id);
   if (!folder || !slug) return { ok: false, error: "Only content items can be deleted." };
+  const snapshot = await ghSnapshot();
   // The homepage names the pages it features, and the build refuses to
   // produce a homepage that links a page which does not exist. Deleting one
   // out from under it therefore breaks every later build, not just this one,
   // and the failure surfaces nowhere near the person who caused it.
-  const home = await ghReadFile("data/home.json");
+  const home = await ghReadFile("data/home.json", snapshot.head);
   if (home && referencesPath(home.content, `/${kindSegment(id)}/${slug}`)) {
     return {
       ok: false,
@@ -1187,7 +1210,7 @@ async function deleteEditable(body: Record<string, unknown>, actor?: Actor | nul
     };
   }
 
-  const paths = (await ghListTree()).map((e) => e.path);
+  const paths = (await ghListTree(snapshot)).map((e) => e.path);
   const own = paths.filter((p) => p === `${folder}/index.md` || p.startsWith(`${folder}/`));
   if (!own.length) return { ok: false, error: "not_found" };
   const previews = paths.filter((p) => new RegExp(`^public/previews/${slug}\\.(mp4|webp|webm|png|jpg)$`).test(p));
@@ -1196,7 +1219,8 @@ async function deleteEditable(body: Record<string, unknown>, actor?: Actor | nul
   // A docs section holds a page per folder, so deleting one deletes them all.
   // Nothing else nests, so this is 0 everywhere else.
   const children = own.filter((p) => p.endsWith("/index.md") && p !== `${folder}/index.md`).length;
-  await ghCommit(changes, `cms: delete ${folder}`, actor);
+  const conflict = await ghPublishMutation(changes, `cms: delete ${folder}`, snapshot, actor);
+  if (conflict) return conflict;
   return { ok: true, removed: files.length, children, warning: childWarning(children), files };
 }
 
@@ -1241,7 +1265,8 @@ async function renameEditable(body: Record<string, unknown>, actor?: Actor | nul
   if (!slug) return { ok: false, error: "That slug has no usable characters for a URL." };
   if (slug === folderSlugOf(leaf)) return { ok: true, id, slug, unchanged: true };
 
-  const tree = await ghListTree();
+  const snapshot = await ghSnapshot();
+  const tree = await ghListTree(snapshot);
   const paths = tree.map((e) => e.path);
   for (const f of foldersOf(kind, parent, paths)) {
     if (folderSlugOf(f) === slug) return { ok: false, error: `"${slug}" already exists in ${kind}.` };
@@ -1265,7 +1290,8 @@ async function renameEditable(body: Record<string, unknown>, actor?: Actor | nul
     changes.push({ path: `${target}/${from.path.slice(source.length + 1)}`, blobSha: from.sha });
     changes.push({ path: from.path, remove: true });
   }
-  await ghCommit(changes, `cms: rename ${source} -> ${target}`, actor);
+  const conflict = await ghPublishMutation(changes, `cms: rename ${source} -> ${target}`, snapshot, actor);
+  if (conflict) return conflict;
   return { ok: true, id: `${target}/index.md`, slug };
 }
 
@@ -1276,7 +1302,8 @@ async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | 
   const parts = itemParts(id);
   if (!parts) return { ok: false, error: "Only content items can be duplicated." };
   const { kind, parent } = parts;
-  const file = await ghReadFile(id);
+  const snapshot = await ghSnapshot();
+  const [file, tree] = await Promise.all([ghReadFile(id, snapshot.head), ghListTree(snapshot)]);
   if (!file) return { ok: false, error: "not_found" };
 
   const { fmText, body: mdBody } = splitRaw(file.content);
@@ -1288,7 +1315,7 @@ async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | 
   }
   const title = `${String(fm.title || "Untitled")} (copy)`;
   const slug = slugify(title);
-  const paths = (await ghListTree()).map((e) => e.path);
+  const paths = tree.map((e) => e.path);
   const folders = foldersOf(kind, parent, paths);
   if (folders.some((f) => folderSlugOf(f) === slug)) {
     return { ok: false, error: `"${slug}" already exists in ${kind}.` };
@@ -1298,11 +1325,13 @@ async function duplicateEditable(body: Record<string, unknown>, actor?: Actor | 
   fm.featured = false;
   // The copy joins its original's neighbours: a docs page stays in its section.
   const target = `data/${kind}${parent ? `/${parent}` : ""}/${nextOrder(folders)}_${slug}/index.md`;
-  await ghCommit(
+  const conflict = await ghPublishMutation(
     [{ path: target, text: `---\n${yaml.dump(fm).trim()}\n---\n\n${mdBody.replace(/^\n+/, "")}` }],
     `cms: duplicate ${kind}/${slug}`,
+    snapshot,
     actor,
   );
+  if (conflict) return conflict;
   return { ok: true, id: target, slug, title };
 }
 
@@ -1363,7 +1392,8 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
   const slug = slugify(String(payload.slug || title));
   if (!slug) return { ok: false, error: "That title has no usable characters for a URL." };
 
-  const paths = (await ghListTree()).map((e) => e.path);
+  const snapshot = await ghSnapshot();
+  const paths = (await ghListTree(snapshot)).map((e) => e.path);
   // Docs pages live inside a section; no section means the post IS a section.
   const section = kind === "docs" ? slugify(String(payload.section || "")) : "";
   const parent = section ? sectionFolder(section, paths) : "";
@@ -1434,7 +1464,8 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
   if (!body) return { ok: false, error: "A body is required." };
   changes.push({ path: `${folder}/index.md`, text: `---\n${yaml.dump(fm).trim()}\n---\n\n${body}\n` });
 
-  await ghCommit(changes, `cms: post ${kind}/${slug}`, actor);
+  const conflict = await ghPublishMutation(changes, `cms: post ${kind}/${slug}`, snapshot, actor);
+  if (conflict) return conflict;
   return {
     ok: true,
     id: `${folder}/index.md`,
@@ -1450,6 +1481,10 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
 }
 
 // ------------------------------------------------------------------- handlers
+function mutationStatus(result: { ok: boolean; conflict?: boolean }): number {
+  return result.ok ? 200 : result.conflict ? 409 : 400;
+}
+
 export async function GET(req: Request): Promise<Response> {
   const route = sub(req);
   if (route === "auth/github/start") return githubStart(req);
@@ -1498,7 +1533,7 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "upload") {
     try {
       const r = await uploadAsset(body, await actorFor(req));
-      return json(r, r.ok ? 200 : 400);
+      return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
@@ -1506,7 +1541,7 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "asset/delete") {
     try {
       const r = await deleteAsset(body, await actorFor(req));
-      return json(r, r.ok ? 200 : 400);
+      return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
@@ -1514,7 +1549,7 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "post") {
     try {
       const r = await postItem(body, await actorFor(req));
-      return json(r, r.ok ? 200 : 400);
+      return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
@@ -1522,7 +1557,7 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "rename") {
     try {
       const r = await renameEditable(body, await actorFor(req));
-      return json(r, r.ok ? 200 : 400);
+      return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
@@ -1530,7 +1565,7 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "duplicate") {
     try {
       const r = await duplicateEditable(body, await actorFor(req));
-      return json(r, r.ok ? 200 : 400);
+      return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
@@ -1538,7 +1573,7 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "delete") {
     try {
       const r = await deleteEditable(body, await actorFor(req));
-      return json(r, r.ok ? 200 : 400);
+      return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
@@ -1556,7 +1591,7 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "new") {
     try {
       const result = await createEditable(body, await actorFor(req));
-      return json(result, result.ok ? 200 : 400);
+      return json(result, mutationStatus(result));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
