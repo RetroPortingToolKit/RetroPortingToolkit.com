@@ -16,9 +16,10 @@ function splitFrontmatter(raw: string): { fm: Record<string, unknown>; body: str
   if (!m) return { fm: {}, body: raw };
   const fm = (yaml.load(m[1]) ?? {}) as Record<string, unknown>;
   // Source appendices are working notes, not reader-facing content. Keep the
-  // markdown files available to maintainers, but omit those sections from all
-  // rendered and generated public surfaces.
-  const body = (m[2] ?? "").replace(/\n## Source\n[\s\S]*?(?=\n## Next\n|\s*$)/, "\n## Source\n");
+  // markdown files available to maintainers, but omit the whole section from
+  // rendered and generated public surfaces, including its otherwise-empty
+  // heading.
+  const body = (m[2] ?? "").replace(/\n## Sources?\n[\s\S]*?(?=\n## Next\n|\s*$)/, "");
   return { fm, body };
 }
 
