@@ -30,11 +30,11 @@ When verification fails, stop and check the format, region and revision rather t
 
 “Bring a game file you already have” is both a technical requirement and a boundary. It keeps the projects distributable and makes clear that a native port is built from the user's own input. The same rule applies to retail BIOS images and any generated artifacts derived from them.
 
-For platform-specific prerequisites, use the [platform guide](/docs/platforms) and the starter repository linked from [recomp your own game](/docs/start/recomp-your-own-game). [Provenance](/docs/fleet/provenance) explains the project's redistributable components.
+For platform-specific prerequisites, use the [platform guide](/docs/platforms) and the starter repository linked from [how do I recomp my own game?](/docs/start/recomp-your-own-game). [Provenance](/docs/fleet/provenance) explains the project's redistributable components.
 
 ## Next
 
-- [Recomp your own game](/docs/start/recomp-your-own-game)
-- [What you need](/docs/start/what-you-need)
+- [How do I recomp my own game?](/docs/start/recomp-your-own-game)
+- [What do I need to get started?](/docs/start/what-you-need)
 - [Licenses](/docs/fleet/licenses)
 - [Glossary](/docs/concepts/glossary)

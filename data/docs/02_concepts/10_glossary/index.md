@@ -83,7 +83,7 @@ Hardware advanced and read at the exact fraction of an instruction rather than a
 
 ### Decoder
 
-The part that reads the game's binary and works out what each instruction does, then writes it as source code. Binary in, code out. Being strict, the decoder is what does the translation, not the whole [recompiler](#recompiler): in these projects that one word covers the decoder, the compiler that builds its output, and the [runtime](#runtime) that output links against. See [What static recompilation is](/docs/start/what-is-static-recompilation).
+The part that reads the game's binary and works out what each instruction does, then writes it as source code. Binary in, code out. Being strict, the decoder is what does the translation, not the whole [recompiler](#recompiler): in these projects that one word covers the decoder, the compiler that builds its output, and the [runtime](#runtime) that output links against. See [What is static recompilation?](/docs/start/what-is-static-recompilation).
 
 ### Disc image
 
@@ -155,7 +155,7 @@ The 65816 status bits M and X, which pick 8-bit or 16-bit registers. The same by
 
 ### Native
 
-The game's own logic running as compiled code on your processor instead of being acted out by an [interpreter](#interpreter). Wider than [static](#static-recompilation): a build is still native when some code had to be translated while the game ran, because what finally executes is compiled either way. Native says what runs, static says when the translating happened. See [What static recompilation is](/docs/start/what-is-static-recompilation).
+The game's own logic running as compiled code on your processor instead of being acted out by an [interpreter](#interpreter). Wider than [static](#static-recompilation): a build is still native when some code had to be translated while the game ran, because what finally executes is compiled either way. Native says what runs, static says when the translating happened. See [What is static recompilation?](/docs/start/what-is-static-recompilation).
 
 ### Oracle
 
@@ -207,7 +207,7 @@ The output mode that writes the recompiled game as one shared header plus a fixe
 
 ### Static recompilation
 
-Translating a game's binary into source code ahead of time, then compiling that into a [native](#native) program which links against a [runtime](#runtime). The technique needs no particular language; the projects here emit C. It says nothing about how much of the console is simulated. Static is the strict half of the claim: all the translating happened before the game ran. The re is loose too, because a game written by hand in assembly was never compiled to begin with. See [What static recompilation is](/docs/start/what-is-static-recompilation) and [Is this emulation?](/docs/start/is-this-emulation).
+Translating a game's binary into source code ahead of time, then compiling that into a [native](#native) program which links against a [runtime](#runtime). The technique needs no particular language; the projects here emit C. It says nothing about how much of the console is simulated. Static is the strict half of the claim: all the translating happened before the game ran. The re is loose too, because a game written by hand in assembly was never compiled to begin with. See [What is static recompilation?](/docs/start/what-is-static-recompilation) and [Is this emulation?](/docs/start/is-this-emulation).
 
 ### Stub
 
@@ -241,7 +241,7 @@ Every definition above comes from a repository that uses the word seriously. The
 
 ## Next
 
-- [What static recompilation is](/docs/start/what-is-static-recompilation) if you want the idea before the vocabulary.
+- [What is static recompilation?](/docs/start/what-is-static-recompilation) if you want the idea before the vocabulary.
 - [Co-simulation](/docs/concepts/co-simulation) and [High level and low level](/docs/concepts/hle-and-lle) define a third of these terms at length.
 - [Every repository](/docs/fleet/repositories) for which project to open when a definition depends on which one you are in.
 - [If you are an agent, start here](/docs/agents/start-here) if you are about to work in one of these repositories.

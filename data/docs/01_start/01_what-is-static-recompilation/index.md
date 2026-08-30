@@ -1,74 +1,103 @@
 ---
-title: "What static recompilation is"
-summary: "A game's binary is translated into ordinary source code before it ever runs, compiled for the computer you own, and joined to a library that stands in for the console. What that buys, and what it costs."
+title: "What is static recompilation?"
+summary: "A game is translated before it runs, then built as a native program for your computer. The game code runs directly, while a runtime stands in for the old console around it."
 pageType: "concept"
 tags: ["Static recompilation", "Recompiler", "Runtime"]
 repos:
-  - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/psxrecomp"
-  - "https://github.com/mstan/cdirecomp"
-updated: "2026-08-29"
+  - "https://github.com/mstan/snesrecomp"
+updated: "2026-08-30"
 ---
 
-A console game is a binary: compiled machine code, built for a machine nobody makes any more. It is not source code, and your computer cannot run it. Static recompilation reads that binary before the game ever runs and translates it into source code in an ordinary programming language. That source is compiled for the computer you actually own. What comes out is a normal program. Your computer runs the game's own logic directly, instead of running an emulator that reads the game's instructions and acts them out one at a time while you play. Static means the translation happens ahead of time, once, on a developer's machine. The translated code is joined to a runtime, a library that stands in for the console's hardware. It can be done in any language; the projects here write C.
+Static recompilation is a way to turn an old console game into a native app.
 
-> **About the word recompilation.** Recompiling normally means taking code a
-> compiler turned into a binary, turning that binary back into code, and
-> compiling it again. Older machines were not made that way. Games for the NES,
-> the SNES and the Game Boy were written by hand in assembly, so no compiler was
-> involved the first time. Strictly, those are being compiled once here, not
-> re-compiled. The steps are identical either way, so this site uses the one word
-> for all of them.
+The starting point is the game's binary: the machine code on the disc or cartridge. Your computer cannot run that code directly, because it was made for a different machine.
 
-## What the recompiler writes
+A recompiler reads that old code before the game runs. It writes new source code that does the same work. Then a normal compiler builds that source code for your computer.
 
-Recompiler is the name for the whole tool, and it is made of parts. The part that reads the binary and works out what each instruction does is a decoder: binary goes in, code comes out. An ordinary compiler then builds that code for your machine. What it builds is linked against a runtime, the library that stands in for the console's hardware. The three travel together in these projects, which is why the one word ends up covering all of them.
+The result is a normal program. When you play it, your processor runs the game's translated logic directly.
 
-The decoder works out where each of the game's own functions begins and writes one function of source code for each. It writes a lookup table too, so the program can find the right function when the game asks for an address. Wherever the game reads or writes memory, it writes a call into the runtime instead.
+## Why is it called static?
 
-Nothing about the result is exotic. The projects here emit C, so an ordinary C compiler builds it and you can read the output. [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime) shows what that generated code looks like, and each [platform page](/docs/platforms) shows one console's version of it.
+Static means the translation happens ahead of time.
 
-## Why not just emulate it?
+The game is not being translated one instruction at a time while you play. Most of the hard work happened earlier, on a developer's machine, when the port was built.
 
-An emulator is a second program. While you play, it reads the game's binary one instruction at a time and acts each one out, just in time: the work happens at the moment the game needs it, never before. That is called interpreting, and it is what emulation means here. It pays for the same work over and over: read an instruction, work out what it means, do it, start again. A loop the game runs a million times pays that cost a million times.
+That is different from an emulator. An emulator reads the game's old instructions while you play and acts them out on the modern machine.
 
-Static recompilation moves that work to build time. Each instruction is read once, ever, and what it does is written down as code. While you play there is nothing left to read and nothing left to work out. There is only compiled code.
+## Is it always fully static?
 
-That separation also frees the port from the original hardware's limits. Because the result is ordinary source code, developers can adapt it to new displays, controls and systems in ways that are difficult or impossible when the game must remain inside an emulator's fixed machine model.
+That is the goal, but real games can make it complicated.
 
-## Static, or native?
+Some games load code later. Some jump through tables. Some copy code around in memory. If the tool cannot see that code ahead of time, the port may need another path while it is still being finished.
 
-Static is a strong claim: every byte of the game's own code was found and translated before the game ever ran. On a real game that is often not fully reachable. A PlayStation game, for one, pulls chunks of code in from the disc while it plays, and code that is not in the executable cannot be read ahead of time.
+That path can still end in native code. A PlayStation game, for example, may load a new chunk from disc while it runs. A mature runtime can catch that chunk, translate it, keep it, and run it as compiled code later.
 
-What happens then is still not interpreting. The chunk is captured as it loads, translated, and kept, so the game ends up running compiled code on your processor either way. It simply was not compiled at build time.
+So keep two words separate:
 
-The two words are worth keeping apart. **Native** says the game's own logic runs as compiled code on your machine. **Static** says that translation all happened ahead of time. The aim is static, or as close to it as a game allows; where a game does not allow it, the work moves to run time and what runs is still native, still not an emulator reading instructions and acting them out. [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) covers how each console handles it.
+**Native** means the game's logic runs as compiled code on your processor.
 
-## What it buys
+**Static** means the translation happened before the game ran.
 
-**The port is not tied to the console any more.** It does not have to pretend to be as slow as the original hardware. The console's limits on speed and storage are gone too, so a feature is no longer boxed in by what that machine could hold or keep up with.
+A port can be native even when part of the work was not fully static yet.
 
-**It is ordinary code.** Source code can be compiled and modified, like any program. That is much easier than modifying an already compiled binary. Widescreen, [mods](/docs/guides/write-a-mod), [translations](/docs/guides/translate-a-game), replacement graphics and controller remapping are added that way. One rule keeps it honest: every added feature is off by default, and with it off the port behaves exactly as the original did. cdirecomp's [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md) says so plainly.
+## Why is it called recompilation?
 
-**Save states, rewind and netplay.** These all need one thing: the game must repeat itself exactly. Emulators have had these features for years. The new part is that a native port can have them too. That only works if the port is deterministic, and these projects build for that on purpose. See [determinism](/docs/concepts/determinism).
+The word is a little loose.
 
-## What it costs
+Many later games were built with compilers. For those games, recompilation means taking compiled machine code, turning it back into source code, and compiling it again for a new machine.
 
-**Building the framework, not adding the game.** The months of work go into a console's framework, not into each game. Once a framework is mature, adding a game to it is quick, and as these ecosystems mature the time from a disc to a running build keeps shrinking. Not every framework is there yet: some are in more active development and less stable than others. More months go into taking one game from booting to feeling finished. [Recomp your own game](/docs/start/recomp-your-own-game) says where each console stands.
+Older games are not always like that. NES, SNES, and Game Boy games were often written by hand in assembly. Strictly, those games are being compiled this way for the first time.
 
-**Telling code from data.** A binary is one flat block of bytes. Nothing in it marks where a function begins, or which bytes are instructions at all rather than a picture or a piece of music. Getting that wrong is the central difficulty of the whole technique, and it has its own page: [telling code from data](/docs/concepts/code-discovery).
+The process is still the same enough that this site uses one word for all of it.
 
-**No promise about any one game.** No ecosystem here guarantees that a game can be done in one shot. That is the end goal: the frameworks are a foundation that does most of the work, and the aspiration is all of it. Until a particular game is done, there can be gaps specific to that game. The [status vocabulary](/docs/reference/status-vocabulary) unpacks the careful words the projects use to say where a game stands.
+## What does the recompiler write?
 
-> **You provide this.** No project here ships a game. You supply your own game file, and the port checks it before it starts. [The game file you supply](/docs/concepts/the-game-file-you-supply) explains what is checked and why.
+The current projects here usually write C.
 
-## Where emulation comes in
+That does not mean static recompilation is defined by C. C is just the language these projects use today because normal compilers can build it almost anywhere.
 
-The game's own code is translated ahead of time and runs as compiled code. The console around it, its picture, sound, controllers and timing, is imitated by software while you play, and most projects keep a small emulator as a fallback for code the translation could not reach. [Is this emulation?](/docs/start/is-this-emulation) is the full answer.
+The generated source code is not meant to be hand-edited. It is build output. If it is wrong, the fix belongs in the recompiler, the runtime, or the game's settings.
+
+## What does the runtime do?
+
+The game code still expects the old console around it.
+
+It wants video, audio, controllers, timing, saves, memory behavior, and hardware registers. Your computer does not have that console hardware.
+
+The runtime is the library that stands in for the console. The translated game code calls into it when it needs the machine around the game.
+
+That is why a port is more than generated code. It is translated game logic plus a runtime that knows enough about the original console.
+
+## What does this make possible?
+
+A recompiled port can feel like a normal PC app.
+
+It can have a launcher, controller settings, widescreen options, save states, rewind, netplay, mods, translations, and other features that are hard to add from outside a black-box emulator.
+
+Those features still need discipline. The faithful game should be the baseline. Extra features should be optional, and with them off the port should behave like the original game.
+
+## What is the hard part?
+
+The hard part is not only translating instructions.
+
+The hard part is knowing what is code in the first place. A game binary is just bytes. Some bytes are instructions. Some are data, graphics, audio, text, or tables. The tool has to tell the difference.
+
+The other hard part is making one game feel finished. A build can compile and still have timing bugs, missing code paths, broken graphics, bad audio, or input problems.
+
+That is why project maturity matters. PlayStation is the strongest starting point today. SNES is next. Other frameworks are at different stages.
+
+## Where does emulation come in?
+
+The game's own logic runs as native code. The console around it is recreated in software by the runtime. During development, a fallback interpreter may also catch code that has not been covered yet.
+
+That is the honest answer. A recompiled port is not a traditional emulator running the game instruction by instruction, but it still needs software that stands in for the old machine.
+
+See [is this emulation?](/docs/start/is-this-emulation) for the longer version.
 
 ## Next
 
-- [How is a port made?](/docs/start/how-a-port-is-made): the same idea as a sequence, stage by stage.
-- [Is this emulation?](/docs/start/is-this-emulation): where emulation does and does not come in.
-- [Telling code from data](/docs/concepts/code-discovery): the hard part, on one console.
-- [Quickstart](/docs/start/quickstart) has you run a recompiler yourself. [The glossary](/docs/concepts/glossary) defines every word above, native and decoder included.
+- [How is a port made?](/docs/start/how-a-port-is-made): the process from game file to native app.
+- [Is this emulation?](/docs/start/is-this-emulation): where the runtime and fallback interpreter fit.
+- [Getting started](/docs/start/what-you-need): what you need before building anything.
+- [Telling code from data](/docs/concepts/code-discovery): the hardest part in more detail.

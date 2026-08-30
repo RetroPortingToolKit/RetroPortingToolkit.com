@@ -1,65 +1,87 @@
 ---
-title: "Recomp your own game"
-summary: "A plain-language starting point for turning a game you own into a native port."
+title: "How do I recomp my own game?"
+summary: "Start with a realistic console, use a game file you own, expect a loop of build, run, observe, and fix. PlayStation is the strongest starting point today."
 pageType: "guide"
 tags: ["Tutorial", "PlayStation"]
-updated: "2026-08-29"
+updated: "2026-08-30"
 ---
 
-Static recompilation is an active development process, not a one-click conversion. You provide a game file you own, choose a toolchain with a realistic status, and work through the remaining gaps with the project’s documentation and community.
+You can try, but it is not a one-click conversion.
 
-## Start with the right project
+A recompiler can do a lot of work for you. It can find code, translate it, build a native app, and give you a place to start. It cannot promise that every game works the first time.
 
-Begin with the [starter kit repository](https://github.com/mstan/psxrecomp), then read its current instructions before choosing a game. The repository is the source of truth for dependencies, supported systems, commands and known issues; this page is only the map.
+Think of it as starting a port project, not pressing a convert button.
 
-The [platform guide](/docs/platforms) gives the short version of what is useful today. PlayStation and SNES are the strongest starting points here, with NES, Game Boy Advance and Genesis offering smaller examples. A platform page describes the shape of the work, not a guarantee that your particular title is finished.
+## Which console should I start with?
 
-| Console | Scaffolding | What starting a port means |
-|---|---|---|
-| PlayStation | Yes | The starter repository can create a project and inspect your disc |
-| NES, SNES, Game Boy Advance, Genesis, Nintendo DS | None | Adapt an existing project and follow its current guidance |
-| CD-i, GameCube, Xbox | Not applicable | Research projects, not a route to a playable port |
-| Options | Repository-defined | Use the current `--psxrecomp-ref` value from the starter kit |
+Start with PlayStation unless you have a specific reason not to.
 
-For the PlayStation starter, the repository currently documents:
+psxrecomp is the most mature framework in this ecosystem today. It has the strongest starter path and the clearest route from a disc image to a generated project.
 
-```sh
-git clone https://github.com/mstan/psxrecomp.git
-cd psxrecomp
-git submodule update --init --recursive
-```
+SNES is the next strongest framework, especially when a game has a strong public disassembly or decompilation to help guide discovery. It is less of a single beginner path than PlayStation, but the results can be excellent.
 
-```sh
-sh tools/new_project_layout/setup_project.sh \
-  --yes \
-  --name "Your Game" \
-  --disc /path/to/your/game.cue \
-  --dir ~/src \
-  --players 1 \
-  --generate \
-  --enable-build \
-  --no-github
-```
+Other consoles are at different stages. Some are useful examples. Some are research projects. Some are not yet a practical path to a playable port.
 
-## What the process looks like
+## What do I need before I start?
 
-1. **Check the prerequisites.** The starter repository or your AI assistant should verify the compiler, build tools and platform dependencies on your machine, and explain how to install anything missing.
-2. **Use a game file you own.** Nothing on this site distributes game data. Keep your dump and any generated files local to your project.
-3. **Generate and build.** The toolchain translates the game's code, then a normal compiler creates a native application.
-4. **Run and observe.** Boot the game, exercise the parts you care about, and note missing graphics, sound, input, timing or code paths.
-5. **Iterate with the project.** Fixes may belong in the game project or in the shared runtime. Follow the repository's issue tracker and current guidance rather than copying an old command from a web page.
+You need three things:
 
-## A build is a beginning
+1. A game file you own, in the format the project expects.
+2. A BIOS or system file, if that console needs one.
+3. The normal build tools from [what do I need to get started?](/docs/start/what-you-need).
+4. A realistic target console from the [platform pages](/docs/platforms).
 
-A successful build only proves that the generated source compiles. A usable port still needs playtesting, controller mapping, saves, timing, audio, video and cleanup of any fallback or missing-code reports. Treat each milestone as evidence about one game, not a claim about every title on the platform.
+The files matter. The port is built for exact bytes, not just a title. A different version of the same game may need different work.
 
-## When you need help
+For BIOS files, follow the platform page. Some projects can use an open-source BIOS alternative. Others need a retail BIOS dump you provide yourself.
 
-Describe the title, the exact toolchain revision, the step that failed and the first useful error message. The [status vocabulary](/docs/reference/status-vocabulary) helps you say whether a project is experimental, booting, playable or finished. For the concepts behind the process, see [what static recompilation is](/docs/start/what-is-static-recompilation) and [the recompiler and runtime](/docs/concepts/recompiler-and-runtime).
+## What does the first pass do?
+
+The first pass tries to create a project that builds.
+
+On PlayStation, the starter flow can inspect your disc, create the project layout, generate code, and build the result. That is the best current route for a first attempt.
+
+The result may boot. It may get to menus. It may crash. It may run with missing audio, broken graphics, timing problems, or fallback interpreter use. That is normal early-port work.
+
+The measurement is faithfulness. The question is not only "does it run?" The better question is "does it behave like the original game?"
+
+## What happens after it builds?
+
+You run the game and observe what happens.
+
+Start simple. Does it boot? Does it show video? Does input work? Can you reach gameplay? Can you save and load? Does audio behave? Does it keep running after a few minutes?
+
+Each answer tells you where to look next.
+
+## Where does the real work go?
+
+The real work is the loop.
+
+Find missing code. Fix discovery. Regenerate. Build again. Compare behavior. Fix the runtime or game settings. Test again.
+
+As the console framework matures, that loop gets shorter for later games. The goal is not to hand-build every game from scratch. The goal is a shared framework that keeps learning from each port.
+
+## When should I ask for help?
+
+Ask when you have a clear first failure.
+
+Include the game, the console, the toolchain revision, the command you ran, and the first useful error or symptom. "It does not work" is hard to act on. "It boots, then jumps to an unknown address after the title screen" gives someone a real starting point.
+
+If an AI assistant is helping, make it read the platform page first. Then make it explain what it is about to try before it changes anything.
+
+## What should I not do?
+
+Do not edit generated code by hand.
+
+Do not assume a nearly matching game file is good enough.
+
+Do not copy old commands from a random page if the platform page or project has moved on.
+
+Do not treat one game's result as a promise about the whole console.
 
 ## Next
 
-- [Quickstart](/docs/start/quickstart)
-- [Platforms](/docs/platforms)
-- [The game file you supply](/docs/concepts/the-game-file-you-supply)
-- [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time)
+- [Quickstart](/docs/start/quickstart): build the psxrecomp pipeline before aiming at a game.
+- [The platform pages](/docs/platforms): choose a realistic console.
+- [The game file you supply](/docs/concepts/the-game-file-you-supply): why exact game files matter.
+- [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time): why some games need more than the first static pass.

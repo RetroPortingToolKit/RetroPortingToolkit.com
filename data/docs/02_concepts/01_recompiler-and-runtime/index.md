@@ -32,11 +32,11 @@ The generated program is still a port, not a finished game. Booting is an import
 
 Improving discovery or translation changes generated source. Improving the runtime changes the environment every generated game runs inside. When a bug appears, asking which side owns the behavior is often the fastest way to find the right fix.
 
-For a practical starting point, use the [platform guide](/docs/platforms) and the [recomp your own game](/docs/start/recomp-your-own-game) overview. Implementation details live in each project's repository rather than on this page.
+For a practical starting point, use the [platform guide](/docs/platforms) and [how do I recomp my own game?](/docs/start/recomp-your-own-game). Implementation details live in each project's repository rather than on this page.
 
 ## Next
 
-- [What static recompilation is](/docs/start/what-is-static-recompilation)
+- [What is static recompilation?](/docs/start/what-is-static-recompilation)
 - [Telling code from data](/docs/concepts/code-discovery)
 - [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time)
 - [Glossary](/docs/concepts/glossary)

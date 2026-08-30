@@ -274,7 +274,7 @@ The full catalogue, with sources and the packaging and runtime failures too, is 
 
 ## Next
 
-- [Getting started](/docs/start/what-you-need) is the shorter answer, plus the game file contract.
+- [What do I need to get started?](/docs/start/what-you-need) is the shorter answer, plus the game file contract.
 - [Port a game](/docs/guides/port-a-game) is the step after this one.
 - [Command line reference](/docs/reference/cli) has every flag on every tool built here.
 - [Checking your own work](/docs/agents/verification-rituals) lists the build and test command for each repository.

@@ -9,7 +9,7 @@ repos:
 updated: "2026-08-27"
 ---
 
-This is [psxrecomp](https://github.com/mstan/psxrecomp)'s quickstart, and it is the first example on this site because psxrecomp is the fleet's most mature framework. Be clear about what it is before you start: you will be recompiling a PlayStation BIOS image, not a game. The binary you recompile is the openly licensed BIOS the repository ships, so it needs no file of your own, and you will not have a game running at the end. What you get is every stage of the pipeline working on your own machine. If you would rather aim at a game you own, go to [recomp your own game](/docs/start/recomp-your-own-game).
+This is [psxrecomp](https://github.com/mstan/psxrecomp)'s quickstart, and it is the first example on this site because psxrecomp is the fleet's most mature framework. Be clear about what it is before you start: you will be recompiling a PlayStation BIOS image, not a game. The binary you recompile is the openly licensed BIOS the repository ships, so it needs no file of your own, and you will not have a game running at the end. What you get is every stage of the pipeline working on your own machine. If you would rather aim at a game you own, go to [how do I recomp my own game?](/docs/start/recomp-your-own-game).
 
 ## Why this one?
 
@@ -23,7 +23,7 @@ At the end you have the recompiler binaries, C translated from a real PlayStatio
 
 ## Before you start
 
-You need a C and C++ toolchain, CMake 3.20 or newer, Ninja, and Python 3. [Getting started](/docs/start/what-you-need) has the full matrix and the per-platform install lines. The short form is `pacman -S --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache` in an MSYS2 MinGW64 shell on Windows, `brew install ninja cmake` on macOS, and `sudo apt install build-essential cmake ninja-build` on Debian or Ubuntu. On Windows, run every command below in that MSYS2 shell, not in PowerShell.
+You need a C and C++ toolchain, CMake 3.20 or newer, Ninja, and Python 3. [What do I need to get started?](/docs/start/what-you-need) has the full matrix and the per-platform install lines. The short form is `pacman -S --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache` in an MSYS2 MinGW64 shell on Windows, `brew install ninja cmake` on macOS, and `sudo apt install build-essential cmake ninja-build` on Debian or Ubuntu. On Windows, run every command below in that MSYS2 shell, not in PowerShell.
 
 ## 1. Clone the repository
 
@@ -163,6 +163,6 @@ One other short path exists, and it is honest about where it stops.
 ## Next
 
 - [PlayStation](/docs/platforms/playstation) explains what you just built, tier by tier.
-- [Recomp your own game](/docs/start/recomp-your-own-game) is the next real step, and [the game file you supply](/docs/concepts/the-game-file-you-supply) is what it needs from you.
+- [How do I recomp my own game?](/docs/start/recomp-your-own-game) is the next real step, and [the game file you supply](/docs/concepts/the-game-file-you-supply) is what it needs from you.
 - [Build a toolchain](/docs/guides/build-a-toolchain) is the same procedure for the other eleven consoles.
 - [If you are an agent, start here](/docs/agents/start-here) if you are automating any of this.
