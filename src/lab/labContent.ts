@@ -207,21 +207,6 @@ function hardwareMedia(p: Item, i: number): LabMedia {
   return { ...media, chips, weight: n };
 }
 
-// Per-kind decks for the home strips (featured items only, falling back to the
-// full list when nothing is flagged featured).
-const featuredOf = <T extends { featured?: boolean }>(list: T[]): T[] => {
-  const f = list.filter((x) => x.featured);
-  return f.length ? f : list;
-};
-
-export const labHardware: LabMedia[] = featuredOf(HARDWARE).map((p, i) =>
-  hardwareMedia(p, i),
-);
-export const labGames: LabMedia[] = featuredOf(GAMES).map((p, i) =>
-  projectMedia(p, i, "game", "game"),
-);
-export const labBlog: LabMedia[] = featuredOf(BLOGS).map(blogMedia);
-
 // Full per-kind decks for the tab pages, in authored (NN_ prefix) order so the
 // group headings the tab grids build from `group` stay in the authored order.
 export const labAll: Record<LabKind, LabMedia[]> = {

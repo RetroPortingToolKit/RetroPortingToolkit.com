@@ -50,7 +50,6 @@ export interface Item {
   coverLqip?: string;
   coverCaption?: string;
   poster?: string;
-  posterLqip?: string;
   gallery: GalleryItem[];
   links: LinkRef[];
   body: string;

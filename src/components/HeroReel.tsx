@@ -226,5 +226,3 @@ export function HeroReel({ still = false }: { still?: boolean }) {
     </div>
   );
 }
-
-export default HeroReel;

@@ -327,5 +327,3 @@ export function DocsPage() {
   if (!slug) return <DocsIndex />;
   return <DocsItem slug={slug} />;
 }
-
-export default DocsPage;

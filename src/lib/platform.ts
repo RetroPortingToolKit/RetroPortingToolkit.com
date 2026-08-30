@@ -1,6 +1,6 @@
-// Platform helpers. The modifier key for shortcuts is Command on Apple
-// platforms and Control everywhere else (Windows, Linux, ChromeOS).
-
+// Browser-safe platform detection used by keyboard labels and Safari-specific
+// gesture handling. Shortcut-format helpers that duplicated their callers
+// were removed; this is the single shared fact those surfaces need.
 function detectMac(): boolean {
   if (typeof navigator === "undefined") return false;
   const uaData = (navigator as unknown as { userAgentData?: { platform?: string } })
@@ -10,11 +10,3 @@ function detectMac(): boolean {
 }
 
 export const isMac = detectMac();
-
-// "⌘" on Mac, "Ctrl" elsewhere.
-export const MOD_KEY = isMac ? "⌘" : "Ctrl";
-
-// "⌘K" on Mac, "Ctrl K" elsewhere.
-export function modKeyLabel(key = "K"): string {
-  return isMac ? `⌘${key}` : `Ctrl ${key}`;
-}

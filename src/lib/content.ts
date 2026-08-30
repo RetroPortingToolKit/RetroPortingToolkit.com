@@ -314,7 +314,6 @@ export function parseItem(path: string, raw: string): Item | null {
     coverLqip: coverM?.lqip,
     coverCaption,
     poster: posterM?.src,
-    posterLqip: posterM?.lqip,
     gallery,
     links: asLinks(fm.links),
     body: resolveBodyMedia(body.trim(), baseDir),
@@ -455,10 +454,6 @@ export function pathFor(kind: Kind, slug: string): string {
   return `/${PATH_SEGMENT[kind]}/${slug}`;
 }
 
-export function allPath(kind: Kind): string {
-  return `/all/${PATH_SEGMENT[kind]}`;
-}
-
 export function topicPath(topicId: string): string {
   return `/topic/${topicId}`;
 }
@@ -514,13 +509,6 @@ export function itemsForTopic(topic: Topic): Item[] {
       .filter((i): i is Item => !!i);
   }
   return allItems.filter((i) => itemMatchesTopic(i, topic));
-}
-
-// Intentionally returns no image. Cards without a real cover render a
-// typographic title block instead of a stock-photo placeholder, so absence
-// reads as restraint, never as something unfinished.
-export function placeholderCover(): undefined {
-  return undefined;
 }
 
 // Pure parser (path + raw -> About), reused by the live CMS preview to render a
