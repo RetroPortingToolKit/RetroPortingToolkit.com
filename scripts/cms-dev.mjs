@@ -403,6 +403,9 @@ function writeOne(id, payload) {
     out = String(payload.raw ?? "");
     if (!out.trim()) return { ok: false, error: "refusing to write empty file" };
   }
+  if (fs.existsSync(abs) && fs.readFileSync(abs, "utf8") === out) {
+    return { ok: true, bytes: Buffer.byteLength(out) };
+  }
   fs.writeFileSync(abs, out);
   return { ok: true, bytes: Buffer.byteLength(out) };
 }
@@ -410,16 +413,24 @@ function writeOne(id, payload) {
 // MUST be called inside withGitLock (the save route does this), so the base
 // check + write can't interleave a rebase's checkout of the same file.
 export function writeEditable(id, payload) {
-  // Optimistic concurrency: reject if the file changed since the editor loaded
-  // it (a background auto-pull, or another tab). An absent/empty expectedBase
-  // skips the check (a freshly-restarted editor with no base yet): the mutex
-  // still orders the write against any pull.
-  const expected = payload && typeof payload.expectedBase === "string" ? payload.expectedBase : "";
-  if (expected && expected !== fileBaseSha(id)) {
+  if (id !== "page:home" && !isAllowed(id)) return { ok: false, error: "not_editable" };
+  // A whole-file save without a version can erase a concurrent edit. Every
+  // caller must read first and send the returned baseSha as expectedBase.
+  if (!payload || typeof payload.expectedBase !== "string" || !payload.expectedBase) {
+    return {
+      ok: false,
+      preconditionRequired: true,
+      error: "expectedBase is required. Read the page first, then save with the baseSha that read returned.",
+    };
+  }
+  // Read the current hash once so a stale response reports the exact version
+  // that failed the comparison.
+  const current = fileBaseSha(id);
+  if (payload.expectedBase !== current) {
     return {
       ok: false,
       staleBase: true,
-      baseSha: fileBaseSha(id),
+      baseSha: current,
       error: "The live site changed this page since you opened it. Load the live version, then re-apply your edit.",
     };
   }
@@ -1322,7 +1333,9 @@ export function createCmsMiddleware() {
         // Serialize the write against publish / sync / auto-pull so a save can
         // never interleave a rebase's checkout of the same file.
         withGitLock(() => writeEditable(String(data.id || ""), data))
-          .then((result) => send(res, result.ok ? 200 : result.staleBase ? 409 : 400, result))
+          .then((result) =>
+            send(res, result.ok ? 200 : result.preconditionRequired ? 428 : result.staleBase ? 409 : 400, result),
+          )
           .catch((e) => send(res, 500, { ok: false, error: e.message }));
       });
     }

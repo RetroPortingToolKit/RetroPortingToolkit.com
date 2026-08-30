@@ -72,17 +72,29 @@ node scripts/cms-token.mjs <github-login> <label>
 It prints the token once and the `CMS_AGENT_KEYS` entry to append. Only the
 SHA-256 hash is stored, so the environment never contains a working token.
 
-The agent then writes with an ordinary HTTP request:
+The agent reads the page before every save:
+
+```sh
+curl "https://retroportingtoolkit.com/api/cms/read?id=data%2Fblog%2F01_example%2Findex.md" \
+  -H "authorization: Bearer rpt_..."
+```
+
+That response includes `id`, `frontmatter`, `body` and `baseSha`. The agent
+preserves the complete frontmatter and body, applies its edit, then sends that
+`baseSha` back as `expectedBase`:
 
 ```sh
 curl -X POST https://retroportingtoolkit.com/api/cms/save \
   -H "authorization: Bearer rpt_..." \
   -H "content-type: application/json" \
-  -d '{"id":"data/blog/01_example/index.md","raw":"---\ntitle: ...\n---\n\nbody"}'
+  -d '{"id":"data/blog/01_example/index.md","frontmatter":"title: ...","body":"...","expectedBase":"<baseSha from read>"}'
 ```
 
 `GET /api/cms/list` and `GET /api/cms/read?id=...` accept the same header, so an
-agent can read what exists before writing. `POST /api/cms/new` creates a page.
+agent can read what exists before writing. Markdown is sent as `frontmatter`
+and `body`, never `raw`, because a save replaces the whole file. A missing
+`expectedBase` gets HTTP 428. A changed version gets HTTP 409 and must be read
+again before the edit is re-applied. `POST /api/cms/new` creates a page.
 
 An agent belongs to a person: removing that person from `CMS_ALLOWED_LOGINS`
 revokes every agent they own. Revoke one agent by deleting its entry.

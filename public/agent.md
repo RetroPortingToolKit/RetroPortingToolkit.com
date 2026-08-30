@@ -203,11 +203,15 @@ the feeds and the sitemap. Its own URL still works, so you can hand the person a
 link to check. Send `"draft": false` to publish, or flip it later:
 
 ```
-POST /api/cms/save   { "id": "<id from the reply>", "frontmatter": "...", "body": "..." }
+GET /api/cms/read?id=<id from the reply>
+POST /api/cms/save   { "id": "<id>", "frontmatter": "<frontmatter from read, edited>", "body": "<body from read, edited>", "expectedBase": "<baseSha from read>" }
 ```
 
 Read the page first with `GET /api/cms/read?id=<id>`; a save replaces the whole
-file, so send back the frontmatter and body you got, with your change applied.
+file. Send back the `id`, `frontmatter` and `body` you got, with your change
+applied, and set `expectedBase` to the read response's `baseSha`. A save without
+that version gets `428`. A `409` means the page changed after your read. Read it
+again and re-apply the change instead of retrying the stale payload.
 
 ## House style
 
@@ -241,7 +245,7 @@ Match it or the post will read as foreign to the site.
 |---|---|---|
 | GET | `/api/cms/list` | everything that exists |
 | GET | `/api/cms/read?id=<id>` | one page |
-| POST | `/api/cms/save` | `{id, frontmatter, body}` |
+| POST | `/api/cms/save` | `{id, frontmatter, body, expectedBase}` |
 | POST | `/api/cms/upload` | `{id, filename, contentBase64}` |
 | POST | `/api/cms/delete` | `{id}` |
 

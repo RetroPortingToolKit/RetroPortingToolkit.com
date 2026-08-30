@@ -193,6 +193,58 @@ describe("dev middleware network boundary", () => {
   });
 });
 
+describe("dev save requires the version returned by read", () => {
+  const id = "data/games/01_tomba/index.md";
+
+  it("answers 428 and writes nothing when expectedBase is missing", async () => {
+    const { root, mod, read } = await devBackend();
+    seed(root);
+    const before = read(id);
+    const r = await call(mod.createCmsMiddleware(), "POST", "/api/cms/save", {
+      id,
+      frontmatter: 'title: "Tomba"',
+      body: "unversioned edit",
+    });
+
+    expect(r).toMatchObject({ status: 428, body: { ok: false, preconditionRequired: true } });
+    expect(read(id).equals(before)).toBe(true);
+  });
+
+  it("answers 409 and preserves an edit that landed after the read", async () => {
+    const { root, mod, read } = await devBackend();
+    seed(root);
+    const doc = mod.readEditable(id);
+    const external = stub("External edit");
+    put(root, id, external);
+    const r = await call(mod.createCmsMiddleware(), "POST", "/api/cms/save", {
+      id,
+      frontmatter: doc.frontmatter,
+      body: "stale editor edit",
+      expectedBase: doc.baseSha,
+    });
+
+    expect(r).toMatchObject({ status: 409, body: { ok: false, staleBase: true } });
+    expect(read(id).toString("utf8")).toBe(external);
+  });
+
+  it("accepts a read-first save and advances the version", async () => {
+    const { root, mod } = await devBackend();
+    seed(root);
+    const doc = mod.readEditable(id);
+    const r = await call(mod.createCmsMiddleware(), "POST", "/api/cms/save", {
+      id,
+      frontmatter: doc.frontmatter,
+      body: "fresh edit",
+      expectedBase: doc.baseSha,
+    });
+
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ ok: true });
+    expect(r.body.baseSha).toMatch(/^[0-9a-f]{64}$/);
+    expect(r.body.baseSha).not.toBe(doc.baseSha);
+  });
+});
+
 describe("dev delete: a docs section takes its pages with it", () => {
   it("counts every file it removed, and says how many pages were inside", async () => {
     const { root, mod } = await devBackend();
@@ -426,6 +478,7 @@ describe("dev Home composite round-trips", () => {
     mod.writeEditable("page:home", {
       about: { frontmatter: doc.about.frontmatter, body: doc.about.body },
       home: { ...doc.home, recognition: ["An award"] },
+      expectedBase: doc.baseSha,
     });
     expect(JSON.parse(read("data/home.json").toString()).recognition).toEqual(["An award"]);
   });
@@ -439,6 +492,7 @@ describe("dev Home composite round-trips", () => {
     mod.writeEditable("page:home", {
       about: { frontmatter: doc.about.frontmatter, body: doc.about.body },
       home: doc.home,
+      expectedBase: doc.baseSha,
     });
     expect(read("data/about.md").equals(before)).toBe(true);
   });
@@ -450,6 +504,7 @@ describe("dev Home composite round-trips", () => {
     mod.writeEditable("page:home", {
       about: { frontmatter: doc.about.frontmatter, body: doc.about.body },
       home: { ...doc.home, proof: [{ label: "A card" }] },
+      expectedBase: doc.baseSha,
     });
     expect(JSON.parse(read("data/home.json").toString()).proof).toEqual([{ label: "A card" }]);
   });

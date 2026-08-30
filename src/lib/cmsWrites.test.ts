@@ -16,10 +16,16 @@ import { GET, POST } from "../../api/cms";
 
 type Body = Record<string, unknown>;
 
-function fakeGitHub(seed: Record<string, Buffer | string>) {
+type FakeGitHubHooks = {
+  afterContentsGet?: (path: string, count: number, store: Map<string, Buffer>) => void;
+  beforeContentsPut?: (path: string, store: Map<string, Buffer>) => void;
+};
+
+function fakeGitHub(seed: Record<string, Buffer | string>, hooks: FakeGitHubHooks = {}) {
   const store = new Map<string, Buffer>();
   const blobs = new Map<string, Buffer>();
   const calls: { method: string; url: string; body?: Body }[] = [];
+  let contentsGetCount = 0;
   const sha = (b: Buffer) => crypto.createHash("sha1").update(b).digest("hex");
   const keep = (b: Buffer) => {
     blobs.set(sha(b), b);
@@ -45,11 +51,21 @@ function fakeGitHub(seed: Record<string, Buffer | string>) {
       const at = decodeURIComponent(contents[1]);
       if (method === "GET") {
         const file = store.get(at);
-        return file
+        const response = file
           ? reply({ content: file.toString("base64"), encoding: "base64", sha: sha(file) })
           : reply({ message: "Not Found" }, 404);
+        hooks.afterContentsGet?.(at, ++contentsGetCount, store);
+        return response;
       }
       if (method === "PUT") {
+        hooks.beforeContentsPut?.(at, store);
+        // GitHub's Contents API uses `sha` as a compare-and-swap token. An
+        // update with no sha, or with a sha from an older read, is a conflict.
+        const current = store.get(at);
+        const expected = typeof body?.sha === "string" ? body.sha : "";
+        if ((current && expected !== sha(current)) || (!current && expected)) {
+          return reply({ message: "sha does not match the current file" }, 409);
+        }
         const buf = Buffer.from(String(body?.content ?? ""), "base64");
         store.set(at, buf);
         return reply({ content: { sha: keep(buf) } });
@@ -128,8 +144,8 @@ const BINARY = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0xff
 
 let gh: ReturnType<typeof fakeGitHub>;
 
-function open(extra: Record<string, Buffer | string> = {}) {
-  gh = fakeGitHub({ ...REPO, ...extra });
+function open(extra: Record<string, Buffer | string> = {}, hooks: FakeGitHubHooks = {}) {
+  gh = fakeGitHub({ ...REPO, ...extra }, hooks);
   vi.stubGlobal("fetch", gh.handler);
   return gh;
 }
@@ -332,6 +348,20 @@ describe("prod save refuses to overwrite a newer version", () => {
     expect(gh.text("data/games/01_tomba/index.md")).toContain("edited");
   });
 
+  it("keeps an unchanged save as a no-op", async () => {
+    open();
+    const doc = (await (await fetchOne("read", "data/games/01_tomba/index.md")).json()) as Body;
+    const r = await send("save", {
+      id: doc.id,
+      frontmatter: doc.frontmatter,
+      body: doc.body,
+      expectedBase: doc.baseSha,
+    });
+    expect(r.status).toBe(200);
+    await expect(r.json()).resolves.toMatchObject({ ok: true, baseSha: doc.baseSha });
+    expect(gh.puts()).toBe(0);
+  });
+
   it("answers 409 when the page changed underneath the editor, and writes nothing", async () => {
     open();
     const before = gh.text("data/games/01_tomba/index.md");
@@ -347,14 +377,64 @@ describe("prod save refuses to overwrite a newer version", () => {
     expect(gh.text("data/games/01_tomba/index.md")).toBe(before);
   });
 
-  it("skips the check when the editor has no version yet", async () => {
+  it("answers 428 when the caller did not read a version first", async () => {
     open();
+    const before = gh.text("data/games/01_tomba/index.md");
     const r = await send("save", {
       id: "data/games/01_tomba/index.md",
       frontmatter: 'title: "Tomba"',
       body: "edited",
     });
-    expect(r.status).toBe(200);
+    expect(r.status).toBe(428);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, preconditionRequired: true });
+    expect(gh.text("data/games/01_tomba/index.md")).toBe(before);
+    expect(gh.puts()).toBe(0);
+  });
+
+  it("does not adopt a newer sha that appears after its comparison read", async () => {
+    const id = "data/games/01_tomba/index.md";
+    const external = page("External edit");
+    open({}, {
+      afterContentsGet(path, count, store) {
+        // GET 1 is the explicit read. GET 2 is the save's version read. The
+        // old implementation did a third GET and silently adopted its sha.
+        if (path === id && count === 2) store.set(id, Buffer.from(external, "utf8"));
+      },
+    });
+    const doc = (await (await fetchOne("read", id)).json()) as Body;
+    const r = await send("save", {
+      id,
+      frontmatter: doc.frontmatter,
+      body: "stale editor edit",
+      expectedBase: doc.baseSha,
+    });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, staleBase: true });
+    expect(gh.text(id)).toBe(external);
+    expect(gh.calls.find((call) => call.method === "PUT")?.body?.sha).toBe(doc.baseSha);
+  });
+
+  it("maps a Contents conflict after the read to a stale-base 409", async () => {
+    const id = "data/games/01_tomba/index.md";
+    const external = page("Last-moment external edit");
+    let changed = false;
+    open({}, {
+      beforeContentsPut(path, store) {
+        if (path !== id || changed) return;
+        changed = true;
+        store.set(id, Buffer.from(external, "utf8"));
+      },
+    });
+    const doc = (await (await fetchOne("read", id)).json()) as Body;
+    const r = await send("save", {
+      id,
+      frontmatter: doc.frontmatter,
+      body: "stale editor edit",
+      expectedBase: doc.baseSha,
+    });
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, staleBase: true });
+    expect(gh.text(id)).toBe(external);
   });
 });
 
@@ -387,11 +467,13 @@ describe("prod Home composite round-trips", () => {
     const doc = (await (await fetchOne("read", "page:home")).json()) as {
       about: { frontmatter: string; body: string };
       home: Record<string, unknown>;
+      baseSha: string;
     };
     await send("save", {
       id: "page:home",
       about: { frontmatter: doc.about.frontmatter, body: doc.about.body },
       home: { ...doc.home, recognition: ["An award"] },
+      expectedBase: doc.baseSha,
     });
     expect(JSON.parse(gh.text("data/home.json")).recognition).toEqual(["An award"]);
   });
@@ -401,11 +483,13 @@ describe("prod Home composite round-trips", () => {
     const doc = (await (await fetchOne("read", "page:home")).json()) as {
       about: { frontmatter: string; body: string };
       home: Record<string, unknown>;
+      baseSha: string;
     };
     await send("save", {
       id: "page:home",
       about: { frontmatter: doc.about.frontmatter, body: doc.about.body },
       home: { ...doc.home, proof: [{ label: "A card" }] },
+      expectedBase: doc.baseSha,
     });
     expect(JSON.parse(gh.text("data/home.json")).proof).toEqual([{ label: "A card" }]);
   });

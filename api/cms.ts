@@ -315,11 +315,21 @@ async function ghReadFile(path: string): Promise<{ content: string; sha: string 
   const content = j.encoding === "base64" ? Buffer.from(j.content, "base64").toString("utf8") : j.content;
   return { content, sha: j.sha };
 }
-/** Writes one file and answers with the blob sha the repo now holds for it,
-    which is the version the editor carries into its next save. */
-async function ghWriteFile(path: string, text: string, message: string, actor?: Actor | null): Promise<string> {
-  const existing = await ghReadFile(path);
-  if (existing && existing.content === text) return existing.sha; // no-op, avoid an empty commit
+
+type GhFile = Awaited<ReturnType<typeof ghReadFile>>;
+type GhWriteOutcome = { ok: true; sha: string } | { ok: false; conflict: true };
+
+/** Write against the exact file version the caller read. GitHub treats the
+    supplied blob sha as a compare-and-swap precondition: if the path moves
+    after the read, the PUT answers 409 instead of overwriting the newer file. */
+async function ghWriteFileAtVersion(
+  path: string,
+  text: string,
+  message: string,
+  existing: GhFile,
+  actor?: Actor | null,
+): Promise<GhWriteOutcome> {
+  if (existing && existing.content === text) return { ok: true, sha: existing.sha };
   const body: Record<string, unknown> = {
     // The trailer records who asked for the change; the commit author records
     // it in git itself, so `git log` alone answers "who edited this".
@@ -339,9 +349,19 @@ async function ghWriteFile(path: string, text: string, message: string, actor?: 
     headers: { ...ghHeaders(), "content-type": "application/json" },
     body: JSON.stringify(body),
   });
+  if (r.status === 409) return { ok: false, conflict: true };
   if (!r.ok) throw new Error(`gh_write_${r.status} ${path}: ${await r.text()}`);
   const written = (await r.json().catch(() => ({}))) as { content?: { sha?: string } };
-  return written.content?.sha ?? "";
+  return { ok: true, sha: written.content?.sha ?? "" };
+}
+
+/** Writes one file and answers with the blob sha the repo now holds for it,
+    which is the version the editor carries into its next save. */
+async function ghWriteFile(path: string, text: string, message: string, actor?: Actor | null): Promise<string> {
+  const existing = await ghReadFile(path);
+  const result = await ghWriteFileAtVersion(path, text, message, existing, actor);
+  if (!result.ok) throw new Error(`gh_write_409 ${path}`);
+  return result.sha;
 }
 /** One commit that may write and delete several files at once.
     The Contents API is one file per commit, which would mean a commit and a
@@ -610,6 +630,8 @@ async function readEditable(id: string) {
 export interface WriteResult {
   ok: boolean;
   error?: string;
+  /** the caller did not identify the version it edited -> HTTP 428 */
+  preconditionRequired?: boolean;
   /** the save was built on a version the repo no longer holds -> 409 */
   staleBase?: boolean;
   /** the version the repo holds now, for the editor to carry forward */
@@ -670,25 +692,39 @@ async function writeEditable(
   actor?: Actor | null,
 ): Promise<WriteResult> {
   if (!isAllowed(id)) return { ok: false, error: "not_editable" };
-  // Optimistic concurrency: refuse a save built on a version the repo no longer
-  // holds, so two people editing the same page cannot silently overwrite one
-  // another. An absent expectedBase skips the check (an editor with no version
-  // yet). Mirrors writeEditable() in scripts/cms-dev.mjs; src/pages/Admin.tsx
-  // sends the field on every save and already handles the 409.
-  const expected = typeof payload.expectedBase === "string" ? payload.expectedBase : "";
-  if (expected) {
-    const current = await baseShaOf(id);
-    if (expected !== current) {
-      return {
-        ok: false,
-        staleBase: true,
-        baseSha: current,
-        error: "The live site changed this page since you opened it. Load the live version, then re-apply your edit.",
-      };
-    }
+  // A whole-file save without a version can erase any edit that landed after
+  // the caller prepared its payload. Every caller must read first and send the
+  // read's baseSha back as expectedBase.
+  if (typeof payload.expectedBase !== "string" || !payload.expectedBase) {
+    return {
+      ok: false,
+      preconditionRequired: true,
+      error: "expectedBase is required. Read the page first, then save with the baseSha that read returned.",
+    };
   }
-  if (id === "page:home") return writeHome(payload, actor);
+  const expected = payload.expectedBase;
+  const stale = (baseSha: string): WriteResult => ({
+    ok: false,
+    staleBase: true,
+    baseSha,
+    error: "The live site changed this page since you opened it. Load the live version, then re-apply your edit.",
+  });
+
+  // Home spans two files and still uses the existing composite path. Its
+  // atomicity is a separate change; ordinary one-file saves below use one
+  // exact read for comparison, no-op detection and the Contents PUT sha.
+  if (id === "page:home") {
+    const current = await baseShaOf(id);
+    if (expected !== current) return stale(current);
+    return writeHome(payload, actor);
+  }
+
+  const existing = await ghReadFile(id);
+  const current = existing?.sha || "";
+  if (expected !== current) return stale(current);
+
   const type = typeOf(id);
+  let out: string;
   if (type === "md") {
     const fm = String(payload.frontmatter ?? "");
     try {
@@ -697,18 +733,25 @@ async function writeEditable(
       return { ok: false, error: `invalid YAML frontmatter: ${(e as Error).message}` };
     }
     const body = String(payload.body ?? "").replace(/\s+$/, "");
-    const sha = await ghWriteFile(id, `---\n${fm.trim()}\n---\n\n${body}\n`, `CMS: update ${id}`, actor);
-    return { ok: true, baseSha: sha };
+    out = `---\n${fm.trim()}\n---\n\n${body}\n`;
+  } else {
+    // json
+    const raw = String(payload.raw ?? "");
+    try {
+      JSON.parse(raw);
+    } catch (e) {
+      return { ok: false, error: `invalid JSON: ${(e as Error).message}` };
+    }
+    out = raw.endsWith("\n") ? raw : raw + "\n";
   }
-  // json
-  const raw = String(payload.raw ?? "");
-  try {
-    JSON.parse(raw);
-  } catch (e) {
-    return { ok: false, error: `invalid JSON: ${(e as Error).message}` };
+
+  const written = await ghWriteFileAtVersion(id, out, `CMS: update ${id}`, existing, actor);
+  if (!written.ok) {
+    // A change after our read makes GitHub reject the stale sha. Read once more
+    // only to hand the editor the version it should reload.
+    return stale((await ghReadFile(id))?.sha || "");
   }
-  const sha = await ghWriteFile(id, raw.endsWith("\n") ? raw : raw + "\n", `CMS: update ${id}`, actor);
-  return { ok: true, baseSha: sha };
+  return { ok: true, baseSha: written.sha };
 }
 
 // ---- create a new item ----
@@ -1430,9 +1473,9 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "save") {
     try {
       const result = await writeEditable(String(body.id || ""), body, await actorFor(req));
-      // 409 is what the editor watches for to stop auto-saving over a page
-      // someone else has already changed.
-      return json(result, result.ok ? 200 : result.staleBase ? 409 : 400);
+      // 428 tells clients to read before their first save. 409 tells an editor
+      // that the version it did read is no longer current.
+      return json(result, result.ok ? 200 : result.preconditionRequired ? 428 : result.staleBase ? 409 : 400);
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
     }
