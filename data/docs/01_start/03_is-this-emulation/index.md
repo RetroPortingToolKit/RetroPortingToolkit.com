@@ -1,50 +1,77 @@
 ---
 title: "Is this emulation?"
-summary: "No. The game's code is translated into a normal program before you play, and a runtime library stands in for the console. While a port is being finished, a small fallback interpreter catches what the translation has not reached yet; a completed port has full static coverage and does not use it."
+summary: "Not in the usual sense. The game's own logic runs as native code, but the port still needs a runtime for the old console around it. Unfinished ports may also use a fallback interpreter until all code is covered."
 pageType: "concept"
 tags: ["Emulation", "Execution model", "Honesty"]
 repos:
   - "https://github.com/mstan/psxrecomp"
-  - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-25"
+updated: "2026-08-30"
 ---
 
-No. Static recompilation is not emulation. The game's own code is translated into a normal program before you play, and your computer runs that program directly. Two other pieces of software are involved, and neither changes that answer. The port links against a runtime, an ordinary library that answers the game's requests to draw, play sound and read a controller, the way any program uses the system it runs on. And while a port is still being finished, a small fallback interpreter catches any code the translation has not reached yet. That fallback is a safety net, not how the game runs. As coverage fills in it goes inert, and a completed project does not have, or will not use, a fallback interpreter: it has 100% static coverage.
+Not in the way most players mean it.
 
-## The three pieces
+In an emulator, the emulator is the program. It reads the old game's instructions while you play and acts them out for the modern machine.
 
-**The game's code is translated first.** A tool reads the game's binary on a developer's computer and writes it out as source code. A normal compiler turns that source into a program for your computer. This happens once, long before you download anything. By the time you play, your computer is running the game's own logic directly. The projects here write C, but the technique does not require C.
+In a recompiled port, the game is the program. The game's own code has already been translated and compiled for your computer. When you play, your processor runs that translated game code directly.
 
-**A runtime stands in for the console.** A game does not only do arithmetic. It also asks the console to draw a picture, play a sound, read a controller and save a file. The port links against a runtime, a library that answers those requests on your computer, the way any program calls the system it runs on.
+There is still software standing in for the old console. That part matters, and it is where the answer gets more careful.
 
-**A fallback interpreter catches the rest, for now.** Translating ahead of time takes time to reach everything. Where coverage gaps have not been filled yet, an interpreter runs the leftover code one instruction at a time, the slow way, so a missed instruction becomes a slow moment instead of a crash. It is a safety net, a release hatch while a port matures. As coverage reaches everything it goes inert and can be factored out.
+## What runs natively?
 
-## What it means for you
+The game's own logic runs as native code.
 
-It behaves like a normal app. You open it and it starts. There is nothing to configure first, no console to pick, and no game to load into it. The game is the program.
+That means the code that decides where the player moves, what enemies do, how menus work, and how the game state changes is compiled for your computer. It is not being read one instruction at a time by an emulator during play.
 
-It plays one game. A port is built around one game in one version, and it checks your file before it starts. It is not a general machine for playing that console's library. [The game file you supply](/docs/concepts/the-game-file-you-supply) is what it wants from you and why.
+This is the main difference. The port is not a general box for playing every game on that console. It is one game, rebuilt as one app.
 
-## What it does not mean
+## What does the runtime do?
 
-The interpreter is a fallback, and a temporary one. Almost everything you play is native code, and the fallback only runs what the translation has not reached yet. Projects count how often it runs and work that count down to zero, because the goal is a port that never needs it. Several projects also run a full emulator beside the port while they are building it, to compare the two and catch mistakes. That emulator is not in the version you download.
+The game still expects a console around it.
 
-No project here says that no emulation is ever involved along the way.
+It asks for graphics, sound, input, timing, memory, save data, and other hardware behavior. Your PC does not have a Super Nintendo PPU or a PlayStation GPU inside it.
 
-## Where your console's exact answer lives
+The runtime answers those requests. It is a normal library linked into the port. It stands in for the old machine around the game, the way any modern app uses libraries and operating system services around its own code.
 
-How much a port still leans on its fallback changes from project to project while ports are being finished. A completed project does not have, or will not use, a fallback interpreter: it has 100% static coverage. Pick your console on the [platform pages](/docs/platforms) and its page says where that project stands today.
+Some of that work is hardware simulation. That does not make the whole port a traditional emulator. It means native game code is running on top of a runtime that knows how the old console behaved.
 
-## Source
+## Why is there sometimes an interpreter?
 
-- [psxrecomp](https://github.com/mstan/psxrecomp): [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md), [`CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md).
-- [nesrecomp](https://github.com/mstan/nesrecomp): [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md).
-- [snesrecomp](https://github.com/mstan/snesrecomp): [`README.md`](https://github.com/mstan/snesrecomp/blob/main/README.md), [`SNES_COSIM.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_COSIM.md) for the rule that the comparison emulator ships in no release.
+Some games hide code until they are running.
+
+A game might load a new chunk from disc. It might jump through a table. It might build or copy code in a way the static pass did not fully see. Mature toolchains try to cover this before release, but unfinished ports can still have gaps.
+
+A fallback interpreter is a safety net for those gaps. It runs missed code the slow way so the port can keep going instead of crashing at the first unknown address.
+
+That fallback is not the goal. Projects measure it and work it down. A finished port should have full coverage and should not need the fallback during normal play.
+
+## What does this mean when I download a port?
+
+It should feel like a normal app.
+
+You launch it. It checks the game file it needs from you. Then it runs that game as its own program.
+
+You are not choosing a console core, loading a ROM into a general emulator, or tuning emulator settings before you can start. The port is built for that one game.
+
+## Is any emulation involved at all?
+
+Yes, depending on what you mean by emulation.
+
+The game's own logic is native code. The console around it is recreated in software. During development, a fallback interpreter or a separate comparison emulator may also be used to find mistakes.
+
+So the honest answer is narrow:
+
+The port is not a traditional emulator running the game instruction by instruction. It is a native port with a runtime for the old hardware around it.
+
+## Where should I look for a specific console?
+
+Each console is different. PlayStation, SNES, NES, and the smaller projects do not all handle code coverage, hardware, or fallback paths the same way.
+
+Use the [platform pages](/docs/platforms) for the current answer on one console. Use [what static recompilation is](/docs/start/what-is-static-recompilation) if you want the core idea before the details.
 
 ## Next
 
-- [What static recompilation is](/docs/start/what-is-static-recompilation) explains the translation step properly, if you arrived here first.
-- [The platform pages](/docs/platforms) give your console's exact position, project by project.
-- [High level and low level](/docs/concepts/hle-and-lle) is the one place these projects openly disagree with each other, over the console's built-in software.
-- [Glossary](/docs/concepts/glossary) defines the words used here.
+- [How is a port made?](/docs/start/how-a-port-is-made): the full path from game file to native app.
+- [What static recompilation is](/docs/start/what-is-static-recompilation): the translation step in plain language.
+- [The platform pages](/docs/platforms): where each console's exact answer lives.
+- [High level and low level](/docs/concepts/hle-and-lle): how projects decide where the old hardware is recreated.
