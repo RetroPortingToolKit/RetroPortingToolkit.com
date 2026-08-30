@@ -94,5 +94,5 @@ The goal is not months of custom work for every game. The goal is a framework th
 
 - [What is static recompilation?](/docs/start/what-is-static-recompilation): the core idea behind the translation step.
 - [What do I need to get started?](/docs/start/what-you-need): the tools you need before building anything.
-- [Quickstart](/docs/start/quickstart): the psxrecomp path, using the most mature framework.
+- [Developer quickstart](/docs/start/quickstart): the psxrecomp path, using the most mature framework.
 - [Telling code from data](/docs/concepts/code-discovery) and [proving it with co-simulation](/docs/concepts/co-simulation): the two stages that decide whether a port is correct.

@@ -86,7 +86,7 @@ export function neighbours(slug: string): {
 // the landing page never points at a 404. Add the alternatives a page might
 // plausibly land under, most likely first.
 const QUICK_LINKS: { label: string; slugs: string[] }[] = [
-  { label: "Quickstart", slugs: ["start/quickstart", "guides/quickstart"] },
+  { label: "Developer quickstart", slugs: ["start/quickstart", "guides/quickstart"] },
   {
     label: "What is static recompilation",
     slugs: [

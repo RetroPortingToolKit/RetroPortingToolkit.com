@@ -88,7 +88,7 @@ You do not need to understand the whole console before you begin.
 
 You do not need to know every command line tool by heart.
 
-You do not need a game file for the [quickstart](/docs/start/quickstart). That page uses psxrecomp because it is the gold-standard framework here today. Its example builds an open BIOS image, so you can run the pipeline before pointing any tool at your own game.
+You do not need a game file for the [developer quickstart](/docs/start/quickstart). That page uses psxrecomp because it is the gold-standard framework here today. Its example builds an open BIOS image, so you can run the pipeline before pointing any tool at your own game.
 
 Future systems may not use the same exact commands, but they should follow the same shape: build the framework, provide the files the project asks for, verify the input, then run the result.
 
@@ -109,7 +109,7 @@ On Windows, run this check inside MSYS2 MinGW64. A tool that works in PowerShell
 
 ## Next
 
-- [Quickstart](/docs/start/quickstart): build and run the psxrecomp pipeline.
+- [Developer quickstart](/docs/start/quickstart): build and run the psxrecomp pipeline.
 - [How do I recomp my own game?](/docs/start/recomp-your-own-game): the realistic path from a game you own to a port project.
 - [The game file you supply](/docs/concepts/the-game-file-you-supply): what the file check means.
 - [How is a port made?](/docs/start/how-a-port-is-made): where these tools fit in the larger process.
