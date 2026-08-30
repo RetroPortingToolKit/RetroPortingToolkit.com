@@ -307,8 +307,8 @@ function ghHeaders(): Record<string, string> {
     "x-github-api-version": "2022-11-28",
   };
 }
-async function ghReadFile(path: string): Promise<{ content: string; sha: string } | null> {
-  const r = await fetch(`${GH}/contents/${path}?ref=${BRANCH}`, { headers: ghHeaders() });
+async function ghReadFile(path: string, ref = BRANCH): Promise<{ content: string; sha: string } | null> {
+  const r = await fetch(`${GH}/contents/${path}?ref=${encodeURIComponent(ref)}`, { headers: ghHeaders() });
   if (r.status === 404) return null;
   if (!r.ok) throw new Error(`gh_read_${r.status} ${path}`);
   const j = (await r.json()) as { content: string; encoding: string; sha: string };
@@ -377,6 +377,15 @@ type Change =
   | { path: string; blobSha: string }
   | { path: string; remove: true };
 
+interface GhSnapshot {
+  head: string;
+  tree: string;
+}
+
+type GhCommitOutcome =
+  | { ok: true; sha: string; blobs: Map<string, string> }
+  | { ok: false; conflict: true };
+
 async function ghJson(url: string, init?: RequestInit): Promise<Record<string, unknown>> {
   const r = await fetch(url, {
     ...init,
@@ -386,13 +395,23 @@ async function ghJson(url: string, init?: RequestInit): Promise<Record<string, u
   return (await r.json()) as Record<string, unknown>;
 }
 
-async function ghCommit(changes: Change[], message: string, actor?: Actor | null): Promise<string | null> {
-  if (!changes.length) return null;
+async function ghSnapshot(): Promise<GhSnapshot> {
   const ref = await ghJson(`${GH}/git/ref/heads/${BRANCH}`);
-  const parent = (ref.object as { sha: string }).sha;
-  const base = await ghJson(`${GH}/git/commits/${parent}`);
-  const baseTree = (base.tree as { sha: string }).sha;
+  const head = (ref.object as { sha: string }).sha;
+  const commit = await ghJson(`${GH}/git/commits/${head}`);
+  return { head, tree: (commit.tree as { sha: string }).sha };
+}
 
+/** Build one commit on an immutable branch snapshot, then advance the branch
+    only if that commit is still a fast-forward. Blobs, trees and commits are
+    harmless unreachable objects until the final ref update succeeds. */
+async function ghCommitAt(
+  changes: Change[],
+  message: string,
+  snapshot: GhSnapshot,
+  actor?: Actor | null,
+): Promise<GhCommitOutcome> {
+  const blobs = new Map<string, string>();
   const tree: Record<string, unknown>[] = [];
   for (const c of changes) {
     if ("remove" in c) {
@@ -401,6 +420,7 @@ async function ghCommit(changes: Change[], message: string, actor?: Actor | null
     }
     if ("blobSha" in c) {
       tree.push({ path: c.path, mode: "100644", type: "blob", sha: c.blobSha });
+      blobs.set(c.path, c.blobSha);
       continue;
     }
     const blob = await ghJson(`${GH}/git/blobs`, {
@@ -410,16 +430,17 @@ async function ghCommit(changes: Change[], message: string, actor?: Actor | null
         : JSON.stringify({ content: c.base64, encoding: "base64" }),
     });
     tree.push({ path: c.path, mode: "100644", type: "blob", sha: blob.sha });
+    blobs.set(c.path, blob.sha as string);
   }
 
   const newTree = await ghJson(`${GH}/git/trees`, {
     method: "POST",
-    body: JSON.stringify({ base_tree: baseTree, tree }),
+    body: JSON.stringify({ base_tree: snapshot.tree, tree }),
   });
   const commitBody: Record<string, unknown> = {
     message: actor ? `${message}\n\nEdited-by: ${actorLabel(actor)}` : message,
     tree: newTree.sha,
-    parents: [parent],
+    parents: [snapshot.head],
   };
   if (actor) {
     commitBody.author = {
@@ -428,11 +449,21 @@ async function ghCommit(changes: Change[], message: string, actor?: Actor | null
     };
   }
   const commit = await ghJson(`${GH}/git/commits`, { method: "POST", body: JSON.stringify(commitBody) });
-  await ghJson(`${GH}/git/refs/heads/${BRANCH}`, {
+  const updated = await fetch(`${GH}/git/refs/heads/${BRANCH}`, {
     method: "PATCH",
-    body: JSON.stringify({ sha: commit.sha }),
+    headers: { ...ghHeaders(), "content-type": "application/json" },
+    body: JSON.stringify({ sha: commit.sha, force: false }),
   });
-  return commit.sha as string;
+  if (updated.status === 409 || updated.status === 422) return { ok: false, conflict: true };
+  if (!updated.ok) throw new Error(`gh_${updated.status} /git/refs/heads/${BRANCH}: ${await updated.text()}`);
+  return { ok: true, sha: commit.sha as string, blobs };
+}
+
+async function ghCommit(changes: Change[], message: string, actor?: Actor | null): Promise<string | null> {
+  if (!changes.length) return null;
+  const result = await ghCommitAt(changes, message, await ghSnapshot(), actor);
+  if (!result.ok) throw new Error("gh_ref_conflict");
+  return result.sha;
 }
 
 /** Read many files in ONE request. The editor's list needs each page's real
@@ -561,8 +592,25 @@ export function mdFields(fmText: string) {
   }
 }
 
+interface HomeSnapshot extends GhSnapshot {
+  aboutFile: GhFile;
+  homeFile: GhFile;
+}
+
+/** Pin both files to one commit. Reading them separately at `main` can pair
+    about.md from one commit with home.json from the next. */
+async function ghHomeSnapshot(): Promise<HomeSnapshot> {
+  const snapshot = await ghSnapshot();
+  const [aboutFile, homeFile] = await Promise.all([
+    ghReadFile("data/about.md", snapshot.head),
+    ghReadFile("data/home.json", snapshot.head),
+  ]);
+  return { ...snapshot, aboutFile, homeFile };
+}
+
 async function readHome() {
-  const aboutFile = await ghReadFile("data/about.md");
+  const snapshot = await ghHomeSnapshot();
+  const { aboutFile, homeFile } = snapshot;
   const aboutRaw = aboutFile?.content || "";
   const { fmText, body } = splitRaw(aboutRaw);
   let fields = { headerName: "", heroTitle: "", role: "", eyebrow: "", tagline: "", email: "", locations: [] as string[] };
@@ -578,7 +626,6 @@ async function readHome() {
       locations: Array.isArray(fm.locations) ? (fm.locations as unknown[]).filter((x) => typeof x === "string") as string[] : [],
     };
   } catch {}
-  const homeFile = await ghReadFile("data/home.json");
   let home = { proof: [] as unknown[], recognition: [] as unknown[], philosophy: [] as unknown[] };
   try {
     const parsed = JSON.parse(homeFile?.content || "{}");
@@ -605,15 +652,6 @@ async function readHome() {
 // values never meet, since each backend only ever compares against its own.
 const homeBaseSha = (about?: string, home?: string) => `${about || ""}.${home || ""}`;
 
-async function baseShaOf(id: string): Promise<string> {
-  if (id === "page:home") {
-    const about = await ghReadFile("data/about.md");
-    const home = await ghReadFile("data/home.json");
-    return homeBaseSha(about?.sha, home?.sha);
-  }
-  return (await ghReadFile(id))?.sha || "";
-}
-
 async function readEditable(id: string) {
   if (!isAllowed(id)) return null;
   if (id === "page:home") return readHome();
@@ -638,6 +676,15 @@ export interface WriteResult {
   baseSha?: string;
 }
 
+function staleWrite(baseSha: string): WriteResult {
+  return {
+    ok: false,
+    staleBase: true,
+    baseSha,
+    error: "The live site changed this page since you opened it. Load the live version, then re-apply your edit.",
+  };
+}
+
 /** The three sections the editor knows about in home.json. Mirrored in
     scripts/cms-dev.mjs. */
 const HOME_SECTIONS = ["proof", "recognition", "philosophy"] as const;
@@ -649,7 +696,12 @@ function homeEntry(value: unknown): unknown {
   return value && typeof value === "object" ? value : String(value);
 }
 
-async function writeHome(payload: Record<string, unknown>, actor?: Actor | null): Promise<WriteResult> {
+async function writeHome(
+  payload: Record<string, unknown>,
+  initial: HomeSnapshot,
+  expectedBase: string,
+  actor?: Actor | null,
+): Promise<WriteResult> {
   const about = (payload.about || {}) as Record<string, unknown>;
   const fm = String(about.frontmatter ?? "");
   try {
@@ -663,27 +715,56 @@ async function writeHome(payload: Record<string, unknown>, actor?: Actor | null)
   const aboutBody = String(about.body ?? "").replace(/\s+$/, "");
   const aboutOut = `---\n${fm.trim()}\n---\n` + (aboutBody ? `\n${aboutBody}\n` : "");
   const home = (payload.home || {}) as Record<string, unknown>;
-  // Merge over the stored file: the editor only knows about proof/recognition/
-  // philosophy, and a save must not drop the other authored sections
-  // (videos, capabilities, pillars, transforms, thesis, ...).
-  let existing: Record<string, unknown> = {};
-  try {
-    existing = JSON.parse((await ghReadFile("data/home.json"))?.content || "{}");
-  } catch {}
-  const merged: Record<string, unknown> = { ...existing };
-  for (const key of HOME_SECTIONS) {
-    const value = home[key];
-    if (!Array.isArray(value)) continue;
-    // An empty section the file never had is the editor reporting what it
-    // found, not an edit. Writing it anyway invented "recognition": [] on
-    // every save.
-    if (!value.length && !(key in existing)) continue;
-    merged[key] = (value as unknown[]).map(homeEntry);
+  let snapshot = initial;
+
+  // A branch can advance for an unrelated page between our snapshot and ref
+  // update. Retry from the new immutable snapshot while Home itself still has
+  // exactly the version the caller supplied. A Home change is a real 409.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    // Merge over the snapshot's home.json: the editor only knows about proof/
+    // recognition/philosophy, and must not drop other authored sections.
+    let existing: Record<string, unknown> = {};
+    try {
+      existing = JSON.parse(snapshot.homeFile?.content || "{}");
+    } catch {}
+    const merged: Record<string, unknown> = { ...existing };
+    for (const key of HOME_SECTIONS) {
+      const value = home[key];
+      if (!Array.isArray(value)) continue;
+      // An empty section the file never had is the editor reporting what it
+      // found, not an edit.
+      if (!value.length && !(key in existing)) continue;
+      merged[key] = (value as unknown[]).map(homeEntry);
+    }
+    const homeOut = JSON.stringify(merged, null, 2) + "\n";
+    const changes: Change[] = [];
+    if (snapshot.aboutFile?.content !== aboutOut) changes.push({ path: "data/about.md", text: aboutOut });
+    if (snapshot.homeFile?.content !== homeOut) changes.push({ path: "data/home.json", text: homeOut });
+    if (!changes.length) {
+      return {
+        ok: true,
+        baseSha: homeBaseSha(snapshot.aboutFile?.sha, snapshot.homeFile?.sha),
+      };
+    }
+
+    const written = await ghCommitAt(changes, "CMS: update Home", snapshot, actor);
+    if (written.ok) {
+      return {
+        ok: true,
+        baseSha: homeBaseSha(
+          written.blobs.get("data/about.md") || snapshot.aboutFile?.sha,
+          written.blobs.get("data/home.json") || snapshot.homeFile?.sha,
+        ),
+      };
+    }
+
+    const latest = await ghHomeSnapshot();
+    const latestBase = homeBaseSha(latest.aboutFile?.sha, latest.homeFile?.sha);
+    if (latestBase !== expectedBase) return staleWrite(latestBase);
+    snapshot = latest;
   }
-  const homeOut = JSON.stringify(merged, null, 2) + "\n";
-  const aboutSha = await ghWriteFile("data/about.md", aboutOut, "CMS: update Home hero (about.md)", actor);
-  const homeSha = await ghWriteFile("data/home.json", homeOut, "CMS: update Home content (home.json)", actor);
-  return { ok: true, baseSha: homeBaseSha(aboutSha, homeSha) };
+
+  throw new Error("gh_ref_busy");
 }
 
 async function writeEditable(
@@ -703,25 +784,17 @@ async function writeEditable(
     };
   }
   const expected = payload.expectedBase;
-  const stale = (baseSha: string): WriteResult => ({
-    ok: false,
-    staleBase: true,
-    baseSha,
-    error: "The live site changed this page since you opened it. Load the live version, then re-apply your edit.",
-  });
 
-  // Home spans two files and still uses the existing composite path. Its
-  // atomicity is a separate change; ordinary one-file saves below use one
-  // exact read for comparison, no-op detection and the Contents PUT sha.
   if (id === "page:home") {
-    const current = await baseShaOf(id);
-    if (expected !== current) return stale(current);
-    return writeHome(payload, actor);
+    const snapshot = await ghHomeSnapshot();
+    const current = homeBaseSha(snapshot.aboutFile?.sha, snapshot.homeFile?.sha);
+    if (expected !== current) return staleWrite(current);
+    return writeHome(payload, snapshot, expected, actor);
   }
 
   const existing = await ghReadFile(id);
   const current = existing?.sha || "";
-  if (expected !== current) return stale(current);
+  if (expected !== current) return staleWrite(current);
 
   const type = typeOf(id);
   let out: string;
@@ -749,7 +822,7 @@ async function writeEditable(
   if (!written.ok) {
     // A change after our read makes GitHub reject the stale sha. Read once more
     // only to hand the editor the version it should reload.
-    return stale((await ghReadFile(id))?.sha || "");
+    return staleWrite((await ghReadFile(id))?.sha || "");
   }
   return { ok: true, baseSha: written.sha };
 }

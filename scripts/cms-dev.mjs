@@ -214,8 +214,21 @@ function str(v) {
   return typeof v === "string" ? v : "";
 }
 
-function readHome() {
-  const aboutRaw = fs.existsSync(ABOUT_FILE) ? fs.readFileSync(ABOUT_FILE, "utf8") : "";
+function homeBaseSha(about, home) {
+  return crypto.createHash("sha256").update(about).update("\0").update(home).digest("hex");
+}
+
+/** Read both backing files once. Every parse and concurrency decision in one
+    operation uses these exact bytes, rather than pairing a view with a hash
+    produced by a later second read. */
+function homeSnapshot() {
+  const about = fs.existsSync(ABOUT_FILE) ? fs.readFileSync(ABOUT_FILE) : Buffer.alloc(0);
+  const home = fs.existsSync(HOME_FILE) ? fs.readFileSync(HOME_FILE) : Buffer.alloc(0);
+  return { about, home, baseSha: homeBaseSha(about, home) };
+}
+
+function readHome(snapshot = homeSnapshot()) {
+  const aboutRaw = snapshot.about.toString("utf8");
   const { fmText, body } = splitRaw(aboutRaw);
   let fields = { headerName: "", heroTitle: "", role: "", eyebrow: "", tagline: "", email: "", locations: [] };
   try {
@@ -232,7 +245,7 @@ function readHome() {
   } catch {}
   let home = { proof: [], recognition: [], philosophy: [] };
   try {
-    const parsed = JSON.parse(fs.readFileSync(HOME_FILE, "utf8"));
+    const parsed = JSON.parse(snapshot.home.toString("utf8"));
     home = {
       proof: Array.isArray(parsed.proof) ? parsed.proof : [],
       recognition: Array.isArray(parsed.recognition) ? parsed.recognition : [],
@@ -244,6 +257,7 @@ function readHome() {
     type: "home",
     about: { frontmatter: fmText, body: body.replace(/^\n+/, ""), fields },
     home,
+    baseSha: snapshot.baseSha,
   };
 }
 
@@ -258,7 +272,32 @@ function homeEntry(value) {
   return value && typeof value === "object" ? value : String(value);
 }
 
-function writeHome(payload) {
+/** Best-effort two-file transaction for the dev working tree. Everything is
+    staged before the first replacement, and a handled replacement failure
+    restores files already replaced. `io` exists so the failure path can be
+    exercised without making the real filesystem fail. */
+export function replaceHomeFiles(outputs, io = fs) {
+  if (!outputs.length) return;
+  const nonce = `${process.pid}-${crypto.randomBytes(8).toString("hex")}`;
+  const staged = outputs.map((entry) => ({ ...entry, temp: `${entry.file}.cms-${nonce}.tmp` }));
+  const replaced = [];
+  try {
+    for (const entry of staged) io.writeFileSync(entry.temp, entry.after, { flag: "wx" });
+    for (const entry of staged) {
+      io.renameSync(entry.temp, entry.file);
+      replaced.push(entry);
+    }
+  } catch (error) {
+    for (const entry of replaced.reverse()) io.writeFileSync(entry.file, entry.before);
+    throw error;
+  } finally {
+    for (const entry of staged) {
+      if (io.existsSync(entry.temp)) io.unlinkSync(entry.temp);
+    }
+  }
+}
+
+function writeHome(payload, snapshot) {
   const about = payload.about || {};
   const fm = String(about.frontmatter ?? "");
   try {
@@ -276,7 +315,7 @@ function writeHome(payload) {
   // not know about (videos, capabilities, pillars, ...)
   let existing = {};
   try {
-    existing = JSON.parse(fs.readFileSync(HOME_FILE, "utf8"));
+    existing = JSON.parse(snapshot.home.toString("utf8"));
   } catch {
     existing = {};
   }
@@ -290,9 +329,15 @@ function writeHome(payload) {
     if (!value.length && !(key in existing)) continue;
     merged[key] = value.map(homeEntry);
   }
-  fs.writeFileSync(ABOUT_FILE, aboutOut);
-  fs.writeFileSync(HOME_FILE, JSON.stringify(merged, null, 2) + "\n");
-  return { ok: true };
+  const homeOut = JSON.stringify(merged, null, 2) + "\n";
+  const outputs = [
+    { file: ABOUT_FILE, before: snapshot.about, after: Buffer.from(aboutOut, "utf8") },
+    { file: HOME_FILE, before: snapshot.home, after: Buffer.from(homeOut, "utf8") },
+  ].filter(({ before, after }) => !before.equals(after));
+  if (!outputs.length) return { ok: true, baseSha: snapshot.baseSha };
+
+  replaceHomeFiles(outputs);
+  return { ok: true, baseSha: homeBaseSha(Buffer.from(aboutOut, "utf8"), Buffer.from(homeOut, "utf8")) };
 }
 
 // A content-hash of the on-disk file(s) backing an id, at load time. The editor
@@ -301,11 +346,7 @@ function writeHome(payload) {
 // so a stale browser buffer can never silently overwrite newer content.
 export function fileBaseSha(id) {
   try {
-    if (id === "page:home") {
-      const a = fs.existsSync(ABOUT_FILE) ? fs.readFileSync(ABOUT_FILE) : Buffer.alloc(0);
-      const h = fs.existsSync(HOME_FILE) ? fs.readFileSync(HOME_FILE) : Buffer.alloc(0);
-      return crypto.createHash("sha256").update(a).update("\0").update(h).digest("hex");
-    }
+    if (id === "page:home") return homeSnapshot().baseSha;
     const abs = resolveSafe(id);
     if (!abs || !fs.existsSync(abs)) return "";
     return crypto.createHash("sha256").update(fs.readFileSync(abs)).digest("hex");
@@ -361,7 +402,7 @@ function readOne(id) {
 export function readEditable(id) {
   const data = id === "page:home" ? readHome() : readOne(id);
   if (!data) return null;
-  data.baseSha = fileBaseSha(id);
+  if (id !== "page:home") data.baseSha = fileBaseSha(id);
   return data;
 }
 
@@ -423,9 +464,10 @@ export function writeEditable(id, payload) {
       error: "expectedBase is required. Read the page first, then save with the baseSha that read returned.",
     };
   }
-  // Read the current hash once so a stale response reports the exact version
-  // that failed the comparison.
-  const current = fileBaseSha(id);
+  // Home needs the same byte snapshot for its comparison, merge and write.
+  // Ordinary files only need the one current hash.
+  const snapshot = id === "page:home" ? homeSnapshot() : null;
+  const current = snapshot?.baseSha || fileBaseSha(id);
   if (payload.expectedBase !== current) {
     return {
       ok: false,
@@ -434,8 +476,8 @@ export function writeEditable(id, payload) {
       error: "The live site changed this page since you opened it. Load the live version, then re-apply your edit.",
     };
   }
-  const result = id === "page:home" ? writeHome(payload) : writeOne(id, payload);
-  if (result.ok) result.baseSha = fileBaseSha(id);
+  const result = id === "page:home" ? writeHome(payload, snapshot) : writeOne(id, payload);
+  if (result.ok && !result.baseSha) result.baseSha = fileBaseSha(id);
   return result;
 }
 

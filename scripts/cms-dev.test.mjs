@@ -453,7 +453,14 @@ describe("dev Home composite round-trips", () => {
   it("a save that changes nothing changes no bytes", async () => {
     const { root, mod, read } = await devBackend();
     seed(root);
+    const stamp = new Date("2000-01-01T00:00:00.000Z");
+    fs.utimesSync(path.join(root, "data/about.md"), stamp, stamp);
+    fs.utimesSync(path.join(root, "data/home.json"), stamp, stamp);
     const before = { about: read("data/about.md"), home: read("data/home.json") };
+    const beforeTimes = {
+      about: fs.statSync(path.join(root, "data/about.md")).mtimeMs,
+      home: fs.statSync(path.join(root, "data/home.json")).mtimeMs,
+    };
     for (let i = 0; i < 2; i++) {
       const doc = mod.readEditable("page:home");
       const r = mod.writeEditable("page:home", {
@@ -469,6 +476,45 @@ describe("dev Home composite round-trips", () => {
     // ...and "recognition": [] was invented in a file that has no such key.
     expect(read("data/home.json").equals(before.home)).toBe(true);
     expect(JSON.parse(read("data/home.json").toString())).not.toHaveProperty("recognition");
+    expect(fs.statSync(path.join(root, "data/about.md")).mtimeMs).toBe(beforeTimes.about);
+    expect(fs.statSync(path.join(root, "data/home.json")).mtimeMs).toBe(beforeTimes.home);
+  });
+
+  it("restores the first file if replacing the second one fails", async () => {
+    const { root, mod, read } = await devBackend();
+    seed(root);
+    const before = { about: read("data/about.md"), home: read("data/home.json") };
+    let calls = 0;
+    const io = {
+      writeFileSync: fs.writeFileSync.bind(fs),
+      existsSync: fs.existsSync.bind(fs),
+      unlinkSync: fs.unlinkSync.bind(fs),
+      renameSync(from, to) {
+        calls += 1;
+        if (calls === 2) throw new Error("injected second replace failure");
+        return fs.renameSync(from, to);
+      },
+    };
+    expect(() =>
+      mod.replaceHomeFiles(
+        [
+          {
+            file: path.join(root, "data/about.md"),
+            before: before.about,
+            after: Buffer.from("changed about", "utf8"),
+          },
+          {
+            file: path.join(root, "data/home.json"),
+            before: before.home,
+            after: Buffer.from('{"changed":true}\n', "utf8"),
+          },
+        ],
+        io,
+      ),
+    ).toThrow("injected second replace failure");
+    expect(read("data/about.md").equals(before.about)).toBe(true);
+    expect(read("data/home.json").equals(before.home)).toBe(true);
+    expect(fs.readdirSync(path.join(root, "data")).some((name) => name.includes(".cms-") && name.endsWith(".tmp"))).toBe(false);
   });
 
   it("still writes a section someone actually filled in", async () => {

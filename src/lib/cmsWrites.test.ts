@@ -19,14 +19,29 @@ type Body = Record<string, unknown>;
 type FakeGitHubHooks = {
   afterContentsGet?: (path: string, count: number, store: Map<string, Buffer>) => void;
   beforeContentsPut?: (path: string, store: Map<string, Buffer>) => void;
+  beforeRefPatch?: (store: Map<string, Buffer>) => void;
+  refPatchStatus?: number;
 };
 
 function fakeGitHub(seed: Record<string, Buffer | string>, hooks: FakeGitHubHooks = {}) {
   const store = new Map<string, Buffer>();
   const blobs = new Map<string, Buffer>();
+  const trees = new Map<string, Map<string, Buffer>>();
+  const commits = new Map<string, { tree: string; parents: string[] }>();
   const calls: { method: string; url: string; body?: Body }[] = [];
   let contentsGetCount = 0;
+  let objectCount = 0;
   const sha = (b: Buffer) => crypto.createHash("sha1").update(b).digest("hex");
+  const copyTree = (tree: Map<string, Buffer>) => new Map([...tree].map(([p, b]) => [p, Buffer.from(b)]));
+  const replaceStore = (tree: Map<string, Buffer>) => {
+    store.clear();
+    for (const [p, b] of tree) store.set(p, Buffer.from(b));
+  };
+  const treeFingerprint = (tree: Map<string, Buffer>) =>
+    [...tree]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([p, b]) => `${p}:${sha(b)}`)
+      .join("\n");
   const keep = (b: Buffer) => {
     blobs.set(sha(b), b);
     return sha(b);
@@ -36,6 +51,17 @@ function fakeGitHub(seed: Record<string, Buffer | string>, hooks: FakeGitHubHook
     store.set(p, buf);
     keep(buf);
   }
+  let head = "commit-parent";
+  trees.set("tree-base", copyTree(store));
+  commits.set(head, { tree: "tree-base", parents: [] });
+
+  const advanceExternalHead = () => {
+    const tree = `tree-external-${++objectCount}`;
+    const commit = `commit-external-${objectCount}`;
+    trees.set(tree, copyTree(store));
+    commits.set(commit, { tree, parents: [head] });
+    head = commit;
+  };
 
   const reply = (value: unknown, status = 200) =>
     new Response(JSON.stringify(value), { status, headers: { "content-type": "application/json" } });
@@ -50,11 +76,16 @@ function fakeGitHub(seed: Record<string, Buffer | string>, hooks: FakeGitHubHook
     if (contents) {
       const at = decodeURIComponent(contents[1]);
       if (method === "GET") {
-        const file = store.get(at);
+        const ref = new URL(url).searchParams.get("ref");
+        const commit = ref && ref !== "main" ? commits.get(ref) : undefined;
+        const source = commit ? trees.get(commit.tree) ?? new Map<string, Buffer>() : store;
+        const file = source.get(at);
         const response = file
           ? reply({ content: file.toString("base64"), encoding: "base64", sha: sha(file) })
           : reply({ message: "Not Found" }, 404);
+        const before = treeFingerprint(store);
         hooks.afterContentsGet?.(at, ++contentsGetCount, store);
+        if (treeFingerprint(store) !== before) advanceExternalHead();
         return response;
       }
       if (method === "PUT") {
@@ -68,34 +99,70 @@ function fakeGitHub(seed: Record<string, Buffer | string>, hooks: FakeGitHubHook
         }
         const buf = Buffer.from(String(body?.content ?? ""), "base64");
         store.set(at, buf);
+        advanceExternalHead();
         return reply({ content: { sha: keep(buf) } });
       }
     }
-    if (/\/git\/trees\/[^/]+\?recursive=1$/.test(url)) {
-      return reply({ tree: [...store].map(([p, b]) => ({ path: p, type: "blob", sha: sha(b) })) });
+    const recursiveTree = /\/git\/trees\/([^/?]+)\?recursive=1$/.exec(url);
+    if (recursiveTree) {
+      const ref = decodeURIComponent(recursiveTree[1]);
+      const commit = ref === "main" ? commits.get(head) : commits.get(ref);
+      const source = commit ? trees.get(commit.tree) ?? store : store;
+      return reply({ tree: [...source].map(([p, b]) => ({ path: p, type: "blob", sha: sha(b) })) });
     }
-    if (/\/git\/ref\/heads\//.test(url)) return reply({ object: { sha: "commit-parent" } });
-    if (/\/git\/commits\/[^/]+$/.test(url) && method === "GET") return reply({ tree: { sha: "tree-base" } });
+    if (/\/git\/ref\/heads\//.test(url)) return reply({ object: { sha: head } });
+    const commitGet = /\/git\/commits\/([^/]+)$/.exec(url);
+    if (commitGet && method === "GET") {
+      const commit = commits.get(decodeURIComponent(commitGet[1]));
+      return commit ? reply({ tree: { sha: commit.tree } }) : reply({ message: "Not Found" }, 404);
+    }
     if (/\/git\/blobs$/.test(url) && method === "POST") {
       const raw = String(body?.content ?? "");
       return reply({ sha: keep(body?.encoding === "base64" ? Buffer.from(raw, "base64") : Buffer.from(raw, "utf8")) });
     }
     if (/\/git\/trees$/.test(url) && method === "POST") {
+      const base = trees.get(String(body?.base_tree ?? ""));
+      if (!base) return reply({ message: "Unknown base tree" }, 422);
+      const next = copyTree(base);
       // A tree entry with a null sha removes the path; any other sha points the
       // path at a blob the repo already holds, which is how a file moves.
       for (const entry of (body?.tree as { path: string; sha: string | null }[]) ?? []) {
         if (entry.sha === null) {
-          store.delete(entry.path);
+          next.delete(entry.path);
           continue;
         }
         const blob = blobs.get(entry.sha);
         if (!blob) throw new Error(`tree references a blob that was never written: ${entry.sha}`);
-        store.set(entry.path, blob);
+        next.set(entry.path, Buffer.from(blob));
       }
-      return reply({ sha: "tree-new" });
+      const tree = `tree-new-${++objectCount}`;
+      trees.set(tree, next);
+      return reply({ sha: tree });
     }
-    if (/\/git\/commits$/.test(url) && method === "POST") return reply({ sha: "commit-new" });
-    if (/\/git\/refs\/heads\//.test(url) && method === "PATCH") return reply({ ok: true });
+    if (/\/git\/commits$/.test(url) && method === "POST") {
+      const commit = `commit-new-${++objectCount}`;
+      commits.set(commit, {
+        tree: String(body?.tree ?? ""),
+        parents: ((body?.parents as string[]) ?? []).map(String),
+      });
+      return reply({ sha: commit });
+    }
+    if (/\/git\/refs\/heads\//.test(url) && method === "PATCH") {
+      const before = treeFingerprint(store);
+      hooks.beforeRefPatch?.(store);
+      if (treeFingerprint(store) !== before) advanceExternalHead();
+      if (hooks.refPatchStatus) return reply({ message: "ref update failed" }, hooks.refPatchStatus);
+      const requested = String(body?.sha ?? "");
+      const commit = commits.get(requested);
+      if (!commit || commit.parents[0] !== head) {
+        return reply({ message: "Update is not a fast forward" }, 422);
+      }
+      const next = trees.get(commit.tree);
+      if (!next) return reply({ message: "Unknown commit tree" }, 422);
+      replaceStore(next);
+      head = requested;
+      return reply({ ok: true });
+    }
     if (/graphql$/.test(url)) return reply({ data: { repository: {} } });
     throw new Error(`the CMS made a call the fake repo does not serve: ${method} ${url}`);
   };
@@ -439,6 +506,27 @@ describe("prod save refuses to overwrite a newer version", () => {
 });
 
 describe("prod Home composite round-trips", () => {
+  it("reads both Home files from one immutable commit", async () => {
+    const external = JSON.stringify({ proof: ["external"], philosophy: ["newer"] }, null, 2) + "\n";
+    let moved = false;
+    open({}, {
+      afterContentsGet(path, _count, store) {
+        if (path !== "data/about.md" || moved) return;
+        moved = true;
+        store.set("data/home.json", Buffer.from(external, "utf8"));
+      },
+    });
+
+    const doc = (await (await fetchOne("read", "page:home")).json()) as {
+      home: { proof: unknown[]; philosophy: unknown[] };
+    };
+    // The branch moved after about.md was read. home.json still comes from the
+    // pinned parent, rather than forming a version that never existed.
+    expect(doc.home.proof).toEqual(["a claim"]);
+    expect(doc.home.philosophy).toEqual(["a belief"]);
+    expect(gh.text("data/home.json")).toBe(external);
+  });
+
   it("a save that changes nothing writes nothing at all", async () => {
     open();
     const doc = (await (await fetchOne("read", "page:home")).json()) as {
@@ -460,6 +548,106 @@ describe("prod Home composite round-trips", () => {
     expect(gh.text("data/about.md")).toBe(before.about);
     expect(gh.text("data/home.json")).toBe(before.home);
     expect(gh.puts()).toBe(0);
+    expect(gh.calls.filter((call) => call.method !== "GET" && call.url.includes("/git/")).length).toBe(0);
+  });
+
+  it("publishes both Home files in one Git Data commit", async () => {
+    open();
+    const doc = (await (await fetchOne("read", "page:home")).json()) as {
+      about: { frontmatter: string; body: string };
+      home: Record<string, unknown>;
+      baseSha: string;
+    };
+    const r = await send("save", {
+      id: "page:home",
+      about: { frontmatter: `${doc.about.frontmatter}\nrole: "Maintainer"`, body: doc.about.body },
+      home: { ...doc.home, recognition: ["An award"] },
+      expectedBase: doc.baseSha,
+    });
+
+    expect(r.status).toBe(200);
+    expect(gh.text("data/about.md")).toContain('role: "Maintainer"');
+    expect(JSON.parse(gh.text("data/home.json")).recognition).toEqual(["An award"]);
+    expect(gh.puts()).toBe(0);
+    expect(gh.calls.filter((call) => call.method === "POST" && call.url.endsWith("/git/commits"))).toHaveLength(1);
+    expect(gh.calls.filter((call) => call.method === "PATCH" && call.url.includes("/git/refs/heads/"))).toHaveLength(1);
+  });
+
+  it("exposes neither Home change when the atomic ref update fails", async () => {
+    open({}, { refPatchStatus: 500 });
+    const doc = (await (await fetchOne("read", "page:home")).json()) as {
+      about: { frontmatter: string; body: string };
+      home: Record<string, unknown>;
+      baseSha: string;
+    };
+    const before = { about: gh.text("data/about.md"), home: gh.text("data/home.json") };
+    const r = await send("save", {
+      id: "page:home",
+      about: { frontmatter: `${doc.about.frontmatter}\nrole: "Maintainer"`, body: doc.about.body },
+      home: { ...doc.home, recognition: ["An award"] },
+      expectedBase: doc.baseSha,
+    });
+
+    expect(r.status).toBe(500);
+    expect(gh.text("data/about.md")).toBe(before.about);
+    expect(gh.text("data/home.json")).toBe(before.home);
+  });
+
+  it("answers 409 without a partial write when Home changes before the ref update", async () => {
+    const externalHome = JSON.stringify({ proof: ["external"], philosophy: ["newer"] }, null, 2) + "\n";
+    let moved = false;
+    open({}, {
+      beforeRefPatch(store) {
+        if (moved) return;
+        moved = true;
+        store.set("data/home.json", Buffer.from(externalHome, "utf8"));
+      },
+    });
+    const doc = (await (await fetchOne("read", "page:home")).json()) as {
+      about: { frontmatter: string; body: string };
+      home: Record<string, unknown>;
+      baseSha: string;
+    };
+    const beforeAbout = gh.text("data/about.md");
+    const r = await send("save", {
+      id: "page:home",
+      about: { frontmatter: `${doc.about.frontmatter}\nrole: "Maintainer"`, body: doc.about.body },
+      home: { ...doc.home, recognition: ["An award"] },
+      expectedBase: doc.baseSha,
+    });
+
+    expect(r.status).toBe(409);
+    await expect(r.json()).resolves.toMatchObject({ ok: false, staleBase: true });
+    expect(gh.text("data/about.md")).toBe(beforeAbout);
+    expect(gh.text("data/home.json")).toBe(externalHome);
+  });
+
+  it("retries an unrelated branch advance without losing that change", async () => {
+    const externalGame = page("Externally edited Tomba");
+    let moved = false;
+    open({}, {
+      beforeRefPatch(store) {
+        if (moved) return;
+        moved = true;
+        store.set("data/games/01_tomba/index.md", Buffer.from(externalGame, "utf8"));
+      },
+    });
+    const doc = (await (await fetchOne("read", "page:home")).json()) as {
+      about: { frontmatter: string; body: string };
+      home: Record<string, unknown>;
+      baseSha: string;
+    };
+    const r = await send("save", {
+      id: "page:home",
+      about: { frontmatter: doc.about.frontmatter, body: doc.about.body },
+      home: { ...doc.home, recognition: ["An award"] },
+      expectedBase: doc.baseSha,
+    });
+
+    expect(r.status).toBe(200);
+    expect(JSON.parse(gh.text("data/home.json")).recognition).toEqual(["An award"]);
+    expect(gh.text("data/games/01_tomba/index.md")).toBe(externalGame);
+    expect(gh.calls.filter((call) => call.method === "PATCH" && call.url.includes("/git/refs/heads/"))).toHaveLength(2);
   });
 
   it("still writes a section someone actually filled in", async () => {
