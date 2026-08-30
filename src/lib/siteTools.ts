@@ -57,8 +57,7 @@ export function siteUrl(path: string): string {
 
 /** The page that documents this whole surface, for the footer link and for
     anything that needs to point a person at it. */
-export const SITE_TOOLS_SLUG = "reference/site-tools";
-export const SITE_TOOLS_PATH = `/docs/${SITE_TOOLS_SLUG}`;
+export { SITE_TOOLS_PATH, SITE_TOOLS_SLUG } from "./siteToolPaths";
 
 /* ------------------------------ text matching ----------------------------- */
 

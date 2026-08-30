@@ -1,5 +1,5 @@
 import { useAbout } from "@/lib/about";
-import { SITE_TOOLS_PATH } from "@/lib/siteTools";
+import { SITE_TOOLS_PATH } from "@/lib/siteToolPaths";
 import { SmartLink } from "./SmartLink";
 
 export function Footer() {
