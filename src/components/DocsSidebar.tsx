@@ -4,7 +4,7 @@ import { Drawer } from "vaul";
 import { DOCS_SECTIONS } from "@/lib/content";
 import { COLLECTION_TITLE } from "@/lib/pageTitle";
 import { entriesInSection } from "./docsNav";
-import { SearchTrigger } from "./SearchPalette";
+import { SearchTrigger } from "./SearchTrigger";
 
 // The docs sidebar. Built from DOCS_SECTIONS, which is derived from the
 // published docs list, so a draft page cannot appear here while its own URL

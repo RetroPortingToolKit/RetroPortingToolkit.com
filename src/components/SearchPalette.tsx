@@ -8,23 +8,18 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ModKbd } from "./ModKbd";
+import { SearchIcon } from "./SearchTrigger";
 import { lockBody, unlockBody } from "@/lib/bodyLock";
 import { buildPaletteCommands } from "@/lib/paletteCommands";
-import {
-  closeSearchPalette,
-  openSearchPalette,
-  registerPaletteFallback,
-  useSearchPaletteOpen,
-} from "@/lib/searchPalette";
+import { closeSearchPalette } from "@/lib/searchPalette";
 import { searchSite, type SiteSearchHit, type SiteSearchIndex } from "@/lib/siteSearch";
 import { loadSiteSearchIndex } from "@/lib/siteSearchIndex";
 import { setTheme } from "@/lib/theme";
 import type { SnippetPart } from "@/lib/docsSearch";
 
 /**
- * The command palette: the button in the nav bar, the dialog it summons, and
- * the keyboard that summons it without the button.
+ * The command palette dialog. Its triggers and shortcut listener live in
+ * lightweight modules so this search engine loads only when the dialog opens.
  *
  * It is a COMMAND palette that also searches, not a search box with commands
  * bolted on. Empty, it lists what the site can do; type, and the commands
@@ -38,28 +33,6 @@ import type { SnippetPart } from "@/lib/docsSearch";
  */
 
 const DIALOG_LABEL = "Search and commands";
-
-export function SearchIcon() {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" className="site-search-icon">
-      <circle cx="7" cy="7" r="4.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M10.2 10.2 14 14"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-/** True while the keystroke belongs to something the reader is typing into. */
-function isTypingTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  const tag = target.tagName;
-  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
-}
 
 function Description({ parts }: { parts: SnippetPart[] }) {
   return (
@@ -82,7 +55,7 @@ const GROUP_LABEL: Record<SiteSearchHit["group"], string> = {
   result: "Results",
 };
 
-function Dialog() {
+export function SearchPaletteDialog() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [index, setIndex] = useState<SiteSearchIndex>();
@@ -394,88 +367,4 @@ function Dialog() {
     </div>,
     document.body,
   );
-}
-
-interface TriggerProps {
-  /** Extra classes for where it sits; the base look is the same everywhere. */
-  className?: string;
-  /**
-   * True for the nav bar's own button, which is where the keyboard goes back
-   * to when a palette opened by Cmd-K is closed.
-   */
-  primary?: boolean;
-}
-
-/** The affordance. The nav bar has one; the documentation sidebar has the
-    other, at the head of its rail, where a reader looks for search. */
-export function SearchTrigger({ className, primary }: TriggerProps) {
-  const open = useSearchPaletteOpen();
-  const ref = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!primary) return;
-    return registerPaletteFallback(ref.current);
-  }, [primary]);
-
-  return (
-    <button
-      ref={ref}
-      type="button"
-      className={"site-search-trigger" + (className ? ` ${className}` : "")}
-      onClick={() => openSearchPalette(ref.current)}
-      aria-haspopup="dialog"
-      aria-expanded={open}
-      aria-label={DIALOG_LABEL}
-      // The bar shows the magnifier and the shortcut, not the word, so the
-      // hover tooltip is where the word lives there.
-      title={DIALOG_LABEL}
-    >
-      <SearchIcon />
-      <span className="site-search-trigger-label">Search</span>
-      <ModKbd className="site-search-trigger-kbd" />
-    </button>
-  );
-}
-
-/**
- * The nav bar's button and the one palette it opens, plus the shortcut. Mounted
- * by Tabs, which renders on every page, so the palette exists everywhere and
- * exactly once.
- */
-/**
- * The palette's button, for a navigation bar to render.
- *
- * The dialog it summons is NOT here: it is mounted once by <SearchPaletteHost>
- * in App.tsx. More than one bar can be on screen at a time now (the item
- * overlay carries the site's bar over whichever tab page is behind it), and two
- * bars each mounting a dialog would stack two of them on the first Cmd-K.
- */
-export function SearchPalette() {
-  return <SearchTrigger primary />;
-}
-
-/** The one palette. Mounted once, by the app, above every route and overlay. */
-export function SearchPaletteHost() {
-  const open = useSearchPaletteOpen();
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        openSearchPalette();
-        return;
-      }
-      // "/" is the other shortcut every site with a search has, and it costs
-      // nothing as long as it is ignored while a field has focus.
-      if (e.key === "/" && !mod && !e.altKey && !isTypingTarget(e.target)) {
-        e.preventDefault();
-        openSearchPalette();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  return open ? <Dialog /> : null;
 }

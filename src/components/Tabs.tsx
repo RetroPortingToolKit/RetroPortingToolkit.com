@@ -7,7 +7,7 @@ import {
 import { Link } from "react-router-dom";
 import { useAbout } from "@/lib/about";
 import { COLLECTION_TITLE } from "@/lib/pageTitle";
-import { SearchPalette } from "./SearchPalette";
+import { SearchPalette } from "./SearchTrigger";
 import { ThemeToggle } from "./ThemeToggle";
 
 export type TabId = "home" | "hardware" | "game" | "blog";

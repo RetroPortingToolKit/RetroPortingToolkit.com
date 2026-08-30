@@ -33,7 +33,7 @@ import {
 import { OverlayOpenContext } from "./lib/overlay";
 import { CollectionView } from "./components/CollectionView";
 import { Footer } from "./components/Footer";
-import { SearchPaletteHost } from "./components/SearchPalette";
+import { SearchPaletteHost } from "./components/SearchPaletteHost";
 import {
   COLLECTION_KIND,
   itemsForKind,

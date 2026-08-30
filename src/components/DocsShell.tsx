@@ -5,7 +5,7 @@ import { useMobile } from "@/lib/useMobile";
 import { Tabs } from "./Tabs";
 import { NAV_TABS, TAB_PATH } from "./navTabs";
 import { DocsSidebar, DocsNavSheet } from "./DocsSidebar";
-import { SearchTrigger } from "./SearchPalette";
+import { SearchTrigger } from "./SearchTrigger";
 
 // The frame every documentation URL renders inside: the SITE's navigation bar,
 // the persistent sidebar, the reading column, and an optional right rail.
