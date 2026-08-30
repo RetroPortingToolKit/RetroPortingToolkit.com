@@ -335,8 +335,8 @@ function scopeSection() {
 }
 
 /** The llms.txt index. */
-export function renderLlmsTxt() {
-  const { sections } = collectDocs();
+export function renderLlmsTxt(snapshot = collectDocs()) {
+  const { sections } = snapshot;
   const out = [preamble(sections)];
 
   const optional = [];
@@ -374,8 +374,8 @@ export function renderLlmsTxt() {
 // ---- llms-full.txt ----
 
 /** Every published documentation page concatenated, in sidebar order. */
-export function renderLlmsFull() {
-  const { pages, sections } = collectDocs();
+export function renderLlmsFull(snapshot = collectDocs()) {
+  const { pages, sections } = snapshot;
   const mdSlugs = new Set(pages.map((p) => p.slug));
   const total = pages.length;
   const out = [
@@ -409,8 +409,8 @@ export function renderLlmsFull() {
 // catch-all rewrites an unmatched path to "/", so /docs.md would otherwise
 // answer 200 with the HOME page's HTML, which is worse than a 404 for an agent
 // that appended .md to a URL it had.
-export function renderDocsIndexMarkdown() {
-  const { sections } = collectDocs();
+export function renderDocsIndexMarkdown(snapshot = collectDocs()) {
+  const { sections } = snapshot;
   const out = [
     "# Documentation",
     "",
@@ -465,8 +465,8 @@ export function renderRobots() {
 
 /** Everything this generator produces, in memory, so the dev server can serve
     the same bytes the build writes. */
-export function renderAgentSurfaces() {
-  const { pages, sections } = collectDocs();
+export function renderAgentSurfaces(snapshot = collectDocs()) {
+  const { pages, sections } = snapshot;
   const mdSlugs = new Set(pages.map((p) => p.slug));
   const sectionTitle = new Map(sections.map((s) => [s.slug, s.title]));
   const files = new Map();
@@ -479,9 +479,9 @@ export function renderAgentSurfaces() {
   return {
     pages,
     sections,
-    llms: renderLlmsTxt(),
-    llmsFull: renderLlmsFull(),
-    docsIndex: renderDocsIndexMarkdown(),
+    llms: renderLlmsTxt(snapshot),
+    llmsFull: renderLlmsFull(snapshot),
+    docsIndex: renderDocsIndexMarkdown(snapshot),
     robots: renderRobots(),
     /** relative dist path -> markdown, one entry per published page */
     pageFiles: files,

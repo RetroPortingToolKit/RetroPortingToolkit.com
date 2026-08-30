@@ -89,6 +89,7 @@ function feedsPlugin(): Plugin {
 function agentSurfacesPlugin(): Plugin {
   const MD = "text/markdown; charset=utf-8";
   let outDir = "dist";
+  let devSurfaces: ReturnType<typeof renderAgentSurfaces> | undefined;
   return {
     name: "agent-surfaces",
     configResolved(cfg) {
@@ -126,7 +127,7 @@ function agentSurfacesPlugin(): Plugin {
         )
           return next();
         try {
-          const s = renderAgentSurfaces();
+          const s = (devSurfaces ??= renderAgentSurfaces());
           let body: string | undefined;
           let type = MD;
           if (url === "/llms.txt") body = s.llms;
@@ -154,6 +155,11 @@ function agentSurfacesPlugin(): Plugin {
           res.end(`agent surfaces error: ${(e as Error).message}`);
         }
       });
+    },
+    handleHotUpdate({ file }) {
+      if (file.replaceAll("\\", "/").includes("/data/docs/")) {
+        devSurfaces = undefined;
+      }
     },
   };
 }
