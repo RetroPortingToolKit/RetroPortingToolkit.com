@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.api.json --noEmit",
     "test": "vitest run",
+    "assets:audit": "node scripts/audit-assets.mjs",
     "images": "node scripts/gen-image-variants.mjs",
     "feeds": "node scripts/gen-feeds.mjs"
   },

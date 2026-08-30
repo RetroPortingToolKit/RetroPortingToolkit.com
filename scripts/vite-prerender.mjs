@@ -93,7 +93,7 @@ function folderPathOf(rel, kind) {
   };
 }
 
-function collectItems() {
+export function collectItems() {
   const items = [];
   if (!fs.existsSync(DATA_DIR)) return items;
   for (const file of walk(DATA_DIR)) {
@@ -295,14 +295,25 @@ export function absoluteImage(img, origin) {
   return /^https?:\/\//.test(img) ? img : `${origin}${img}`;
 }
 
-// Copy every co-located cover to the public path itemCoverPublicPath promised.
-function copyItemCovers(distDir, items) {
-  const outDir = path.join(distDir, ...OG_ITEM_PREFIX.slice(1).split("/"));
-  let n = 0;
+// Plan only the stable cover URLs that the route metadata actually uses. A
+// preview (or lab capture) wins in itemImagePath(), so copying that item's
+// co-located cover as well would create an unreachable shadow file in dist/.
+export function itemCoverCopies(items) {
+  const copies = [];
   for (const item of items) {
     const src = itemCoverSource(item);
     const pub = itemCoverPublicPath(item);
-    if (!src || !pub) continue;
+    if (!src || !pub || itemImagePath(item) !== pub) continue;
+    copies.push({ src, pub });
+  }
+  return copies;
+}
+
+// Copy every co-located cover promised by the plan above.
+function copyItemCovers(distDir, items) {
+  const outDir = path.join(distDir, ...OG_ITEM_PREFIX.slice(1).split("/"));
+  let n = 0;
+  for (const { src, pub } of itemCoverCopies(items)) {
     fs.mkdirSync(outDir, { recursive: true });
     fs.copyFileSync(src, path.join(distDir, pub.slice(1)));
     n++;
