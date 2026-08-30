@@ -128,4 +128,21 @@ describe("Markdown", () => {
     // the markup the browser hydrates onto.
     expect(html).toContain(">Copy</span>");
   });
+
+  it("keeps file videos inert until their viewport gate activates", () => {
+    const video = render("![A native build](./large.mp4)");
+    expect(video).toContain("<video");
+    expect(video).toContain('preload="none"');
+    expect(video).toContain("controls");
+    expect(video).not.toContain('src="./large.mp4"');
+    expect(video).not.toContain("autoplay");
+    expect(video).toContain('<span class="md-figcaption">A native build</span>');
+  });
+
+  it("keeps YouTube embeds poster-first and click-to-play", () => {
+    const youtube = render("![A talk](https://youtu.be/dQw4w9WgXcQ)");
+    expect(youtube).toContain('aria-label="Play video: A talk"');
+    expect(youtube).toContain("https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg");
+    expect(youtube).not.toContain("<iframe");
+  });
 });

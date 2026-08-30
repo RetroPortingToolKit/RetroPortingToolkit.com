@@ -5,6 +5,7 @@ import rehypeSlug from "rehype-slug";
 import type { Element, Nodes } from "hast";
 import { PreviewLink } from "./PreviewLink";
 import { CodeBlock } from "./CodeBlock";
+import { InlineMarkdownVideo } from "./InlineMarkdownVideo";
 import { calloutKindFromLabel, parseFenceInfo, type CalloutKind } from "@/lib/markdown";
 
 interface MarkdownProps {
@@ -184,9 +185,10 @@ export function Markdown({ children, className }: MarkdownProps) {
             );
           },
           // Inline article media: ![caption](./file) renders as a figure (the
-          // alt doubles as the caption); video files autoplay muted like the
-          // gallery clips. Spans (display:block) because react-markdown puts
-          // images inside <p>, where a real <figure> would be invalid.
+          // alt doubles as the caption). File videos receive their URL only
+          // near the viewport and autoplay only when the shared ambient-media
+          // policy permits it. Spans (display:block) because react-markdown
+          // puts images inside <p>, where a real <figure> would be invalid.
           img: ({ src, alt }) => {
             const url = typeof src === "string" ? src : "";
             const isVideo = /\.(webm|mp4|mov|m4v)(\?|#|$)/i.test(url);
@@ -206,14 +208,7 @@ export function Markdown({ children, className }: MarkdownProps) {
             return (
               <span className="md-figure">
                 {isVideo ? (
-                  <video
-                    src={url}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                  />
+                  <InlineMarkdownVideo src={url} title={alt || "Video"} />
                 ) : (
                   <img src={url} alt={alt ?? ""} loading="lazy" decoding="async" />
                 )}
