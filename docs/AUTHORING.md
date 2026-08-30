@@ -149,6 +149,13 @@ a bare path as the whole info string works when the block has no language
   words the first time, then use it normally. If a paragraph reads clever,
   rewrite it until it reads plain. (Owner's standing decision, 2026-08-25,
   after the core developer's review.)
+- The start pages are for people who love retro games and follow the scene, but
+  may have barely used a command line. Invite them toward the technical side;
+  do not assume they arrived as programmers.
+- Do not repeat the label "You provide this" as a stock callout. If a page needs
+  to say the user supplies their own game file, say it in the page's own words.
+  Keep the legal and provenance details on the dedicated game-file page unless
+  the current page truly needs them.
 - Plain language, concrete, short sentences. No hype, no marketing voice. Not
   defensive: state a fact once and move on.
 - **No em dashes or en dashes anywhere.** Commas, colons, periods.

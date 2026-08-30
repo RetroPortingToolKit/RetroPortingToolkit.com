@@ -68,7 +68,7 @@ The game's own code is translated ahead of time and runs as compiled code. The c
 
 ## Next
 
-- [How a port is made](/docs/start/how-a-port-is-made): the same idea as a sequence, stage by stage.
+- [How is a port made?](/docs/start/how-a-port-is-made): the same idea as a sequence, stage by stage.
 - [Is this emulation?](/docs/start/is-this-emulation): where emulation does and does not come in.
 - [Telling code from data](/docs/concepts/code-discovery): the hard part, on one console.
 - [Quickstart](/docs/start/quickstart) has you run a recompiler yourself. [The glossary](/docs/concepts/glossary) defines every word above, native and decoder included.

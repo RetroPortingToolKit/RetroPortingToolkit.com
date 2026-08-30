@@ -104,4 +104,4 @@ On Windows, run them inside the MSYS2 MinGW64 shell you intend to build in, not 
 - [Quickstart](/docs/start/quickstart) uses exactly this setup to build a recompiler and recompile a real binary.
 - [The game file you supply](/docs/concepts/the-game-file-you-supply) is the full contract for the half of this page that is not software.
 - [Build a toolchain](/docs/guides/build-a-toolchain) has the per console commands and the table of things that go wrong.
-- [How a port is made](/docs/start/how-a-port-is-made) for where these tools sit in the whole process.
+- [How is a port made?](/docs/start/how-a-port-is-made) for where these tools sit in the whole process.

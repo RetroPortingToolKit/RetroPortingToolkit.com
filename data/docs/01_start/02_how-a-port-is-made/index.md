@@ -1,89 +1,98 @@
 ---
-title: "How a port is made"
-summary: "The whole process as one story: the game file you supply, then discovery, translation, compilation and checking, and only then enhancement. These are the six stage names the rest of this site uses."
+title: "How is a port made?"
+summary: "The path from a game file to a native port: check the game, find its code, translate it, build it, test it, then add optional features."
 pageType: "concept"
 tags: ["Porting", "Pipeline", "Recompiler"]
 repos:
-  - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/psxrecomp"
-  - "https://github.com/mstan/SuperMarioWorldRecomp"
-updated: "2026-08-26"
+  - "https://github.com/mstan/snesrecomp"
+updated: "2026-08-30"
 ---
 
-A port here is not a program somebody wrote from nothing. It is a recorded procedure for turning one game file into a normal program, and it is the same six stages on every console. Check the file you supply. Work out which bytes in it are code. Translate those into source code. Compile that together with a runtime. Check the result against something already known to be right. Only then add anything the original hardware could not do. These six names are used everywhere else on this site.
+A port starts with one exact game file. It ends as a normal program for a modern computer.
 
-## The stages, end to end
+It is not a rewrite from scratch. It is not a ROM loaded into a general emulator. It is a project that knows how to turn one game, usually one exact version of that game, into a native application.
 
-One thing happens before stage one: the toolchain for your console has to exist and be built. That is [build a toolchain](/docs/guides/build-a-toolchain), and you do it again only when the toolchain changes.
+The details change by console. PlayStation has the most mature path today. SNES is next. Other projects are useful, but many are still research, examples, or early toolchains. This page explains the common shape without pretending every project is equally ready.
 
-| Stage | What goes in | What comes out | Explained in |
-|---|---|---|---|
-| 1. The file you supply | your own dump | a checked file and an identity record | [the game file you supply](/docs/concepts/the-game-file-you-supply) |
-| 2. Discovery | the game's binary, plus hints | the list of places a function starts | [telling code from data](/docs/concepts/code-discovery) |
-| 3. Translation | those places and their instructions | generated C and a lookup table | [the recompiler and the runtime](/docs/concepts/recompiler-and-runtime) |
-| 4. Compilation | generated C, the runtime, per game pieces | one program you can run | [build a toolchain](/docs/guides/build-a-toolchain) |
-| 5. Verification | that program and something to compare it against | a clean run, or the first disagreement | [proving it with co-simulation](/docs/concepts/co-simulation) |
-| 6. Enhancement | a port that already works | features you can switch on | [write a mod](/docs/guides/write-a-mod) |
+## What happens first?
 
-![Each stage hands the next one something to work with. The dashed line going backwards is where the time goes: something missed at stage 5 comes back as a starting point at stage 2.](./pipeline.svg)
+Before a game can be ported, the console needs a framework.
 
-## The file you supply
+That framework is the shared work for one console. It contains the recompiler, the runtime, build scripts, and the rules for that machine. Building it is the long system-level job. Adding a game gets faster as the framework matures.
 
-Nothing starts until you have the game. The port does not contain it, and most ports will not run on a file they do not recognise.
+The game project starts by checking the file you give it. A port is tied to exact bytes at exact addresses. A different region, version, patch, bad dump, or trimmed file is not almost right. It is a different input, and the port should reject it.
 
-> **You provide this.** You supply the game file from your own media. [The game file you supply](/docs/concepts/the-game-file-you-supply) is this site's full statement of that contract, including what the projects say they do not distribute.
+## How does the tool find the game code?
 
-The first thing a port writes down is its identity record: a small file naming the exact version of the game it was built for. The generated code is tied to specific instructions at specific addresses, so a trimmed or patched dump is not a near miss. It is a different program.
+A game binary is just bytes.
 
-## Discovery
+Some bytes are instructions. Some are images, sound, tables, text, or padding. The file does not come with labels that say which is which.
 
-The recompiler now has to decide which bytes in that file are instructions and which are something else. A binary carries no labels, and nothing in it marks where a function begins. So this stage is a search, not a reading.
+Discovery is the stage that finds the code. The tool starts from places the console guarantees, follows calls and jumps, and uses project settings for facts it cannot safely guess.
 
-Every project starts from the few places the console itself guarantees code will be, follows the game outward, then hunts for the rest. Most of a port's per game configuration ends up here, because this is where the tool needs facts it cannot work out alone. What the search misses does not go away. It turns up later as a jump to an address with no code behind it, which is stage 5's problem.
+On older systems, some games were written by hand in assembly. Strictly, that code was never compiled the first time. The pipeline still treats it the same way: find the instructions, then translate them.
 
-## Translation
+When discovery misses code, the port usually finds out later. The game jumps to an address with no translated function behind it, or a test run stops at a mismatch. That result feeds back into discovery.
 
-Now the binary becomes source code: one function for each function found, plus the table that lets the program look up an address and get the right function back. The projects here write C. You re-run this every time the configuration changes, which during early work is constantly.
+> **A good decompilation can help.** Some games have public decompilations or
+> disassemblies made by the community. Those can act like a map: this address is
+> a function, this name is useful, this range is data and should not be treated
+> as code. Super Mario World is a strong example. Its SNES recompilation uses
+> that kind of map to make discovery clearer, while still building the port from
+> your own game file.
 
-Two rules govern this stage, and both come from the repositories. Generated code is build output and is never edited by hand: if it is wrong, the fix belongs in the recompiler or in the configuration that drove it, and [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/CLAUDE.md) says exactly that. And a fix belongs in the layer that owns it, usually the shared toolchain rather than the one game, so the next game inherits it. [Port a game](/docs/guides/port-a-game) covers where a fix can go.
+## What does translation produce?
 
-## Compilation
+Translation turns the discovered machine code into source code.
 
-The generated code is compiled together with the runtime, the shared launcher and any pieces written by hand for this game. Out comes one program. On most consoles this is an ordinary CMake build.
+The current projects here usually emit C. That is an implementation choice. Static recompilation means translating before the game runs, not specifically producing C.
 
-Two build settings come up again and again: the build type, and the parallel job count. Each project has its own words on both, and [build a toolchain](/docs/guides/build-a-toolchain) quotes them project by project.
+The generated code is build output. If it is wrong, the fix belongs in the recompiler, the runtime, or the game's settings. Editing generated code by hand only hides the problem until the next generation pass overwrites it.
 
-## Verification
+Being strict, the decoder is the part that reads the binary and writes code. Recompiler is the practical name for the whole tool around it: decoder, compiler, runtime, and the project pieces that make the result run.
 
-A build that produced a program has proved nothing about how it behaves. Two checks answer that, in order.
+## Where does the runtime fit?
 
-**First, missed jumps.** A dispatch miss is a jump to an address with no generated function behind it, which means the game quietly skipped part of itself. Several toolchains call this game breaking and want it cleared before any other debugging. Read the log the port writes beside the program, add what it names to your configuration, regenerate, and repeat until the log is empty. That is the path back to stage 2.
+The translated game code still expects a console around it. It reads controllers, draws graphics, plays sound, waits on timing, and talks to hardware addresses. A modern computer does not have that console hardware.
 
-**Second, co-simulation.** The name sounds fancy, but it is just comparing: an emulator or real hardware that already runs this console correctly runs beside the port, kept in step. Both are stopped at the same moments and compared, and the run halts the first time they disagree. The comparison target has to be something outside the port, because a port agreeing with itself proves nothing.
+The runtime is the library that stands in for the console. The native game code calls into it when it needs the machine around the game.
 
-[Proving it with co-simulation](/docs/concepts/co-simulation) is the technique, [debug a divergence](/docs/guides/debug-a-divergence) is what to do when it halts, and [what correct enough means](/docs/concepts/accuracy-and-burndowns) is how a clean run turns into a claim.
+That is why a port is not just generated C. It is translated game code plus a runtime that understands the original platform well enough to make the game behave.
 
-## Enhancement
+## How is the result checked?
 
-Only now does anything get added. Widescreen, mods, live translation, save states and rewind all sit on top of a port that already runs, and every one of them is off by default. That order is a rule here, not a preference: a feature layered on a port nobody checked cannot be told apart from a bug. [Write a mod](/docs/guides/write-a-mod), [translate a game](/docs/guides/translate-a-game) and [add widescreen](/docs/guides/add-widescreen) are the guides.
+A successful build only proves that the code compiled. It does not prove the game behaves correctly.
 
-## Why it is a loop, not a line
+There are two common checks.
 
-Stages 2 to 5 are a cycle you go round hundreds of times. A missed jump found at stage 5 becomes a starting point for the search at stage 2. A wrong pixel traced back to the recompiler is a toolchain fix, and a toolchain fix means regenerating every game built on it.
+First, the project looks for missing code paths. That means a jump or call reached an address with no translated function. This is usually a discovery problem. Fix the settings or the tool, regenerate, and build again.
 
-Different consoles put the loop together differently, and the steps vary to an extent from system to system. What does not vary: a bug is traced to the layer that owns it, the fix lands there, and the loop starts again from the top.
+Second, mature projects compare behavior against something known to be correct. That is co-simulation. A known good emulator runs the same moment of the game beside the port, with enough state exposed to compare the two. When they disagree, the first difference becomes the next debugging target.
 
-How long the loop takes depends on the framework, not on the game. As a console's framework matures, adding a new game to it takes less and less work, and this loop is where the remaining time goes, taking that game from booting to feeling finished.
+The comparison target matters. A port agreeing with its own fallback interpreter is useful as a self-check. The stronger claim comes from matching an outside reference.
 
-## Source
+## When do enhancements happen?
 
-- [nesrecomp](https://github.com/mstan/nesrecomp): [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md).
-- [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/ARCHITECTURE.md`](https://github.com/mstan/psxrecomp/blob/master/docs/ARCHITECTURE.md), [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md).
-- [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp): [`CLAUDE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/CLAUDE.md), [`RELEASE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/RELEASE.md).
+Enhancements come after the base game behaves correctly.
+
+Widescreen, mods, translation hooks, save states, rewind, and netplay are easier to trust when the unmodified port already has a solid baseline.
+
+The default should stay faithful to the original game. Extra features belong behind switches. With those switches off, the port should behave like the game it was built from.
+
+## Why is it a loop?
+
+Porting is not a straight line.
+
+A missing jump sends you back to discovery. A wrong pixel may point to the runtime. A crash may expose bad generated code. A toolchain fix means regenerating and rebuilding the games that depend on it.
+
+That loop is where maturity comes from. The first game on a console teaches the framework what the console needs. Later games benefit from that work.
+
+The goal is not months of custom work for every game. The goal is a framework that makes each next game easier.
 
 ## Next
 
-- [Port a game](/docs/guides/port-a-game): this process again as a numbered procedure, with the real commands.
-- [Telling code from data](/docs/concepts/code-discovery) and [proving it with co-simulation](/docs/concepts/co-simulation): the two stages that decide whether a port is any good.
-- [Getting started](/docs/start/what-you-need), then [quickstart](/docs/start/quickstart) for stages 3 and 4 on your own machine.
-- [Glossary](/docs/concepts/glossary) for the words this page introduced.
+- [What static recompilation is](/docs/start/what-is-static-recompilation): the core idea behind the translation step.
+- [Getting started](/docs/start/what-you-need): the tools you need before building anything.
+- [Quickstart](/docs/start/quickstart): the psxrecomp path, using the most mature framework.
+- [Telling code from data](/docs/concepts/code-discovery) and [proving it with co-simulation](/docs/concepts/co-simulation): the two stages that decide whether a port is correct.
