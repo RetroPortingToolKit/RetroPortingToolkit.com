@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Drawer } from "vaul";
-import { DOCS_SECTIONS } from "@/lib/content";
+import { DOCS_SECTIONS } from "@/lib/docsContent";
 import { COLLECTION_TITLE } from "@/lib/pageTitle";
 import { entriesInSection } from "./docsNav";
 import { SearchTrigger } from "./SearchTrigger";

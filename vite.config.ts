@@ -7,6 +7,7 @@ import {
   renderAgentSurfaces,
   generateAgentSurfaces,
   collectDocs,
+  docsManifest,
 } from "./scripts/gen-llms.mjs";
 import { docsUpdated } from "./scripts/gen-docs-dates.mjs";
 import { prerenderRoutes } from "./scripts/vite-prerender.mjs";
@@ -164,7 +165,7 @@ function agentSurfacesPlugin(): Plugin {
   };
 }
 
-// The documentation's two build-time data surfaces, served as virtual modules
+// The documentation's three build-time data surfaces, served as virtual modules
 // so nothing is written into src/ and nothing is fetched at runtime:
 //
 //   virtual:docs-search-index   every published documentation page reduced to
@@ -175,8 +176,11 @@ function agentSurfacesPlugin(): Plugin {
 //                               first time they open search, never on load.
 //   virtual:docs-updated        slug -> { date, source } for the "last updated"
 //                               stamp in the article footer.
+//   virtual:docs-manifest       only the small frontmatter subset needed by
+//                               bootstrap link previews and the lazy palette;
+//                               no body text or docs media imports.
 //
-// Both are built from the same walk scripts/gen-llms.mjs uses (collectDocs),
+// All three are built from the same walk scripts/gen-llms.mjs uses (collectDocs),
 // which mirrors the DOCS export and is already draft-filtered, so a draft page
 // is not searchable and carries no stamp. src/lib/docsSearch.test.ts asserts
 // the index covers exactly DOCS.
@@ -186,13 +190,16 @@ function agentSurfacesPlugin(): Plugin {
 // that consumes it and nowhere else.
 const DOCS_SEARCH_ID = "virtual:docs-search-index";
 const DOCS_UPDATED_ID = "virtual:docs-updated";
+const DOCS_MANIFEST_ID = "virtual:docs-manifest";
 
 function docsDataPlugin(): Plugin {
   // The "\0" prefix is rollup's convention for a module that is not on disk;
   // it stops other plugins (and the dev server's file middleware) from trying
   // to resolve it as a path.
   const resolved = (id: string) => `\0${id}`;
-  let cache: { search?: string; updated?: string } = {};
+  let cache: { search?: string; updated?: string; manifest?: string } = {};
+  let snapshot: ReturnType<typeof collectDocs> | undefined;
+  const currentDocs = () => (snapshot ??= collectDocs());
 
   // JSON.parse of one string literal is measurably faster to evaluate than the
   // equivalent object literal, and this module is close to a megabyte.
@@ -202,13 +209,19 @@ function docsDataPlugin(): Plugin {
   return {
     name: "docs-data",
     resolveId(id) {
-      if (id === DOCS_SEARCH_ID || id === DOCS_UPDATED_ID) return resolved(id);
+      if (
+        id === DOCS_SEARCH_ID ||
+        id === DOCS_UPDATED_ID ||
+        id === DOCS_MANIFEST_ID
+      ) {
+        return resolved(id);
+      }
       return null;
     },
     load(id) {
       if (id === resolved(DOCS_SEARCH_ID)) {
         if (cache.search === undefined) {
-          const index = buildDocsSearchIndex(docsSearchSources(collectDocs()));
+          const index = buildDocsSearchIndex(docsSearchSources(currentDocs()));
           cache.search = asModule(index);
           this.info?.(
             `[docs-search] ${index.entries.length} pages, ` +
@@ -219,7 +232,7 @@ function docsDataPlugin(): Plugin {
       }
       if (id === resolved(DOCS_UPDATED_ID)) {
         if (cache.updated === undefined) {
-          const { pages } = collectDocs();
+          const { pages } = currentDocs();
           const { map, stale, git } = docsUpdated(pages);
           cache.updated = asModule(map);
           const fromGit = Object.values(map).filter((e) => e.source === "git").length;
@@ -239,6 +252,17 @@ function docsDataPlugin(): Plugin {
         }
         return cache.updated;
       }
+      if (id === resolved(DOCS_MANIFEST_ID)) {
+        if (cache.manifest === undefined) {
+          const manifest = docsManifest(currentDocs());
+          cache.manifest = asModule(manifest);
+          this.info?.(
+            `[docs-manifest] ${manifest.length} pages, ` +
+              `${Math.round(cache.manifest.length / 1024)} kB of module source`,
+          );
+        }
+        return cache.manifest;
+      }
       return null;
     },
     // dev: a documentation edit has to reach both surfaces, or search keeps
@@ -246,10 +270,84 @@ function docsDataPlugin(): Plugin {
     handleHotUpdate({ file, server }) {
       if (!file.replaceAll("\\", "/").includes("/data/docs/")) return;
       cache = {};
-      for (const id of [DOCS_SEARCH_ID, DOCS_UPDATED_ID]) {
+      snapshot = undefined;
+      for (const id of [DOCS_SEARCH_ID, DOCS_UPDATED_ID, DOCS_MANIFEST_ID]) {
         const mod = server.moduleGraph.getModuleById(resolved(id));
         if (mod) server.moduleGraph.invalidateModule(mod);
       }
+    },
+  };
+}
+
+// A route split can regress without a type error: one convenience import from
+// content.ts is enough to reconnect every documentation body to main.tsx, and
+// Vite will then faithfully modulepreload those chunks on every generated
+// route. Assert the property on Rollup's final graph rather than trusting file
+// names or a source-level convention.
+function docsBodyBoundaryPlugin(): Plugin {
+  const isDocsBodyModule = (id: string) => {
+    const normalized = id.replaceAll("\\", "/");
+    return (
+      (normalized.includes("/data/docs/") &&
+        /\/index\.md(?:\?|$)/.test(normalized)) ||
+      normalized.includes(DOCS_SEARCH_ID)
+    );
+  };
+
+  return {
+    name: "docs-body-boundary",
+    generateBundle(_options, bundle) {
+      const chunks = Object.values(bundle).filter(
+        (output) => output.type === "chunk",
+      );
+      const byFile = new Map(chunks.map((chunk) => [chunk.fileName, chunk]));
+      const docsBodyFiles = new Set(
+        chunks
+          .filter((chunk) => Object.keys(chunk.modules).some(isDocsBodyModule))
+          .map((chunk) => chunk.fileName),
+      );
+
+      const staticallyReached = new Set<string>();
+      const visit = (fileName: string) => {
+        if (staticallyReached.has(fileName)) return;
+        staticallyReached.add(fileName);
+        const chunk = byFile.get(fileName);
+        if (!chunk) return;
+        for (const imported of chunk.imports) visit(imported);
+      };
+      for (const entry of chunks.filter((chunk) => chunk.isEntry)) {
+        visit(entry.fileName);
+      }
+
+      const staticLeaks = [...docsBodyFiles].filter((fileName) =>
+        staticallyReached.has(fileName),
+      );
+      const htmlLeaks: string[] = [];
+      for (const output of Object.values(bundle)) {
+        if (output.type !== "asset" || !output.fileName.endsWith(".html")) continue;
+        const html =
+          typeof output.source === "string"
+            ? output.source
+            : new TextDecoder().decode(output.source);
+        for (const fileName of docsBodyFiles) {
+          if (html.includes(fileName)) htmlLeaks.push(`${output.fileName} -> ${fileName}`);
+        }
+      }
+
+      if (staticLeaks.length || htmlLeaks.length) {
+        const detail = [
+          ...staticLeaks.map((fileName) => `entry import graph -> ${fileName}`),
+          ...htmlLeaks,
+        ];
+        throw new Error(
+          "Documentation bodies reached the static application graph:\n  - " +
+            detail.join("\n  - ") +
+            "\nKeep docsContent and virtual:docs-search-index behind a dynamic import.",
+        );
+      }
+      this.info?.(
+        `[docs-boundary] ${docsBodyFiles.size} body chunk(s), none statically reached`,
+      );
     },
   };
 }
@@ -346,6 +444,7 @@ export default defineConfig({
     feedsPlugin(),
     agentSurfacesPlugin(),
     docsDataPlugin(),
+    docsBodyBoundaryPlugin(),
     cmsDevApi(),
     webmcpOriginTrialPlugin(),
   ],

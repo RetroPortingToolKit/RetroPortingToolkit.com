@@ -1,4 +1,4 @@
-import { pathFor } from "./content";
+import { pathFor } from "./contentCore";
 import {
   docsSearchText,
   headingAt,
@@ -21,7 +21,7 @@ import type { Item } from "./types";
  * WHERE THE WORDS COME FROM. Nothing is fetched at runtime, which is the rule
  * for this whole site:
  *
- *  - Games, Platforms and News are already in the bundle. src/lib/content.ts
+ *  - Games, Platforms and News are already in the bundle. catalogContent.ts
  *    reads data/ at build time with import.meta.glob, bodies included, so the
  *    palette reduces those bodies to plain text on the first open and keeps the
  *    result. No second copy is shipped.

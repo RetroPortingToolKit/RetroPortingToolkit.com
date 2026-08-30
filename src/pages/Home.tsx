@@ -15,7 +15,8 @@ import {
   type LabKind,
   type LabMedia,
 } from "@/lab/labContent";
-import { HARDWARE, GAMES, findItem, pathFor } from "@/lib/content";
+import { GAMES, HARDWARE, findCatalogItem } from "@/lib/catalogContent";
+import { pathFor } from "@/lib/contentCore";
 import { isMac } from "@/lib/platform";
 import { useAbout } from "@/lib/about";
 import {
@@ -87,7 +88,7 @@ function homeCard(
       belong on the home page (docs are a page tree, not a poster). */
   kind: LabKind = "game",
 ): LabMedia | null {
-  const item = findItem(kind, slug);
+  const item = findCatalogItem(kind, slug);
   if (!item) return null;
   const clip = forceStill ? undefined : previewFor(slug);
   const color =

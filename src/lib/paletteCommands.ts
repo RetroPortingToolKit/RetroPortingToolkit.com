@@ -1,5 +1,5 @@
 import { NAV_TABS } from "@/components/navTabs";
-import { DOCS_SECTIONS } from "./content";
+import DOCS_MANIFEST from "virtual:docs-manifest";
 import { COLLECTION_TITLE } from "./pageTitle";
 import type { PaletteCommand } from "./siteSearch";
 import type { ThemeChoice } from "./theme";
@@ -29,6 +29,47 @@ export interface PaletteCommandContext {
   copyLink: () => void | Promise<unknown>;
   setTheme: (choice: ThemeChoice) => void;
 }
+
+interface PaletteDocsSection {
+  slug: string;
+  path: string;
+  title: string;
+  summary: string;
+  order: number;
+}
+
+// Section index entries carry the same title and reader-facing description
+// the docs navigation uses. The second pass retains the old fallback for a
+// section that has pages but no index of its own, without importing docs bodies
+// into the palette chunk.
+const PALETTE_DOCS_SECTIONS: PaletteDocsSection[] = (() => {
+  const sections = new Map<string, PaletteDocsSection>();
+  for (const entry of DOCS_MANIFEST) {
+    let section = sections.get(entry.section);
+    if (!section) {
+      section = {
+        slug: entry.section,
+        path: `/docs/${entry.section}`,
+        title: entry.section
+          .replace(/-/g, " ")
+          .replace(/^./, (character) => character.toUpperCase()),
+        summary: "",
+        order: entry.sectionOrder,
+      };
+      sections.set(entry.section, section);
+    }
+    if (entry.isSectionIndex) {
+      section.title = entry.sectionTitle || entry.title;
+      section.summary = entry.desc;
+      // Match DOCS_SECTIONS: an index page's explicit `order` moves the whole
+      // section; a section without an index keeps its folder-derived order.
+      section.order = entry.order;
+    }
+  }
+  return [...sections.values()].sort(
+    (a, b) => a.order - b.order || a.slug.localeCompare(b.slug),
+  );
+})();
 
 /**
  * The markdown twin of a documentation URL, or undefined off /docs.
@@ -72,7 +113,7 @@ export function buildPaletteCommands(ctx: PaletteCommandContext): PaletteCommand
     keywords: "docs manual handbook reference",
     run: () => ctx.navigate("/docs"),
   });
-  for (const section of DOCS_SECTIONS) {
+  for (const section of PALETTE_DOCS_SECTIONS) {
     commands.push({
       id: `go:docs/${section.slug}`,
       label: `${COLLECTION_TITLE.docs}: ${section.title}`,

@@ -1,8 +1,9 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import DOCS_UPDATED from "virtual:docs-updated";
-import { DOCS_SECTIONS, formatArticleDate, isDocsSectionIndex } from "@/lib/content";
-import { IS_CMS_PREVIEW, useItem } from "@/lib/cmsPreview";
+import { formatArticleDate } from "@/lib/contentCore";
+import { DOCS_SECTIONS, isDocsSectionIndex } from "@/lib/docsContent";
+import { IS_CMS_PREVIEW, useDocsItem } from "@/lib/docsCmsPreview";
 import { Markdown } from "@/components/Markdown";
 import { DocsShell } from "@/components/DocsShell";
 import { DocsToc, useDocsHeadings } from "@/components/DocsToc";
@@ -26,7 +27,7 @@ import type { Item } from "@/lib/types";
 // /docs/<section>/<page>, matching the folder path under data/docs/ exactly.
 //
 // Everything a navigation surface needs comes from DOCS_SECTIONS in
-// src/lib/content.ts (by way of src/components/docsNav.ts), which is derived
+// src/lib/docsContent.ts (by way of src/components/docsNav.ts), which is derived
 // from the PUBLISHED docs list, so a draft page can never appear in the
 // sidebar, the card grid or a prev/next link while its own URL keeps working.
 //
@@ -255,7 +256,7 @@ function DocsMissing() {
 function DocsItem({ slug }: { slug: string }) {
   // Draft-aware, exactly like ItemPage: inside the editor's preview frame this
   // resolves from the streamed draft, so a page renders as it is written.
-  const item = useItem("docs", slug);
+  const item = useDocsItem(slug);
   const { hash } = useLocation();
   useDocumentTitle(item ? titleForItem(item) : "", !!item);
 

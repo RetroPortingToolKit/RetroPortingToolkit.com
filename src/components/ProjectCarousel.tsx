@@ -7,7 +7,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import useEmblaCarousel from "embla-carousel-react";
-import { isVideoSrc, isYouTubeSrc, youtubeThumb } from "@/lib/content";
+import { isVideoSrc, isYouTubeSrc, youtubeThumb } from "@/lib/contentCore";
 import { useAutoplayVideo } from "@/lib/useAutoplayVideo";
 import { VideoSources } from "./mediaLoad";
 

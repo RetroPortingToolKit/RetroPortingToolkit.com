@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { PreviewLink } from "@/components/PreviewLink";
-import { topicPath } from "@/lib/content";
+import { topicPath } from "@/lib/contentCore";
 import homeData from "@data/home.json";
 
 // Home page copy (the "About me" proof, Recognition, and Philosophy). The text

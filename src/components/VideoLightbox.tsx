@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { youtubeEmbedUrl } from "@/lib/content";
+import { youtubeEmbedUrl } from "@/lib/contentCore";
 
 // In-site video lightbox for YouTube links: the visitor never leaves the page.
 // Esc/backdrop close it; the capture-phase listener stops the event before the

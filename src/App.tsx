@@ -13,7 +13,6 @@ import {
 import { useEffect, useLayoutEffect, useRef } from "react";
 import Home from "./pages/Home";
 import { ItemPage } from "./pages/ItemPage";
-import { DocsPage } from "./pages/DocsPage";
 // The editor is 2300 lines that only ever run on /admin, so it loads from its
 // own chunk rather than riding in the bundle every visitor downloads. It has to
 // be lazy ONLY: a module that is both statically and dynamically imported gets
@@ -22,26 +21,20 @@ import { DocsPage } from "./pages/DocsPage";
 // editor and dropping focus mid-edit. Editing Admin.tsx refreshes that module
 // rather than this one, so the lazy wrapper here survives it.)
 const Admin = lazy(() => import("./pages/Admin"));
+const DocsPage = lazy(() =>
+  import("./pages/DocsPage").then((module) => ({ default: module.DocsPage })),
+);
+const CollectionRoutes = lazy(() => import("./components/CollectionRoutes"));
 import { ItemView } from "./components/ItemView";
 import {
-  COLLECTION_TITLE,
-  titleForCollection,
   titleForItem,
-  titleForTopic,
   useDocumentTitle,
 } from "./lib/pageTitle";
 import { OverlayOpenContext } from "./lib/overlay";
-import { CollectionView } from "./components/CollectionView";
 import { Footer } from "./components/Footer";
 import { SearchPaletteHost } from "./components/SearchPaletteHost";
-import {
-  COLLECTION_KIND,
-  itemsForKind,
-  itemsForTopic,
-} from "./lib/content";
-import { findTopic } from "./lib/topics";
 import { IS_CMS_PREVIEW, useItem } from "./lib/cmsPreview";
-import type { Kind } from "./lib/types";
+import type { CatalogKind } from "./lib/catalogContent";
 
 interface BgState {
   background?: Location;
@@ -69,12 +62,40 @@ function NotFound() {
   );
 }
 
+// createRoot replaces the prerendered DOM before a lazy route has arrived.
+// Keep that brief interval meaningful and accessible instead of presenting a
+// blank viewport on a direct documentation visit.
+function DocsRouteFallback() {
+  return (
+    <main className="page" aria-busy="true" aria-label="Loading documentation">
+      <div className="container" style={{ padding: "120px 0" }}>
+        <p className="hero-sub">Loading documentation…</p>
+      </div>
+    </main>
+  );
+}
+
+function CollectionRouteFallback() {
+  return (
+    <>
+      <div className="modal-backdrop open" />
+      <div className="modal open" role="status" aria-live="polite" aria-busy="true">
+        <div className="modal-card">
+          <div className="collection-body">
+            <p className="collection-empty">Loading collection…</p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function ModalRoute({
   kind,
   onClose,
   covered,
 }: {
-  kind: Kind;
+  kind: CatalogKind;
   onClose: () => void;
   covered?: boolean;
 }) {
@@ -99,56 +120,6 @@ function ModalRoute({
 
 const MODALISH_RE =
   /^\/(hardware|games|blog)\/[^/]+\/?$|^\/(all|topic)\/[^/]+\/?$/;
-
-function CollectionAllRoute({
-  onClose,
-  covered,
-}: {
-  onClose: () => void;
-  covered?: boolean;
-}) {
-  const { segment = "" } = useParams<{ segment: string }>();
-  const kind = COLLECTION_KIND[segment];
-  useDocumentTitle(kind ? titleForCollection(kind) : "", !!kind);
-  if (!kind) {
-    onClose();
-    return null;
-  }
-  return (
-    <CollectionView
-      title={COLLECTION_TITLE[kind]}
-      items={itemsForKind(kind)}
-      onClose={onClose}
-      covered={covered}
-      active={kind}
-    />
-  );
-}
-
-function CollectionTopicRoute({
-  onClose,
-  covered,
-}: {
-  onClose: () => void;
-  covered?: boolean;
-}) {
-  const { topicId = "" } = useParams<{ topicId: string }>();
-  const topic = findTopic(topicId);
-  useDocumentTitle(topic ? titleForTopic(topic) : "", !!topic);
-  if (!topic) {
-    onClose();
-    return null;
-  }
-  return (
-    <CollectionView
-      eyebrow="Topic"
-      title={topic.label}
-      items={itemsForTopic(topic)}
-      onClose={onClose}
-      covered={covered}
-    />
-  );
-}
 
 // Tab pages are real pages; switching tabs scrolls to the top like any
 // navigation.
@@ -290,8 +261,22 @@ function AppRoutes() {
                 /docs is the section index. Docs never open as a modal: they
                 are pages with their own navigation, so they are deliberately
                 absent from MODALISH_RE and the modal layers below. */}
-            <Route path="/docs" element={<DocsPage />} />
-            <Route path="/docs/*" element={<DocsPage />} />
+            <Route
+              path="/docs"
+              element={
+                <Suspense fallback={<DocsRouteFallback />}>
+                  <DocsPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/docs/*"
+              element={
+                <Suspense fallback={<DocsRouteFallback />}>
+                  <DocsPage />
+                </Suspense>
+              }
+            />
             <Route path="/all/:segment" element={<Home />} />
             <Route path="/topic/:topicId" element={<Home />} />
             <Route path="/__modal-underlay" element={<DirectModalUnderlay />} />
@@ -323,11 +308,19 @@ function AppRoutes() {
             />
             <Route
               path="/all/:segment"
-              element={<CollectionAllRoute onClose={closeModal} covered={covered} />}
+              element={
+                <Suspense fallback={<CollectionRouteFallback />}>
+                  <CollectionRoutes route="all" onClose={closeModal} covered={covered} />
+                </Suspense>
+              }
             />
             <Route
               path="/topic/:topicId"
-              element={<CollectionTopicRoute onClose={closeModal} covered={covered} />}
+              element={
+                <Suspense fallback={<CollectionRouteFallback />}>
+                  <CollectionRoutes route="topic" onClose={closeModal} covered={covered} />
+                </Suspense>
+              }
             />
           </Routes>
         );

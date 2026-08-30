@@ -17,8 +17,15 @@ export const docsAssetUrls = import.meta.glob(
 
 const docsParsers = createContentParsers(docsAssetUrls);
 
+// The documentation preview parses an editor buffer with this domain's own
+// media resolver. It intentionally lives beside the docs loader so catalogue
+// routes never need the documentation asset graph.
+export function parseDocsItem(path: string, raw: string): Item | null {
+  return docsParsers.parseItem(path, raw);
+}
+
 export const DOCS_ALL_ITEMS: Item[] = Object.entries(docsMd)
-  .map(([path, raw]) => docsParsers.parseItem(path, raw))
+  .map(([path, raw]) => parseDocsItem(path, raw))
   .filter((item): item is Item => item !== null)
   .sort((a, b) => a.order - b.order);
 
@@ -88,3 +95,11 @@ export const DOCS_SECTIONS: DocsSection[] = (() => {
   for (const section of sections.values()) section.pages.sort(byOrder);
   return [...sections.values()].sort(byOrder);
 })();
+
+// Mirror the catalogue boundary for documentation edits. In dev the virtual
+// manifest/search/date modules are invalidated by docsDataPlugin; this loader
+// self-accepts its eager glob so the surrounding app (especially /admin) is
+// not remounted while an author saves a page.
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {});
+}

@@ -3,7 +3,7 @@ import { Drawer } from "vaul";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { Item, Kind } from "@/lib/types";
 import { useMobile } from "@/lib/useMobile";
-import { pathFor } from "@/lib/content";
+import { pathFor } from "@/lib/contentCore";
 import { labAll, type LabMedia } from "@/lab/labContent";
 import { SpatialCard } from "./SpatialCard";
 import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";

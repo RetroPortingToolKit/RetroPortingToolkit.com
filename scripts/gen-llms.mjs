@@ -51,7 +51,14 @@ const FOLDER_RE = /^(\d+)_(.+)$/;
 function splitFrontmatter(raw) {
   const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
   if (!m) return { fm: {}, body: raw };
-  return { fm: yaml.load(m[1]) ?? {}, body: m[2] ?? "" };
+  // Keep the Node walk byte-for-byte aligned with contentCore's reader-facing
+  // body. Source appendices remain in the repository as working notes, but
+  // must not leak back through search, llms-full.txt, or a page's .md twin.
+  const body = (m[2] ?? "").replace(
+    /\n## Sources?\n[\s\S]*?(?=\n## Next\n|\s*$)/,
+    "",
+  );
+  return { fm: yaml.load(m[1]) ?? {}, body };
 }
 
 function walk(dir) {
@@ -106,6 +113,7 @@ function docsPages() {
       order: typeof fm.order === "number" ? fm.order : leaf.order,
       isSectionIndex: parts.length === 1,
       title: asString(fm.title, slug),
+      kicker: asString(fm.kicker),
       summary: asString(fm.summary),
       desc: asString(fm.desc),
       sectionTitle: asString(fm.sectionTitle),
@@ -170,6 +178,25 @@ export function collectDocs() {
   const pages = docsPages().sort(byOrder);
   const sections = docsSections(pages);
   return { pages, sections };
+}
+
+/** The body-free documentation data safe to keep in the application's static
+    graph. Hover previews need page identity and the command palette needs the
+    section indexes, but neither needs article prose or documentation media. */
+export function docsManifest(snapshot = collectDocs()) {
+  return snapshot.pages.map((page) => ({
+    slug: page.slug,
+    title: page.title,
+    kicker: page.kicker,
+    // A docs `summary` is its reader-facing description. Normalise it into one
+    // field rather than shipping two near-identical frontmatter values.
+    desc: page.summary || page.desc,
+    section: page.section,
+    sectionOrder: page.sectionOrder,
+    order: page.order,
+    isSectionIndex: page.isSectionIndex,
+    sectionTitle: page.sectionTitle,
+  }));
 }
 
 // ---- markdown helpers ----

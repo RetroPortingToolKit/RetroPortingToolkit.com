@@ -2,9 +2,9 @@ import {
   DOCS,
   DOCS_SECTIONS,
   isDocsSectionIndex,
-  pathFor,
   type DocsSection,
-} from "@/lib/content";
+} from "@/lib/docsContent";
+import { pathFor } from "@/lib/contentCore";
 import type { Item } from "@/lib/types";
 
 // Everything the docs chrome needs to know about ORDER lives here: the sidebar,

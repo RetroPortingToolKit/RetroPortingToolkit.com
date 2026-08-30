@@ -62,6 +62,17 @@ describe("the generator's walk agrees with DOCS", () => {
       expect(page.summary).toBe(item!.summary ?? "");
     }
   });
+
+  it("omits repository-only Source appendices from generated bodies", () => {
+    // The browser parser applies the same rule. Keeping this assertion on the
+    // independent Node walk prevents search and .md twins from quietly
+    // republishing sections the rendered page no longer shows.
+    expect(walked.pages.some((page) => /^## Sources?$/m.test(page.body))).toBe(false);
+    expect(/^## Sources?$/m.test(surfaces.llmsFull)).toBe(false);
+    for (const text of surfaces.pageFiles.values()) {
+      expect(/^## Sources?$/m.test(text)).toBe(false);
+    }
+  });
 });
 
 // A draft is rendered at its own URL so it can be previewed, and appears in no

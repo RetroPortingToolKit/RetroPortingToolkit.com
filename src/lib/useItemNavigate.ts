@@ -5,7 +5,7 @@ import {
 } from "react-router-dom";
 import type { MouseEvent } from "react";
 import type { Item } from "./types";
-import { pathFor } from "./content";
+import { pathFor } from "./contentCore";
 
 interface BgState {
   background?: Location;

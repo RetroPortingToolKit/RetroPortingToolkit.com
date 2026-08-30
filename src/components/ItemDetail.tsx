@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { Item } from "@/lib/types";
 import { SITE } from "@/lib/site";
+import { itemsForCatalogKind } from "@/lib/catalogContent";
 import {
-  itemsForKind,
-  youtubeEmbedUrl,
-  isYouTubeSrc,
-  isVideoSrc,
   formatArticleDate,
+  isVideoSrc,
+  isYouTubeSrc,
   readingTimeMin,
-} from "@/lib/content";
+  youtubeEmbedUrl,
+} from "@/lib/contentCore";
 import { useItemNavigate } from "@/lib/useItemNavigate";
 import { svgCover } from "@/lab/labContent";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
@@ -278,7 +278,7 @@ function GameTile({ game }: { game: Item }) {
 
 // Platform pages showcase the games that run on them, linked to their pages.
 function PlatformGames({ item }: { item: Item }) {
-  const games = itemsForKind("game").filter((g) => g.platform === item.slug);
+  const games = itemsForCatalogKind("game").filter((g) => g.platform === item.slug);
   if (games.length === 0) return null;
   return (
     <div className="platform-games">
@@ -295,11 +295,11 @@ function PlatformGames({ item }: { item: Item }) {
 // Game pages end with the other games on the same platform.
 function RelatedGames({ item }: { item: Item }) {
   if (item.kind !== "game" || !item.platform) return null;
-  const sibs = itemsForKind("game").filter(
+  const sibs = itemsForCatalogKind("game").filter(
     (g) => g.slug !== item.slug && g.platform === item.platform,
   );
   if (sibs.length === 0) return null;
-  const hw = itemsForKind("hardware").find((h) => h.slug === item.platform);
+  const hw = itemsForCatalogKind("hardware").find((h) => h.slug === item.platform);
   return (
     <div className="related-games">
       <h2 className="platform-games-title">
@@ -353,7 +353,7 @@ function AdjacentItemLink({
 // Previous / next cards for the item's own kind (projects, articles, talks),
 // wrapping around at the ends. Shown at the bottom of a detail view.
 function AdjacentItems({ item }: { item: Item }) {
-  const list = itemsForKind(item.kind);
+  const list = itemsForCatalogKind(item.kind);
   if (list.length < 2) return null;
   const idx = list.findIndex((i) => i.slug === item.slug);
   if (idx < 0) return null;

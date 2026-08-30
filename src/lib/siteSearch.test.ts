@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 // The real generator walk the build uses for the documentation, so the docs
 // half of this index is the one the site actually ships.
 import { collectDocs } from "../../scripts/gen-llms.mjs";
-import { BLOGS, DOCS, GAMES, HARDWARE } from "./content";
+import { BLOGS, DOCS, DOCS_SECTIONS, GAMES, HARDWARE } from "./content";
 import { buildDocsSearchIndex, docsSearchSources } from "./docsSearch";
 import { buildPaletteCommands, docsMarkdownPath } from "./paletteCommands";
 import {
@@ -298,6 +298,9 @@ describe("the command catalog", () => {
     expect(ids).toContain("go:blog");
     expect(ids).toContain("go:docs");
     expect(ids).toContain("go:docs/start");
+    expect(ids.filter((id) => id.startsWith("go:docs/"))).toEqual(
+      DOCS_SECTIONS.map((section) => `go:docs/${section.slug}`),
+    );
     commands.find((c) => c.id === "go:game")!.run();
     expect(calls).toEqual(["navigate:/games"]);
   });

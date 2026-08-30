@@ -3,7 +3,8 @@ import { useLocation, useNavigate, type Location } from "react-router-dom";
 import { Drawer } from "vaul";
 import type { Item } from "@/lib/types";
 import { useMobile } from "@/lib/useMobile";
-import { itemsForKind, pathFor } from "@/lib/content";
+import { itemsForCatalogKind } from "@/lib/catalogContent";
+import { pathFor } from "@/lib/contentCore";
 import { ItemDetail, ArticleByline, blogIsSplit } from "./ItemDetail";
 import { Markdown } from "./Markdown";
 import { LazyProjectCarousel, type Slide } from "./LazyProjectCarousel";
@@ -57,7 +58,7 @@ const ChevronIcon = ({ dir }: { dir: "left" | "right" }) => (
 // nav, so the direction class must be present at mount time for the CSS
 // animation to actually play.
 function useSlideDirection(item: Item): "left" | "right" | null {
-  const list = itemsForKind(item.kind);
+  const list = itemsForCatalogKind(item.kind);
   const prevSlugRef = useRef<string | null>(null);
   const prev = prevSlugRef.current;
   let dir: "left" | "right" | null = null;
@@ -81,7 +82,7 @@ function useSlideDirection(item: Item): "left" | "right" | null {
 function useSiblingNav(item: Item) {
   const navigate = useNavigate();
   const location = useLocation();
-  const list = itemsForKind(item.kind);
+  const list = itemsForCatalogKind(item.kind);
   const idx = list.findIndex((i) => i.slug === item.slug);
   const canNav = list.length > 1 && idx >= 0;
   const state = location.state as { background?: Location } | null;

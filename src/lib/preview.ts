@@ -4,14 +4,16 @@
 // existing site content (item frontmatter, curated topics) or authored static
 // copy, so a hover never triggers a fetch.
 
-import type { Kind, Item } from "@/lib/types";
+import DOCS_MANIFEST, {
+  type DocsManifestEntry,
+} from "virtual:docs-manifest";
+import { CATALOG_ITEMS, findCatalogItem } from "@/lib/catalogContent";
 import {
-  findItem,
-  itemsForTopic,
   isVideoSrc,
   isYouTubeSrc,
   youtubeThumb,
-} from "@/lib/content";
+} from "@/lib/contentCore";
+import type { Kind, Item, Topic } from "@/lib/types";
 import { findTopic } from "@/lib/topics";
 import { TOPIC_BLURBS } from "@/lib/topicPreviews";
 
@@ -40,6 +42,52 @@ const KIND_LABEL: Record<Kind, string> = {
   docs: "Docs",
 };
 
+type DocsPreviewItem = DocsManifestEntry & { kind: "docs" };
+type PreviewItem = Item | DocsPreviewItem;
+
+const DOCS_PREVIEW_ITEMS: DocsPreviewItem[] = DOCS_MANIFEST.map((item) => ({
+  ...item,
+  kind: "docs",
+}));
+
+function findPreviewItem(kind: Kind, slug: string): PreviewItem | undefined {
+  return kind === "docs"
+    ? DOCS_PREVIEW_ITEMS.find((item) => item.slug === slug)
+    : findCatalogItem(kind, slug);
+}
+
+function itemMatchesTopic(item: PreviewItem, topic: Topic): boolean {
+  if (topic.kinds && !topic.kinds.includes(item.kind)) return false;
+  // Keep the collection aggregator's rule: docs only join a keyword topic
+  // when that topic explicitly opts into docs. Its manifest has frontmatter
+  // only, so body matching remains exclusive to the lazy collection route.
+  if (item.kind === "docs" && !topic.kinds?.includes("docs")) return false;
+  const haystack =
+    item.kind === "docs"
+      ? [item.title, item.kicker, item.desc, item.section]
+      : [
+          item.title,
+          item.kicker,
+          item.desc,
+          item.body,
+          item.venue ?? "",
+          ...item.meta,
+        ];
+  const text = haystack.join(" \n ").toLowerCase();
+  return topic.keywords.some((keyword) => text.includes(keyword.toLowerCase()));
+}
+
+function previewItemsForTopic(topic: Topic): PreviewItem[] {
+  if (topic.items && topic.items.length > 0) {
+    return topic.items
+      .map((ref) => findPreviewItem(ref.kind, ref.slug))
+      .filter((item): item is PreviewItem => !!item);
+  }
+  return [...CATALOG_ITEMS, ...DOCS_PREVIEW_ITEMS].filter((item) =>
+    itemMatchesTopic(item, topic),
+  );
+}
+
 // Tiny inline base64 placeholders (LQIP) read as a blurry smear when scaled to
 // the preview width, so they are not a usable still here.
 function usable(src: string | undefined): string | undefined {
@@ -61,20 +109,23 @@ function itemImage(item: Item): { image?: string; isVideo: boolean } {
 }
 
 function itemPreview(kind: Kind, slug: string): LinkPreview {
-  const item = findItem(kind, slug);
+  const item = findPreviewItem(kind, slug);
   if (!item) {
     return { kicker: KIND_LABEL[kind], title: slug, cta: "View", internal: true };
   }
-  const { image, isVideo } = itemImage(item);
-  const meta = [item.venue, item.year].filter(Boolean).join(", ") || undefined;
+  const media = item.kind === "docs" ? { isVideo: false } : itemImage(item);
+  const meta =
+    item.kind === "docs"
+      ? undefined
+      : [item.venue, item.year].filter(Boolean).join(", ") || undefined;
   return {
     kicker: item.kicker || KIND_LABEL[kind],
     title: item.title,
     meta,
     description: item.desc || undefined,
-    image,
-    isVideo,
-    cta: isVideo ? "Watch" : "View",
+    image: media.image,
+    isVideo: media.isVideo,
+    cta: media.isVideo ? "Watch" : "View",
     internal: true,
   };
 }
@@ -82,7 +133,7 @@ function itemPreview(kind: Kind, slug: string): LinkPreview {
 function topicPreview(id: string): LinkPreview | null {
   const topic = findTopic(id);
   if (!topic) return null;
-  const items = itemsForTopic(topic);
+  const items = previewItemsForTopic(topic);
   // A count summary kicker ("6 talks · 3 projects"), strongest grouping first.
   const counts: Record<Kind, number> = { hardware: 0, game: 0, blog: 0, docs: 0 };
   for (const it of items) counts[it.kind]++;
@@ -112,6 +163,7 @@ function topicPreview(id: string): LinkPreview | null {
   let image: string | undefined;
   let isVideo = false;
   for (const it of items) {
+    if (it.kind === "docs") continue;
     const r = itemImage(it);
     if (r.image) {
       image = r.image;

@@ -1,13 +1,13 @@
 import { useEffect, type CSSProperties } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import type { Kind } from "@/lib/types";
+import type { CatalogKind } from "@/lib/catalogContent";
 import { IS_CMS_PREVIEW, useItem } from "@/lib/cmsPreview";
 import { ItemDetail } from "@/components/ItemDetail";
 import { SITE } from "@/lib/site";
 import { titleForItem, useDocumentTitle } from "@/lib/pageTitle";
 
 interface Props {
-  kind: Kind;
+  kind: CatalogKind;
 }
 
 export function ItemPage({ kind }: Props) {

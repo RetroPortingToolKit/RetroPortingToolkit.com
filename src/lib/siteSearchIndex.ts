@@ -1,4 +1,4 @@
-import { BLOGS, GAMES, HARDWARE } from "./content";
+import { BLOGS, GAMES, HARDWARE } from "./catalogContent";
 import { buildSiteSearchIndex, type SiteSearchIndex } from "./siteSearch";
 
 /**
@@ -11,7 +11,7 @@ import { buildSiteSearchIndex, type SiteSearchIndex } from "./siteSearch";
  * the second caller reuses the first caller's work.
  *
  * Nothing is fetched at runtime, which is the rule for this whole site. Games,
- * Platforms and News are already in the bundle (src/lib/content.ts reads data/
+ * Platforms and News are already in the bundle (catalogContent.ts reads data/
  * at build time). The documentation arrives as `virtual:docs-search-index`, the
  * build-time index that already existed for the documentation search,
  * dynamically imported so it stays its own chunk and costs nothing until

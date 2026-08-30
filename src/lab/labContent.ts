@@ -1,4 +1,4 @@
-import { HARDWARE, GAMES, BLOGS } from "@/lib/content";
+import { BLOGS, GAMES, HARDWARE } from "@/lib/catalogContent";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { LQIP } from "@/generated/lqip";
 import { previewFor } from "@/generated/previews";

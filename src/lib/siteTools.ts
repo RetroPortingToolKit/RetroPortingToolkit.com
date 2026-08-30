@@ -1,4 +1,6 @@
-import { DOCS, GAMES, HARDWARE, pathFor } from "./content";
+import { GAMES, HARDWARE } from "./catalogContent";
+import { pathFor } from "./contentCore";
+import { DOCS } from "./docsContent";
 import { docsSearchText } from "./docsSearch";
 import { docsMarkdownPath } from "./paletteCommands";
 import { SITE } from "./site";

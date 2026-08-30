@@ -13,6 +13,7 @@ export interface DocsMdPage {
   order: number;
   isSectionIndex: boolean;
   title: string;
+  kicker: string;
   summary: string;
   desc: string;
   sectionTitle: string;
@@ -39,11 +40,29 @@ export interface DocsMdSection {
   pages: DocsMdPage[];
 }
 
-/** The published documentation, in sidebar order. */
-export declare function collectDocs(): {
+/** Body-free documentation metadata safe for bootstrap consumers. */
+export interface DocsManifestEntry {
+  slug: string;
+  title: string;
+  kicker: string;
+  desc: string;
+  section: string;
+  sectionOrder: number;
+  order: number;
+  isSectionIndex: boolean;
+  sectionTitle: string;
+}
+
+export interface DocsSnapshot {
   pages: DocsMdPage[];
   sections: DocsMdSection[];
-};
+}
+
+/** The published documentation, in sidebar order. */
+export declare function collectDocs(): DocsSnapshot;
+
+/** Published documentation frontmatter without bodies or media imports. */
+export declare function docsManifest(snapshot?: DocsSnapshot): DocsManifestEntry[];
 
 /** The llms.txt index. */
 export declare function renderLlmsTxt(): string;
