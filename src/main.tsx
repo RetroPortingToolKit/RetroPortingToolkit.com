@@ -1,6 +1,5 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
-import { registerSiteTools } from "./lib/webmcp";
 // Styles are split into ordered partials (cascade order preserved); edit the
 // relevant one instead of one large file. Keep this import order.
 import "./styles/01-base.css";
@@ -46,8 +45,17 @@ createRoot(rootEl).render(
   </div>,
 );
 
-// WebMCP: offer this site's tools to a browser that has an agent in it. After
-// the render because nothing on screen waits for it, and once per page load.
-// In a browser with no model context this returns an empty list, logs nothing
-// and changes nothing, which is why it is safe to call unconditionally here.
-void registerSiteTools();
+// WebMCP is useful only in browsers that expose a model-context registrar.
+// Keep its schemas, handlers and documentation data out of every other
+// visitor's startup graph; the old eager import made all of that bootstrap
+// code even though registration immediately did nothing in ordinary browsers.
+const webmcpDocument = document as Document & {
+  modelContext?: { registerTool?: unknown } | null;
+};
+const webmcpNavigator = navigator as Navigator & {
+  modelContext?: { registerTool?: unknown } | null;
+};
+const webmcpContext = webmcpDocument.modelContext ?? webmcpNavigator.modelContext;
+if (webmcpContext && typeof webmcpContext.registerTool === "function") {
+  void import("./lib/webmcp").then(({ registerSiteTools }) => registerSiteTools());
+}
