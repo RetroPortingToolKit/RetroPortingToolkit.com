@@ -147,10 +147,6 @@ python tools/audit_runner_purity.py
 
 The first line runs the ROM-independent framework tests. The four Python tools check state at a target frame, framebuffer hashes through a scripted run, the [co-simulation](/docs/concepts/co-simulation) harness, and the shared runner for per-game literals. After every run, read `dispatch_misses.toml`: a jump to an address no function was generated for is treated as a graph failure, not a warning.
 
-## What runs today
-
-Three ports exist. [Sonic the Hedgehog](/games/sonic-the-hedgehog) reports "Green Hill Zone is fully playable, all 3 acts including the Robotnik boss fight", with later zones "Partial". [Sonic the Hedgehog 2](/games/sonic-the-hedgehog-2) adds delay-sync netplay and split-screen. [Sonic 3 & Knuckles](/games/sonic-3-and-knuckles) holds three build modes in one repository, because the lock-on cartridge is the two games combined, and marks them "**Playable bring-up**", "Bring-up" and "Scaffold / early bring-up".
-
 ## Known limits
 
 - Widescreen conversion is per game. Sonic 1, Sonic 2 and Sonic 3 alone use the injection path; Sonic & Knuckles alone and the combined Sonic 3 & Knuckles are "NOT converted".

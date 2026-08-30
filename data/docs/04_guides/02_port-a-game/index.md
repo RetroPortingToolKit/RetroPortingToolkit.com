@@ -23,7 +23,6 @@ This guide begins where [build a toolchain](/docs/guides/build-a-toolchain) ends
 |---|---|---|
 | NES | nesrecomp | [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp) |
 | SNES | snesrecomp | [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp) |
-| Game Boy and Game Boy Color | gbrecompiled | [PokemonYellowRecomp](https://github.com/mstan/PokemonYellowRecomp) |
 | Game Boy Advance | gbarecomp | [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) |
 | PlayStation | psxrecomp | [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp) |
 | Genesis | segagenesisrecomp | [SonicTheHedgehogRecomp](https://github.com/mstan/SonicTheHedgehogRecomp) |
@@ -96,7 +95,6 @@ cmake --build build-release --target psx-runtime
 | NES | `nesrecomp\build_recomp\NESRecomp.exe baserom.nes` ([FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp/blob/master/build_all.bat)) |
 | SNES | `bash tools/regen.sh usa --no-tests` ([MegaManX-X](https://github.com/Team-Resurgent/MegaManX-X/blob/main/README.md)) |
 | SNES (DKC2) | `python3 scripts/generate_snesrecomp.py --rom /private/path/dkc2.sfc` ([DKC2Recomp](https://github.com/mstan/DKC2Recomp/blob/main/README.md)) |
-| GB and GBC | `"$GBRECOMP" --config "$TOML"` ([PokemonYellowRecomp](https://github.com/mstan/PokemonYellowRecomp/blob/main/scripts/build.sh)) |
 
 **You should now see** generated translation units under `generated/` or `src/gen/`, plus a dispatch file. On SNES that is `src/gen/bankXX_v2.c` and `dispatch_v2.c`, one per `recomp/bank*.cfg`. Nothing there is yours to edit.
 

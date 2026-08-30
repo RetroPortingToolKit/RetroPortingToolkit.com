@@ -136,7 +136,7 @@ Do it in the other order and the release repository points at a tree without you
 
 **Why it is silent.** Each piece was reasonable when you added it, and removal is a separate act that has to be remembered. A summary document in GumshoeNESRecomp lists two files modified with temporary instrumentation and notes "These should be removed after the investigation". The stub is worse, because it looks like working code. psxrecomp allows none at all and counts a placeholder return and a `// TODO` as stubs, quoted on [rules of the codebase](/docs/agents/house-invariants).
 
-**What to do.** Read your own diff before you hand off. Remove the instrumentation, or say in the handoff that it is still there and where. The fleet contradicts itself on print debugging: forbidden in psxrecomp, YoshiNESRecomp and Megaman3NESRecomp, allowed for a crash banner in vbrecomp, a step in the debugging loop in nesrecomp and gbrecompiled, restricted to hot paths in segagenesisrecomp. Follow the repository you are in.
+**What to do.** Read your own diff before you hand off. Remove the instrumentation, or say in the handoff that it is still there and where. The fleet contradicts itself on print debugging: forbidden in psxrecomp, YoshiNESRecomp and Megaman3NESRecomp, allowed for a crash banner in vbrecomp, a step in the debugging loop in nesrecomp, restricted to hot paths in segagenesisrecomp. Follow the repository you are in.
 
 ## What the fleet does not write down
 

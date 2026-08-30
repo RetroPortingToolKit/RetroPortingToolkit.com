@@ -137,11 +137,8 @@ repository, never in one of those copies.
 
 ## Code that came from outside the fleet
 
-Three cases, all of them stated by the repository itself.
+Two cases, both stated by the repository itself.
 
-- [gbrecompiled](https://github.com/mstan/gbrecompiled) is a development fork.
-  Its README names the canonical project, `arcanite24/gb-recompiled`, and the
-  second upstream whose runtime work was merged in.
 - gcnlle vendors a fork of `ExpansionPak/DolRecomp` as its recompiler and
   records the upstream base commit, the fork commit and the dates in
   [`recompiler/UPSTREAM.md`](https://github.com/mstan/gcnlle/blob/master/recompiler/UPSTREAM.md).
@@ -156,7 +153,7 @@ Three cases, all of them stated by the repository itself.
 - The shared cores: [`m68k-recomp-core/PROVENANCE.md`](https://github.com/mstan/m68k-recomp-core/blob/main/PROVENANCE.md) and [`README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md).
 - The netplay stack: [`recomp-net/README.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`recomp-net-server/README.md`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).
 - The travelling parts: [`snesrecomp/THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/snesrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md), [`segagenesisrecomp/THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/THIRD-PARTY-LICENSES.md).
-- Code from outside: [`gbrecompiled/README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md), [`gcnlle/recompiler/UPSTREAM.md`](https://github.com/mstan/gcnlle/blob/master/recompiler/UPSTREAM.md).
+- Code from outside: [`gcnlle/recompiler/UPSTREAM.md`](https://github.com/mstan/gcnlle/blob/master/recompiler/UPSTREAM.md).
 - The pins come from every `.gitmodules` file and every gitlink in the fleet, read together.
 
 ## Next

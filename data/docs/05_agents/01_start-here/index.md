@@ -28,9 +28,9 @@ Of the 86 repositories surveyed, 34 carry an agent instruction file, and all 34 
 
 ## The repository you are in
 
-Look in the root for `CLAUDE.md` and `AGENTS.md`. There are 36 such files across 34 repositories; [gbrecompiled](https://github.com/mstan/gbrecompiled) and [nesrecomp](https://github.com/mstan/nesrecomp) carry both. They come in three shapes.
+Look in the root for `CLAUDE.md` and `AGENTS.md`. These files come in three shapes.
 
-**A framework constitution** is long and self-contained: [psxrecomp](https://github.com/mstan/psxrecomp) at 511 lines, [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp) at 475, [vbrecomp](https://github.com/mstan/vbrecomp) at 302, [gbrecompiled](https://github.com/mstan/gbrecompiled) at 286, [nesrecomp](https://github.com/mstan/nesrecomp) at 264. Read it in full. It is the authority for that toolchain.
+**A framework constitution** is long and self-contained: [psxrecomp](https://github.com/mstan/psxrecomp), [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp), [vbrecomp](https://github.com/mstan/vbrecomp), and [nesrecomp](https://github.com/mstan/nesrecomp) all have one. Read it in full. It is the authority for that toolchain.
 
 **A deferring game repository** is 1 to 3 KB: a pointer to its framework plus five or six local rules. The six PlayStation game repositories are near copies of one another, and so are the six Game Boy Advance ones. Read the local rules, then read the framework file.
 
@@ -105,7 +105,7 @@ Read this as a list of things not to assume.
 
 ## Source
 
-- The five largest constitutions: [`psxrecomp/CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md), [`gbrecompiled/CLAUDE.md`](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md), [`Megaman3NESRecomp/CLAUDE.md`](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), [`vbrecomp/CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md), [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md).
+- Large constitution examples: [`psxrecomp/CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md), [`Megaman3NESRecomp/CLAUDE.md`](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), [`vbrecomp/CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md), [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md).
 - [`nesrecomp/AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md), eight lines, the shortest file in the corpus.
 - [`xboxlle-probe/AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) and [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md), the two files unlike the rest.
 - [`psxrecomp/.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml), the fleet's only written position on CI.

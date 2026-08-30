@@ -122,8 +122,6 @@ If the query you need does not exist, three repositories give the same steps for
 
 | Surface | What it is | Project |
 |---|---|---|
-| `logs/game_benchmark.json` | Written by `tools/benchmark_emulators.py --json-out` | gbrecompiled |
-| `*_metadata.json` sidecars | Emitted next to generated projects; preferred over scraping generated C | gbrecompiled |
 | `build/last_run_report.json` | Always-on post mortem on crash or exit: CPU state, recomp stack, abandons, tier2 coverage, dispatch-log ring, DB/PB ring, and a game specific section | SuperMetroidRecomp |
 | `*.jsonl` WRAM traces | `SNESRECOMP_WRAM_TRACE_FILE` on the recomp side, `SNESREF_TRACE_FILE` on the oracle side | SuperMetroidRecomp |
 | `gbaref_trace.jsonl` | Enabled by the `GBAREF_TRACE` environment variable, diffed by `oracle/ref_diff.py` | gbarecomp |
@@ -159,8 +157,8 @@ These are files, not commands, and reading them is often faster than driving the
 | `C:/temp/ppu_trace.csv` | `W,ADDR,VALUE,PC,FRAME` | nesrecomp |
 | `C:/temp/mapper_trace.csv` | `BANK_SWITCH,bank,PC,FRAME` | nesrecomp |
 | `mode_trace.csv` | Verify mode, one row per frame, native and emulator columns | GumshoeNESRecomp |
-| Sidecar `.log` files | `[name]`, then `Ghidra:`, then `Rationale:`, next to each hardware `.c` file | nesrecomp, gbrecompiled |
-| Screenshots | PNG on NES, where BMP is prohibited as too large for token limits; PPM on Game Boy; BMP or PPM client side on CD-i | nesrecomp, gbrecompiled, cdirecomp |
+| Sidecar `.log` files | `[name]`, then `Ghidra:`, then `Rationale:`, next to each hardware `.c` file | nesrecomp |
+| Screenshots | PNG on NES, where BMP is prohibited as too large for token limits; BMP or PPM client side on CD-i | nesrecomp, cdirecomp |
 
 ## The input script language
 
@@ -203,7 +201,6 @@ Four `.mcp.json` files exist in the fleet. All four are Ghidra over SSE, and all
 |---|---|---|---|
 | [psxrecomp](https://github.com/mstan/psxrecomp) | `ghidra`, `ghidra_psx` | sse | `http://localhost:7777/sse` |
 | [ndsrecomp](https://github.com/mstan/ndsrecomp) | `ghidra` | sse | `http://localhost:2222/sse` |
-| [gbrecompiled](https://github.com/mstan/gbrecompiled) | `ghidra` | sse | `http://localhost:4000/sse` |
 | [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp) | `ghidra_smw` | sse | `http://localhost:8078/sse` |
 
 The complete file, from [`.mcp.json`](https://github.com/mstan/psxrecomp/blob/master/.mcp.json) in psxrecomp:
@@ -223,7 +220,7 @@ The complete file, from [`.mcp.json`](https://github.com/mstan/psxrecomp/blob/ma
 }
 ```
 
-The tool an agent calls to prove Ghidra is up is named the same everywhere: `mcp__ghidra__get_program_info`, with `mcp__ghidra__get_code` for a disassembly at an address. Both appear in nesrecomp, gbrecompiled and Megaman3NESRecomp.
+The tool an agent calls to prove Ghidra is up is named the same everywhere: `mcp__ghidra__get_program_info`, with `mcp__ghidra__get_code` for a disassembly at an address. Both appear in nesrecomp and Megaman3NESRecomp.
 
 > **Warning.** Three repositories gate all work on Ghidra MCP being reachable and ship no `.mcp.json` at all: nesrecomp, Megaman3NESRecomp and YoshiNESRecomp. An agent there has no configured server to reach, and the working configuration lives outside the tree. [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game) covers a gate you cannot satisfy.
 
@@ -254,7 +251,7 @@ Read the psxrecomp workflow before you propose adding a check anywhere in this f
 
 - The nine protocol documents, principally [`nesrecomp/TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), [`vbrecomp/TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`gbarecomp/TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md), [`ndsrecomp/TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), [`cdirecomp/TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md), [`psxrecomp/TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) and [`gcnlle/docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md).
 - [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md) for the script language, the traces and the gates; [`LegendOfZeldaNESRecomp/CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) for the shell client.
-- [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md) and [`gbrecompiled/AGENTS.md`](https://github.com/mstan/gbrecompiled/blob/master/AGENTS.md) for the JSON surfaces.
+- [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md) for the JSON surfaces.
 - [`psxrecomp/.mcp.json`](https://github.com/mstan/psxrecomp/blob/master/.mcp.json) and [`psxrecomp/.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml).
 
 ## Next

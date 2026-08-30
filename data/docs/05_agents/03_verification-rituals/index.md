@@ -25,7 +25,6 @@ Where a cell says UNKNOWN, the repository does not document one. That is a fact 
 | [vbrecomp](https://github.com/mstan/vbrecomp) | build the skeleton | `python -m unittest discover recompiler/tests` | TCP `ping` must return `{"ok":true}`; a non-empty opcode-coverage report; regenerate, rebuild and re-run after any recompiler change |
 | [nesrecomp](https://github.com/mstan/nesrecomp) | `cmake -S . -B build -G "Visual Studio 17 2022" -A x64`; `cmake --build build --config Release` | UNKNOWN as a command. The documented verification is a timed run plus a screenshot at `C:/temp/nes_shot_01.png` | RULE 0: no Ghidra MCP, no action. [`AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md) requires a self-validated runtime check before any commit claim |
 | [nesrecomp](https://github.com/mstan/nesrecomp) co-simulation | not applicable | `tools/nes_cosim.py` with `gate1`, `gate2`, `gate3`, `abram`, `abcycle`, `abppu`, `diff` or `run` | "Gates print PASS/FAIL and exit non-zero on FAIL (CI-gateable)" |
-| [gbrecompiled](https://github.com/mstan/gbrecompiled) | `PATH="$CLEAN_PATH" ninja -C build`, then `./build/bin/gbrecomp roms/tetris.gb -o tetris_test`, then `ninja -C tetris_test/build` | Run the game with `--dump-frames 60,300,600 --screenshot-prefix logs/gb_shot` and read the PPMs | RULE 0 Ghidra MCP gate; the canonical sync flow in [`AGENTS.md`](https://github.com/mstan/gbrecompiled/blob/master/AGENTS.md); unit tests explicitly not the primary driver |
 | [gbarecomp](https://github.com/mstan/gbarecomp) | build the core, run `gba_recompile`, build the game binary | run in normal, verify or oracle-compare mode; the `bios_intro_flawless` ctest; `python oracle/diff_frame.py --scan 1 240 1` must report IDENTICAL | coverage report must read FULLY STATIC with zero interpreted or healed code; check `recomp_master_misses.toml.frag` after every run |
 | [ndsrecomp](https://github.com/mstan/ndsrecomp) | build the recompiler, regenerate, build the runner | UNKNOWN as a test command | the runtime hash-verifies all three dumps; `dispatch_misses.log` must be empty per CPU; the firmware-menu gate |
 | [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) | `_build_recomp.bat` via PowerShell, then `_build_native.bat` per game | co-simulation harness built with `-DGENESIS_BUILD_COSIM=ON`; `tools/audit_runner_purity.py` | `dispatch_misses.toml` must be empty; a boot-smoke baseline commits alongside its code change; one runtime instance at a time, `taskkill` before relaunch |
@@ -95,7 +94,7 @@ Catches nondeterminism in the recompiler itself. `./tools/regen.sh --strict-idem
 
 ### Unit tests and ctest
 
-Catches regressions in the framework's own logic, which is narrower than it sounds. [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp) runs game-side tests through `ctest --test-dir build` and the framework suite through `python3 snesrecomp/tests/v2/run_tests.py`. [vbrecomp](https://github.com/mstan/vbrecomp) runs `python -m unittest discover recompiler/tests`. [DKC2Recomp](https://github.com/mstan/DKC2Recomp) requires the complete suite before and after a milestone. [gbrecompiled](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md) takes the other line: do not run unit tests as the primary driver, run the game.
+Catches regressions in the framework's own logic, which is narrower than it sounds. [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp) runs game-side tests through `ctest --test-dir build` and the framework suite through `python3 snesrecomp/tests/v2/run_tests.py`. [vbrecomp](https://github.com/mstan/vbrecomp) runs `python -m unittest discover recompiler/tests`. [DKC2Recomp](https://github.com/mstan/DKC2Recomp) requires the complete suite before and after a milestone.
 
 ### Runner purity
 
@@ -115,7 +114,7 @@ Catches failures in a scripted run, where nobody is watching the screen. [nesrec
 
 ### Screenshots and frame dumps
 
-Catches what the other gates were not looking at. [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) requires a screenshot before you assert anything about visible state. [gbrecompiled](https://github.com/mstan/gbrecompiled) dumps frames at fixed indices and expects them to be read. Formats differ per toolchain, and repositories disagree on whether captures should be automatic, so follow the local rule.
+Catches what the other gates were not looking at. [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) requires a screenshot before you assert anything about visible state. Formats differ per toolchain, and repositories disagree on whether captures should be automatic, so follow the local rule.
 
 ## The four repositories that say what done means
 

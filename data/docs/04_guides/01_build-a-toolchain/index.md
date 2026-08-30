@@ -12,7 +12,6 @@ repos:
   - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/ndsrecomp"
-  - "https://github.com/mstan/gbrecompiled"
 updated: "2026-08-26"
 ---
 
@@ -33,9 +32,8 @@ This is what each repository claims. It is not a promise that the build works on
 | [cdirecomp](https://github.com/mstan/cdirecomp) | Builds with Visual Studio 17 2022, and is also verified with MinGW gcc plus Ninja | C11 | CMake | `tools/first_divergence.py` and other probes | SDL2 development package |
 | [vbrecomp](https://github.com/mstan/vbrecomp) | Windows (MSVC or MinGW), macOS on Apple Silicon and Intel, and Linux | Not stated beyond a C and C++ toolchain | CMake | `python -m unittest discover recompiler/tests` | SDL2, from Homebrew, a distribution package, or a vendored dev pack on Windows. No fiber or coroutine dependency |
 | [smsggrecomp](https://github.com/mstan/smsggrecomp) | Targets Windows (MSVC or MinGW), macOS and Linux | A C toolchain | CMake, with Visual Studio 17 2022 or Ninja | None required for the recompiler | SDL2; recursive submodules for the shared Z80 core |
-| [gbrecompiled](https://github.com/mstan/gbrecompiled) | Desktop platforms unstated. Android is single-ROM only, landscape only, `arm64-v8a` only, controller-first | A C or C++ compiler: Clang, GCC or MSVC | CMake 3.15 or above, Ninja | Tools under `tools/` | SDL2 development libraries. Android additionally needs `gradle`, the Android SDK and NDK, `adb`, and an SDL2 source checkout at `SDL2_SOURCE_DIR` |
 
-Three gaps are worth naming. ndsrecomp lists no supported operating systems. gbrecompiled lists requirements for its Android target but not for desktop hosts. vbrecomp names no compiler version or language standard. If you need certainty on one of those, ask in the repository.
+Two gaps are worth naming. ndsrecomp lists no supported operating systems. vbrecomp names no compiler version or language standard. If you need certainty on one of those, ask in the repository.
 
 The table covers this fleet's console toolchains. The Xbox probe is not in it. It builds through nxdk, pinned to the commit in its `.nxdk-version`, and not through CMake at all.
 
@@ -235,18 +233,9 @@ cmake --build runner/build
 
 The repository is candid that the middle of this is not turnkey. The full runner also expects firmware RAM-bank captures matching the configs under `bios/firmware_banks/`, and the repository says this bootstrap workflow still assumes an active developer setup.
 
-### smsggrecomp and gbrecompiled
+### smsggrecomp
 
-smsggrecomp needs `git submodule update --init --recursive` for the shared Z80 core, then the same CMake pair as segagenesisrecomp from inside `recompiler/`. gbrecompiled is the shortest build here:
-
-```bash
-git clone https://github.com/mstan/gbrecompiled.git
-cd gbrecompiled
-cmake -G Ninja -B build .
-ninja -C build
-```
-
-**You should now see** `build/bin/gbrecomp`. It generates a project from a ROM you supply, and a second CMake invocation builds that project.
+smsggrecomp needs `git submodule update --init --recursive` for the shared Z80 core, then the same CMake pair as segagenesisrecomp from inside `recompiler/`.
 
 ## When the build fails
 
@@ -269,7 +258,7 @@ The full catalogue, with sources and the packaging and runtime failures too, is 
 - psxrecomp: [`docs/BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md), [`docs/TESTING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/TESTING.md), [`runtime/runtime.cmake`](https://github.com/mstan/psxrecomp/blob/master/runtime/runtime.cmake), [`tools/regen_bios.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/regen_bios.sh), [`tools/setup_dev.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/setup_dev.sh)
 - nesrecomp: [`README.md`](https://github.com/mstan/nesrecomp/blob/master/README.md). snesrecomp: [`README.md`](https://github.com/mstan/snesrecomp/blob/main/README.md). gbarecomp: [`README.md`](https://github.com/mstan/gbarecomp/blob/main/README.md), [`CMakeLists.txt`](https://github.com/mstan/gbarecomp/blob/main/CMakeLists.txt)
 - segagenesisrecomp: [`README.md`](https://github.com/mstan/segagenesisrecomp/blob/master/README.md). vbrecomp: [`README.md`](https://github.com/mstan/vbrecomp/blob/master/README.md).
-- cdirecomp: [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md), [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). ndsrecomp: [`README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md). smsggrecomp: [`README.md`](https://github.com/mstan/smsggrecomp/blob/main/README.md). gbrecompiled: [`README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md), [`ANDROID.md`](https://github.com/mstan/gbrecompiled/blob/master/ANDROID.md)
+- cdirecomp: [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md), [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). ndsrecomp: [`README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md). smsggrecomp: [`README.md`](https://github.com/mstan/smsggrecomp/blob/main/README.md).
 - The three-stage game build shape: [`FaxanaduRecomp/build_all.bat`](https://github.com/mstan/FaxanaduRecomp/blob/master/build_all.bat)
 
 ## Next

@@ -78,13 +78,13 @@ This list came from a survey of 64 repositories and is not proven complete. If a
 
 ## This site's catalogue vocabulary
 
-The catalogue on this site uses none of the words above. Each entry carries fields that print as pills on its card, chosen from a short fixed list by whoever wrote the entry. That is the point: 80 entries, 67 games and 13 hardware pages, described in the same few words so they can be compared on one screen. It is also the limit, because a fixed list cannot say what a project says about itself.
+The catalogue on this site uses none of the words above. Each entry carries fields that print as pills on its card, chosen from a short fixed list by whoever wrote the entry. That is the point: 76 entries, 64 games and 12 hardware pages, described in the same few words so they can be compared on one screen. It is also the limit, because a fixed list cannot say what a project says about itself.
 
 The site publishes no definitions for these values. The readings below come from how each one is used across the catalogue. The counts are exact.
 
 ### `status`
 
-Carried by 79 of the 80 entries. One game page, Mega Man X for Original Xbox, has no `status` at all.
+Carried by 75 of the 76 entries. One game page, Mega Man X for Original Xbox, has no `status` at all.
 
 | Value | Count | What it means on this site | What it does not promise |
 |---|---|---|---|
@@ -96,7 +96,7 @@ Carried by 79 of the 80 entries. One game page, Mega Man X for Original Xbox, ha
 
 ### `availability`
 
-Carried by all 80 entries, and usually the field a reader wants.
+Carried by all 76 entries, and usually the field a reader wants.
 
 | Value | Count | What it means on this site | What it does not promise |
 |---|---|---|---|
@@ -106,29 +106,28 @@ Carried by all 80 entries, and usually the field a reader wants.
 
 ### `maturity`
 
-This is where "Beta" comes from, and it is not a game status. `maturity` appears on all 13 hardware pages and on no game page, so it grades a toolchain rather than a port.
+This is where "Beta" comes from, and it is not a game status. `maturity` appears on all 12 hardware pages and on no game page, so it grades a toolchain rather than a port.
 
 | Value | Count | Applied to | What it does not promise |
 |---|---|---|---|
 | **Beta** | 5 | PlayStation, Super Nintendo, NES, Game Boy Advance, Sega Genesis | Anything a project claims. No repository in the survey above uses "Beta" as a status word. |
-| **Alpha** | 8 | Game Boy, Master System and Game Gear, Nintendo 64, Nintendo DS, Virtual Boy, GameCube, CD-i, original Xbox | A relation to the repository status lines. Several toolchains marked Alpha here carry games the projects themselves call playable. |
+| **Alpha** | 7 | Master System and Game Gear, Nintendo 64, Nintendo DS, Virtual Boy, GameCube, CD-i, original Xbox | A relation to the repository status lines. Several toolchains marked Alpha here carry games the projects themselves call playable. |
 
 The site publishes no rule separating the two, so read `maturity` as a rough ordering of the toolchains against each other, nothing more.
 
 ## How the two vocabularies relate
 
-Two systems, different authors, different jobs. A repository status line is free prose, written by that project about itself and updated when its authors decide something changed. A catalogue field is one of a few fixed values, applied here, so 80 entries stay comparable.
+Two systems, different authors, different jobs. A repository status line is free prose, written by that project about itself and updated when its authors decide something changed. A catalogue field is one of a few fixed values, applied here, so 76 entries stay comparable.
 
 They do not line up at all. Not one of the seventeen repository terms above appears as a catalogue value, and not one of the ten catalogue values appears as a repository status term. "Playable alpha" was found in no README. "Playable bring-up", "public alpha" and "believed fully playable" are not values this site can record.
 
-So the same project is often described twice, in words that do not match. Two real examples:
+So the same project is often described twice, in words that do not match. One real example:
 
-- **They agree.** Pokémon Yellow's card says "Source only", and its README says the recompiled executable is ROM-derivative, so it too is built locally and never shipped. Different words, same fact.
 - **They diverge.** Boktai's card says "Public build", while its README says "Prebuilt binaries are not distributed: a recompiled binary embeds translated ROM code, so everyone builds their own."
 
 Neither is wrong. They are kept in different places and can describe different moments in a project's life. What matters is knowing which one to use.
 
-**Use the card to compare across the fleet.** It is the only vocabulary applied the same way to all 80 entries, so it is the only one that supports a sentence like "most of the catalogue is a playable alpha with a public build". README sentences cannot be added up that way.
+**Use the card to compare across the fleet.** It is the only vocabulary applied the same way to all 76 entries, so it is the only one that supports a sentence like "most of the catalogue is a playable alpha with a public build". README sentences cannot be added up that way.
 
 **Use the repository's README for what a project claims today.** Its authors wrote it and they are the ones who update it, so it is the authority on that project's own position, including every qualifier the fixed list cannot carry.
 
@@ -141,7 +140,7 @@ Where the two disagree about one project, the README wins on that project, and t
 - [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp), [MegaManX4Recomp](https://github.com/mstan/MegaManX4Recomp) and [xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp): the PS1 preview and alpha wording.
 - [BoktaiRecomp](https://github.com/Shy/BoktaiRecomp), [EmeraldRecomp](https://github.com/mstan/EmeraldRecomp), [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp) and [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp): the GBA bring-up and coverage wording, plus the oracle rule in [`CLAUDE.md`](https://github.com/mstan/MinishCapRecomp/blob/main/CLAUDE.md).
 - [MetroidPrimeHuntersRecomp](https://github.com/mstan/MetroidPrimeHuntersRecomp) and [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): public alpha, and the maintenance notice.
-- This site's own content, `data/games/` and `data/hardware/`, for the `status`, `availability` and `maturity` counts. Every figure in the catalogue section was counted across all 80 entries on 2026-08-23.
+- This site's own content, `data/games/` and `data/hardware/`, for the `status`, `availability` and `maturity` counts. Every figure in the catalogue section was counted across all 76 entries on 2026-08-30.
 
 ## Next
 

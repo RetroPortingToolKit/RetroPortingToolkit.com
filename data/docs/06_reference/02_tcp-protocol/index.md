@@ -129,7 +129,7 @@ These 26 commands appear with the same name and the same meaning in more than on
 | `set_input` | psxrecomp `buttons`, optional `frames`, `lx`, `ly`, `rx`, `ry`; gcnlle `buttons`, `stick_x`, `stick_y`, `substick_x`, `substick_y`, `trigger_l`, `trigger_r`, `reset`; cdirecomp `mask[,dx,dy]` | Echoes the resulting state | psx, nes, gba, vb, gcn, cdi | Bit layouts are per console and not interchangeable. The PS1 mask is inverted, 0 means pressed. ndsrecomp uses `keys` with a `mask` and `touch` with `x`, `y`, `down` |
 | `press` | buttons, frame count | ok | psx, nes, gba, vb | nesrecomp holds for 2 frames by default |
 | `clear_input` | none | Removes input and analog axis overrides | psx, nes, gba, vb | |
-| `screenshot` | optional `path` | psxrecomp writes a PNG of the current display, default `psx_screenshot.png` in the runtime working directory, and answers with one metadata line `{path,width,height}`. gcnlle decodes the XFB to PPM at `_work/screenshot.ppm` and answers `{path, width, height, xfb_addr, mean_luma}` | psx, nes, gba, vb, gcn, smsgg | Alias `screenshot_file`. The format is not uniform: PNG on NES where "BMP is prohibited", PPM on Game Boy, client-side BMP or PPM on CD-i. ndsrecomp returns pixels instead, through `framebuffer` |
+| `screenshot` | optional `path` | psxrecomp writes a PNG of the current display, default `psx_screenshot.png` in the runtime working directory, and answers with one metadata line `{path,width,height}`. gcnlle decodes the XFB to PPM at `_work/screenshot.ppm` and answers `{path, width, height, xfb_addr, mean_luma}` | psx, nes, gba, vb, gcn, smsgg | Alias `screenshot_file`. The format is not uniform: PNG on NES where "BMP is prohibited", client-side BMP or PPM on CD-i. ndsrecomp returns pixels instead, through `framebuffer` |
 | `watch` | `addr` | Byte level memory watchpoint, fires per frame on change | psx, genesis | Yoshi's NES port documents its own `watch`, `follow` and `follow_history` |
 | `unwatch` | `addr` | Removes a watchpoint | psx, genesis | |
 | `dispatch_miss_info` | none | Count plus a ring of `call_by_address` misses | nes, gba, vb, cdi | smsggrecomp spells it `dispatch_misses`. ndsrecomp has no command: it appends to `dispatch_misses.log` next to the runner. cdirecomp's oracle always answers 0, because an interpreter never misses |
@@ -156,7 +156,6 @@ Most servers are not always listening.
 | gcnlle | Set `GCN_DEBUG_PORT`. "When unset, the rings still record, there is just no query surface" |
 | smsggrecomp | `--port <N>`, off by default |
 | cdirecomp | Per build |
-| gbrecompiled | Not stated |
 
 nesrecomp has one environment variable worth knowing for boot work. `NESRECOMP_START_PAUSED=1` stops the runner at its first stable frame boundary, so a client can read startup state before resuming.
 

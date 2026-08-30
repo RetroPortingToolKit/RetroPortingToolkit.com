@@ -8,7 +8,6 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/gbarecomp"
-  - "https://github.com/mstan/gbrecompiled"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/smsggrecomp"
   - "https://github.com/mstan/ndsrecomp"
@@ -375,44 +374,6 @@ gba_recompile --bios <path>
 
 `--symbol-map` and `--no-symbol-map` are also parsed, but the usage text above does not list them.
 
-## gbrecompiled
-
-### gbrecomp
-
-Given a folder, it recompiles every `.gb`, `.gbc` and `.sgb` file in it, writes one module per ROM, and generates a launcher. Flags beat the TOML config. Folder mode does not support `--bank` or `--add-entry-point`.
-
-```sh
-./build/bin/gbrecomp path/to/game.gb -o output/game
-```
-
-| Flag | Type | Default | Meaning |
-|---|---|---|---|
-| `-a`, `--analyze` | flag | off | Analyze control flow only |
-| `--add-entry-point b:a` | bank:addr | none | Add a manual entry point, for example `1:4000` |
-| `--android` | flag | off | Also emit an Android project scaffold, single-ROM only |
-| `--android-app-name <n>` | string | ROM title | Android app name |
-| `--android-package <p>` | string | `io.gbrecompiled.<game>` | Android Java package |
-| `--annotations <file>` | path | none | Analyzer guidance: function, label and data ranges |
-| `--bank <n>` | int | none | Only process bank n |
-| `--bss-rom-data` | flag | off | Emit `rom_data[]` as a BSS declaration only |
-| `--config <file.toml>` | path | none | Per-game configuration |
-| `-d`, `--disasm` | flag | off | Disassemble only, generate no code |
-| `--emit-asset-loader` | flag | off | Bake `gb_asset_loader` integration into `<prefix>_main.c` |
-| `--harvest <log>` | path | none | Fold a runtime `interp_fallbacks.log` into a seed manifest, then exit |
-| `-h`, `--help` | flag | | Show help |
-| `-j`, `--jobs <n>` | int | 0 (auto) | Parallel workers for codegen and batch generation |
-| `--limit <n>` | int | none | Limit analysis to n instructions |
-| `--manifest <file>` | path | `dispatch_misses.toml` | Manifest path for `--harvest` |
-| `--no-comments` | flag | off | Do not include disassembly comments |
-| `--no-scan` | flag | off | Disable aggressive code scanning, which is on by default |
-| `-o`, `--output <dir>` | dir | `<rom>_output` | Output directory |
-| `--prefix-symbols` | flag | off | Force the multi-ROM prefixed-symbol scheme for single-ROM output |
-| `--single-function` | flag | off | Generate all code in a single function |
-| `--symbols <file>` | path | none | Load a `.sym` file and name generated functions and labels from it |
-| `--trace` | flag | off | Trace execution analysis, very verbose |
-| `--use-trace <file>` | path | none | Use a runtime trace to find entry points |
-| `-v`, `--verbose` | flag | off | Verbose output |
-
 ## gcnlle
 
 ### gcn_debug_client.py
@@ -604,7 +565,7 @@ Four Python helpers ship with it. `tools/_ping.py --port 4390` checks a server i
 - psxrecomp: [`recompiler/src/main_cli.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/main_cli.cpp), [`psxrecomp_cli.py`](https://github.com/mstan/psxrecomp/blob/master/psxrecomp_cli.py), [`recompiler/src/main_psx.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/main_psx.cpp), [`recompiler/src/main_bios.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/main_bios.cpp), [`recompiler/src/main_toml.cpp`](https://github.com/mstan/psxrecomp/blob/master/recompiler/src/main_toml.cpp), [`runtime/src/main.cpp`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/main.cpp), [`tools/build_cli.py`](https://github.com/mstan/psxrecomp/blob/master/tools/build_cli.py), [`tools/regen_bios.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/regen_bios.sh), [`tools/setup_dev.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/setup_dev.sh), [`tools/debug_client.py`](https://github.com/mstan/psxrecomp/blob/master/tools/debug_client.py), [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md)
 - nesrecomp: [`tools/cli.py`](https://github.com/mstan/nesrecomp/blob/master/tools/cli.py), [`recompiler/src/main_nes.c`](https://github.com/mstan/nesrecomp/blob/master/recompiler/src/main_nes.c)
 - snesrecomp: [`snesrecomp_cli.py`](https://github.com/mstan/snesrecomp/blob/main/snesrecomp_cli.py). gbarecomp: [`tools/cli.py`](https://github.com/mstan/gbarecomp/blob/main/tools/cli.py), [`tools/gba_recompile/main.cpp`](https://github.com/mstan/gbarecomp/blob/main/tools/gba_recompile/main.cpp)
-- gbrecompiled: [`recompiler/src/main.cpp`](https://github.com/mstan/gbrecompiled/blob/master/recompiler/src/main.cpp). segagenesisrecomp: [`recompiler/src/main_genesis.c`](https://github.com/mstan/segagenesisrecomp/blob/master/recompiler/src/main_genesis.c), [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md)
+- segagenesisrecomp: [`recompiler/src/main_genesis.c`](https://github.com/mstan/segagenesisrecomp/blob/master/recompiler/src/main_genesis.c), [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md)
 - smsggrecomp: [`recompiler/src/main_sms.c`](https://github.com/mstan/smsggrecomp/blob/main/recompiler/src/main_sms.c). ndsrecomp: [`recompiler/src/main.cpp`](https://github.com/mstan/ndsrecomp/blob/main/recompiler/src/main.cpp). cdirecomp: [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md), [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md)
 - gcnlle: [`tools/gcn_debug_client.py`](https://github.com/mstan/gcnlle/blob/master/tools/gcn_debug_client.py), [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md). vbrecomp: [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`README.md`](https://github.com/mstan/vbrecomp/blob/master/README.md)
 

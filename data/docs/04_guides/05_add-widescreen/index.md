@@ -9,7 +9,6 @@ repos:
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/SuperMarioBrosNESRecomp"
   - "https://github.com/mstan/MegaManX6Recomp"
-  - "https://github.com/mstan/gbrecompiled"
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/cdirecomp"
@@ -220,7 +219,6 @@ The same document gives an order of work, because "a later step's symptoms mimic
 | Genesis | Strip-scrolled backgrounds with independent rates, plane wrap at 512, a 9-bit sprite X mask |
 | NES | Sprite X and collision boxes are 8-bit and screen relative, and spawners key off the screen edge |
 | SNES | The OAM emitter compare is unsigned, and spawners also drive progression and staging |
-| Game Boy and Game Boy Color | Margin pixels "have no hardware dot clock" and use the scanline's final register state; unsupported scenes fail closed to pillarbox |
 | Game Boy Advance | Per-game opt-in through `RunOptions::max_view_width`; others clamp to 240, and the renderer override is not a correctness layer |
 | Nintendo DS | Generic polygon widening was tried and rejected; the adaptive compute path keeps a CPU fallback for unsupported scenes |
 
@@ -276,7 +274,6 @@ None of this is a finished feature.
 - **SuperMarioBrosNESRecomp**: "**Status: experimental and buggy.** The default build is always the authentic 4:3 game; everything described here is runtime-gated and off unless explicitly enabled."
 - **psxrecomp**: "Widescreen carries an EXPERIMENTAL tag in the launcher." On 21:9, "the math generalizes, but it has not been playtested."
 - **MegaManX6Recomp**: "Status: **validated prototype** on branch `feat/mmx6-widescreen`", with 21:9 showing a "larger invalid left reveal black, HUD at the true ultrawide edge, canonical/right region intact."
-- **gbrecompiled**: "**High potential, experimental** ... Remaining blockers are broader live-play validation of enemies, shots, bosses, and savestates."
 - **ndsrecomp**: "Actor culling and the minimap are fixed, but the courtyard sky can still show stretching or black voids at 21:9." **gbarecomp** marks its wide-view override as "not a correctness layer".
 
 ## Source
@@ -285,7 +282,7 @@ None of this is a finished feature.
 - [snesrecomp](https://github.com/mstan/snesrecomp): [`docs/WIDESCREEN_PATTERNS.md`](https://github.com/mstan/snesrecomp/blob/main/docs/WIDESCREEN_PATTERNS.md), the best starting point for a new 2D port.
 - [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp): [`WIDESCREEN_ISSUES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/WIDESCREEN_ISSUES.md), [`recompiler/src/game_config.h`](https://github.com/mstan/segagenesisrecomp/blob/master/recompiler/src/game_config.h), and [SonicTheHedgehog2Recomp](https://github.com/mstan/SonicTheHedgehog2Recomp)'s [`PLAN-widescreen-bg-arm.md`](https://github.com/mstan/SonicTheHedgehog2Recomp/blob/master/PLAN-widescreen-bg-arm.md).
 - [SuperMarioBrosNESRecomp](https://github.com/mstan/SuperMarioBrosNESRecomp): [`WIDESCREEN.md`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/WIDESCREEN.md), [`extras.c`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/extras.c). [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp): [`WIDESCREEN.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/WIDESCREEN.md).
-- Status: [gbrecompiled](https://github.com/mstan/gbrecompiled)'s [`docs/WIDESCREEN.md`](https://github.com/mstan/gbrecompiled/blob/master/docs/WIDESCREEN.md), [gbarecomp](https://github.com/mstan/gbarecomp)'s and [ndsrecomp](https://github.com/mstan/ndsrecomp)'s `ENHANCEMENTS.md`, and [cdirecomp](https://github.com/mstan/cdirecomp)'s [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md).
+- Status: [gbarecomp](https://github.com/mstan/gbarecomp)'s and [ndsrecomp](https://github.com/mstan/ndsrecomp)'s `ENHANCEMENTS.md`, and [cdirecomp](https://github.com/mstan/cdirecomp)'s [`ENHANCEMENTS.md`](https://github.com/mstan/cdirecomp/blob/master/ENHANCEMENTS.md).
 
 ## Next
 

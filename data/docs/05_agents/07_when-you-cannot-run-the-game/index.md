@@ -19,7 +19,7 @@ Every debugging protocol in this fleet assumes an interactive session: a window 
 Five resources decide what is open to you. Each one you lack removes a class of claim, not just a command.
 
 - **The repository and a compiler.** Enough to build the framework and run its own test suites. This is the floor and it is usually there.
-- **Ghidra over MCP.** In [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), [gbrecompiled](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md) and [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), no Ghidra means no action. Three repositories that gate on it ship no `.mcp.json`, so there may be no server to reach at all.
+- **Ghidra over MCP.** In [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), no Ghidra means no action. Repositories that gate on it may ship no `.mcp.json`, so there may be no server to reach at all.
 - **The game file.** Without it there is no regeneration, no run, and no way past the identity gate, which is built to refuse.
 - **A display.** Without one there is no screenshot, and [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) requires a screenshot before you assert anything about visible state.
 - **A second process for the oracle.** Comparison is how this fleet establishes correctness. No oracle means no correctness claim, only a consistency claim.
@@ -67,7 +67,7 @@ Some house rules are properties of the source tree, and reading the tree settles
 
 ### 5. Read the artefacts already in the tree
 
-The sidecar `.log` files are meant to be read without running anything. Every `.c` file that implements hardware behaviour has a sibling `.log` recording, per function or per address, what the disassembler showed and why the code was written that way. [gbrecompiled](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md) is blunt about their status: "This is the audit trail. Lives next to the code."
+The sidecar `.log` files are meant to be read without running anything. Every `.c` file that implements hardware behaviour has a sibling `.log` recording, per function or per address, what the disassembler showed and why the code was written that way.
 
 Read the committed handoffs and audits too. They carry what was already ruled out and which decisions must not be undone. [`YoshiNESRecomp/HANDOFF.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/HANDOFF.md) states the rule for using them:
 
@@ -126,7 +126,7 @@ When the check cannot be finished, the handoff is the deliverable. [Contributing
 
 Some of these are hard stops written into the repositories.
 
-- **Ghidra is down and you are in a repository that gates on it.** [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), [gbrecompiled](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md) and [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md) say no reading files, no writing code, no suggestions.
+- **Ghidra is down and you are in a repository that gates on it.** [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md) say no reading files, no writing code, no suggestions.
 - **You are in [xboxlle-probe](https://github.com/mstan/xboxlle-probe) and the work needs hardware.** A human must identify the exact target and confirm authorisation first, and you must not scan a network or infer a host address. Stop and ask.
 - **Your change touches indirect jumps, relocation or hardware interaction.** Those need a proof artefact, and code without proof is invalid in [psxrecomp](https://github.com/mstan/psxrecomp) and [vbrecomp](https://github.com/mstan/vbrecomp).
 - **The framework the repository defers to is not present.** Do not reimplement the missing framework rules from context.

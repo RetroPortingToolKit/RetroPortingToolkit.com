@@ -56,7 +56,7 @@ More practically, I have also been following various decompilations, with [Ship 
 
 ![Sega Genesis Recomp Sonic 1 & Sonic 2](./SonicTheHedgehog2Recomp_dmU91sI6HM.png)
 
-Not too long after that came the emergence of recompilations. Similar to decompilations, but not exactly the same, recompilations offered another way to bring games to other systems. Modding and extensibility were far less approachable, but they still served as a foundation that one could build off of. As far as I am aware, only the Nintendo 64 and, more recently, the [Game Boy Color](https://github.com/arcanite24/gb-recompiled) have static recompilers capable of booting commercial games.
+Not too long after that came the emergence of recompilations. Similar to decompilations, but not exactly the same, recompilations offered another way to bring games to other systems. Modding and extensibility were far less approachable, but they still served as a foundation that one could build off of.
 
 Even though decompilation and recompilation were not my areas of expertise, I had a high-level understanding and appreciation of what those communities were doing. Enough to appreciate the work, but not enough to meaningfully contribute to it.
 

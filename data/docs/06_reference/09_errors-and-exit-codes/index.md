@@ -11,7 +11,6 @@ repos:
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/gcnlle"
-  - "https://github.com/mstan/gbrecompiled"
   - "https://github.com/mstan/SuperMarioWorldRecomp"
 updated: "2026-08-25"
 ---
@@ -140,8 +139,6 @@ Four things to know before you write a client.
 | A bare exe is published and does not run | It needs its SDL DLL and the launcher assets tree | Ship exactly one asset per platform, never a bare exe | [`FaxanaduRecomp/RELEASE.md`](https://github.com/mstan/FaxanaduRecomp/blob/master/RELEASE.md) |
 | The setup-host packager refuses a host exe | The exe was not built with the current framework, so its version stamp is missing or disagrees with `VERSION`. This produced a netplay list-filter bug | Rebuild against the current framework, then repackage | [`psxrecomp/tools/package_setup_host.sh`](https://github.com/mstan/psxrecomp/blob/master/tools/package_setup_host.sh) |
 | AppImage state lands inside the read-only payload | The AppRun did not export `$APPIMAGE`, so state anchored inside the squashfs mount | Use `tools/build-linux.sh`, whose layout test fails the build on exactly this | [`SuperMarioWorldRecomp/RELEASE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/RELEASE.md) |
-| `adb devices` shows a device as `unauthorized` | USB debugging not accepted on the handset | Unlock the device, accept the prompt, and re-run until it shows as a device | [`gbrecompiled/ANDROID.md`](https://github.com/mstan/gbrecompiled/blob/master/ANDROID.md) |
-| Android build fails with `SDL2_SOURCE_DIR is required` | The generated Android project fails early when that variable is missing | Export `SDL2_SOURCE_DIR`, or pass it inline to gradle | [`gbrecompiled/ANDROID.md`](https://github.com/mstan/gbrecompiled/blob/master/ANDROID.md) |
 | A CI check goes red so often that nobody reads it | A check nobody trusts still costs attention | psxrecomp's answer was to delete the untrusted check and keep only release packaging | [`psxrecomp/.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml) |
 
 ## Documented commands that are not in this checkout
@@ -162,7 +159,7 @@ Two gaps, stated so nobody fills them with a guess. Most tools in the fleet stat
 - segagenesisrecomp: [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md), [`RELEASING.md`](https://github.com/mstan/segagenesisrecomp/blob/master/RELEASING.md), [`README.md`](https://github.com/mstan/segagenesisrecomp/blob/master/README.md)
 - gbarecomp: [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md), [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md), [`packaging/README.md`](https://github.com/mstan/gbarecomp/blob/main/packaging/README.md)
 - nesrecomp: [`tools/cli.py`](https://github.com/mstan/nesrecomp/blob/master/tools/cli.py), [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md). snesrecomp: [`snesrecomp_cli.py`](https://github.com/mstan/snesrecomp/blob/main/snesrecomp_cli.py). ndsrecomp: [`recompiler/src/main.cpp`](https://github.com/mstan/ndsrecomp/blob/main/recompiler/src/main.cpp), [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md)
-- vbrecomp: [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md). cdirecomp: [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). gcnlle: [`build.sh`](https://github.com/mstan/gcnlle/blob/master/build.sh), [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md). gbrecompiled: [`ANDROID.md`](https://github.com/mstan/gbrecompiled/blob/master/ANDROID.md)
+- vbrecomp: [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md). cdirecomp: [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). gcnlle: [`build.sh`](https://github.com/mstan/gcnlle/blob/master/build.sh), [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md)
 - Game repositories: [`SuperMarioWorldRecomp/RELEASE.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/RELEASE.md), [`SuperMarioWorldRecomp/docs/TROUBLESHOOTING.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/docs/TROUBLESHOOTING.md), [`FaxanaduRecomp/RELEASE.md`](https://github.com/mstan/FaxanaduRecomp/blob/master/RELEASE.md), [`DKC2Recomp/ISSUES.md`](https://github.com/mstan/DKC2Recomp/blob/main/ISSUES.md), [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md), [`BoktaiRecomp/.github/workflows/ci.yml`](https://github.com/Shy/BoktaiRecomp/blob/main/.github/workflows/ci.yml)
 
 ## Next

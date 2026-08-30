@@ -137,7 +137,7 @@ python tools/audio/audio_diff.py g.wav r.wav
 
 `--interp` runs the superzazu reference interpreter instead of the recompiled code, which is how self-agreement is checked. After every run, read `dispatch_misses.log` beside the executable.
 
-## What runs today, and what is verified
+## What is verified?
 
 Over "the **exercised path**, power-on + the self-running attract/demo, ~40 s", both titles match reference emulators on all seven axes, and "It is **NOT** whole-game, played-to-completion validation." An axis counts as validated only when it is both cross-referenced against a reference and runtime-diffed against an accurate oracle, because "`compiled == our-interp` is **necessary, not sufficient**". That is [co-simulation](/docs/concepts/co-simulation) with external oracles.
 

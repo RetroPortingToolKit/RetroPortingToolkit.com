@@ -32,7 +32,7 @@ introductions skip, so it is first here instead:
 | Console | Scaffolding | Realistic first step |
 |---|---|---|
 | PlayStation | Yes, a real scaffold script | One command creates the project, probes your disc and can build it |
-| NES, SNES, Game Boy Advance, Game Boy, Genesis, Master System, Virtual Boy, DS | None | Copy the shape of an existing port and adapt it by hand |
+| NES, SNES, Game Boy Advance, Genesis, Master System, Virtual Boy, DS | None | Copy the shape of an existing port and adapt it by hand |
 | CD-i, GameCube, Xbox | Not applicable | These are research projects, not a route to a playable port |
 
 PlayStation is the one that goes fast, because `psxrecomp` ships

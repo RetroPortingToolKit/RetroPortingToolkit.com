@@ -205,13 +205,9 @@ a bare path as the whole info string works when the block has no language
   which older document disagrees with a newer one: that is an internal
   monologue and it does not belong on a page (core developer, 2026-08-27).
   A practical warning that names the file to trust is still fine.
-- vbrecomp and gbrecompiled do not carry a page's argument: no featured
-  examples, no quoted authorities, no sections built on them (owner and
-  core developer, 2026-08-27). vbrecomp is early and runs exactly one
-  game; gbrecompiled is a development fork of an outside project. Their
-  own platform pages, fleet-wide surveys, registries and citation lists
-  still name and quote them as records of themselves, because leaving
-  them out would make those records false.
+- vbrecomp does not carry a page's argument: no featured examples, no quoted
+  authorities, no sections built on it (owner and core developer,
+  2026-08-27). vbrecomp is early and runs exactly one game.
 - Co-simulation's reference is a known good emulator of the console, modified
   so its registers and memory can be read out and compared while it runs,
   over the same interfaces the recompiled side exposes. A project comparing

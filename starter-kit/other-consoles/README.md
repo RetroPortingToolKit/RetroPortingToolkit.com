@@ -64,7 +64,6 @@ Almost everything else is generated, gitignored, or optional.
 | NES | [`nesrecomp`](https://github.com/mstan/nesrecomp) | [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp) | `game.toml`, plus `baserom_annotations.csv` |
 | SNES | [`snesrecomp`](https://github.com/mstan/snesrecomp) | [DKC2Recomp](https://github.com/mstan/DKC2Recomp) | a `recomp/` directory of bank configuration |
 | Game Boy Advance | [`gbarecomp`](https://github.com/mstan/gbarecomp) | [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) | `game.toml`, plus `symbols/` and `config/` |
-| Game Boy | [`gbrecompiled`](https://github.com/mstan/gbrecompiled) | [PokemonYellowRecomp](https://github.com/mstan/PokemonYellowRecomp) | see that repository, it documents its own build dependencies |
 | Genesis | [`segagenesisrecomp`](https://github.com/mstan/segagenesisrecomp) | [SonicTheHedgehogRecomp](https://github.com/mstan/SonicTheHedgehogRecomp) | `blacklist.txt` and `debug.ini`, with scripts under `scripts/` |
 | Master System, Game Gear | [`smsggrecomp`](https://github.com/mstan/smsggrecomp) | [SonicTheHedgehogSMSRecomp](https://github.com/mstan/SonicTheHedgehogSMSRecomp) | see that repository |
 | Virtual Boy | [`vbrecomp`](https://github.com/mstan/vbrecomp) | [MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp) | see that repository |

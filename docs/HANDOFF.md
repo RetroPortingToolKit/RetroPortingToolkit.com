@@ -385,8 +385,8 @@ a sort key.
 45 games and 10 platforms became 70 and 13. Everything new was written from
 the project's own README and releases.
 
-New platforms: Game Boy (mstan/gbrecompiled), Master System and Game Gear
-(mstan/smsggrecomp), Nintendo 64 (NO platform repo: the Stadium projects build
+New platforms: Master System and Game Gear (mstan/smsggrecomp), Nintendo 64
+(NO platform repo: the Stadium projects build
 on forks of Mr-Wiseguy's N64Recomp, credited as prior work, and the page omits
 `repo:` rather than pointing at someone else's project).
 

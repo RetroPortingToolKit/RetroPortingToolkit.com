@@ -131,9 +131,9 @@ The runtime serves line-based commands on port 4390 and the oracle serves the ma
 
 [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md) documents roughly two dozen commands with no handler in `runtime/src/debug_server.c`, among them `first_divergence`, `framebuf_diff` and `step`. Some of that exists as Python tools in `tools/` instead. Trust `debug_server.c`, and see [the TCP debug protocol](/docs/reference/tcp-protocol).
 
-## What runs today, and the limits
+## Known limits
 
-The public result is the one game repository quoted above. The framework's accuracy work is a seven-axis burndown against the Beetle VB oracle. Terms are in the [glossary](/docs/concepts/glossary).
+The framework's accuracy work is a seven-axis burndown against the Beetle VB oracle. Terms are in the [glossary](/docs/concepts/glossary).
 
 - The oracle is instruction-accurate, not cycle accurate, so the project states its cycle axis "cannot be GREEN against the oracle *alone*".
 - Floating point uses host `float` and the FP exception flags are unmodeled, so V810 floating point is not oracle-exact.

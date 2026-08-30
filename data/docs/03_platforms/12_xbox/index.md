@@ -122,10 +122,6 @@ python host/xbox_probe.py probe cpu
 
 > **Warning.** The client also carries subcommands the repository itself labels DANGEROUS: raw and bulk memory reads, memory and MMIO writes, raw x86 execution, XBE launch, dashboard return, and FTP upload. Each requires `--i-accept-the-risk` and a freshly armed connection, and the repository's rules require a human to authorize each one explicitly. Read that list as a documented surface, not as a walkthrough.
 
-## What runs today
-
-Three named probes exist. Two return measurements, one returns a documented refusal. The NV2A set is described in the source as "Fixed read-only registers measured successfully on the original v1.1 test console", and whether the agent has been run against any other console is not recorded. The published evidence is one sanitized table in `docs/ORIGIN.md` plus the CPU reply above. There is no game, no port and no emulator in this repository.
-
 ## Known limits
 
 - The Controller S probe is a capability sentinel only: it reports that it cannot answer, and touches no USB or OHCI hardware.

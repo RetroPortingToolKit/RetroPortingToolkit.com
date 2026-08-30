@@ -28,7 +28,6 @@ Sorted by port. "What listens" names the process. On several ports that is a rec
 |---|---|---|---|
 | 4370 | [psxrecomp](https://github.com/mstan/psxrecomp) | `psx-runtime`, the recompiled runtime | [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md), [`CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) |
 | 4370 | [nesrecomp](https://github.com/mstan/nesrecomp) ports of Super Mario Bros., Dr. Mario, Faxanadu, The Legend of Zelda and Yoshi's Cookie | the native runner | [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), and [`CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) in LegendOfZeldaNESRecomp |
-| 4370 | [gbrecompiled](https://github.com/mstan/gbrecompiled) | the native runtime. The PyBoy oracle is not given a TCP port in that document | [`README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md) |
 | 4371 | psxrecomp | the DuckStation oracle. "Retired as the oracle on 2026-05-05 and is no longer built from this repository" | [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) |
 | 4371 | [SuperMarioBrosNESRecomp](https://github.com/mstan/SuperMarioBrosNESRecomp) | the Nestopia oracle | [`TCP.md`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/TCP.md) |
 | 4372 | [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp) | the native runner | [`CLAUDE.md`](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md) |
@@ -79,7 +78,7 @@ The clash you will hit is psxrecomp against one of the three native runners. A P
 
 ### Port 4370
 
-psxrecomp's `psx-runtime` shares it with five nesrecomp game ports, Super Mario Bros., Dr. Mario, Faxanadu, The Legend of Zelda and Yoshi's Cookie, and with gbrecompiled. Same problem: any two of those at once collide.
+psxrecomp's `psx-runtime` shares it with five nesrecomp game ports: Super Mario Bros., Dr. Mario, Faxanadu, The Legend of Zelda and Yoshi's Cookie. Same problem: any two of those at once collide.
 
 ### Ports 19842 and 19843
 
@@ -168,7 +167,6 @@ These are not debug servers, but they take localhost ports on the same machine. 
 |---|---|---|
 | 7777 | psxrecomp | Ghidra over SSE at `http://localhost:7777/sse`, declared twice, as `ghidra` and `ghidra_psx` |
 | 2222 | ndsrecomp | Ghidra over SSE. Its plan notes that the server "requires a program open in CodeBrowser to expose its tools" |
-| 4000 | gbrecompiled | Ghidra over SSE |
 | 8078 | [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp) | Ghidra over SSE, declared as `ghidra_smw` |
 
 Several repositories require a reachable Ghidra MCP server but ship no `.mcp.json`, among them nesrecomp, Megaman3NESRecomp and YoshiNESRecomp. An agent working in one of those has no configured server to reach.
@@ -180,7 +178,7 @@ Several repositories require a reachable Ghidra MCP server but ship no `.mcp.jso
 - [gbarecomp](https://github.com/mstan/gbarecomp): [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md). [ndsrecomp](https://github.com/mstan/ndsrecomp): [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), [`ISSUES.md`](https://github.com/mstan/ndsrecomp/blob/main/ISSUES.md), [`.mcp.json`](https://github.com/mstan/ndsrecomp/blob/main/.mcp.json).
 - [vbrecomp](https://github.com/mstan/vbrecomp): [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), and [`debug.ini.example`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/debug.ini.example) in MarioTennisVirtualBoyRecomp.
 - [cdirecomp](https://github.com/mstan/cdirecomp): [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). [gcnlle](https://github.com/mstan/gcnlle): [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md).
-- [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp): [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md) and [`runner/cmd_server.c`](https://github.com/mstan/segagenesisrecomp/blob/master/runner/cmd_server.c). [smsggrecomp](https://github.com/mstan/smsggrecomp): [`DEBUG.md`](https://github.com/mstan/smsggrecomp/blob/main/DEBUG.md). [gbrecompiled](https://github.com/mstan/gbrecompiled): [`README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md).
+- [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp): [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md) and [`runner/cmd_server.c`](https://github.com/mstan/segagenesisrecomp/blob/master/runner/cmd_server.c). [smsggrecomp](https://github.com/mstan/smsggrecomp): [`DEBUG.md`](https://github.com/mstan/smsggrecomp/blob/main/DEBUG.md).
 - Game repositories with their own ports: [RubySapphireRecomp](https://github.com/mstan/RubySapphireRecomp), [DragonBallZLegacyOfGokuRecomp](https://github.com/mstan/DragonBallZLegacyOfGokuRecomp), [DragonBallZLegacyofGokuIIRecomp](https://github.com/mstan/DragonBallZLegacyofGokuIIRecomp), [DragonBallZBuusFuryRecomp](https://github.com/mstan/DragonBallZBuusFuryRecomp), [EmeraldRecomp](https://github.com/mstan/EmeraldRecomp), each in its own `CLAUDE.md`.
 
 ## Next

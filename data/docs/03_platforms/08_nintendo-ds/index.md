@@ -160,9 +160,7 @@ nds_runner.exe "F:\Projects\ndsrecomp\ndsrecomp\bios" --interactive
 
 Runtime and oracle both speak line-delimited JSON on `127.0.0.1:19842` and `19843`. [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md) is behind the implementation: `runner/src/debug_server.cpp` answers roughly thirty commands it does not list. See [the TCP debug protocol](/docs/reference/tcp-protocol).
 
-## What runs today, and the limits
-
-The firmware path is the demonstrated result. The one public game consumer is [MetroidPrimeHuntersRecomp](https://github.com/mstan/MetroidPrimeHuntersRecomp), gated to a single cartridge revision and describing itself as "**Public alpha - bugs are expected.**"
+## Known limits
 
 - No compatibility promise, and no turnkey build from a clean clone.
 - Whole-machine save states do not exist; only the vendored 3D device serializes.

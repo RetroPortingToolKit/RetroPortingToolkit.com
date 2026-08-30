@@ -95,10 +95,6 @@ python tools/shell_idle_smoke.py
 
 The middle one is the gate that comes first. It documents its own exit codes: "Exit codes: 0 = no misses, 1 = misses recorded, 2 = server unreachable."
 
-## What runs today
-
-The firmware milestone is the one that closed. `BIOS-CLOSEOUT.md` records the BIOS and player-shell closeout on 2026-07-14, with runner tests and co-simulation self-tests passing at the time it was written. Those are the repository's own records. Beyond the shell, the README's claim is a very basic boot of a CD-i title, with Hotel Mario as the single bring-up and no compatibility story past it.
-
 ## How the BIOS provenance was handled
 
 This is the part of cdirecomp worth copying. Because it recompiles firmware and models hardware that other people have already emulated, it documents where every implementation came from. `PROVENANCE.md` gives each major component an independent implementation basis and the evidence for it. SCC68070 exception frames, timers and UART come from the SCC68070 User Manual. The DS1216 phantom clock comes from the Analog Devices data sheet. MCD212 video comes from the CD-i Full Functional Specification. Every source is listed by URL, and the device sources say the same at the top of the file.

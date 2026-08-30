@@ -1,6 +1,6 @@
 ---
 title: "Licenses"
-summary: "A repository-by-repository license census for the fleet, including the 48 that carry no license file, plus the third-party licenses each toolchain bundles or links."
+summary: "A repository-by-repository license census for the fleet, including the 44 that carry no license file, plus the third-party licenses each toolchain bundles or links."
 pageType: "reference"
 tags: ["Licensing", "Attribution", "Fleet"]
 repos:
@@ -15,7 +15,7 @@ updated: "2026-08-25"
 ---
 
 Every license below was read from the license file itself, not from a README
-summary. The 48 repositories that declare nothing are listed too: a missing
+summary. The 44 repositories that declare nothing are listed too: a missing
 license file is a fact you need. This is what the files say. It is not legal
 advice.
 
@@ -23,9 +23,9 @@ advice.
 
 | Measure | Count |
 |---|---|
-| Repositories surveyed | 83 |
+| Repositories surveyed | 79 |
 | Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | 35 |
-| Carrying no license file at all | 48 |
+| Carrying no license file at all | 44 |
 | Distinct license identities found | 5 |
 
 The five identities are PolyForm Noncommercial 1.0.0, MIT, GPL-3.0, a
@@ -46,7 +46,6 @@ copyright holder.
 | [mstan/vbrecomp](https://github.com/mstan/vbrecomp) | MIT | [`LICENSE`](https://github.com/mstan/vbrecomp/blob/master/LICENSE) | 53 lines: the MIT text plus an in-file `# Attribution` section |
 | [mstan/gcnlle](https://github.com/mstan/gcnlle) | GNU GPL v3 | [`LICENSE`](https://github.com/mstan/gcnlle/blob/master/LICENSE) | Stock FSF text. The README states GPL-3.0 with GPL-2.0-or-later components under compatible GPLv3 terms |
 | [mstan/smsggrecomp](https://github.com/mstan/smsggrecomp) | **None** | no license file | README states the license is "Not yet declared" |
-| [mstan/gbrecompiled](https://github.com/mstan/gbrecompiled) | **None** | no license file | Development fork of `arcanite24/gb-recompiled`. The upstream terms are not stated in the repository |
 | [mstan/xboxlle-probe](https://github.com/mstan/xboxlle-probe) | MIT | [`LICENSE`](https://github.com/mstan/xboxlle-probe/blob/main/LICENSE) | Restated in [`SECURITY.md`](https://github.com/mstan/xboxlle-probe/blob/main/SECURITY.md) |
 
 ## Shared services and components
@@ -90,7 +89,7 @@ site does not name, link or describe it until its owner has been asked.
 
 ## Repositories with no license file
 
-48 of the 83. This site does not state or imply a license for any of them.
+44 of the 79. This site does not state or imply a license for any of them.
 
 **mstan, Game Boy Advance (11).** `DragonBallZLegacyOfGokuRecomp`,
 `DragonBallZLegacyofGokuIIRecomp`, `EmeraldRecomp`, `FireRedLeafGreenRecomp`,
@@ -106,10 +105,9 @@ site does not name, link or describe it until its owner has been asked.
 **mstan, SNES (5).** `MegaManXSNESRecomp`, `StarFoxSNESRecomp`,
 `SuperMarioWorldRecomp`, `SuperMetroidRecomp`, `ZeldaAlttPSNESRecomp`.
 
-**mstan, Game Boy, Game Gear, Master System, Genesis (9).**
-`PokemonRedAndBlueRecomp`, `PokemonYellowRecomp`, `TetrisGBRecomp`,
-`gbrecompiled`, `SonicBlastGGRecomp`, `SonicTheHedgehogSMSRecomp`,
-`smsggrecomp`, `Sonic3AndKnucklesRecomp`, `SonicTheHedgehog2Recomp`.
+**mstan, Game Gear, Master System, Genesis (5).** `SonicBlastGGRecomp`,
+`SonicTheHedgehogSMSRecomp`, `smsggrecomp`, `Sonic3AndKnucklesRecomp`,
+`SonicTheHedgehog2Recomp`.
 
 **TechnicallyComputers (11).** `Bomberman-Fantasy-Race-Recomp`,
 `Bomberman-World-Recomp`, `BombermanPartyEditionRecomp`,
@@ -439,10 +437,10 @@ no OpenBIOS or TinyCC section at all. `OpokXeno/xenogears-recomp` carries
 psxrecomp as a submodule pointing at that owner's own fork. For any framework
 fact, read `mstan/psxrecomp` and `mstan/snesrecomp` directly.
 
-**Not established from the files.** The license of `mstan/gbrecompiled`'s
-upstreams. The license of `TechnicallyComputers/retcomm-catalog`. And whether
-release archives really ship the notices their repositories require, because
-this census read repositories, not built packages.
+**Not established from the files.** The license of
+`TechnicallyComputers/retcomm-catalog`. And whether release archives really ship
+the notices their repositories require, because this census read repositories,
+not built packages.
 
 ## Source
 

@@ -77,7 +77,7 @@ After "never edit generated code", this is the most consistent rule in the fleet
 
 **Architectural locks.** Several repositories state a decision as closed: one backend in segagenesisrecomp, low level emulation first in gcnlle, the recompiled and dispatched BIOS in gbarecomp, one machine plus a flag rather than a fork in smsggrecomp, no interpreter in psxrecomp and vbrecomp. The fleet contradicts itself on that last one, and psxrecomp carries a later rule requiring a small interpreter for one bounded case, so read the whole file before you conclude what is locked.
 
-**Rules from another repository.** The fleet disagrees with itself on pausing the runtime, print debugging, unit tests, `game.cfg` against `game.toml`, and how a dispatch miss may be resolved. [`CLAUDE.md`](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md) in gbrecompiled puts the general form in a list of things not to do:
+**Rules from another repository.** The fleet disagrees with itself on pausing the runtime, print debugging, unit tests, `game.cfg` against `game.toml`, and how a dispatch miss may be resolved. The general form is simple:
 
 ```text title="CLAUDE.md"
 - Do not pre-emptively fix hardware behavior "just in case"
@@ -167,7 +167,6 @@ Everything on this page comes from one account's repositories. No repository in 
 - [mstan/nesrecomp](https://github.com/mstan/nesrecomp): [`AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md), [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md)
 - [mstan/psxrecomp](https://github.com/mstan/psxrecomp): [`CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md)
 - [mstan/segagenesisrecomp](https://github.com/mstan/segagenesisrecomp): [`CLAUDE.md`](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md), and [mstan/smsggrecomp](https://github.com/mstan/smsggrecomp): [`CLAUDE.md`](https://github.com/mstan/smsggrecomp/blob/main/CLAUDE.md)
-- [mstan/gbrecompiled](https://github.com/mstan/gbrecompiled): [`CLAUDE.md`](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md)
 - [mstan/DKC2Recomp](https://github.com/mstan/DKC2Recomp): [`AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md), and [mstan/xboxlle-probe](https://github.com/mstan/xboxlle-probe): [`AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md)
 - Handoffs: [`HANDOFF.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/HANDOFF.md) in YoshiNESRecomp; [`SESSION_HANDOFF.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/SESSION_HANDOFF.md), [`CODEX_SUMMARY.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/CODEX_SUMMARY.md) and [`CODEX_AUDIT_BY_CLAUDE.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/CODEX_AUDIT_BY_CLAUDE.md) in GumshoeNESRecomp; [`docs/HANDOFF_2026-08-09.md`](https://github.com/mstan/gcnlle/blob/master/docs/HANDOFF_2026-08-09.md) in gcnlle; [`HANDOFF_VRAM_DIFFER.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/HANDOFF_VRAM_DIFFER.md) in SuperMarioWorldRecomp; [`NOTES_TO_CODEX.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/NOTES_TO_CODEX.md) in PokemonStadiumRecomp
 

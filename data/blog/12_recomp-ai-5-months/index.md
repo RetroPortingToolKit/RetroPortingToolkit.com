@@ -28,7 +28,7 @@ Five months later, the experiment has expanded well beyond that original PlaySta
 
 ![Super Mario Bros 16:0 experimental run (Credit: mstan)](./smb-169.png)
 
-Today, I have repositories for NES, SNES, Sega Genesis, PlayStation, Game Boy Advance, Virtual Boy, Sega Master System, and Game Gear with at least one commercial title running. I also forked a Game Boy Color ecosystem and applied the same strategies I learned from my other ones.
+Today, I have repositories for NES, SNES, Sega Genesis, PlayStation, Game Boy Advance, Virtual Boy, Sega Master System, and Game Gear with at least one commercial title running.
 
 ## Games are the byproduct; not my goal
 

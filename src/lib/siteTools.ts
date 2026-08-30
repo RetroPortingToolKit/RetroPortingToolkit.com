@@ -500,7 +500,6 @@ export const HARDWARE_DOCS_PLATFORM: Record<string, string> = {
   nes: "nes",
   "super-nintendo": "snes",
   "game-boy-advance": "game-boy-advance",
-  "game-boy": "game-boy",
   "sega-genesis": "sega-genesis",
   "master-system-game-gear": "master-system-game-gear",
   "nintendo-ds": "nintendo-ds",
@@ -515,7 +514,6 @@ export const CONSOLE_ALIASES: Record<string, string[]> = {
   nes: ["nes", "famicom", "nintendo entertainment system"],
   "super-nintendo": ["snes", "super nes", "super nintendo", "super famicom"],
   "game-boy-advance": ["gba", "game boy advance", "gameboy advance"],
-  "game-boy": ["gb", "gbc", "game boy", "gameboy", "game boy color"],
   "sega-genesis": ["genesis", "sega genesis", "mega drive", "megadrive"],
   "master-system-game-gear": [
     "sms",

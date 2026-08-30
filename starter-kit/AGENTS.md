@@ -35,13 +35,13 @@ probes the disc for its identity and a first pass at seeds, writes the CI and
 packaging stubs, and can run the first generate and build for you. That is the
 path that gets a new title booting quickly.
 
-**The other eight toolchains have no scaffolding at all.** NES, SNES, Game Boy
-Advance, Game Boy, Genesis, Master System, Virtual Boy and DS all require you to
+**The other toolchains have no scaffolding at all.** NES, SNES, Game Boy
+Advance, Genesis, Master System, Virtual Boy and DS all require you to
 copy the shape of an existing port by hand. `other-consoles/` in this repository
 tells you which port to copy and what to change. It is slower and it is more
 manual, and you should tell your user that up front rather than after an hour.
 
-**On those eight, do not mistake `build` for a port.** Several of them ship a
+**On those toolchains, do not mistake `build` for a port.** Several of them ship a
 `build` subcommand that exits cleanly and leaves generated C and a
 `CMakeLists.txt`, and it builds a static library rather than a playable port. The
 frameworks say so in the output they generate: nesrecomp's says "it is not a
