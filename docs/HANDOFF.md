@@ -443,9 +443,8 @@ both pages already link their source article under `links:`.
   zero production vulnerabilities.
 - The build keeps bootstrap JavaScript under 900 kB by splitting catalog,
   blog, and each documentation section. The deferred documentation search
-  index remains one intentionally lazy ~809 kB chunk. Documentation
-  `updated:` stamps were brought forward where later commits changed content,
-  so a clean build no longer emits stale-date warnings.
+  index remains one intentionally lazy ~809 kB chunk.
+
 ## Editorial documentation pass (2026-08-29)
 
 - Reworked the public platform index to focus on maintained, clearly scoped toolchains; removed maturity-ranking language and stopped advertising unowned or experimental platform paths.
@@ -456,3 +455,41 @@ both pages already link their source article under `links:`.
 - Rewrote `the-game-file-you-supply` as concise legal/technical guidance: users bring authorized files, keep them private, and match the exact revision; repository citations and quoted legal text are gone.
 - Public rendering now suppresses the contents of every `## Source` appendix while retaining the heading for stable navigation; added a brief Redump-format explanation to the game-file guidance.
 - Added a site-wide documentation preview banner: docs remain available for the v1 launch, but clearly signal that they are early and that linked repositories are the source of truth for exact commands/support.
+
+## Release audit (2026-08-30)
+
+- Article videos no longer receive a source until they approach the viewport;
+  user-started playback keeps its source while ambient autoplay still follows
+  the site's motion/data policy. The Tomba route was checked in the local
+  production build: no source before intersection, then the expected source
+  after scrolling into the 400px load margin.
+- Home swipe animation stores frame-by-frame progress outside React state, so
+  a drag no longer rerenders the whole Home tree or rebuilds its observers on
+  every animation frame.
+- CMS mutations use one pinned Git snapshot from validation through commit.
+  Ref movement now produces an HTTP 409 instead of applying a stale write;
+  Home saves use the same compare-and-swap rule.
+- Public documentation source appendices are omitted from rendered pages,
+  catalog routes do not import documentation bodies, and the build confirms
+  eight documentation body chunks with none statically reached.
+- `npm run assets:audit` is the repeatable asset gate. It reports 374 media
+  files (238,337,262 bytes), 22 preserved provenance originals excluded from
+  the client build (24,724,514 bytes), 11 shadowed social-cover copies
+  suppressed, and no stale LQIP files. Nine stable public aliases remain
+  intentionally reachable for URL compatibility. The exact before/after
+  production-build comparison fell from 724 to 684 files and from 258,959,135
+  to 232,204,638 bytes: 26,754,497 bytes (25.52 MiB, 10.33%) removed.
+- Direct item and collection routes now move initial focus inside the active
+  desktop dialog or mobile sheet after opening. The standard mobile item sheet
+  also uses the same Tab boundary as the other overlays. Local browser checks
+  covered 1280px and 390px viewports; the mobile routes had no horizontal
+  overflow.
+- Final production output at this checkpoint: 893 modules, 192 prerendered
+  routes, 67 item social covers, bootstrap JavaScript 567.12 kB raw / 180.22
+  kB gzip, catalog 279.03 / 79.65 kB, blog 235.09 / 82.93 kB, and the lazy docs
+  search chunk 760.66 / 271.51 kB. The build still warns that six documentation
+  pages declare 2026-08-26 while their latest content commit is 2026-08-29;
+  this is date metadata, not a build failure.
+- Browser automation verifies engine-visible behavior only. Any Safari-native
+  cursor or physical trackpad claim still requires the deployed build to be
+  exercised in real Safari on macOS under the project contract.
