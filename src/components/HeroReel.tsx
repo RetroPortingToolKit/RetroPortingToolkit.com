@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { playMp4ToCanvas, WEBCODECS_OK, type CanvasVideoHandle } from "@/lib/canvasVideo";
+import { playMp4ToCanvas, type CanvasVideoHandle } from "@/lib/canvasVideo";
+import {
+  useAmbientMediaAllowed,
+  webCodecsAvailable,
+} from "@/lib/useAmbientMedia";
 
 // The hero is a living collage of real gameplay captures: frames published by
 // YouTube for the project's verified coverage videos (every frame below was
@@ -25,6 +29,10 @@ const POOL: string[] = [
   "https://i.ytimg.com/vi/L36ppNkuJG0/hq3.jpg", // Tomba!
   "https://i.ytimg.com/vi/tvqnW6J6KU0/hq3.jpg", // Prime Hunters 21:9
 ];
+// Four initial URLs fill all twelve cells by repetition. The rest enter one at
+// a time only while the video is still buffering, avoiding eleven simultaneous
+// third-party requests on the successful autoplay path.
+const INITIAL_POOL = POOL.slice(0, 4);
 
 const TILES = 12; // 4x3 on desktop; CSS hides the last rows' overflow on mobile
 const TICK_MS = 2600; // one tile swaps per tick
@@ -32,6 +40,7 @@ const TICK_MS = 2600; // one tile swaps per tick
 // Deterministic image pick: tile i after u updates. Primes stride the pool so
 // neighboring tiles never show the same capture at the same time.
 function imageFor(i: number, updates: number): string {
+  if (updates === 0) return INITIAL_POOL[i % INITIAL_POOL.length];
   return POOL[(i * 5 + updates * 7) % POOL.length];
 }
 
@@ -52,15 +61,16 @@ function Tile({ src, delay }: { src: string; delay: number }) {
 }
 
 export function HeroReel({ still = false }: { still?: boolean }) {
-  const reduced =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  // The montage is the hero: it mounts whenever this pane is interactive.
-  // Reduced-motion only quiets the collage rotation (the loading fallback),
-  // it does not suppress the video itself.
+  const policyAllowsMotion = useAmbientMediaAllowed();
   const live = !still;
+  const [intent, setIntent] = useState<"auto" | "play" | "pause">("auto");
+  // Reduced-motion/data-saving preferences suppress ambient media, while the
+  // existing control remains an explicit opt-in for visitors who want it.
+  const active =
+    live &&
+    (intent === "play" || (intent === "auto" && policyAllowsMotion));
   const [playing, setPlaying] = useState(false);
-  const [userPaused, setUserPaused] = useState(false);
+  const hasPlayed = useRef(false);
   // Safari (and some power modes) can freeze a <video> mid-play and never
   // recover. When that happens we hand the reel to the WebCodecs canvas
   // player, which decodes the mp4 frame-by-frame with no <video> element and
@@ -81,37 +91,46 @@ export function HeroReel({ still = false }: { still?: boolean }) {
       : "/previews/hero-montage.mp4";
   });
 
-  // Autoplay can be denied (Low Power Mode, data saver, hidden tab). Retry on
-  // the first gesture and whenever the tab becomes visible; until then the
-  // collage carries the hero. A NotAllowedError means autoplay policy will
-  // never let the <video> start, so go straight to the canvas player.
+  // Autoplay can be denied (Low Power Mode, data saver, hidden tab). Retry
+  // while it remains eligible, but honor NotAllowedError by returning to the
+  // static collage. Canvas is reserved for a video that actually played and
+  // then froze; it must not bypass an autoplay refusal.
   useEffect(() => {
-    if (!live || cvFallback) return;
+    if (!active || cvFallback) return;
     const tryPlay = () => {
       const v = videoRef.current;
       if (v && v.paused)
         v.play().catch((err: unknown) => {
           if (
-            WEBCODECS_OK &&
             err instanceof DOMException &&
             err.name === "NotAllowedError"
           ) {
-            setCvFallback(true);
+            hasPlayed.current = false;
+            setPlaying(false);
+            setIntent("pause");
           }
         });
     };
+    tryPlay();
     window.addEventListener("pointerdown", tryPlay, { passive: true });
     document.addEventListener("visibilitychange", tryPlay);
     return () => {
       window.removeEventListener("pointerdown", tryPlay);
       document.removeEventListener("visibilitychange", tryPlay);
     };
-  }, [live, cvFallback]);
+  }, [active, cvFallback]);
+
+  useEffect(() => {
+    if (active) return;
+    hasPlayed.current = false;
+    setPlaying(false);
+    setCvFallback(false);
+  }, [active]);
 
   // Freeze watchdog: if currentTime stops advancing while the video claims to
   // be playing (Safari's silent mid-play stall), switch to the canvas player.
   useEffect(() => {
-    if (!live || cvFallback || userPaused) return;
+    if (!active || !playing || !hasPlayed.current || cvFallback) return;
     let lastT = -1;
     let strikes = 0;
     const t = window.setInterval(() => {
@@ -123,7 +142,7 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           if (strikes === 1) {
             // one free nudge before giving up on the element
             v.play().catch(() => {});
-          } else if (strikes >= 2 && WEBCODECS_OK) {
+          } else if (strikes >= 2 && webCodecsAvailable()) {
             setCvFallback(true);
           }
         } else {
@@ -133,12 +152,12 @@ export function HeroReel({ still = false }: { still?: boolean }) {
       }
     }, 2000);
     return () => window.clearInterval(t);
-  }, [live, cvFallback, userPaused]);
+  }, [active, playing, cvFallback]);
 
   // The canvas player: decodes the no-B-frame mp4 via WebCodecs and loops
   // internally; no <video>, so no autoplay policy and no Safari stalls.
   useEffect(() => {
-    if (!live || !cvFallback || userPaused) return;
+    if (!active || !cvFallback) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     cvHandle.current = playMp4ToCanvas(canvas, "/previews/hero-montage.mp4");
@@ -147,19 +166,19 @@ export function HeroReel({ still = false }: { still?: boolean }) {
       cvHandle.current?.stop();
       cvHandle.current = null;
     };
-  }, [live, cvFallback, userPaused]);
+  }, [active, cvFallback]);
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    // The collage keeps rotating only until the montage takes over, and holds
-    // still for reduced-motion users.
-    if (!live || playing || reduced) return;
+    // The collage keeps rotating only while an allowed/explicit video is
+    // buffering. Policy-suppressed and manually paused heroes remain still.
+    if (!active || playing) return;
     const t = window.setInterval(() => {
       if (document.hidden) return;
       setTick((v) => v + 1);
     }, TICK_MS);
     return () => window.clearInterval(t);
-  }, [live, playing]);
+  }, [active, playing]);
 
   return (
     <div className="hn-hero-reel">
@@ -174,7 +193,7 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           coverage footage (used with the channel's permission), self-hosted in
           /public/previews. It fades in over the collage once it actually
           plays, so a slow network or blocked autoplay still shows gameplay. */}
-      {live && !userPaused && !cvFallback && (
+      {active && !cvFallback && (
         <video
           ref={videoRef}
           className={"hn-reel-canvas" + (playing ? " is-playing" : "")}
@@ -183,8 +202,11 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           muted
           loop
           playsInline
-          preload="auto"
-          onPlaying={() => setPlaying(true)}
+          preload="metadata"
+          onPlaying={() => {
+            hasPlayed.current = true;
+            setPlaying(true);
+          }}
           onEnded={(e) => {
             // Native loop can fail on some webm/browser combinations; force it.
             const v = e.currentTarget;
@@ -193,7 +215,7 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           }}
         />
       )}
-      {live && !userPaused && cvFallback && (
+      {active && cvFallback && (
         <canvas
           ref={canvasRef}
           className="hn-reel-canvas is-playing"
@@ -204,14 +226,17 @@ export function HeroReel({ still = false }: { still?: boolean }) {
         <button
           type="button"
           className="hn-reel-pause"
-          aria-label={userPaused ? "Play background video" : "Pause background video"}
-          aria-pressed={userPaused}
+          aria-label={active ? "Pause background video" : "Play background video"}
+          aria-pressed={!active}
           onClick={() => {
-            setUserPaused((p) => !p);
+            videoRef.current?.pause();
+            hasPlayed.current = false;
             setPlaying(false);
+            setCvFallback(false);
+            setIntent(active ? "pause" : "play");
           }}
         >
-          {userPaused ? (
+          {!active ? (
             <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M4.5 2.8v10.4L13 8z" />
             </svg>

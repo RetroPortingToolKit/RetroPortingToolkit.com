@@ -1,4 +1,8 @@
-import { createFile, DataStream, type MP4File, type MP4Sample } from "mp4box";
+import type {
+  DataStream as MP4DataStream,
+  MP4File,
+  MP4Sample,
+} from "mp4box";
 
 // Play an H.264 MP4 (no B-frames -> in-order frames) into a <canvas> by decoding
 // it frame-by-frame with WebCodecs. There is no <video> element, so Safari's
@@ -7,11 +11,6 @@ import { createFile, DataStream, type MP4File, type MP4Sample } from "mp4box";
 // Backpressure: we keep only ~1-2 frames in flight (feed one chunk per drawn
 // frame) and loop by re-feeding from the first chunk (a keyframe), so memory
 // stays flat even with many cards playing at once.
-
-export const WEBCODECS_OK =
-  typeof window !== "undefined" &&
-  "VideoDecoder" in window &&
-  "EncodedVideoChunk" in window;
 
 export interface CanvasVideoHandle {
   stop: () => void;
@@ -26,6 +25,7 @@ export function playMp4ToCanvas(
   // it -- used when the canvas backs a WebGL texture, so its dimensions never
   // change after the texture is created (a resize can leave the texture black).
   const { fit = false, fps = 30 } = opts;
+  const aborter = new AbortController();
   let stopped = false;
   let decoder: VideoDecoder | null = null;
   let raf = 0;
@@ -144,53 +144,63 @@ export function playMp4ToCanvas(
   };
 
   (async () => {
-    let buf: ArrayBuffer;
     try {
-      buf = await (await fetch(url)).arrayBuffer();
+      // The parser is a deferred chunk. Fetch it beside the media instead of
+      // serializing two network waits before the first frame can be decoded.
+      const [mp4box, buf] = await Promise.all([
+        import("mp4box"),
+        fetch(url, { signal: aborter.signal }).then((response) => {
+          if (!response.ok) {
+            throw new Error(`Video fetch failed: ${response.status}`);
+          }
+          return response.arrayBuffer();
+        }),
+      ]);
+      if (stopped) return;
+      const file: MP4File = mp4box.createFile();
+      file.onError = () => {};
+      file.onSamples = onSamples;
+      file.onReady = (info) => {
+        const track = info.videoTracks?.[0];
+        if (!track) return;
+        try {
+          decoder = new VideoDecoder({
+            output: (frame) => {
+              if (stopped || queue.length > 12) {
+                frame.close();
+                return;
+              }
+              queue.push(frame);
+            },
+            error: () => {},
+          });
+          decoder.configure({
+            codec: track.codec,
+            codedWidth: track.video.width,
+            codedHeight: track.video.height,
+            description: avcDescription(file, track.id, mp4box.DataStream),
+            optimizeForLatency: true,
+          });
+          configured = true;
+        } catch {
+          return;
+        }
+        file.setExtractionOptions(track.id, null, { nbSamples: 1000 });
+        file.start();
+      };
+      const mp4buf = buf as ArrayBuffer & { fileStart: number };
+      mp4buf.fileStart = 0;
+      file.appendBuffer(mp4buf);
+      file.flush();
     } catch {
       return;
     }
-    if (stopped) return;
-    const file: MP4File = createFile();
-    file.onError = () => {};
-    file.onSamples = onSamples;
-    file.onReady = (info) => {
-      const track = info.videoTracks?.[0];
-      if (!track) return;
-      try {
-        decoder = new VideoDecoder({
-          output: (frame) => {
-            if (stopped || queue.length > 12) {
-              frame.close();
-              return;
-            }
-            queue.push(frame);
-          },
-          error: () => {},
-        });
-        decoder.configure({
-          codec: track.codec,
-          codedWidth: track.video.width,
-          codedHeight: track.video.height,
-          description: avcDescription(file, track.id),
-          optimizeForLatency: true,
-        });
-        configured = true;
-      } catch {
-        return;
-      }
-      file.setExtractionOptions(track.id, null, { nbSamples: 1000 });
-      file.start();
-    };
-    const mp4buf = buf as ArrayBuffer & { fileStart: number };
-    mp4buf.fileStart = 0;
-    file.appendBuffer(mp4buf);
-    file.flush();
   })();
 
   return {
     stop() {
       stopped = true;
+      aborter.abort();
       ro?.disconnect();
       if (raf) cancelAnimationFrame(raf);
       for (const f of queue) f.close();
@@ -206,7 +216,11 @@ export function playMp4ToCanvas(
 }
 
 // Pull the codec config box (avcC/hvcC/etc.) bytes WebCodecs needs to configure.
-function avcDescription(file: MP4File, trackId: number): Uint8Array | undefined {
+function avcDescription(
+  file: MP4File,
+  trackId: number,
+  DataStream: typeof import("mp4box").DataStream,
+): Uint8Array | undefined {
   const trak = (file.getTrackById(trackId) as unknown) as TrakLike;
   for (const entry of trak.mdia.minf.stbl.stsd.entries) {
     const box = entry.avcC ?? entry.hvcC ?? entry.vpcC ?? entry.av1C;
@@ -220,7 +234,7 @@ function avcDescription(file: MP4File, trackId: number): Uint8Array | undefined 
 }
 
 interface BoxLike {
-  write: (s: DataStream) => void;
+  write: (s: MP4DataStream) => void;
 }
 interface TrakLike {
   mdia: {

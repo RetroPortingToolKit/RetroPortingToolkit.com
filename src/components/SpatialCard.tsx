@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LabMedia } from "@/lab/labContent";
 import { useAutoplayVideo } from "@/lib/useAutoplayVideo";
-import { playMp4ToCanvas, WEBCODECS_OK } from "@/lib/canvasVideo";
+import { playMp4ToCanvas } from "@/lib/canvasVideo";
+import {
+  useAmbientMediaAllowed,
+  webCodecsAvailable,
+} from "@/lib/useAmbientMedia";
 
 // The card shows its animated cover everywhere, including visionOS. We tried the
 // <model> element (inline USDZ) for real depth, but on Vision Pro it renders a
@@ -42,6 +46,7 @@ export function SpatialCard({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // the crisp webp poster shows instantly behind the cover
   const [ready, setReady] = useState(false);
+  const policyAllowsMotion = useAmbientMediaAllowed();
 
   // Primary path: decode the preview MP4 into a <canvas> via WebCodecs -- no
   // <video> element, so Safari's autoplay policy never applies and it animates
@@ -50,14 +55,18 @@ export function SpatialCard({
   // a grid of <video> elements, and this path has no video element for its
   // policy to apply to. The <video> fallback below covers browsers without
   // WebCodecs.
-  const useCanvas = media.video && WEBCODECS_OK && !still;
+  const animate = !!media.video && !still && policyAllowsMotion;
+  const useCanvas = animate && webCodecsAvailable();
   const [near, setNear] = useState(false);
 
-  // Only decode while the card is on (or near) screen -- WebCodecs decoders are
-  // not free like a paused <video>, so running all of them at once starves each
-  // other and stutters. Off-screen cards just show their crisp poster.
+  // Both playback paths mount only while the card is on (or near) screen.
+  // Off-screen and policy-suppressed cards stay on their crisp poster without
+  // creating a decoder or allowing preload to start a media request.
   useEffect(() => {
-    if (!useCanvas) return;
+    if (!animate) {
+      setNear(false);
+      return;
+    }
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") {
       setNear(true);
@@ -72,7 +81,7 @@ export function SpatialCard({
     });
     io.observe(el);
     return () => io.disconnect();
-  }, [useCanvas]);
+  }, [animate]);
 
   useEffect(() => {
     if (!useCanvas || !near) return;
@@ -81,6 +90,10 @@ export function SpatialCard({
     const handle = playMp4ToCanvas(c, media.src);
     return () => handle.stop();
   }, [useCanvas, near, media.src]);
+
+  useEffect(() => {
+    if (!animate || !near || useCanvas) setReady(false);
+  }, [animate, near, useCanvas]);
 
   // Fallback only: set muted as a property pre-paint (Safari) and let the hook
   // retry on canplay + first gesture.
@@ -92,7 +105,7 @@ export function SpatialCard({
     }
   }, []);
   useAutoplayVideo(vref, {
-    autoplay: media.video && !useCanvas && !still,
+    autoplay: animate && near && !useCanvas,
     whenVisible: false,
   });
 
@@ -271,7 +284,7 @@ export function SpatialCard({
             />
           )}
           {(() => {
-            if (still && media.video) {
+            if (media.video && (!animate || !near)) {
               return (
                 <img
                   className="tvcard-cover"
@@ -309,7 +322,7 @@ export function SpatialCard({
                 muted
                 loop
                 playsInline
-                preload="auto"
+                preload="metadata"
                 aria-hidden="true"
                 onCanPlay={() => setReady(true)}
               >
