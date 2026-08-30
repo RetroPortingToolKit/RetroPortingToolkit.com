@@ -26,8 +26,9 @@ import type { SnippetPart } from "@/lib/docsSearch";
  * narrow while the whole site's content is ranked underneath them.
  *
  * Nothing is fetched at runtime. The index is src/lib/siteSearchIndex.ts, built
- * once per page load on the first open and shared with the WebMCP `search_site`
- * tool, so the two surfaces can never rank different corpora.
+ * once per page load when someone first types a search and shared with the
+ * WebMCP `search_site` tool, so the two surfaces can never rank different
+ * corpora. Opening the palette only to run a command leaves it unloaded.
  *
  * The ranking is src/lib/siteSearch.ts, kept pure and asserted without a DOM.
  */
@@ -59,7 +60,7 @@ export function SearchPaletteDialog() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [index, setIndex] = useState<SiteSearchIndex>();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   /** The command that has just run and is showing its confirmation. */
@@ -69,7 +70,9 @@ export function SearchPaletteDialog() {
   const closeTimer = useRef<number>();
 
   useEffect(() => {
+    if (index || !query.trim()) return;
     let live = true;
+    setLoading(true);
     loadSiteSearchIndex()
       .then((loaded) => {
         if (!live) return;
@@ -82,7 +85,7 @@ export function SearchPaletteDialog() {
     return () => {
       live = false;
     };
-  }, []);
+  }, [index, query]);
 
   useEffect(() => {
     lockBody();
