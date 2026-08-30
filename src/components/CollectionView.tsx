@@ -170,9 +170,11 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active =
   useEffect(() => {
     modalRef.current?.scrollTo({ top: 0, behavior: "auto" });
     // Focus the scroll container so the keyboard can drive it; see the same
-    // effect in ItemView.
-    if (!covered) focusScroller(modalRef.current);
-  }, [title, covered]);
+    // effect in ItemView. Wait for the opening render: focusing the closed
+    // shell during the route transition lets the browser return focus to the
+    // body when that transition settles.
+    if (open && !covered) focusScroller(modalRef.current);
+  }, [title, covered, open]);
 
   const requestClose = () => {
     if (closing) return;
@@ -259,6 +261,10 @@ function MobileSheet({ title, eyebrow, intro, items, onClose, covered }: Props) 
     scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [title]);
 
+  useEffect(() => {
+    if (open && !covered) focusScroller(scrollRef.current);
+  }, [open, covered]);
+
   const requestClose = () => {
     if (!open) return;
     setOpen(false);
@@ -278,6 +284,10 @@ function MobileSheet({ title, eyebrow, intro, items, onClose, covered }: Props) 
         <Drawer.Content
           className="sheet-content"
           aria-describedby={undefined}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            if (!covered) focusScroller(scrollRef.current);
+          }}
           onKeyDown={trapFocus}
         >
           <Drawer.Title className="sr-only">{title}</Drawer.Title>

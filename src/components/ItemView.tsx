@@ -269,9 +269,11 @@ function DesktopModal({ item, onClose, covered }: Props) {
     // the arrows and Home/End would all do nothing. Usually that is the
     // modal, but the split layout keeps the modal at viewport height and
     // scrolls its left column instead, so ask which one actually overflows.
-    // Covered layers keep their hands off.
-    if (!covered) focusScroller(modalRef.current);
-  }, [item.slug, covered]);
+    // Covered layers keep their hands off. Wait for the opening render:
+    // focusing the closed shell during the route transition lets the browser
+    // return focus to the body when that transition settles.
+    if (open && !covered) focusScroller(modalRef.current);
+  }, [item.slug, covered, open]);
 
   const requestClose = () => {
     if (closing) return;
@@ -371,6 +373,10 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
   }, [isFull]);
 
   useEffect(() => {
+    if (open && !covered) focusScroller(sheetScrollRef.current);
+  }, [open, covered]);
+
+  useEffect(() => {
     const raf = requestAnimationFrame(() => setOpen(true));
     lockBody();
     return () => {
@@ -452,6 +458,10 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
           <Drawer.Content
             className="proj-sheet"
             aria-describedby={undefined}
+            onOpenAutoFocus={(event) => {
+              event.preventDefault();
+              if (!covered) focusScroller(sheetScrollRef.current);
+            }}
             onKeyDown={trapFocus}
           >
             <Drawer.Title className="sr-only">{item.title}</Drawer.Title>
@@ -535,6 +545,10 @@ function MobileSheet({ item, onClose, covered }: Props) {
     scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [item.slug]);
 
+  useEffect(() => {
+    if (open && !covered) focusScroller(scrollRef.current);
+  }, [open, covered]);
+
   const requestClose = () => {
     if (!open) return;
     setOpen(false);
@@ -554,6 +568,11 @@ function MobileSheet({ item, onClose, covered }: Props) {
         <Drawer.Content
           className="sheet-content"
           aria-describedby={undefined}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            if (!covered) focusScroller(scrollRef.current);
+          }}
+          onKeyDown={trapFocus}
         >
           <Drawer.Title className="sr-only">{item.title}</Drawer.Title>
           <NavControls
