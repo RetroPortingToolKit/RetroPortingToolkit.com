@@ -10,7 +10,7 @@ import {
   Link,
   type Location,
 } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import Home from "./pages/Home";
 import { ItemPage } from "./pages/ItemPage";
 import { DocsPage } from "./pages/DocsPage";
@@ -192,6 +192,7 @@ function DirectModalUnderlay() {
 function AppRoutes() {
   const location = useLocation();
   const navigate = useNavigate();
+  const appBackgroundRef = useRef<HTMLDivElement>(null);
   const state = location.state as BgState | null;
   const background = state?.background;
 
@@ -230,6 +231,18 @@ function AppRoutes() {
   }
   const showOverlay = layers.length > 0;
 
+  // aria-hidden removes the covered page from the accessibility tree; inert
+  // also prevents its links and controls from receiving focus or pointer
+  // input while a modal owns the viewport.
+  useLayoutEffect(() => {
+    const backgroundElement = appBackgroundRef.current;
+    if (!backgroundElement) return;
+    backgroundElement.inert = showOverlay;
+    return () => {
+      backgroundElement.inert = false;
+    };
+  }, [showOverlay]);
+
   const closeModal = () => {
     if (background) {
       const target =
@@ -249,7 +262,11 @@ function AppRoutes() {
       <ScrollManager />
       {/* When a modal is open the background page stays mounted. Mark it
           aria-hidden so reader modes target the modal's <article>. */}
-      <div className="app-bg" aria-hidden={showOverlay || undefined}>
+      <div
+        ref={appBackgroundRef}
+        className="app-bg"
+        aria-hidden={showOverlay || undefined}
+      >
         <Suspense fallback={null}>
           <Routes location={pageLocation ?? location}>
             <Route path="/" element={<Home />} />
@@ -281,6 +298,7 @@ function AppRoutes() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        <Footer />
       </div>
 
       {/* One <Routes> per modal layer, keyed by DEPTH (not path) so sibling
@@ -315,7 +333,6 @@ function AppRoutes() {
         );
       })}
 
-      <Footer />
       {/* The site's one command palette, above every route and every overlay,
           so the bars below only have to render its button. */}
       <SearchPaletteHost />
