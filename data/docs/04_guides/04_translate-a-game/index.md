@@ -1,6 +1,6 @@
 ---
 title: "Translate a game"
-summary: "Translating a recompiled port with human-editable TOML tables: the three substitution layers, the exact table keys, how a table is reloaded into a running game, and the capture, author, verify, re-capture loop a translator actually works in."
+summary: "Build a translation table for a recompiled port without editing the game file or regenerating code."
 pageType: "guide"
 tags: ["Translation", "Localization", "PlayStation", "NES"]
 repos:
@@ -8,188 +8,122 @@ repos:
   - "https://github.com/mstan/TsumuLightRecomp"
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/FaxanaduRecomp"
-updated: "2026-08-25"
+updated: "2026-08-30"
 ---
 
-Translating a game on a recompiled port does not mean editing the game file. It does not mean rebuilding or regenerating the port either. You write a table of source bytes and target strings in TOML, and the runtime swaps in your text as the game draws it. The swap happens at one point that every guest call passes through, so no generated code changes and nothing has to be regenerated.
+A translation changes the text the player sees.
 
-## What the layer does
+In a recompiled port, that does not have to mean editing the game file. The usual path is a table: match the original bytes, then provide replacement text. The runtime applies the replacement while the game draws text.
 
-From [psxrecomp](https://github.com/mstan/psxrecomp)'s [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md):
+No game file is distributed. No generated code needs to be hand-edited.
 
-> A general localization layer captures the game's own strings out of memory and
-> substitutes translated bytes as it runs. Any source language to any target — the
-> mechanism has no built-in notion of a "default" language, so a Japanese-only
-> release can be played in English just as readily as an English one can be played
-> in another language.
+## Before you start
 
-Switching is live. Tables are human-editable TOML under `translations/`, one column per language, and the launcher carries a language picker. A translator can edit a line and see it in the game without rebuilding anything.
+You need:
 
-The hard part is glyphs, not strings. Substituted text is drawn by the game's own glyph routine. The runtime measures the real ink width of each glyph tile in VRAM to get per-character spacing, and condenses long translations so they still fit a box sized for the original. Adding a language needs no engine change and no regeneration.
+- a working port;
+- your own copy of the game;
+- a debug build if the project reloads translations through a debug server;
+- a way to capture screenshots;
+- a way to reach the text you want to translate.
 
-The implementation is `runtime/src/text_xlate.cpp`, about 970 lines, behind `runtime/include/text_xlate.h`. Its entry points are `text_xlate_init(project_root, language)`, `text_xlate_set_language(language)`, `text_xlate_on_dispatch(cpu, target)`, `text_xlate_vram_upload(x, y, w, h)` and `text_xlate_debug_json(subcmd, out, cap)`. The substitution hangs off `psx_dispatch`, which the project sums up as "one install site, no regen, works in Release." The [glossary](/docs/concepts/glossary) defines overlay, dispatch and the other terms here.
+Translation is part writing and part testing. Seeing the line on screen is the proof.
 
-## Three substitution layers, because games draw text three ways
+## What the table does
 
-Knowing which layer your text needs is the first real decision you make.
+A translation table usually records:
 
-1. **Pointer swap**, at the dispatch point. The runtime scans `a0` through `a3` for a pointer to a text record, hashes it, and on a table hit writes the replacement into guest scratch space below `$sp`. It then repoints the argument register and lets the game's own draw routine run unchanged.
-2. **`[[glyph_label]]` RAM source patch**, for labels the game draws one glyph at a time from a fixed executable address. The rule is stated crisply: "The RAM source-patch works for **any** label the game draws from a fixed EXE address, *regardless of draw path* (per-glyph sprite loop OR string formatter) ... It CANNOT touch text that is **composed at runtime**."
-3. **`[[vram_patch]]` upload-time pixel patch**, for labels that are pre-rendered pixel strips baked into the font asset. They are not glyph codes at all. After every CPU-to-VRAM transfer, any configured rectangle fully inside the upload is checked halfword by halfword against `src_hex`, and "only on an exact match rewritten with `<lang>_hex`". It re-applies on every matching upload, so it survives scene reloads, and "a different asset at the same coords fails verify and is left alone."
+| Field | Meaning |
+|---|---|
+| Source bytes | The original text record, stored as hex. |
+| Terminator | How the original string ends. |
+| Language column | The replacement text for one language. |
+| Optional address | A tie-breaker when the same bytes appear in more than one place. |
+| Width limit | How much room the translated line has. |
 
-Layer 1 is the whole capture-and-substitute mechanism, and it is short. From [`runtime/src/text_xlate.cpp`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/text_xlate.cpp):
+The runtime matches the original bytes. If it finds a match for the selected language, it gives the game the replacement text. If it does not find a match, the original text stays.
 
-```cpp title="runtime/src/text_xlate.cpp"
-    uint32_t* argregs[4] = { &cpu->gpr[4], &cpu->gpr[5], &cpu->gpr[6], &cpu->gpr[7] };
-    for (int a = 0; a < 4; ++a) {
-        uint32_t va = *argregs[a];
-        if (!va_in_ram(va)) continue;
-        if (!g_prof->first_byte_textish(grb(ram, va))) continue;
-        if (scratch_recent(va)) continue;  // don't recapture our own English scratch
-        uint8_t buf[kSrcMax]; uint32_t len = 0; Term term = Term::None;
-        if (!g_prof->read_record(ram, va, buf, &len, &term)) continue;
-        uint64_t key = fnv1a(buf, len);
-```
+## Three ways games draw text
 
-## Where tables live, and what one looks like
+Games do not all draw text the same way.
 
-One multilingual TOML file per title, under `translations/` in the port repository. Every `translations/*.toml` under the project root is read at startup. The shipped table for [TsumuLightRecomp](https://github.com/mstan/TsumuLightRecomp) is 1990 lines. Its header and two real message entries, from [`translations/tsumu.toml`](https://github.com/mstan/TsumuLightRecomp/blob/master/translations/tsumu.toml):
+| Layer | Use it when |
+|---|---|
+| String replacement | The game passes a pointer to a normal text record. |
+| Fixed label patch | The label lives at a known address and the game draws it one glyph at a time. |
+| VRAM patch | The text is already baked into a graphic, so you replace pixels instead of characters. |
 
-```toml title="translations/tsumu.toml"
-# Tsumu Light (SLPS-02253) - English translations. Framework: docs/STRING_TRANSLATION.md
-# Non-glyphed string-pointer message text (in-EXE message table, LE Shift-JIS).
-# Keyed by FNV-1a64 of the exact source-record bytes. \n=line break, \f=page, \r=prompt.
+Start with string replacement. Use the other layers only for text that cannot be reached as a normal string.
+
+## Step 1. Capture source text
+
+Run the game with capture enabled, if the project supports it.
+
+Then play through the screens you want to translate: menus, tutorials, dialogue, item names, results, endings, and error prompts.
+
+The output should be an inventory of real text records. If you get thousands of binary-looking records, your capture filter is too loose.
+
+## Step 2. Decode and write
+
+Convert the captured bytes into a table you can edit.
+
+A small example looks like this:
+
+```toml
 schema = 1
 default_lang = "en"
 
 [[entry]]
-src_hex = "51835b818083c982c882ea82e982bd82df82cc82feffa982f182bd82f182c882fb974b8fc582b7824281feffdc82b882cd82b182b182a982e7824981"
+src_hex = "51835b818083c982c882ea"
 term = "ffff"
-en = "Simple practice to get\nused to the game.\nStart here!"
-
-[[entry]]
-src_hex = "588365835b815783f0824e838a834183b582c482a282ad82feffc68241814991d782e982588365835b815783aa82d382a682feffdc82b7824281df82b482b9827282898393834e834981"
-term = "ffff"
-en = "Clear stages to unlock\nmore to choose from.\nAim for S rank!"
+en = "Start here!"
 ```
 
-A `[[glyph_label]]` entry carries the fixed address and the exact slot width it may overwrite. `src_jp` is there for the human reading the file and is never used for matching:
+Keep the source bytes exact. Edit the translation, not the match key.
 
-```toml title="translations/tsumu.toml"
-[[glyph_label]]
-addr    = 0x80070300
-width   = 26
-src_hex = "bf82e3825b81c682e882a082e982cc825082"
-src_jp  = "ちゅーとりあるの１"
-en = "TUTORIAL 1"
-```
+## Step 3. Apply and verify on screen
 
-A `[[vram_patch]]` entry is a rectangle plus expected and replacement pixels. The two pixel-hex strings are about 900 characters each and are left out here:
+Run the game with the table loaded.
 
-```toml title="translations/tsumu.toml"
-# hud_stage: "STAGE" over the JP HUD label strip (game compose-blit unit)
-[[vram_patch]]
-x = 834
-y = 352
-w = 18
-h = 16
-src_hex = "<src_hex omitted>"
-en_hex  = "<en_hex omitted>"
-```
+The checkpoint is visual: the translated line appears in the correct place, with correct spacing, and without breaking the box around it.
 
-### The table keys
+Do not count a table hit as success by itself. A counter can say the replacement applied while the line is clipped, too long, missing a glyph, or drawn on the wrong screen.
 
-| Key | Type | Meaning |
-|---|---|---|
-| `schema` | int | Table schema version. |
-| `default_lang` | string | Language used when none is selected. |
-| `langs` | array | Declared language columns; drives the launcher dropdown. |
-| `[[entry]].src_hex` | hex string | Raw source-record bytes. FNV-1a64 of these bytes is the lookup key. |
-| `[[entry]].src_jp` | string | Documentation only, never used for matching. |
-| `[[entry]].src_addr` | int | Optional disambiguator when two records collide on hash. |
-| `[[entry]].term` | string | `"nul"`, `"ffff"`, or `"none"` for a mid-blob sub-record with no terminator write. |
-| `[[entry]].ram_addr` | int | Optional. Overwrites the source bytes in place, for records the game addresses only through a pointer table. |
-| `[[entry]].<lang>` | string | UTF-8 target text. A missing language falls back to the source, so a gap never breaks the game. |
-| `[[entry]].orig_w` / `max_w` | int | Glyph-cell footprint and hard width cap. |
-| `[[glyph_label]].addr` / `width` | int | Fixed EXE address and exact slot width to overwrite. |
-| `[[vram_patch]].x/y/w/h` | int | Rectangle in VRAM. |
-| `[[vram_patch]].src_hex` / `<lang>_hex` | hex | Expected and replacement pixels, as little-endian halfwords. |
+## Step 4. Reload while testing
 
-Configuration is `[localization].language`, with `[localization].languages` driving the launcher dropdown. Setting the language to `jp`, `off` or empty turns substitution off and leaves capture running. See the [configuration reference](/docs/reference/configuration).
+Some projects can reload a translation table while the game is running. Others require a restart.
 
-## Before you start
+Use the project-supported path. Do not assume file watching exists unless the running project proves it.
 
-Two facts decide whether your working loop is pleasant or painful.
+The useful loop is:
 
-**Capture is off by default in shipped builds.** The always-on Shift-JIS scan "costs 26-35% of whole-lane throughput on streaming-heavy titles (measured across three GT2 race lanes; reproduced fleet-wide)". `PSX_XLATE_CAPTURE=1` turns it back on. Substitution does not depend on it, so a player never pays that cost.
+1. edit one line;
+2. reload or restart;
+3. return to the screen;
+4. take a screenshot;
+5. fix width, line breaks, or wording;
+6. repeat.
 
-**Live reload lives on the debug server.** The reload verb is `xlate` on the TCP debug server, and "title Release builds default `PSX_DEBUG_TOOLS=OFF` (no TCP)". Work against a build with debug tools on, or you will restart the game after every edit.
+## Step 5. Re-capture to find gaps
 
-> **You provide this.** You supply your own copy of the game. See [the game file you supply](/docs/concepts/the-game-file-you-supply). A translation table holds your own text plus hex digests of the game's bytes. It is not a copy of the game.
+After a pass, capture again and compare the live inventory to the table.
 
-## Step 1. Capture pass
+The best definition of done is simple: a full playthrough adds no new text records that need translation.
 
-Start a fresh run with capture on and drive every screen, menu, tutorial, dialogue and ending. The capture ring logs every distinct record it sees to a stringdump log.
+That is strict, but it catches menu paths, error prompts, and late-game text that a normal quick test misses.
 
-**Checkpoint.** The stringdump log has grown, and the record count is in the tens rather than the tens of thousands. A relaxed reader "admits vertex/coordinate binary that passes by chance (~20k records)". The shipped gate requires at least two hiragana, katakana or fullwidth characters, which "keeps the always-on inventory a clean enumeration (~52 real records)".
+## Text that needs special handling
 
-## Step 2. Decode and author
-
-`text_xlate_decode.py` produces a master TSV with the Japanese visible. Fill in translations there. `text_xlate_build.py` joins them into the TOML, merging so hand-authored entries survive. These tools are described as living in psxrecomp's `tools/` directory. Their presence under those exact names was not confirmed when this page was written, so check the directory before scripting around them.
-
-**Checkpoint.** Your table parses, and every entry you filled in has both a `src_hex` and a `<lang>` value.
-
-## Step 3. Apply and verify
-
-Re-run with the table in place and the hook substitutes. The project is specific about what counts as verification, from [`docs/STRING_TRANSLATION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/STRING_TRANSLATION.md):
-
-```text title="docs/STRING_TRANSLATION.md"
-3. **Apply + verify.** Re-run with the table; the hook substitutes. **Verify
-   visually** (screenshot both windows — never infer from a counter), per the
-   project's verification rules.
-```
-
-**Checkpoint.** You have a screenshot showing the translated line on screen. A counter saying the entry was applied is not the checkpoint.
-
-## Step 4. Edit a line and reload it into the running game
-
-The reload in the shipped code is triggered, not automatic. `text_xlate_debug_json` handles `sub == "reload"` by re-running the table loader and reporting the new entry count, and the debug server exposes that as the TCP verb `xlate`. Selecting a different language also reloads. A second verb, `xlate vpatch`, force-applies the configured VRAM patches against current VRAM without waiting for the game to upload the asset again. It is described as being "for config iteration".
-
-Two of psxrecomp's own documents describe the table as "Hot-reloaded on mtime change". No mtime or `last_write_time` check was found in `runtime/src/text_xlate.cpp` when this page was written. So expect to send the reload yourself rather than to have the file watched. What matters in practice still holds: no rebuild and no regeneration.
-
-The [NES](/docs/platforms/nes) side does poll. [nesrecomp](https://github.com/mstan/nesrecomp)'s text and tile overrides are re-read from `game_on_frame` by `text_override_reload_if_changed()` and `chr_override_reload_if_changed()`: "Hot reload is supported: save the JSON file and changes appear in-game within ~1 second." [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp) says the same of its PNG tiles.
-
-**Checkpoint.** Edit one `en` value, send the reload, and the new text is on screen without the game restarting.
-
-## Step 5. Re-capture to find the gaps
-
-`text_xlate_todo.py` diffs the live inventory against the table and lists untranslated records sorted by draw count, so the lines a player sees most get done first.
-
-**Checkpoint, and the definition of done.** The project's own bar: "'We've found them all' = a full playthrough adds zero new records to the inventory."
-
-For scale, the coverage reached on Tsumu Light was 138 message entries, 59 `[[glyph_label]]` stage and tutorial slots, and 37 `[[vram_patch]]` strips covering the title menu, pause menu, results screen, mode menu, data slots, high-score headers and prompts.
-
-## What does not work
-
-The project documents its own gaps carefully, and a translator will hit these.
-
-- **Only one of two draw paths can be intercepted.** "the title prompt, HUD ... and menu labels are drawn per-glyph as sprites (glyph index, no string pointer) -- **NOT reachable by arg-scanning**." That is what the `[[glyph_label]]` and `[[vram_patch]]` layers are for.
-- **Struct-embedded strings crash if replaced naively.** "Replacing the whole record corrupts the struct and derails the game (observed `PC=0`). **Apply is therefore gated to standalone 0xFFFF-framed messages by default**".
-- **The reader has a known blind spot.** "the byte-based reader rejects a record whose first byte isn't 'textish' ... Those few stay Japanese until the reader is made LE-word-aware".
-- **Capture is noisy without the gate**, as covered in step 1.
-- **A partial fix was deliberately not shipped.** "Per project Rule 5 (pixels or it's not done) and the no-fragile-hacks rule, no partial was shipped."
-- **The design document was mislabelled for a long time.** It "was left marked 'SPEC (design only -- no implementation yet)' long after the feature shipped", which is worth knowing if you find an older copy.
-- **The launcher language picker was not verified.** The README says the launcher carries one and `[localization].languages` drives it, but the launcher lives in a separate repository that was not surveyed.
-
-## Source
-
-- [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/STRING_TRANSLATION.md`](https://github.com/mstan/psxrecomp/blob/master/docs/STRING_TRANSLATION.md) is the design and workflow document; [`runtime/src/text_xlate.cpp`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/text_xlate.cpp) is the implementation; [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md) is the player-facing summary; [`runtime/src/debug_server.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/debug_server.c) carries the `xlate` verb.
-- [TsumuLightRecomp](https://github.com/mstan/TsumuLightRecomp): [`translations/tsumu.toml`](https://github.com/mstan/TsumuLightRecomp/blob/master/translations/tsumu.toml) is the only complete shipped table in the fleet.
-- [nesrecomp](https://github.com/mstan/nesrecomp): [`MODDING.md`](https://github.com/mstan/nesrecomp/blob/master/MODDING.md) for the polling text and tile override path. [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp): [`MODDING.md`](https://github.com/mstan/FaxanaduRecomp/blob/master/MODDING.md) for the file-drop version of the same idea.
+| Problem | What it means |
+|---|---|
+| The text is drawn one glyph at a time. | A pointer scan may never see it. Use a fixed label entry if the project supports one. |
+| The text is part of an image. | Use a VRAM or asset patch, not string replacement. |
+| The line is too long. | Add line breaks, shorten it, or use the project's width controls. |
+| The game crashes after replacement. | The original bytes may be part of a larger structure, not a standalone string. |
+| A glyph is missing. | The font or glyph upload path may need work before the language is viable. |
 
 ## Next
 
-- [Write a mod](/docs/guides/write-a-mod), for changes that need a package and a hash-pinned target.
-- [Mod manifest](/docs/reference/mod-manifest), which is a separate schema from the table format above.
-- [PlayStation](/docs/platforms/playstation), the toolchain this layer belongs to.
-- [Port a game](/docs/guides/port-a-game), if the game you want to translate has no port yet.
+- [Write a mod](/docs/guides/write-a-mod), if the translation should ship as an installable package.
+- [Configuration reference](/docs/reference/configuration), for language settings.
+- [Port a game](/docs/guides/port-a-game), if the game does not have a port yet.
