@@ -1,145 +1,97 @@
 ---
-title: "Browser agents should not have to reverse-engineer websites"
+title: "Site tools for browser agents"
 kicker: "Site news"
 tags: ["Agents", "WebMCP", "Site tools"]
 featured: false
-desc: "Retro Porting Toolkit now exposes seven typed WebMCP tools. A browser agent can use the site's actual capabilities instead of clicking through the interface and guessing what it means."
+desc: "Retro Porting Toolkit can expose its own search, catalogue, glossary, port-planning, and draft tools to a browser agent."
 date: "2026-08-27"
 layout: "article"
 cover: "./reference-page.png"
 draft: false
 ---
 
-Most websites make agents behave like unusually patient users.
+An AI agent should not have to guess what this website means.
 
-They read the page, infer what the interface means, click through navigation, and reconstruct structured data from whatever happens to be rendered. It works, but it is a strange way for software to talk to software.
+It should not have to click through pages, scrape text, and rebuild the site catalogue from whatever happens to be visible.
 
-The site already knows what it can do.
+The site already knows those answers. It knows which games are listed. It knows which platforms exist. It knows what the glossary says. It knows how to create a draft when a signed-in user asks for one.
 
-It knows how to search its own data. It knows whether a game is in the port catalogue. It knows which toolchain applies to a console, which commands scaffold a project, and whether the current user is allowed to write.
+So the browser agent can ask the site directly.
 
-The agent should be able to ask the site directly.
+## What changed?
 
-Every page on Retro Porting Toolkit now registers [seven typed tools](/docs/reference/site-tools) through WebMCP. WebMCP is a proposed web standard that lets a page expose named functions, input schemas, and handlers to an agent running inside the browser.
+Retro Porting Toolkit now exposes a small set of site tools through WebMCP.
 
-The agent calls those functions instead of reverse-engineering the HTML.
+WebMCP lets a website offer named tools to an agent running in the browser. The agent still works inside your browser session. The site still decides what each tool is allowed to do.
 
-This is not a separate API bolted onto the site. The tools expose the same application logic the site already uses, inside the browser session you already have open.
+For this site, that means the agent can use the same data the website already uses.
 
-## Two kinds of agent access
+It is not a second API. It is not a separate agent account. It is the site exposing a cleaner path for work the site already supports.
 
-This site was already built for agents that fetch URLs.
+## What can an agent ask?
 
-Every documentation page has a Markdown twin. `/llms.txt` maps the site. `/agent.md` documents the publishing API. Those surfaces work well for an agent approaching the site from outside the browser.
+The current tools cover common site tasks:
 
-A browser agent is different.
+- search the site
+- check whether a game is already listed
+- list the supported platforms
+- read a docs page as Markdown
+- explain a glossary term
+- plan which recomp framework fits a game
+- create a draft page, if you are signed in
 
-It is operating inside the page, with the user's current session and the browser mediating what it can do. It should not need to fall back to screen reading when the page can expose a precise interface.
+The full reference is here: [Site tools](/docs/reference/site-tools).
 
-WebMCP adds that interface.
+![The site tools reference page lists the available tools and what each one is allowed to do.](./reference-page.png)
 
-## Seven tools, one narrow write surface
+## Why this matters
 
-The site now registers seven tools:
+This makes agent work less fragile.
 
-- `search_site` runs the same ranked search as the site's command palette and returns the results as structured data.
-- `check_game_ported` checks whether a game is already in the port catalogue before anyone starts planning redundant work.
-- `list_platforms` returns every supported console, along with an honest statement of its status and ecosystem maturity.
-- `get_page_markdown` reads any documentation page as Markdown rather than making the agent extract it from the rendered page.
-- `plan_my_port` takes a game you own and returns the applicable framework, its maturity, whether scaffolding exists, the exact commands where they exist, and what you still need to provide yourself.
-- `define_term` looks up the site's terminology directly from [the glossary](/docs/concepts/glossary).
-- `draft_page` creates a draft documentation page or blog post through the site's editor.
+If you ask whether Tomba! already has a port, the agent can call the catalogue tool instead of searching the page by eye.
 
-![The site tools reference page documents all seven tools, their schemas, and the security model, in the same place everything else on this site is documented.](./reference-page.png)
+If you ask what "dispatch miss" means, it can call the glossary tool instead of guessing from scattered text.
 
-Every substantive result includes the page that backs it. The agent gets structured data, but the source remains inspectable by both the agent and the user.
+If you ask how to start a PlayStation port, it can call the port-planning tool and return the relevant framework, warnings, and source pages.
 
-Six of the tools only read.
+That is better for users too. The agent can show where the answer came from, and the site can keep the answer tied to the current docs.
 
-One writes, and even that one can only create a draft.
+## What can write?
 
-## The browser session is the permission model
+Only one tool writes anything: `draft_page`.
 
-This is the important difference from a conventional API integration.
+It can create a new draft blog post or docs page. It cannot publish. It cannot edit an existing page. It cannot delete anything. It cannot create game or platform entries.
 
-There is no new API key for the agent to hold. There is no separate agent account. The tools run inside the page and use the session already open in the browser.
+It also requires your signed-in editor session. If you are not signed in, the site refuses the call.
 
-The public tools read public data.
+Drafts stay drafts. They have a direct preview URL, but they do not appear in listings, feeds, search, or the sitemap until a human publishes them.
 
-`draft_page` works only when you are signed in to the site's editor. Without a signed-in session, the site refuses the call. With one, the tool can create a draft, but it still cannot publish, edit an existing page, delete anything, or create a game or console entry.
+![A drafted page in the editor, still marked as a draft.](./editor-draft.png)
 
-Draft status is enforced by the site. It is not a preference the agent can override.
+## What stays human?
 
-The browser also remains in the loop. It can show you which tools the site exposes, inspect individual calls, and ask for confirmation before allowing a side effect.
+Publishing stays human.
 
-The agent does not decide what it is allowed to do. The site does.
+Game files stay human.
 
-## Test the registration without an agent
+Judgment stays human.
 
-Open the site in Chrome 149 or newer, or Edge 147 or newer.
+An agent can help draft text, search the site, and prepare a plan. It should not decide that a page is ready, that a port is faithful, or that a project should be published.
 
-Open the developer tools console and enable the Verbose level, since debug messages are hidden by default. Reload the page. You should see:
+The useful model is simple: the site exposes narrow tools, the browser mediates access, and the user remains in charge.
 
-```text
-[webmcp] Retro Porting Toolkit site tools registered: search_site, check_game_ported, list_platforms, get_page_markdown, plan_my_port, define_term, draft_page
-```
+## How to try it
 
-Then enter:
+Open the site in a browser that supports WebMCP and use an agent that can see browser site tools.
 
-```text
-document.modelContext
-```
+Ask simple questions first:
 
-If it returns an object, WebMCP is active and the tools are registered.
+- "Is Tomba! already ported?"
+- "What does dispatch miss mean?"
+- "I own Mega Man Legends. What recomp path applies?"
 
-In Chrome, the site provides the origin-trial token, so there is no setting or flag to change. Chrome 149's developer tools can also inspect the registered tools and invoke them manually.
+The answer should come back with a source, not a long visible crawl through the interface.
 
-## Test the actual behavior
+For write testing, sign in through [/admin](/admin), then ask the agent to create a small draft. The browser should ask you to confirm the write, and the result should include links to the draft and the editor.
 
-Open the site in ChatGPT's browser.
-
-The address bar should show Site tools. Under Available site tools, you should find all seven.
-
-Then try these:
-
-**Is Tomba already ported to PC?**
-
-The agent should call `check_game_ported` and return the game's catalogue page and current status. It should not need to search or read the visible page.
-
-**I own Mega Man Legends. Plan me a PlayStation port.**
-
-The agent should call `plan_my_port` and return the applicable framework, its maturity, the scaffold commands, the rules around supplying the game file, and a source behind each claim.
-
-**What does dispatch miss mean on this site?**
-
-The agent should call `define_term` and answer directly from the glossary.
-
-The important part is not merely whether the answer is correct. Watch how it gets there.
-
-The agent should call the site's declared capability, receive structured data immediately, and give you the source. It should not visibly crawl the interface.
-
-## Test the write path
-
-Sign in through [/admin](/admin) in the same browser.
-
-Then ask the agent to draft a short test post. It should call `draft_page`, and the browser should ask you to confirm the write.
-
-The result should include two links: one to the draft and one to the editor.
-
-Open the editor and verify that the page exists and is marked as a draft. It should appear in no listing, feed, or sitemap. Delete it when you are done.
-
-![A page created by draft_page, open in the editor: flagged as a draft, hidden from every listing, the feeds and the sitemap, with the Publish button waiting for a human.](./editor-draft.png)
-
-Trying the same thing without signing in is also a valid test. The correct result is a refusal that points you to the editor, with nothing written.
-
-## Nothing else changes
-
-A browser without WebMCP ignores all of this.
-
-The site continues to render and behave exactly as before. It still fetches nothing at runtime, distributes no game files, and retains every machine-readable surface that already served agents fetching the site directly.
-
-This is not an agent-specific copy of the website.
-
-It is the website exposing its existing capabilities through one more interface.
-
-That seems like the right model for agentic browsing: not a second web built for agents, and not agents blindly operating interfaces built for people. Sites declare what they can do. Browsers mediate access. Agents call those capabilities under the user's control.
+Delete the test draft when you are done.
