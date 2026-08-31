@@ -54,6 +54,7 @@ function collectBlog() {
       title: typeof fm.title === "string" ? fm.title : slug,
       desc: typeof fm.desc === "string" ? fm.desc : "",
       date: typeof fm.date === "string" ? fm.date : `${fm.year}-01-01`,
+      author: typeof fm.author === "string" ? fm.author : AUTHOR_NAME,
       tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
       body: (body || "").trim(),
       image: blogImage(slug),
@@ -163,12 +164,13 @@ function buildRss(posts) {
       <link>${escXml(p.url)}</link>
       <guid isPermaLink="true">${escXml(p.url)}</guid>
       <pubDate>${rfc822(p.date)}</pubDate>
+      <dc:creator>${escXml(p.author || AUTHOR_NAME)}</dc:creator>
       <description>${cdata(p.desc)}</description>
       <content:encoded>${cdata(entryHtml(p))}</content:encoded>
 ${cats ? cats + "\n" : ""}${media}    </item>`;
   });
   return `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:media="http://search.yahoo.com/mrss/">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/">
   <channel>
     <title>${escXml(FEED_TITLE)}</title>
     <link>${escXml(BLOG_URL)}</link>
@@ -193,6 +195,7 @@ function buildAtom(posts) {
     <id>${escXml(p.url)}</id>
     <published>${rfc3339(p.date)}</published>
     <updated>${rfc3339(p.date)}</updated>
+    <author><name>${escXml(p.author || AUTHOR_NAME)}</name></author>
     <summary>${escXml(p.desc)}</summary>
     <content type="html">${escXml(entryHtml(p))}</content>
 ${cats ? cats + "\n" : ""}  </entry>`;
@@ -231,6 +234,7 @@ function buildJsonFeed(posts) {
           url: p.url,
           title: p.title,
           summary: p.desc,
+          authors: [{ name: p.author || AUTHOR_NAME }],
           content_html: entryHtml(p),
           ...(p.image ? { image: p.image, banner_image: p.image } : {}),
           date_published: rfc3339(p.date),

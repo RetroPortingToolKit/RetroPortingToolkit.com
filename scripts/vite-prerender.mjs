@@ -124,6 +124,7 @@ export function collectItems() {
       cover: typeof fm.cover === "string" ? fm.cover : "",
       poster: typeof fm.poster === "string" ? fm.poster : "",
       venue: typeof fm.venue === "string" ? fm.venue : "",
+      author: typeof fm.author === "string" ? fm.author : "",
       year: typeof fm.year === "string" ? fm.year : "",
       videoUrl: typeof fm.videoUrl === "string" ? fm.videoUrl : "",
       group: typeof fm.group === "string" ? fm.group : "",
@@ -383,13 +384,14 @@ function itemJsonLd(item, url, image) {
     };
   }
   if (item.kind === "blog") {
+    const author = { "@type": "Person", name: item.author || SITE.author };
     return {
       "@type": "Article",
       headline: item.title,
       description: item.desc || item.title,
       url,
       image,
-      author: AUTHOR,
+      author,
       ...(date ? { datePublished: date } : {}),
       ...(item.venue
         ? { publisher: { "@type": "Organization", name: item.venue } }

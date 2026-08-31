@@ -60,6 +60,18 @@ describe("feed rendering", () => {
     expect(`${feeds.rss}${feeds.atom}${feeds.json}`).not.toContain("/blog/draft");
   });
 
+  it("preserves each post's explicit author in metadata and feeds", () => {
+    const matthew = post({ author: "Matthew Stanley" });
+    const feeds = renderFeedsFromPosts([matthew]);
+    expect(feeds.rss).toContain("<dc:creator>Matthew Stanley</dc:creator>");
+    expect(feeds.atom).toContain("<author><name>Matthew Stanley</name></author>");
+    expect(JSON.parse(feeds.json).items[0].authors).toEqual([{ name: "Matthew Stanley" }]);
+
+    const meta = new Map(buildRouteMeta("https://retroportingtoolkit.com"));
+    expect(meta.get("/blog/decomp-annotated-recomps").jsonLd.author.name).toBe("Matthew Stanley");
+    expect(meta.get("/blog/site-tools-for-browser-agents").jsonLd.author.name).toBe("Shokunin");
+  });
+
   it("matches every concrete published blog article route", () => {
     const feedPaths = JSON.parse(renderFeeds().json).items
       .map((item) => new URL(item.url).pathname).sort();
