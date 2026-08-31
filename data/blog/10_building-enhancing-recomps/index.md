@@ -3,17 +3,18 @@ title: "Building & Enhancing Recomps: Ecosystem Updates"
 kicker: "1379.tech"
 tags: []
 featured: false
-desc: "A personal ecosystem update from Gamemaster on 1379.tech."
+desc: "A 1379.tech ecosystem update covering mod loading, GBARecomp, widescreen, SNES chips, Nintendo DS, and early research platforms."
 date: "2026-08-03"
 venue: "1379.tech"
 layout: "article"
 cover: "./cover.jpg"
+externalUrl: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/"
 links:
-  - { label: "Read the full article on 1379.tech", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
+  - { label: "Read on 1379.tech", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
 ---
 
-This is a personal article by Gamemaster on 1379.tech.
+This card links to the 1379.tech ecosystem update.
 
-It covers mod loading, GBARecomp growth, widescreen work, SNES enhancement-chip work, NES renderer experiments, Nintendo DS progress, and early research platforms.
+Read it on 1379.tech:
 
-Read the full article on 1379.tech.
+[Building & Enhancing Recomps: Ecosystem Updates](https://1379.tech/building-enhancing-recomps-ecosystem-updates/)

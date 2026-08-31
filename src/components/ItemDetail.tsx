@@ -178,30 +178,36 @@ function LinksBlock({
   );
 }
 
-// The author line under a blog post's title: monogram avatar + name + date +
-// reading time. Blog posts carry the site author's byline, so it renders
-// only rides blog entries (writing items are often third-party coverage OF him,
-// there (unlike linked writing elsewhere, where a site byline would misattribute).
-// Press and video entries are authored by their outlet or channel, not the
-// team; only 1379.tech writing carries the site author's byline.
+// The author line is opt-in. Most news cards are links or coverage and should
+// not pretend the site wrote them. 1379.tech external posts are Matthew's
+// writing, so they get the site author byline.
 /** The sign-off belongs to a person who wrote the piece. Press and video
     entries are bylined to an outside outlet, which does not sign off. */
 function showsEndCard(item: Item): boolean {
+  if (item.externalUrl) return false;
   if (item.author) return true;
-  return articleAuthor(item) === SITE.author;
+  return false;
 }
 
-function articleAuthor(item: Item): string {
+function is1379Tech(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    return new URL(url).hostname.replace(/^www\./, "") === "1379.tech";
+  } catch {
+    return false;
+  }
+}
+
+function articleAuthor(item: Item): string | undefined {
   // An explicit byline wins: whoever wrote the page said so on the page.
   if (item.author) return item.author;
-  if ((item.kicker === "Press" || item.kicker === "Video") && item.venue) {
-    return item.venue;
-  }
-  return SITE.author;
+  if (is1379Tech(item.externalUrl)) return SITE.author;
+  return undefined;
 }
 
 export function ArticleByline({ item, delay = 200 }: { item: Item; delay?: number }) {
   const author = articleAuthor(item);
+  if (!author) return null;
   const meta = [
     formatArticleDate(item.date || item.year),
     item.body ? `${readingTimeMin(item.body)} min read` : "",
@@ -232,11 +238,11 @@ function ArticleEndCard({ item }: { item: Item }) {
         <img className="article-endcard-avatar" src={item.authorAvatar} alt="" aria-hidden="true" />
       ) : (
         <span className="article-endcard-avatar" aria-hidden="true">
-          {articleAuthor(item).charAt(0) || "?"}
+          {(articleAuthor(item) ?? "").charAt(0) || "?"}
         </span>
       )}
       <div className="article-endcard-text">
-        <span className="article-endcard-name">Written by {articleAuthor(item)}</span>
+        <span className="article-endcard-name">Written by {articleAuthor(item) ?? "Unknown"}</span>
         <span className="article-endcard-line">
           {item.authorBio || "Building recompilation ecosystems for legacy games."}
         </span>

@@ -86,7 +86,7 @@ export interface SiteSearchIndex {
 function itemEntry(item: Item): SiteSearchEntry {
   return {
     kind: item.kind as Exclude<SiteSearchKind, "docs">,
-    path: pathFor(item.kind, item.slug),
+    path: item.externalUrl || pathFor(item.kind, item.slug),
     title: item.title,
     section: item.kicker,
     summary: item.desc,

@@ -124,6 +124,8 @@ function collectItems() {
       cover: typeof fm.cover === "string" ? fm.cover : "",
       poster: typeof fm.poster === "string" ? fm.poster : "",
       venue: typeof fm.venue === "string" ? fm.venue : "",
+      author: typeof fm.author === "string" ? fm.author : "",
+      externalUrl: typeof fm.externalUrl === "string" ? fm.externalUrl : "",
       year: typeof fm.year === "string" ? fm.year : "",
       videoUrl: typeof fm.videoUrl === "string" ? fm.videoUrl : "",
       group: typeof fm.group === "string" ? fm.group : "",
@@ -337,6 +339,21 @@ const SITE_ENTITY = {
 // Byline for authored content (articles, blog posts).
 const AUTHOR = { "@type": "Person", name: SITE.author };
 
+function is1379Tech(url) {
+  if (!url) return false;
+  try {
+    return new URL(url).hostname.replace(/^www\./, "") === "1379.tech";
+  } catch {
+    return false;
+  }
+}
+
+function itemAuthorLd(item) {
+  if (item.author) return { "@type": "Person", name: item.author };
+  if (item.kind === "blog" && is1379Tech(item.externalUrl)) return AUTHOR;
+  return null;
+}
+
 function jsonLdScript(obj) {
   if (!obj) return null;
   const data = { "@context": "https://schema.org", ...obj };
@@ -372,13 +389,14 @@ function itemJsonLd(item, url, image) {
     };
   }
   if (item.kind === "blog") {
+    const author = itemAuthorLd(item);
     return {
       "@type": "Article",
       headline: item.title,
       description: item.desc || item.title,
       url,
       image,
-      author: AUTHOR,
+      ...(author ? { author } : {}),
       ...(date ? { datePublished: date } : {}),
       ...(item.venue
         ? { publisher: { "@type": "Organization", name: item.venue } }

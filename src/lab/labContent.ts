@@ -50,6 +50,8 @@ export interface LabMedia {
   /** project repository dates, for the games sort control */
   added?: string;
   updated?: string;
+  /** External-only cards navigate straight to the source instead of opening a local page. */
+  externalUrl?: string;
 }
 
 // Same colored-kicker logic as the site cards, with a palette fallback so every
@@ -133,6 +135,7 @@ function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
     chips: kind === "game" ? [{ label: p.kicker, color }] : undefined,
     added: p.added,
     updated: p.updated,
+    externalUrl: p.externalUrl,
   };
 }
 
@@ -157,6 +160,7 @@ function projectMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia 
     chips: kind === "game" ? [{ label: p.kicker, color: colorFor(p, i) }] : undefined,
     added: p.added,
     updated: p.updated,
+    externalUrl: p.externalUrl,
   };
 }
 
@@ -177,6 +181,7 @@ function blogMedia(p: Item, i: number): LabMedia {
       kind: "blog",
       video: true,
       group: p.group,
+      externalUrl: p.externalUrl,
     };
   }
   return staticMedia(p, i, "blog", "blog");

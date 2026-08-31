@@ -186,6 +186,10 @@ function Dialog() {
       }
       if (hit.path) {
         close();
+        if (/^https?:\/\//.test(hit.path)) {
+          window.location.assign(hit.path);
+          return;
+        }
         navigate(hit.path);
       }
     },

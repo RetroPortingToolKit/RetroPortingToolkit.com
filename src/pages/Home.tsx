@@ -103,6 +103,7 @@ function homeCard(
     color,
     kind,
     video: !!clip,
+    externalUrl: item.externalUrl,
   };
 }
 
@@ -656,7 +657,9 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
 
   // Open a card's detail as a modal over the current page.
   const onOpen = (m: LabMedia) =>
-    navigate(pathFor(m.kind, m.slug), { state: { background: location } });
+    m.externalUrl
+      ? window.location.assign(m.externalUrl)
+      : navigate(pathFor(m.kind, m.slug), { state: { background: location } });
 
   // Clicks and keyboard ride the same live pager as swipes (programmatic
   // page-turn animated by the engine below).

@@ -346,6 +346,7 @@ export function parseItem(path: string, raw: string): Item | null {
     showOnPlatform: fm.showOnPlatform !== false,
     arch: asString(fm.arch) || undefined,
     repo: asString(fm.repo) || undefined,
+    externalUrl: asString(fm.externalUrl) || undefined,
     maturity: asString(fm.maturity) || undefined,
     added: asString(fm.added) || undefined,
     updated: asString(fm.updated) || undefined,
