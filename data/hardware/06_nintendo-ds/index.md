@@ -3,9 +3,9 @@ title: "Nintendo DS"
 kicker: "ARM9+ARM7"
 tags: ["Dual CPU", "Adaptive 21:9"]
 featured: false
-desc: "Very early research on rebuilding both DS processors; one public game, Metroid Prime Hunters, is in public alpha."
+desc: "An alpha ecosystem for native Nintendo DS ports. Metroid Prime Hunters is public, and a few other titles are running in development."
 year: "2026"
-status: "Research"
+status: "Alpha"
 maturity: "Alpha"
 availability: "Source only"
 provenance: "core"
@@ -19,19 +19,30 @@ verified: "2026-08-18"
 cover: "/consoles/nintendo-ds.jpg"
 ---
 
-Research only. ndsrecomp recompiles both of the DS's processors; in the project's own words it is "very early pre-alpha (v0.0.1)" and an experimental developer snapshot with no compatibility promise. One public game consumer exists: [Metroid Prime Hunters](/games/metroid-prime-hunters), in public alpha.
+ndsrecomp turns Nintendo DS games into native apps.
+
+This is alpha work. It is past a simple proof of concept, but it still needs optimization, testing, and more public game projects.
+
+You provide your own cartridge dump. Projects may also ask for legally obtained DS BIOS or firmware files.
 
 ## What runs today
 
-The original DS firmware menu is the baseline target: the runtime boots through both BIOSes, passes the Health & Safety screen, and reaches a menu you can drive with mouse touch input. [Metroid Prime Hunters](/games/metroid-prime-hunters) is the one public game, with adaptive 21:9 widescreen bring-up for its top screen. The framework has also demonstrated early bring-up across further titles, experimental online play through Wiimmfi, and experimental same-machine local wireless multiplayer, all as narrow developer results rather than releases.
+[Metroid Prime Hunters](/games/metroid-prime-hunters) is the public game project today. It has adaptive widescreen work for the top screen.
 
-This is a developer snapshot, not a product: there are no turnkey game builds from a clean clone, whole-machine save states are not implemented yet, and it is not usable as a general DS emulator or framework.
+The framework can run a few other titles in development, but those are not public compatibility promises yet.
 
-## Technical details
+The exact state still belongs on each game page. The platform page is here to explain the ecosystem.
 
-ndsrecomp recompiles both CPUs to C: the ARM946E-S main processor and the ARM7TDMI, which shares its core family with the GBA and started as a port of gbarecomp's ARM implementation. A dual-CPU, event-aligned scheduler interleaves them over shared memory, and a bounded interpreter tier handles code the guest copies into RAM. BIOS and firmware dumps are user-supplied and hash-verified, with an opt-in FreeBIOS path for a no-dump boot; the online-play plumbing builds on melonDS's Wi-Fi work, and melonDS also serves as the accuracy oracle with DeSmuME as a secondary cross-check. The top and bottom screens can render as one stacked window or two independent ones. The recompiler, the generated code, and the project's own tooling are MIT licensed; because the runner links that vendored melonDS code, the project's own attribution notices state that the runner binary is a combined work whose distribution must comply with GPL-3.0-or-later.
+## What DS ports can add
 
-## Sources
+- Wider or custom layouts for the top and bottom screens.
+- Mouse, touch, and gamepad-friendly input.
+- Display options that fit modern monitors.
+- Online and local multiplayer experiments where a game project supports them.
+- Game-specific quality-of-life features.
 
-- [Building & Enhancing Recomps: Ecosystem Updates (1379.tech)](https://1379.tech/building-enhancing-recomps-ecosystem-updates/)
-- [GenerationAmiga on Metroid Prime Hunters](https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/)
+## What to expect
+
+Nintendo DS is more complex than the older cartridge systems here.
+
+There are two CPUs, two screens, touch input, firmware behavior, wireless features, and a lot of timing-sensitive hardware. ndsrecomp is promising alpha work, but each game still needs serious bring-up and optimization.
