@@ -58,17 +58,17 @@ The psxrecomp envelope also puts `id` first. Read `ok` to decide success, then r
 
 Present in every server, with the spellings each project uses. UNKNOWN means the project's own document does not say.
 
-| Command | psx | nes | vb | gba | nds | cdi | gcn |
-|---|---|---|---|---|---|---|---|
-| `ping` | yes | yes | yes | yes | yes | yes | yes |
-| `get_registers` (`regs`) | yes | yes | yes | yes | yes (`regs`, per cpu) | yes | yes |
-| `read_ram` / `dump_ram` | yes | yes | yes | yes | `read_mem` (per cpu) | `read_mem` | yes |
-| `write_ram` | yes | yes | yes | yes | UNKNOWN | planned | yes |
-| `screenshot` | yes | yes | yes | yes | `framebuffer` | yes | UNKNOWN |
-| `set_input` / `press` / `clear_input` | yes | yes | yes | yes | `keys` / `touch` | `set_input` | UNKNOWN |
-| `history` / `get_frame` / `frame_range` / `frame_timeseries` | yes | yes | yes | yes | no (event counts instead) | planned | no (rings instead) |
-| `dispatch_miss_info` | UNKNOWN | yes | yes | yes | log file | yes | UNKNOWN |
-| `first_divergence` / `first_failure` | `first_failure` | `first_failure` | `first_divergence` | UNKNOWN | harness side | planned | UNKNOWN |
+| Command | psx | nes | vb | gba | nds | cdi |
+|---|---|---|---|---|---|---|
+| `ping` | yes | yes | yes | yes | yes | yes |
+| `get_registers` (`regs`) | yes | yes | yes | yes | yes (`regs`, per cpu) | yes |
+| `read_ram` / `dump_ram` | yes | yes | yes | yes | `read_mem` (per cpu) | `read_mem` |
+| `write_ram` | yes | yes | yes | yes | UNKNOWN | planned |
+| `screenshot` | yes | yes | yes | yes | `framebuffer` | yes |
+| `set_input` / `press` / `clear_input` | yes | yes | yes | yes | `keys` / `touch` | `set_input` |
+| `history` / `get_frame` / `frame_range` / `frame_timeseries` | yes | yes | yes | yes | no (event counts instead) | planned |
+| `dispatch_miss_info` | UNKNOWN | yes | yes | yes | log file | yes |
+| `first_divergence` / `first_failure` | `first_failure` | `first_failure` | `first_divergence` | UNKNOWN | harness side | planned |
 
 Each server then adds hardware queries for its own console, which is the reason to open the specific document: `vip_state`, `vsu_state` and `psw_state` on Virtual Boy; `gx_state`, `gx_run_sample`, `gx_write_sample` and `dma_sample` on Nintendo DS; `read_nametable`, `read_oam`, `read_chr` and `mapper_state` on NES; `gte_state`, `mdec_state`, `gp1_dump` and `gpu_frame_dump` on PlayStation; `video_state`, `ikat_events`, `ciap_events` and `mount_disc` on CD-i.
 
