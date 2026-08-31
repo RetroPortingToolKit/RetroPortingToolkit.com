@@ -1,9 +1,9 @@
 ---
-title: "Save states and rewind, shown off in Tomba!"
+title: "PSXRecomp save states and rewind"
 kicker: "Video"
 tags: []
 featured: false
-desc: "The save states and rewind architecture shown publicly for the first time, on Tomba!."
+desc: "Save states and rewind are PSXRecomp-wide features. Tomba! is the showcase."
 venue: "Gamemaster1379"
 date: "2026-08-12"
 layout: "article"
@@ -13,8 +13,10 @@ links:
   - { label: "Watch on YouTube (Gamemaster1379)", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
 ---
 
-A team capture demonstrating save states and rewind on Tomba!, the machinery built on the shared rollback engine.
+Save states and rewind are PSXRecomp-wide features.
 
-Original upload title: "PSXRecomp Tomba 1 Save States & Rewind Showcase".
+This video uses Tomba! to show them working in a real game. The point is the shared feature, not only the Tomba port.
+
+The same underlying work also feeds the rollback and replay direction for PlayStation ports.
 
 Related: [Tomba!](/games/tomba) on [PlayStation](/hardware/playstation).
