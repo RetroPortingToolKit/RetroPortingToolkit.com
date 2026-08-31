@@ -162,6 +162,10 @@ export function SearchPaletteDialog() {
       }
       if (hit.path) {
         close();
+        if (/^https?:\/\//.test(hit.path)) {
+          window.location.assign(hit.path);
+          return;
+        }
         navigate(hit.path);
       }
     },

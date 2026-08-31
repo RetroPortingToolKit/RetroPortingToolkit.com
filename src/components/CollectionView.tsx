@@ -71,6 +71,10 @@ function KindGrid({ items, still = false }: { kind: Kind; items: Item[]; still?:
   // Opening an item from this overlay swaps it for the item modal while keeping
   // the ORIGINAL page as the background, so closing lands somewhere real.
   const onOpen = (m: LabMedia) => {
+    if (m.externalUrl) {
+      window.location.assign(m.externalUrl);
+      return;
+    }
     // chain: item modal opens over the collection; closing returns here
     navigate(pathFor(m.kind as Kind, m.slug), {
       state: { background: location },

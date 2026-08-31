@@ -95,6 +95,9 @@ export interface Item {
   arch?: string;
   /** Canonical source repository URL. */
   repo?: string;
+  /** Cards for linked coverage can leave the site directly instead of opening
+      a thin local article page. */
+  externalUrl?: string;
   videoUrl?: string;
   coverBgSize?: string;
   coverBgPos?: string;

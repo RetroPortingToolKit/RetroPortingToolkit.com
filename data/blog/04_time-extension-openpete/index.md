@@ -4,18 +4,19 @@ author: "Shokunin"
 kicker: "Press"
 tags: []
 featured: true
-desc: "Time Extension reports on OpenPete, the community project bringing Spyro the Dragon to Windows with PSXRecomp in the mix."
+desc: "Time Extension covered the community Spyro the Dragon PC port built with PSXRecomp in the mix."
 year: "2026"
 venue: "Time Extension"
 layout: "article"
+externalUrl: "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp"
 links:
   - { label: "Read on Time Extension", href: "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp" }
 ---
 
-Independent coverage from Time Extension, written by Jack Yarwood in August 2026. This is outside reporting on the ecosystem, not a post from the team, and it focuses on OpenPete, the community-built native Windows port of Spyro the Dragon.
+Time Extension covered the community Spyro the Dragon PC port.
 
-The article describes OpenPete's v0.1.3 release for Windows, with Linux and macOS versions planned, and its enhancements: widescreen, higher frame rates, and extended draw distances. It also lays out the project's hybrid construction, combining altro50's unfinished Spyro decompilation with PSXRecomp covering the functions the decompilation has not reached, plus the Psycross platform layer. Matthew Stanley is named as the author of PSXRecomp.
+The important part for this site is that the project uses PSXRecomp as one of its building blocks. That is the kind of downstream use the toolkit is meant to support.
 
-Coverage like this marks a shift in the toolkit's story. The press attention here is for a third-party project that chose PSXRecomp as one of its building blocks, which is exactly the kind of downstream adoption an open toolkit is built for.
+The article also talks about player-facing enhancements such as widescreen, higher frame rates, and longer draw distance.
 
-Related: [OpenPete](/games/openpete-spyro) on [PlayStation](/hardware/playstation).
+Related: [Spyro the Dragon](/games/openpete-spyro) on [PlayStation](/hardware/playstation).
