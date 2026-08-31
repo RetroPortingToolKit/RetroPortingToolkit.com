@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, Events, GatewayIntentBits } from "discord.js";
 
 const token = process.env.DISCORD_BOT_TOKEN || "";
 const guildName = process.env.DISCORD_TARGET_GUILD || "";
@@ -20,8 +20,9 @@ if (!guildName || !channelName || !roleNames.length) {
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 try {
+  const ready = new Promise((resolve) => client.once(Events.ClientReady, resolve));
   await client.login(token);
-  await new Promise((resolve) => client.once("ready", resolve));
+  await ready;
 
   const guildMatches = client.guilds.cache.filter((guild) => guild.name === guildName);
   if (guildMatches.size !== 1) {

@@ -3,6 +3,7 @@ import {
   chunkDiscordMessage,
   isAuthorized,
   stripBotMention,
+  summaryHeading,
   taskPrompt,
 } from "./discord-agent-core.mjs";
 
@@ -42,6 +43,12 @@ describe("Discord agent core", () => {
     const chunks = chunkDiscordMessage("a ".repeat(1500), 500);
     expect(chunks.length).toBeGreaterThan(1);
     expect(chunks.every((chunk) => chunk.length <= 500)).toBe(true);
+  });
+
+  it("maps agent outcomes to honest Discord headings", () => {
+    expect(summaryHeading("Complete: shipped.")).toBe("✅ Done.");
+    expect(summaryHeading("Blocked: the tree is dirty.")).toBe("⏸️ Blocked.");
+    expect(summaryHeading("Needs clarification: which page?")).toBe("❓ Needs clarification.");
   });
 
   it("keeps repository and safety boundaries in every agent prompt", () => {

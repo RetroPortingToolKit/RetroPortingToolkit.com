@@ -33,6 +33,15 @@ export function chunkDiscordMessage(text, limit = MAX_DISCORD_MESSAGE) {
   return chunks;
 }
 
+export function summaryHeading(summary) {
+  const firstLine = String(summary).trimStart().split("\n", 1)[0].toLowerCase();
+  if (firstLine.startsWith("blocked")) return "⏸️ Blocked.";
+  if (firstLine.startsWith("needs clarification") || firstLine.startsWith("clarification")) {
+    return "❓ Needs clarification.";
+  }
+  return "✅ Done.";
+}
+
 export function taskPrompt({ request, authorId, channelId, messageUrl }) {
   return `A trusted Retro Porting Toolkit developer requested work through the project Discord bot.
 

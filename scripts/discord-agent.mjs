@@ -4,12 +4,13 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, Events, GatewayIntentBits } from "discord.js";
 import {
   chunkDiscordMessage,
   isAuthorized,
   parseCsv,
   stripBotMention,
+  summaryHeading,
   taskPrompt,
 } from "./discord-agent-core.mjs";
 
@@ -74,6 +75,7 @@ async function runCodex(job) {
           "exec", "--ephemeral", "--color", "never",
           "--sandbox", "danger-full-access",
           "-c", 'approval_policy="never"',
+          "-c", 'model_reasoning_effort="high"',
           "-C", ROOT,
           "--output-last-message", outputFile,
           "-",
@@ -106,7 +108,7 @@ async function drainQueue() {
   });
   try {
     const summary = await runCodex(job);
-    await replyChunks(job.message, "✅ Done.", summary);
+    await replyChunks(job.message, summaryHeading(summary), summary);
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     await replyChunks(job.message, "❌ The task did not complete.", detail);
@@ -136,7 +138,7 @@ client.on("messageCreate", async (message) => {
   void drainQueue();
 });
 
-client.once("ready", () => {
+client.once(Events.ClientReady, () => {
   console.log(`[discord-agent] ready as ${client.user.tag}; repo=${ROOT}`);
 });
 
