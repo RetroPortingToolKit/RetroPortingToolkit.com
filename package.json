@@ -11,9 +11,11 @@
     "test": "vitest run",
     "assets:audit": "node scripts/audit-assets.mjs",
     "images": "node scripts/gen-image-variants.mjs",
-    "feeds": "node scripts/gen-feeds.mjs"
+    "feeds": "node scripts/gen-feeds.mjs",
+    "discord-agent": "node scripts/discord-agent.mjs"
   },
   "dependencies": {
+    "discord.js": "^14.27.0",
     "embla-carousel-react": "^8.6.0",
     "github-slugger": "^2.0.0",
     "js-yaml": "^4.1.0",

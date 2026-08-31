@@ -521,3 +521,20 @@ both pages already link their source article under `links:`.
 - Verification: typecheck green, production build green (837 modules, 184
   prerendered routes, 36 feed posts), asset audit green, and all 761 tests
   green. Four existing fleet documentation-date warnings remain.
+
+## Discord publishing agent (2026-08-31)
+
+- The owner explicitly requested and approved a persistent Discord bot that
+  turns allowlisted mentions into serialized Codex tasks for this repository,
+  including normal tested commits, pushes and production verification.
+- `scripts/discord-agent.mjs` is the Gateway bridge. Its pure authorization,
+  mention parsing, prompt boundary and response chunking live in
+  `scripts/discord-agent-core.mjs` with tests. The bot token is never passed to
+  Codex and is designed to live only in the login Keychain.
+- `scripts/install-discord-agent.sh` installs the owner-approved launchd job
+  only after both a Keychain token and a fail-closed local allowlist exist.
+  Full setup and operational boundaries are in `docs/DISCORD_AGENT.md`.
+- Discord application provisioning is not yet complete: the Developer Portal
+  was logged out when setup began. The owner must sign in/complete 2FA in the
+  opened Chrome window; the agent can then create and configure the bot,
+  install it, and run the live mention-to-deploy test.
