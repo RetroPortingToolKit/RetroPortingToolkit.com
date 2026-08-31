@@ -1,6 +1,6 @@
 ---
 title: "Build a toolchain"
-summary: "Build the programs a port developer needs before touching a game: the recompiler, the runtime, and the quick checks that prove the setup works."
+summary: "Build the console framework before you touch a game: the recompiler, the runtime, and the quick checks that prove your local setup works."
 pageType: "guide"
 tags: ["Building", "CMake", "Toolchain"]
 repos:
@@ -15,123 +15,104 @@ repos:
 updated: "2026-08-30"
 ---
 
-A toolchain is the set of programs used to build a port.
+A toolchain is the developer side of a port.
 
-It is not the game. It does not include a game file. It gives you the recompiler and the runtime for one console.
+It is not the game. It is the set of programs that can read a game file, generate native code, and build the runtime that surrounds it.
 
-The recompiler reads the game's compiled machine code and emits host code. The runtime is the library that stands in for the console hardware. Building both is the first developer check: before you try a game, prove your tools can build.
+Before you try to port a game, prove the toolchain builds by itself.
 
 ## Who is this for?
 
 This page is for people who want to build or work on ports.
 
-If you only want to play a finished port, you do not need this page. Download the port from that project's release page and give it the game file, and possibly BIOS file, it asks for.
+If you only want to play a finished port, you probably do not need this page. Download the port, run it, and give it the game file it asks for. Some projects may also ask for a BIOS.
 
-Use legally obtained files. This site does not provide games or retail BIOS files. Some projects can use legal open-source BIOS replacements where they are appropriate.
+Use legally obtained files. This site does not provide games or retail BIOS files.
 
-## What should I install first?
+## What do I install first?
 
 Most projects need the same basics:
 
-| Need | What it is for |
+| Need | Why it matters |
 |---|---|
-| Git | Cloning the project and its submodules. |
-| CMake | Creating the build files. |
-| Ninja or Visual Studio | Running the build. |
-| A C or C++ compiler | Compiling the recompiler, runtime, and generated code. |
-| Python | Packaging tools, helper scripts, and test scripts. |
-| SDL | Window, input, and audio for many runners. |
+| Git | Gets the repository and its submodules. |
+| CMake | Creates the build files. |
+| Ninja or Visual Studio | Runs the build. |
+| A C or C++ compiler | Builds the runtime and generated code. |
+| Python | Runs helper scripts, tests, and packaging tools. |
+| SDL | Provides windows, input, and audio for many runners. |
 
-Exact versions vary by project. If a repository has a setup script, use it first. If it fails, read the first error. The first error is usually the real one.
+Exact versions vary by project. If a project has a setup script, use it first.
 
-## Use PlayStation as the reference shape
+When something fails, read the first error. The first error is usually the one that matters.
 
-psxrecomp is the most mature reference for this ecosystem. Other systems differ, but the shape is similar:
+## What am I building?
 
-1. Build the recompiler.
-2. Generate the runtime support files the project needs.
-3. Build the runtime.
-4. Run tests or a smoke check before touching a game.
+Usually two things:
 
-On psxrecomp, the developer quick path looks like this:
+1. The recompiler.
+2. The runtime.
 
-```sh
-git clone https://github.com/mstan/psxrecomp.git
-cd psxrecomp
+The recompiler translates the original machine code into host code.
 
-cmake -S recompiler -B recompiler/build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build recompiler/build
+The runtime models the console around that translated code: memory, video, audio, input, timing, storage, and other hardware behavior.
 
-bash tools/regen_bios.sh --config bios/OpenBIOS.toml
+A clean toolchain build only proves the tools compile. It does not prove a game works.
 
-cmake -S runtime -B runtime/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DPSX_RECOMP_UI=OFF
-cmake --build runtime/build --target psx-runtime
-```
+## Why use PlayStation as the example?
 
-OpenBIOS is used here because it proves the path works without asking for a retail BIOS dump. A project may also support a retail BIOS backend, but you must supply that BIOS legally yourself.
+psxrecomp is the strongest reference path today.
 
-## What should I see?
+Other systems differ, but the shape is similar:
 
-After a clean build, you should have:
+1. clone the framework;
+2. fetch submodules;
+3. build the recompiler;
+4. generate any framework support files;
+5. build the runtime;
+6. run the project's smoke checks.
 
-- a recompiler executable in the recompiler build directory;
-- a runtime binary in the runtime build directory;
-- passing tests, if the project has tests;
-- no game file copied into the framework repository.
-
-For psxrecomp, run:
-
-```sh
-cd recompiler/build
-ctest --output-on-failure
-```
-
-This only checks the toolchain. It does not prove any one game is correct.
+The [Developer quickstart](/docs/start/quickstart) walks through that reference path.
 
 ## What changes by console?
 
 | Console | What to expect |
 |---|---|
-| PlayStation | The best reference flow. Build the emitters, generate BIOS support, then build the runtime. |
-| NES | Small C recompiler, CMake build, SDL runner in game projects. |
-| SNES | Rust recompiler plus a C or C++ runtime path in game projects. |
-| Game Boy Advance | CMake build with tests. Some projects need BIOS handling. |
-| Genesis, Master System, Game Gear | Shared CPU cores through submodules. Clone recursively. |
-| Nintendo DS | Early and experimental. Expect more setup and more project-specific work. |
-| Virtual Boy | Smallest smoke-test surface. Useful for proving a runtime can start with no game linked. |
-| CD-i | More advanced. BIOS and oracle setup matter early. |
+| PlayStation | The clearest reference flow today. |
+| SNES | Strong results, but more CPU-mode and game-specific discovery work. |
+| NES | Small target where mappers and banking matter. |
+| Game Boy Advance | Alpha/experimental work with ARM and Thumb code. Some projects need BIOS handling. |
+| Sega Genesis | Two-CPU scheduling around the 68000 and Z80. |
+| Master System and Game Gear | Very early Z80 tech-demo path. |
+| Nintendo DS | Alpha-stage work around two ARM CPUs and optimization. |
+| Virtual Boy | Focused one-game tech demo. |
+| CD-i | BIOS-focused research path. |
 
-That table is a map, not a support promise. Use the project you are building as the authority for its own command line.
+Use the platform page for the maturity level. Use the project repository for exact build commands.
 
-## Two build rules
+## What should I see after a good build?
 
-Always set a release-style build type unless you are debugging.
+You should have:
 
-Generated code can be huge. Debug builds can compile very slowly, and sometimes fail because they use too much memory.
+- a recompiler executable;
+- a runtime build;
+- any generated framework support files the project expects;
+- passing smoke checks, if the project has them;
+- no game file copied into the framework repository.
 
-Keep `-j` modest. If a build dies with no useful message, try:
+That last point matters. Framework repositories should not contain games, BIOS dumps, or generated game code.
 
-```sh
-cmake --build build -j 2
-```
+## What usually goes wrong?
 
-or:
+| Symptom | Likely cause |
+|---|---|
+| CMake cannot find a generated file. | A generation step was skipped. |
+| CMake cannot compile a test program. | The compiler install is broken or not on PATH. |
+| The UI build fails. | A submodule was not fetched. |
+| The build dies with little output. | Too many compile jobs for available memory. |
+| A command works in one shell but not another. | The shells have different tools on PATH. |
 
-```sh
-cmake --build build -j 1
-```
-
-That is often memory pressure, not a bad source file.
-
-## Common failures
-
-| Symptom | Likely cause | What to do |
-|---|---|---|
-| CMake cannot find a generated BIOS C file | The runtime was configured before the generated support file existed. | Run the generation step first, then configure again. |
-| CMake cannot compile a simple test program | The compiler is missing or its runtime DLLs are not on `PATH`. | Fix the compiler install before changing the project. |
-| The UI build fails because a submodule is missing | The repo was cloned without recursive submodules. | Run `git submodule update --init --recursive`. |
-| The build dies with little or no output | Too many compile jobs for available memory. | Build with `-j 2` or `-j 1`. |
-| A command works in one shell but not another | The shell has different compilers or CMake on `PATH`. | Use one shell for the whole build. |
+For large generated projects, try fewer build jobs before assuming the source is wrong.
 
 ## Next
 
