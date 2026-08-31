@@ -19,11 +19,11 @@ cover: "/data/blog/10_building-enhancing-recomps/boktai.webp"
 
 Boktai's cartridge carried a real light sensor: the Gun del Sol charged from actual sunlight, and the undead could only be sealed while you had light. This community project by Shy, built on the same framework as the [Game Boy Advance lineup](/hardware/game-boy-advance), keeps that idea alive without the hardware. The sensor is driven by the actual weather where you are: a clear afternoon fills the gauge, a rainy night leaves you fighting in the dark.
 
-## Can I play it?
+## Playable status
 
 Yes, by building your own copy. Prebuilt game binaries are not distributed, because a compiled game embeds translated ROM code, so everyone builds their own from a dump you provide plus a GBA BIOS.
 
-The v0.1.0 release (2026-08-03) makes that practical: it ships BoktaiBuilder, a tool that compiles the game locally, as Linux and macOS (Apple silicon) tarballs and a flatpak for Steam Deck. The result is playable, saves work, and the solar sensor works end to end, though coverage is still early.
+BoktaiBuilder makes that practical: it compiles the game locally from files you provide. Linux and macOS Apple silicon packages are available, along with a flatpak for Steam Deck. The result is playable, saves work, and the solar sensor works end to end, though coverage is still early.
 
 One warning from the README: many Boktai ROMs in circulation are intro-patched or sensor-patched, and a sensor patch removes the very hardware reads this project models, so use a clean dump.
 
@@ -35,13 +35,6 @@ One warning from the README: many Boktai ROMs in circulation are intro-patched o
 - Privacy by default: nothing leaves the machine unless you set a postal code, and then only the code (to resolve coordinates) and those coordinates (for the current reading) are sent, with no account or API key, polled every 10 minutes.
 - Save states in nine slots, fullscreen, turbo, and fully rebindable controls and hotkeys through the launcher.
 
-## Technical details
-
-The ROM's ARM7TDMI machine code is statically translated to C on the gbarecomp framework, and as across that ecosystem the GBA BIOS is recompiled and executed rather than stubbed, so boot and interrupt handling run as recompiled code. The runtime models the PPU, APU, DMA, timers, the 8 KB EEPROM save chip, the S-3511A real-time clock, and the solar sensor, the last two sharing four GPIO pins just as they did on the cartridge. The runner verifies the USA ROM by SHA-1 and refuses anything else.
-
-Live weather uses global horizontal irradiance, the power in watts per square meter that a flat upward-facing surface receives, mapped onto the gauge's measured response. Coordinates come from api.zippopotam.us and readings from api.open-meteo.com.
-
-Code paths not yet statically recompiled run through an interpreter on first hit, then JIT to native and cache to disk, so the game gets faster the more it is played.
 
 ## Sources
 

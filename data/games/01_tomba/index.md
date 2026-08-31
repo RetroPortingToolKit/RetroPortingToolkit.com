@@ -3,9 +3,9 @@ title: "Tomba!"
 kicker: "PlayStation"
 tags: ["Widescreen", "Debug menu", "FMV skip"]
 featured: true
-desc: "PSXRecomp's first game and its most lived-in: reasonably playable, with save states, rewind, and experimental widescreen."
+desc: "PSXRecomp's first game and its most lived-in: a mature alpha you can play end to end, with save states, rewind, and experimental widescreen."
 year: "2026"
-status: "Playable alpha"
+status: "Mature alpha"
 availability: "Public build"
 provenance: "core"
 platform: "playstation"
@@ -22,40 +22,35 @@ updated: "2026-08-12"
 added: "2026-03-15"
 ---
 
-Every framework has a first game. For [PSXRecomp](/hardware/playstation) it was Tomba!, and the two have grown up together. The original three-week sprint got the game to its main menu, and months of steady releases since have made it the most lived-in project in the lineup. New tricks tend to show up here first. The latest is save states and rewind.
+Every framework has a first game. For [PSXRecomp](/hardware/playstation), that game was Tomba!.
+
+It is still an alpha, but it is a mature one. You can play it end to end, and new PSXRecomp ecosystem features often show up here first.
 
 ![Tomba! running from a native build](/previews/tomba.mp4)
 
-## Can I play it?
+## Playable status
 
-Yes, as a playable alpha. The current release is v0.12.0-alpha (2026-08-12), with a Windows package and an experimental Linux AppImage on the GitHub releases page. macOS is supported by building from source.
+Yes. It is a mature alpha with a public build.
 
-The game itself comes from a dump you provide: your Tomba! (USA) disc image, in formats from plain .cue and .bin through .chd, and even the raw disc image from the Steam release. Everything boots from a bundled open-source BIOS, so no extra files are needed, though the launcher accepts your own retail BIOS dump if you prefer it.
+The game itself comes from a file you provide. Supported inputs include a Tomba! (USA) disc image and the CHD from the Steam release. Everything boots from a bundled open-source BIOS, so no extra files are needed, though the launcher accepts your own retail BIOS dump if you prefer it.
 
 ![Tomba! in the psxrecomp launcher](./tomba-launcher.png)
 
 ## What the recomp adds
 
-Save states and rewind were shown publicly for the first time on this title. The rewind work arrived in v0.12.0 as a community contribution.
+Save states and rewind were shown publicly for the first time on this title. They are PSXRecomp ecosystem features, with Tomba! as the showcase.
 
 ![Rewind in action](/covers/tomba-rewind.jpg)
 
 Beyond that:
 
-- Experimental 16:9 widescreen with a genuinely wider field of view: you see more of the world at the sides, not a stretched picture. Some 2D menu and video elements can look off, and 21:9 is not ready yet.
-- FMV skipping, with an optional auto-skip for the intro.
-- A warp debug menu on the launcher's Mods page.
-- A Fast Loading mod, off by default.
-- Controller choice: analog or D-pad, plus an optional Hybrid mod that switches to digital when you touch the D-pad and back to analog when you move the stick.
-- Supersampling at 2x to 4x internal resolution, with optional texture filtering.
-
-Your in-game OPTION settings, like text speed and vibration, persist across launches.
+- Experimental 16:9 widescreen. It shows more of the world instead of stretching the picture, but it may expose areas the original game never expected you to see.
+- FMV skipping, with an optional auto-skip for the intro. This carries forward from Tomba! Special Edition work.
+- A warp debug menu. This was left in the original game; the recomp makes it easier to reach.
+- Controller choice: analog or D-pad, plus an optional Hybrid mode that switches to digital when you touch the D-pad and back to analog when you move the stick. This also carries forward from Tomba! Special Edition work.
+- Your in-game OPTION settings, like text speed and other choices, persist across launches. That also comes from the Tomba! Special Edition direction.
 
 ![Video Game Esoterica on the updated Tomba! recompilation](https://www.youtube.com/watch?v=sbqPnJhb3uk)
-
-## Technical details
-
-Tomba's MIPS code is translated ahead of time into C and compiled into a native program for your machine. That program runs the game's own logic on a faithful simulation of the PS1 hardware (GPU, SPU, GTE, memory cards) together with a recompiled PlayStation BIOS; releases bundle the MIT-licensed OpenBIOS. Rendering goes through either a CPU software rasterizer or the default OpenGL backend, which keeps fill-heavy scenes at full speed. A self-growing cache converts areas you visit into fast native code and reuses it on later launches. Saves are standard .mcd memory-card files that emulators can also read.
 
 ## Sources
 

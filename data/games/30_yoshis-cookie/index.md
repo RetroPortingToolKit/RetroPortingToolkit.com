@@ -21,9 +21,9 @@ cover: "/data/blog/20_nesrecomp-10-titles/YoshisCookieRecomp_L6PeM5RcYX.png"
 
 A core project: Yoshi's Cookie is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes), and one of its cleanest results. It is believed 100 percent playable, and it was tested through full games with zero divergence from an emulator reference running alongside.
 
-## Can I play it?
+## Playable status
 
-Yes. A v1.0.0 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/YoshisCookieRecomp/releases). It is built from a dump you provide, the USA version, verified by checksum.
+Yes. A Windows build is on [GitHub Releases](https://github.com/mstan/YoshisCookieRecomp/releases). It is built from a dump you provide, the USA version, verified by checksum.
 
 ![The title screen picks the mode: 1P, or VS.](/data/blog/20_nesrecomp-10-titles/YoshisCookieRecomp_ax49jcT0Mx.png)
 
@@ -33,9 +33,6 @@ Single-player mode works across all rounds, speeds, and music types, the versus 
 
 Two players on one keyboard for versus matches, plus the runner's conveniences: F6 saves a state, F7 restores it, and F5 toggles fast-forward.
 
-## Technical details
-
-An MMC3 (Mapper 4) cartridge with 128 KB of program ROM and 64 KB of graphics ROM in switchable banks, one of the two games that brought that mapper family into the framework. Both single-player and versus modes were tested with zero oracle divergence against Nestopia: the recompiled game and the emulator, fed the same inputs, stayed in perfect agreement through full gameplay.
 
 ## Sources
 

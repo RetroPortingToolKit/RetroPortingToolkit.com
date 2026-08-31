@@ -28,9 +28,9 @@ The team cites roughly five minutes of game-specific work from disc to a running
 
 ![From a fresh Windows install to first boot](/covers/sfa3-setup.jpg)
 
-## Can I play it?
+## Playable status
 
-Yes. TechnicallyComputers publishes builds on GitHub, currently v0.2.14 (2026-08-18), with zips for Windows, macOS on both Intel and Apple silicon, and Linux. You supply your own Street Fighter Alpha 3 (USA) disc image. Titles can be run standalone from the release zip, or managed through the RetComM Launcher, which handles installs, updates and ROM wiring across the community's recomps. Video Game Esoterica's [coverage](/blog/video-sfa3-recomp-out-now) shows it running.
+Yes. TechnicallyComputers publishes builds on GitHub, with zips for Windows, macOS on both Intel and Apple silicon, and Linux. You supply your own Street Fighter Alpha 3 (USA) disc image. Titles can be run standalone from the release zip, or managed through the RetComM Launcher, which handles installs, updates and ROM wiring across the community's recomps. Video Game Esoterica's [coverage](/blog/video-sfa3-recomp-out-now) shows it running.
 
 ![Video Game Esoterica on the Street Fighter Alpha 3 recompilation](https://www.youtube.com/watch?v=aITjH0LoEeA)
 

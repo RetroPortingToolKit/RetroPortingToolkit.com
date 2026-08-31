@@ -21,11 +21,11 @@ cover: "/data/blog/20_nesrecomp-10-titles/GumshoeRecomp_AjIBeqmNFw.png"
 
 A core project: Gumshoe is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes). It is a side-scrolling light-gun game: detective Mr. Stevenson walks on his own while you shoot obstacles and enemies out of his path and collect diamonds. Beyond the novelty, its unusual cartridge brought the framework its fourth supported mapper family.
 
-## Can I play it?
+## Playable status
 
-Yes, end to end. A v1.3 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/GumshoeNESRecomp/releases), with an experimental Linux AppImage alongside. It is built from a dump you provide, the USA/Europe version.
+Yes, end to end. Windows and experimental Linux builds are on [GitHub Releases](https://github.com/mstan/GumshoeNESRecomp/releases). It is built from a dump you provide, the USA/Europe version.
 
-Jumping, obstacle shooting, enemy hit detection, bottle targets, round progression, and scoring all work. An earlier cosmetic bug where the timer and shot counter did not render was fixed in v1.2. Audio is still basic while full sound mixing lands in the framework.
+Jumping, obstacle shooting, enemy hit detection, bottle targets, round progression, and scoring all work. Audio is still basic while full sound mixing lands in the framework.
 
 ## What the recomp adds
 
@@ -35,9 +35,6 @@ The mouse stands in for the Zapper light gun. Moving aims, left click fires, and
 
 The runner adds save states (F6 saves, F7 restores) and an F5 fast-forward toggle.
 
-## Technical details
-
-A GxROM (Mapper 66) cartridge, the game that rounded out the framework's four supported mapper families alongside NROM, MMC1, and MMC3. Per the framework README, those four families cover roughly 78 percent of the licensed NES library. The 6502 code is translated to C at build time and compiled to native x64, with the console's video and audio hardware simulated by the shared runner.
 
 ## Sources
 

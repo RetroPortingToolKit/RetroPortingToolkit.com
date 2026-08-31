@@ -19,9 +19,9 @@ cover: "./boxart.png"
 
 MastersOfTerasKasiRecomp is a community project by TechnicallyComputers that rebuilds Star Wars: Masters of Teras Kasi, the 1997 PlayStation fighting game, as a native program on [PSXRecomp](/hardware/playstation). What stands out is where the effort has gone: two-player netplay that the published builds ship with switched on, and a profile-guided optimization pass whose entire job is the game's intro video.
 
-## Can I play it?
+## Playable status
 
-Some of it, with a build step in between. Release zips cover Windows, macOS on both Intel and Apple silicon, and Linux, the latest being v0.3.15 on 2026-08-18. They are not finished binaries: each zip is a Generate and rebuild host, carrying the executable, the sources, and the recompiler, so the game is built on your machine from a dump you provide.
+Some of it, with a build step in between. Release zips cover Windows, macOS on both Intel and Apple silicon, and Linux. They are not finished binaries: each zip is a Generate and rebuild host, carrying the executable, the sources, and the recompiler, so the game is built on your machine from a dump you provide.
 
 The project's own status line is careful. It boots far enough to present video and audio, and the known cost of that bring-up is heavy dirty-RAM interpretation, which leaves audio stuttery until more seeds and overlays land. An issue log in the repository tracks the rest.
 
@@ -35,13 +35,6 @@ The other addition is stranger. Profile-guided optimization is usually a build-s
 
 The title is also carried in the RetComM Launcher catalogue, which installs, updates, and rebuilds it alongside other recomps instead of making you repeat each game's wizard by hand.
 
-## Technical details
-
-PSXRecomp translates the game's MIPS R3000A machine code to C, which compiles into a native binary alongside the PS1 hardware runtime. The renderer is OpenGL, the aspect ratio stays 4:3, and the controller defaults to digital.
-
-Release packaging is deliberately thin: a zip never contains a BIOS dump, a disc image, or prebuilt game C. CI produces four targets, Linux x64, Windows x64 through MSYS2 MinGW, and macOS on arm64 and x64. The project notes that a Linux binary built against a newer glibc will not load on an older one, so Linux test packs are built inside a Fedora container with the libraries bundled.
-
-Debug builds are a separate configuration, much slower, with a TCP debug server on port 4520. Playtesting is done on Release for that reason.
 
 ## Sources
 

@@ -26,9 +26,9 @@ Metroid Prime Hunters is the one public game built on [ndsrecomp](/hardware/nint
 
 ![The recompiled game running as a native program](/previews/metroid-prime-hunters.mp4)
 
-## Can I play it?
+## Playable status
 
-Public alpha, and the project is blunt that bugs, crashes, and rough edges are expected. Windows and Linux (AppImage) builds are on the Releases page. The newest published release is v0.3.0-alpha (2026-08-15), and the README already documents a v0.4.0 line.
+Public alpha, and the project is blunt that bugs, crashes, and rough edges are expected. Windows and Linux AppImage builds are on the releases page.
 
 ![Video Game Esoterica on the public alpha](https://www.youtube.com/watch?v=FFUglxqa_eI)
 
@@ -44,17 +44,12 @@ Prime-style controls are on by default, WASD movement and mouse aiming in place 
 
 ![Scan visor up, in the recompiled build](/covers/mph-online.jpg)
 
-The v0.4.0 line adds an opt-in HD Rendering mod that raises the 3D engine's internal resolution up to 4x and filters decoded textures, while the 2D layers stay exactly as the hardware draws them.
+HD Rendering raises the 3D engine's internal resolution and filters decoded textures, while the 2D layers stay exactly as the hardware draws them.
 
 Online play through Wiimmfi is experimental. The game can authenticate and reach a Friends and Rivals lobby in validated flows, but in-game online play is untested and may fail to connect or desync.
 
 Known issues: the widescreen is still being audited, so some scenes, HUD placement, and fades can be wrong; the campaign is not validated start to finish; and save behavior is still in early testing, so keep backups.
 
-## Technical details
-
-The DS is a two-CPU machine, and the recomp treats it that way: the game's ARM9 and ARM7 code is lifted to C ahead of time and runs natively, with a bounded interpreter tier handling code the game copies into RAM.
-
-The Wi-Fi path is built on melonDS's Wi-Fi work, which the project credits in full: its DS Wi-Fi controller model, emulated access point, and network backend are what let the recompiled game reach Wiimmfi as a real client. The launcher persists a console firmware profile per install, so Wi-Fi settings and console pairing survive restarts.
 
 ## Sources
 

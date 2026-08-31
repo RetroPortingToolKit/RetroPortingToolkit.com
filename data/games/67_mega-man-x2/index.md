@@ -20,7 +20,7 @@ Mega Man X2 is a SNESRecomp project.
 
 It matters because the game uses Capcom's Cx4 chip. That makes it useful framework work, even while the enhancement layer is still being checked.
 
-## Can I play it?
+## Playable status
 
 Yes, for the stock game. Mega Man X2 can be played from start to finish without enhancements.
 

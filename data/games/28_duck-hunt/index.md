@@ -21,9 +21,9 @@ cover: "/data/blog/20_nesrecomp-10-titles/DuckHuntRecomp_ALvjc1KEbx.png"
 
 Duck Hunt needs a piece of hardware no modern setup has: the Zapper light gun, pointed at a CRT television. This [NESRecomp](/hardware/nes) build, maintained by the core team, hands that job to your mouse. Move to aim, click to shoot.
 
-## Can I play it?
+## Playable status
 
-Yes. A v1.1.0 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/DuckHuntNESRecomp/releases). It is built from a dump you provide, the World version.
+Yes. A Windows build is on [GitHub Releases](https://github.com/mstan/DuckHuntNESRecomp/releases). It is built from a dump you provide, the World version.
 
 The title screen and all three game modes work, along with duck flight, hit detection, scoring, the dog's laughing and retrieving animations, and round progression. Audio is still basic while full sound mixing lands in the framework.
 
@@ -33,9 +33,6 @@ The mouse stands in for the Zapper. Moving aims, left click pulls the trigger, a
 
 Under the hood the light-gun detection is fully simulated, including the original two-phase sequence with its anti-cheat black-screen check, so the game responds the way it did on real hardware.
 
-## Technical details
-
-A Mapper 0 (NROM) cartridge, the same simple family as Super Mario Bros. The 6502 code is translated to C at build time and compiled to native x64; the console's video and audio hardware are simulated by the shared runner, and the Zapper hooks live in the game's small integration layer.
 
 ## Sources
 

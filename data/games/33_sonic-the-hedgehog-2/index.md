@@ -23,11 +23,11 @@ Sonic the Hedgehog 2 is the second game recompiled by [SegaGenesisRecomp](/hardw
 
 ![Emerald Hill Zone, running as a native build.](/previews/sonic-the-hedgehog-2.mp4)
 
-## Can I play it?
+## Playable status
 
 Playable alpha. You can boot the game and navigate stages; less traveled code paths, boss fights especially, are likely to still have issues.
 
-The newest release is v0.4.0 (2026-06-17), which added the pre-boot launcher. Windows builds are on the Releases page, alongside an experimental Linux AppImage and a macOS build from earlier tags. The game is built from a ROM dump you provide.
+Windows builds are on the releases page, alongside an experimental Linux AppImage and a macOS build. The game is built from a ROM dump you provide.
 
 ## What the recomp adds
 
@@ -37,9 +37,6 @@ Two player versus works natively. Because the clean-room renderer draws the full
 
 One known behavioral difference: the half-pipe special stages run about twice as fast as on original hardware. The stage was heavy enough to lag the original 68000, so its loop effectively ran at 30 Hz. The recomp never overruns the frame budget and runs the same code at a full 60 Hz. The project tracks frame-lag emulation as a future enhancement.
 
-## Technical details
-
-The game runs as statically recompiled 68000 code on the shared clean-room runtime, with the interpreter tier as fallback for static-dispatch misses. The current regeneration pass finds roughly 4,000 functions across hundreds of jump tables. Split-screen exercises VDP interlace mode 2: double vertical resolution, 8x16-pixel cells, and double-resolution sprite coordinates, every line rendered rather than approximated. The AGPL clownmdemu core is a development-only conformance oracle and is never part of the shipped binary.
 
 ## Sources
 

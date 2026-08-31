@@ -26,11 +26,11 @@ Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever
 
 ![Super Mario World running as a native program.](/previews/super-mario-world.mp4)
 
-## Can I play it?
+## Playable status
 
 Yes, as an in-development preview. The project calls it believed fully playable: the first two worlds are hand-verified end to end, verification of Vanilla Dome is in progress, and the later worlds are expected to play the same.
 
-The current release is v0.11.0 (2026-08-12), packaged for Windows with a Linux AppImage alongside. It is built from a dump you provide: on first launch the game asks for your Super Mario World (USA) ROM.
+Windows and Linux packages are on the GitHub releases page. It is built from a dump you provide: on first launch the game asks for your Super Mario World (USA) ROM.
 
 ## What the recomp adds
 
@@ -45,7 +45,7 @@ The rest of what the build adds:
 - MSU-1 audio: CD-quality streaming music with a music pack you supply. Without one you get the authentic soundtrack.
 - Save states, turbo, and auto-detected controllers with a position-true default mapping.
 
-Mods go past settings. v0.11.0 added an experimental Smash Bros 64 catalog, with Captain Falcon as the first playable character option. It is off by default and needs your own Super Smash Bros. 64 ROM for the donor content.
+Mods go past settings. An experimental Smash Bros. 64 catalog includes Captain Falcon as the first playable character option. It needs your own Super Smash Bros. 64 ROM for the donor content.
 
 ![Character replacement test](/covers/smw-character.jpg)
 
@@ -53,11 +53,6 @@ A replacement is behavior-level rather than a fresh sprite pasted over Mario: mo
 
 ![Character replacement running in a stock level.](https://www.youtube.com/watch?v=Owuku0zj4As)
 
-## Technical details
-
-The 65816 CPU code is statically translated to C, so every function the game runs on the SNES's main CPU is a generated C function. The rest of the console, the PPU, the SPC700 audio coprocessor, DMA, and register I/O, runs through a LakeSnes-derived hardware core: recompile the CPU, emulate the silicon.
-
-The port is built on the SMWDisX disassembly, and 1,937 of the game's 2,074 functions carry their actual names in the recompiled source, which makes this the leading example of a disassembly-annotated recompilation. Widescreen caps at a 446-pixel logical width, because wider views cannot represent every sprite safely in the SNES's 9-bit sprite coordinate space.
 
 ## Sources
 

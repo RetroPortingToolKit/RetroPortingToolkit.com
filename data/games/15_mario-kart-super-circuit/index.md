@@ -21,24 +21,21 @@ Mario Kart: Super Circuit hides a surprise in its own code: a 60 FPS rendering b
 
 ![Super Circuit running as a native Windows program.](/previews/mario-kart-super-circuit.mp4)
 
-## Can I play it?
+## Playable status
 
-Yes, as a public preview. Windows builds are on the GitHub Releases page, currently v0.0.2 (August 2026). The game runs from dumps you provide: select your own USA ROM and a retail GBA BIOS in the launcher on first run, and it remembers them afterward.
+Yes, as a public preview. Windows builds are on the GitHub releases page. The game runs from dumps you provide: select your own USA ROM and a retail GBA BIOS in the launcher on first run, and it remembers them afterward.
 
 Menus, cup selection, races, and results all work. Back up saves you care about, since undiscovered edge cases are expected at this stage.
 
 ## What the recomp adds
 
-Two mods, both optional and off by default, enabled from the launcher's Mods page:
+Two optional mods are available from the launcher's Mods page:
 
 - 60 FPS Track Rendering updates race presentation at 60 FPS while preserving the game's underlying logic and timing. The behavior was found within the game's own code; it was simply never enabled in the original release.
 - Adaptive Widescreen renders additional race content at the sides of the track view instead of stretching the original 240x160 image.
 
 Around the mods: keyboard and modern controller support, cartridge saves and save states (Shift+F1 through F9 to save, F1 through F9 to load), windowed and fullscreen play with sharp scaling and optional affine filtering, and an in-game settings menu.
 
-## Technical details
-
-The game is statically recompiled to a native Windows x64 application on the gbarecomp framework, with ROM and BIOS setup through the shared recomp-ui launcher. The supported ROM revision is documented in the repo, and ROM-derived generated code, saves, and build output stay local; nothing copyrighted ships in releases.
 
 ## Sources
 

@@ -20,7 +20,7 @@ ActRaiser is a community SNES recomp project by DerrickGold.
 
 It targets the USA cartridge dump and builds into a native desktop app. The game alternates between side-scrolling action stages and top-down town simulation, so it is a good test of more than one kind of SNES scene.
 
-## Can I play it?
+## Playable status
 
 Yes, as an active development build. The action stages are far along, including Death Heim. Simulation mode still needs broader town coverage.
 

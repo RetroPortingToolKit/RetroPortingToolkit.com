@@ -21,11 +21,11 @@ cover: "./boxart.png"
 
 Sonic 3 & Knuckles is really three games in one repository on [SegaGenesisRecomp](/hardware/sega-genesis): Sonic 3 alone, Sonic & Knuckles alone, and the combined 4 MB cartridge, each as its own build. The lock-on trick that let the original cartridges physically stack lives on here as a memory-mapping problem the recomp has to solve.
 
-## Can I play it?
+## Playable status
 
 Playable alpha, with the three builds at different depths. Sonic 3 alone is the furthest along: a playable bring-up that reaches Angel Island with working saves. Sonic & Knuckles alone is in bring-up, and the combined Sonic 3 & Knuckles build is early bring-up.
 
-The newest release is v0.3.0 (2026-06-17), which added the pre-boot launcher and ships Windows builds of all three variants. An experimental Linux AppImage of the combined build and a macOS build exist from earlier tags. Each variant is built from a ROM dump you provide, one per mode.
+Windows builds are available for all three variants. An experimental Linux AppImage of the combined build and a macOS build are also available. Each variant is built from a ROM dump you provide, one per mode.
 
 ## What the recomp adds
 
@@ -33,13 +33,6 @@ The pre-boot launcher, and the framework's opt-in 16:9 widescreen for the standa
 
 The shared engine's opt-in CRT color modes and verified FM audio shadow are available here too, and for development builds an experimental statically recompiled Z80 sound driver can replace the embedded interpreter.
 
-## Technical details
-
-The combined cartridge is the hard mode of Genesis recompilation. Sonic & Knuckles boots at address $000000 with Sonic 3 mapped in at $200000, and S&K code jumps directly into the Sonic 3 bank, so the runtime must honor the lock-on memory map.
-
-Two more details resist static analysis. The game copies its VBlank and HBlank interrupt handlers into RAM at boot, which a static call-graph walk cannot follow without hooks, and combined save data lives in battery SRAM on odd bytes. The clean-room interpreter tier backstops static-dispatch misses.
-
-The optional widescreen builds draw on the Sonic Retro community's disassemblies as build-time sources; the shipped binaries are recompiled C.
 
 ## Sources
 
