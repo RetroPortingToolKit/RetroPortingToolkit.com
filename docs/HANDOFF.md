@@ -555,3 +555,12 @@ both pages already link their source article under `links:`.
   blog items credit Shokunin.
 - `SITE.author` is Shokunin, so feeds and any future post missing explicit
   frontmatter use the same first-party default.
+
+## Discord replies and cancellation (2026-08-31)
+
+- Authorized replies to a bot message now address the bot without another
+  mention. The referenced bot message and its original request are passed as
+  context when Discord can resolve them.
+- `stop`, `cancel`, and `abort`, either by mention or reply, terminate the
+  active Codex process group. The bot acknowledges the command immediately and
+  reports the stopped state on the original request. Queued work remains queued.

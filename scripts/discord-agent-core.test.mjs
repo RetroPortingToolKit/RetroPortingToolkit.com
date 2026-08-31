@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   chunkDiscordMessage,
   isAuthorized,
+  isStopRequest,
+  replyContext,
   stripBotMention,
   summaryHeading,
   taskPrompt,
@@ -10,6 +12,17 @@ import {
 describe("Discord agent core", () => {
   it("removes normal and nickname mentions", () => {
     expect(stripBotMention("<@123> fix it <@!123>", "123")).toBe("fix it");
+  });
+
+  it("recognizes concise stop commands without swallowing ordinary requests", () => {
+    expect(isStopRequest("stop")).toBe(true);
+    expect(isStopRequest("Cancel this task.")).toBe(true);
+    expect(isStopRequest("stop adding the new page after the intro")).toBe(false);
+  });
+
+  it("preserves a replied bot message and its original request as context", () => {
+    expect(replyContext({ referencedContent: "Which page?", originalContent: "Update the guide" }))
+      .toBe("Original request:\nUpdate the guide\n\nBot message being replied to:\nWhich page?");
   });
 
   it("fails closed outside configured guilds and channels", () => {
@@ -52,9 +65,10 @@ describe("Discord agent core", () => {
   });
 
   it("keeps repository and safety boundaries in every agent prompt", () => {
-    const prompt = taskPrompt({ request: "Update a page", authorId: "u", channelId: "c", messageUrl: "https://discord.com/x" });
+    const prompt = taskPrompt({ request: "Update a page", authorId: "u", channelId: "c", messageUrl: "https://discord.com/x", context: "Bot message being replied to:\nWhich page?" });
     expect(prompt).toContain("Update a page");
     expect(prompt).toContain("Work only in the current RetroPortingToolkit.com checkout");
     expect(prompt).toContain("Do not expose credentials");
+    expect(prompt).toContain("Bot message being replied to");
   });
 });

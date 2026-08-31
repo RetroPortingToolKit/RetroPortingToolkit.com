@@ -9,9 +9,14 @@ Codex CLI, git credentials, the project test gate, and production verification.
 
 - The bot fails closed unless its guild, channel, and requester user or role
   IDs are allowlisted.
-- It responds only to direct mentions and ignores other bots.
+- It responds to direct mentions and to authorized human replies to one of its
+  messages. A reply includes the bot message and its original request as task
+  context when Discord can resolve both.
 - One task runs at a time. A second request waits in memory and receives its
   queue position.
+- An authorized developer can mention the bot or reply to it with `stop`,
+  `cancel`, or `abort` to terminate the active Codex process. Queued requests
+  remain queued. Work performed before termination is not rolled back.
 - The Discord token lives in the macOS login Keychain under
   `retroportingtoolkit-discord-bot`. It is loaded into the bridge process and
   removed from the Codex child process environment.
@@ -78,9 +83,14 @@ property list contain the bot token.
 
 ## Operation
 
-An approved developer writes a concrete request and tags the bot. The bot
+An approved developer writes a concrete request and tags the bot, or replies
+to one of the bot's messages without tagging it again. The bot
 reacts with 🔍, announces when work starts, and invokes a fresh ephemeral Codex
 session. The agent pulls and checks the shared checkout, performs the request,
 runs the repository's required verification before a push, and verifies the
 production deployment. Its final summary is posted as `✅ Done.`; failures use
 `❌ The task did not complete.` and preserve the underlying explanation.
+
+To stop the active task, tag the bot or reply to any of its messages with
+`stop`, `cancel`, or `abort`. The bot acknowledges immediately, terminates the
+active process group, and posts `🛑 Stopped.` on the original request.

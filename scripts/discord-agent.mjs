@@ -8,7 +8,9 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import {
   chunkDiscordMessage,
   isAuthorized,
+  isStopRequest,
   parseCsv,
+  replyContext,
   stripBotMention,
   summaryHeading,
   taskPrompt,
@@ -41,6 +43,9 @@ const client = new Client({
 
 const queue = [];
 let running = null;
+let activeChild = null;
+
+class TaskStoppedError extends Error {}
 
 function safeAgentEnv() {
   const env = { ...process.env };
@@ -66,8 +71,10 @@ async function runCodex(job) {
     authorId: job.message.author.id,
     channelId: job.message.channelId,
     messageUrl: job.message.url,
+    context: job.context,
   });
   try {
+    if (job.stopRequested) throw new TaskStoppedError("Stopped before the agent started.");
     const exitCode = await new Promise((resolve, reject) => {
       const child = spawn(
         "codex",
@@ -80,15 +87,20 @@ async function runCodex(job) {
           "--output-last-message", outputFile,
           "-",
         ],
-        { cwd: ROOT, env: safeAgentEnv(), stdio: ["pipe", "pipe", "pipe"] },
+        { cwd: ROOT, env: safeAgentEnv(), stdio: ["pipe", "pipe", "pipe"], detached: true },
       );
+      activeChild = child;
       child.stdin.end(prompt);
       child.stdout.on("data", (data) => process.stdout.write(data));
       child.stderr.on("data", (data) => process.stderr.write(data));
       child.once("error", reject);
-      child.once("close", resolve);
+      child.once("close", (code) => {
+        if (activeChild === child) activeChild = null;
+        resolve(code);
+      });
     });
     const summary = await fs.readFile(outputFile, "utf8").catch(() => "");
+    if (job.stopRequested) throw new TaskStoppedError("The active Codex process was terminated.");
     if (exitCode !== 0) {
       throw new Error(summary.trim() || `Codex exited with status ${exitCode}.`);
     }
@@ -96,6 +108,29 @@ async function runCodex(job) {
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
+}
+
+function stopActiveTask() {
+  if (!running) return false;
+  running.stopRequested = true;
+  const child = activeChild;
+  if (child?.pid) {
+    try {
+      process.kill(-child.pid, "SIGTERM");
+    } catch {
+      child.kill("SIGTERM");
+    }
+    const killTimer = setTimeout(() => {
+      if (activeChild !== child || !child.pid) return;
+      try {
+        process.kill(-child.pid, "SIGKILL");
+      } catch {
+        child.kill("SIGKILL");
+      }
+    }, 5000);
+    killTimer.unref();
+  }
+  return true;
 }
 
 async function drainQueue() {
@@ -110,6 +145,14 @@ async function drainQueue() {
     const summary = await runCodex(job);
     await replyChunks(job.message, summaryHeading(summary), summary);
   } catch (error) {
+    if (error instanceof TaskStoppedError) {
+      await replyChunks(
+        job.message,
+        "🛑 Stopped.",
+        "The active agent task was stopped. Work completed before the stop may remain in the shared checkout, so the next task will inspect the tree before changing anything.",
+      );
+      return;
+    }
     const detail = error instanceof Error ? error.message : String(error);
     await replyChunks(job.message, "❌ The task did not complete.", detail);
   } finally {
@@ -120,17 +163,43 @@ async function drainQueue() {
 
 client.on("messageCreate", async (message) => {
   if (!client.user || message.author.bot || !message.guildId) return;
-  if (!message.mentions.users.has(client.user.id)) return;
+  let referenced = null;
+  if (message.reference?.messageId) {
+    referenced = await message.fetchReference().catch(() => null);
+  }
+  const addressedByReply = referenced?.author?.id === client.user.id;
+  if (!message.mentions.users.has(client.user.id) && !addressedByReply) return;
   if (!isAuthorized(message, config)) {
     await message.reply({ content: "This bot is restricted to approved developers and channels.", allowedMentions: { repliedUser: true } });
     return;
   }
   const request = stripBotMention(message.content, client.user.id);
+  if (isStopRequest(request)) {
+    const stopped = stopActiveTask();
+    await message.react(stopped ? "🛑" : "ℹ️").catch(() => undefined);
+    await message.reply({
+      content: stopped
+        ? `Stopping the active request now.${queue.length ? ` ${queue.length} queued request(s) remain.` : ""}`
+        : "There is no active request to stop.",
+      allowedMentions: { repliedUser: true },
+    });
+    return;
+  }
   if (!request) {
     await message.reply({ content: "Tag me with a concrete request. I’ll queue it, run the repository checks, publish approved changes, and report the result here.", allowedMentions: { repliedUser: true } });
     return;
   }
-  queue.push({ message, request });
+  let original = null;
+  if (addressedByReply && referenced?.reference?.messageId) {
+    original = await referenced.fetchReference().catch(() => null);
+  }
+  const context = addressedByReply
+    ? replyContext({
+        referencedContent: referenced?.content || "",
+        originalContent: original && !original.author?.bot ? original.content : "",
+      })
+    : "";
+  queue.push({ message, request, context });
   await message.react("🔍").catch(() => undefined);
   if (running) {
     await message.reply({ content: `Queued. You are number ${queue.length} waiting.`, allowedMentions: { repliedUser: true } });
