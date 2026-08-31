@@ -1,259 +1,125 @@
 ---
-title: "Machine-readable surfaces"
-summary: "Every part of this fleet you can drive with a program: the TCP debug servers, JSON and JSONL outputs, exit codes including the CTest 77 skip, the artefact files written next to a build, the input script language, and the four Ghidra MCP configurations."
+title: "Debug surfaces agents can use"
+summary: "The debug servers, logs, JSON outputs, traces, and scripts that make AI-assisted recomp work observable."
 pageType: "reference"
 tags: ["Agents", "Tooling", "Verification"]
-repos:
-  - "https://github.com/mstan/nesrecomp"
-  - "https://github.com/mstan/psxrecomp"
-  - "https://github.com/mstan/vbrecomp"
-  - "https://github.com/mstan/gbarecomp"
-  - "https://github.com/mstan/ndsrecomp"
-  - "https://github.com/mstan/SuperMetroidRecomp"
-updated: "2026-08-25"
+updated: "2026-08-30"
 ---
 
-Most of this fleet is driven by a human watching a game window. Not all of it. There is a debug server you can open a socket to, output modes that emit JSON, exit codes you can branch on, artefact files next to every build, a script language for controlled play sessions, and four Ghidra MCP configurations. This is the inventory. Where a project has documented nothing, it says UNKNOWN instead of guessing. Read [if you are an agent, start here](/docs/agents/start-here) and [rules of the codebase](/docs/agents/house-invariants) first: they govern when you may use any of this.
+An agent should not rely only on the game window.
 
-## What you can drive
+Recomp projects often expose machine-readable surfaces: TCP debug servers, JSON reports, trace files, screenshots, input hooks, and test exit codes.
 
-| Surface | What it gives you | Where it is |
-|---|---|---|
-| TCP debug server | Live register, memory, video and input access on a running build | Nine projects, one document each |
-| JSON and JSONL outputs | Benchmarks, traces, crash reports, metadata sidecars | Per project, listed below |
-| Exit codes | Pass or fail signals from gates, scripted sessions and comparison tools | Per tool, listed below |
-| Artefact files | Dispatch misses, coverage, traces, screenshots, written beside the executable | Per project, listed below |
-| Input script language | A repeatable play session with assertions and a chosen exit code | nesrecomp and Megaman3NESRecomp |
-| MCP servers | Ghidra disassembly over SSE | Four `.mcp.json` files |
+These surfaces let the agent observe the running game without guessing.
 
-## The TCP debug protocol
+## Useful surfaces
 
-Several repositories ship a protocol document: `TCP.md` in SuperMarioBrosNESRecomp, YoshiNESRecomp, cdirecomp, gbarecomp, ndsrecomp, nesrecomp and vbrecomp, and `TCP_COMMANDS.md` in psxrecomp. They describe the same basic transport. The argument and return shapes per command are in [the TCP debug protocol reference](/docs/reference/tcp-protocol); below is enough to open a connection and read what comes back.
-
-### Transport
-
-| Property | Value |
+| Surface | What it gives |
 |---|---|
-| Address | TCP on `127.0.0.1` |
-| Concurrency | One client at a time |
-| Framing | Line based: one request per line terminated by `\n`, one JSON response line back |
-| Request encoding | JSON preferred, a bare word accepted for the simplest commands |
-| Response | `{"ok":true,...}` on success, an error object on failure |
-| Correlation | The `id` field is echoed when supplied |
-| Maximum line | 8192 bytes |
-| Latency | Polled once per frame on the runner side in nesrecomp, so do not expect sub-frame latency |
+| TCP debug server | Live queries against a running build. |
+| Screenshot or frame capture | Visual output for human or AI review. |
+| Input commands | Basic menu navigation and simple actions. |
+| Dispatch-miss artifact | Missing generated functions. |
+| Coverage report | Static coverage, interpreter fallback, healed code, and similar status. |
+| Trace ring | Recent hardware, memory, CPU, or renderer events. |
+| JSON or JSONL output | Structured logs for scripts and diffs. |
+| Exit codes | Pass, fail, or skip status for automation. |
+| Ghidra MCP | Disassembly and annotations when static analysis is needed. |
 
-### The two error key spellings
+Use the surface that answers the question. A visual screenshot does not prove a timing claim.
 
-This is the one place the transport really differs. A client that works across the fleet must accept both spellings.
+## TCP debug servers
 
-| Lineage | Failure envelope | Documented in |
-|---|---|---|
-| NES | `{"ok":false,"err":"..."}` | [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp, [`TCP.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/TCP.md) in YoshiNESRecomp |
-| PlayStation, Game Boy Advance, Virtual Boy, CD-i | `{"id": N, "ok": false, "error": "<msg>"}` | [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp, and the same envelope in gbarecomp, vbrecomp and cdirecomp |
+TCP is a good fit for recomp work because clients restart constantly.
 
-The psxrecomp envelope also puts `id` first. Read `ok` to decide success, then read whichever of `err` or `error` is present.
+During development, the user may rebuild, relaunch, crash, and relaunch again. A simple TCP client can disconnect and reconnect cleanly. Heavier harnesses may handle repeated process restarts worse.
 
-### The common core
+Most TCP servers use newline-delimited JSON:
 
-Present in every server, with the spellings each project uses. UNKNOWN means the project's own document does not say.
+- one request per line
+- one response per line
+- `ok: true` for success
+- `ok: false` for failure
 
-| Command | psx | nes | vb | gba | nds | cdi |
-|---|---|---|---|---|---|---|
-| `ping` | yes | yes | yes | yes | yes | yes |
-| `get_registers` (`regs`) | yes | yes | yes | yes | yes (`regs`, per cpu) | yes |
-| `read_ram` / `dump_ram` | yes | yes | yes | yes | `read_mem` (per cpu) | `read_mem` |
-| `write_ram` | yes | yes | yes | yes | UNKNOWN | planned |
-| `screenshot` | yes | yes | yes | yes | `framebuffer` | yes |
-| `set_input` / `press` / `clear_input` | yes | yes | yes | yes | `keys` / `touch` | `set_input` |
-| `history` / `get_frame` / `frame_range` / `frame_timeseries` | yes | yes | yes | yes | no (event counts instead) | planned |
-| `dispatch_miss_info` | UNKNOWN | yes | yes | yes | log file | yes |
-| `first_divergence` / `first_failure` | `first_failure` | `first_failure` | `first_divergence` | UNKNOWN | harness side | planned |
+Older servers do not all spell errors the same way. A client should handle both `error` and `err`.
 
-Each server then adds hardware queries for its own console, which is the reason to open the specific document: `vip_state`, `vsu_state` and `psw_state` on Virtual Boy; `gx_state`, `gx_run_sample`, `gx_write_sample` and `dma_sample` on Nintendo DS; `read_nametable`, `read_oam`, `read_chr` and `mapper_state` on NES; `gte_state`, `mdec_state`, `gp1_dump` and `gpu_frame_dump` on PlayStation; `video_state`, `ikat_events`, `ciap_events` and `mount_disc` on CD-i.
+## What TCP can drive
 
-### Turning the server on
+TCP input is useful for:
 
-Most servers are not always running.
+- pressing Start or A
+- moving through menus
+- clearing dialogs
+- walking in a straight line
+- taking repeatable screenshots
+- letting an AI compare visible output
 
-| Project | How it is enabled |
-|---|---|
-| nesrecomp | A `debug.ini` file in the same directory as the game executable, or a game specific CLI flag that enables debug mode |
-| gbarecomp | Active whenever `debug.ini` is present, or the `--verify` or `--oracle` CLI flags are set, including Release builds |
+It is not enough for intense gameplay, tight timing, or subtle player control unless the project has a precise input script system.
 
-Ports are assigned per project and they collide. Port 4380 is claimed at once by the psx-beetle oracle, Yoshi's native runtime, cdirecomp's native runtime and segagenesisrecomp. Port 4370 is claimed by psx-runtime and five different NES games. The stated convention is native port plus one for the oracle, though the Game Boy Advance pair 19842 and 19843 does not match it. The full allocation is on [the TCP port registry](/docs/reference/tcp-port-registry).
+## Screenshots and frame capture
 
-### A client, in two forms
+Prefer a capture path that represents what the player actually sees.
 
-From [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp:
+Some projects expose multiple capture modes. A raw framebuffer may miss a high-resolution renderer layer, post-processing, or final presentation.
 
-```python title="TCP.md"
-import socket, json
+If the visual claim is important, use the best capture path the project provides.
 
-def send_cmd(cmd, port=4370):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(5)
-    s.connect(('127.0.0.1', port))
-    s.sendall((json.dumps(cmd) + '\n').encode())
-    data = b''
-    while b'\n' not in data:
-        chunk = s.recv(4096)
-        if not chunk: break
-        data += chunk
-    s.close()
-    return json.loads(data.decode().strip())
-```
+## Trace rings
 
-The same file warns that inline Python inside bash often fails on Windows because of shell escaping, and says to write a `.py` file instead. For a single query the shell form is easier. From [`CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) in LegendOfZeldaNESRecomp:
+Trace rings are strongest when they are always on.
 
-```bash
-# One-shot command
-echo '{"cmd":"zelda_state"}' | ncat localhost 4370
+The agent can run the game, see a bug, then ask what happened before it. That is better than arming a trace and hoping the same timing happens again.
 
-# Read RAM (e.g., entity types at $034F-$035A)
-echo '{"cmd":"read_ram","addr":847,"len":12}' | ncat localhost 4370
-```
+Useful rings include:
 
-If the query you need does not exist, three repositories give the same steps for adding one: write the handler, register it in the dispatch table, mirror it on the oracle side, document it in that repository's protocol file, rebuild. All three end with the same prohibition, stated in nesrecomp as "**Never** add a side-channel debug log instead. If TCP can't see it, TCP needs to grow until it can."
+- CPU history
+- memory writes
+- DMA events
+- renderer events
+- input events
+- dispatch misses
+- timing counters
 
-## JSON and structured output
+Query the narrowest useful range. Huge dumps are slow and hard to read.
 
-| Surface | What it is | Project |
-|---|---|---|
-| `build/last_run_report.json` | Always-on post mortem on crash or exit: CPU state, recomp stack, abandons, tier2 coverage, dispatch-log ring, DB/PB ring, and a game specific section | SuperMetroidRecomp |
-| `*.jsonl` WRAM traces | `SNESRECOMP_WRAM_TRACE_FILE` on the recomp side, `SNESREF_TRACE_FILE` on the oracle side | SuperMetroidRecomp |
-| `gbaref_trace.jsonl` | Enabled by the `GBAREF_TRACE` environment variable, diffed by `oracle/ref_diff.py` | gbarecomp |
-| Co-simulation hash JSONL | Per frame state hashes consumed by `tools/nes_cosim.py diff` | nesrecomp |
-| `address_aliases.json` | A required artefact before full BIOS recompilation | psxrecomp |
-| `recomp/sm_decomp_symbols.json` | Dispatch target tables for authorized indirect calls | SuperMetroidRecomp |
-| `--json mesen_vs_recomp.json` | Audio comparison output | smsggrecomp |
-| `--json-out cap.json` | Virtual Boy audio capture | vbrecomp |
+## JSON output
+
+Structured output is for scripts and comparison tools.
+
+Good JSON output has stable fields and small records. JSONL is useful for traces because each event is one line.
+
+If a project adds a new machine-readable output, document:
+
+- how to enable it
+- where it writes
+- whether it is always on
+- what one record means
+- whether it changes timing
 
 ## Exit codes
 
-| Tool or gate | Convention | Project |
-|---|---|---|
-| Co-simulation gates | "Gates print PASS/FAIL and exit non-zero on FAIL (CI-gateable)" | nesrecomp, [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md) |
-| `sm_widescreen_visual_smoke` | Skips with code 77 when artifacts are missing, the CTest skip convention | SuperMetroidRecomp |
-| Input script `EXIT [code]` | Exits with the code you choose, default 0, which makes a scripted play session a pass or fail gate | nesrecomp |
-| Interpreter self-test | Expects exit code 0; the exit code equals the number of failures | nesrecomp, [`docs/PHASE1_HANDOFF.md`](https://github.com/mstan/nesrecomp/blob/master/docs/PHASE1_HANDOFF.md) |
-| Frame comparison tool | Writes an absolute-difference PPM and returns a failing exit code for any mismatch | DKC2Recomp |
-| Documented failure path | Terminates immediately with exit code 3 | MinishCapRecomp, [`ISSUES.md`](https://github.com/mstan/MinishCapRecomp/blob/main/ISSUES.md) |
+Scripts should return useful exit codes.
 
-Code 77 is worth naming twice. CTest treats it as a skip, so a suite of nothing but skipped tests still reports success. Branch on the per test result, not on the suite's exit status. The wider table of error strings and codes is on [errors and exit codes](/docs/reference/errors-and-exit-codes).
+At minimum:
 
-## Artefacts written next to the build
+| Code | Meaning |
+|---|---|
+| `0` | Success. |
+| non-zero | Failure. |
+| `77` | Skipped when running under CTest. |
 
-These are files, not commands, and reading them is often faster than driving the debug server.
+If a tool uses more detail, document it near the tool. Do not make another project guess.
 
-| Artefact | Format | Project |
-|---|---|---|
-| `dispatch_misses.toml` | TOML beside the executable, empty means clean | segagenesisrecomp |
-| `dispatch_misses.log` | Text, one per CPU on Nintendo DS | ndsrecomp, vbrecomp, smsggrecomp |
-| `recomp_master_misses.toml.frag` | TOML fragment written at runtime by the self healing path | gbarecomp |
-| `recomp_seed_proposals.toml` | Machine written proposals, merged by a human only | gbarecomp |
-| `C:/temp/ppu_trace.csv` | `W,ADDR,VALUE,PC,FRAME` | nesrecomp |
-| `C:/temp/mapper_trace.csv` | `BANK_SWITCH,bank,PC,FRAME` | nesrecomp |
-| `mode_trace.csv` | Verify mode, one row per frame, native and emulator columns | GumshoeNESRecomp |
-| Sidecar `.log` files | `[name]`, then `Ghidra:`, then `Rationale:`, next to each hardware `.c` file | nesrecomp |
-| Screenshots | PNG on NES, where BMP is prohibited as too large for token limits; BMP or PPM client side on CD-i | nesrecomp, cdirecomp |
+## Ghidra MCP
 
-## The input script language
+Use Ghidra when the question requires disassembly or data structure work.
 
-nesrecomp and Megaman3NESRecomp document the same script language, word for word. It turns a play session into something an agent can run unattended and assert on.
+Prefer the configured headless MCP workflow for these projects. Do not launch the GUI just to inspect a function.
 
-| Command | Description |
-|---------|-------------|
-| `WAIT <n>` | Wait n frames |
-| `HOLD <BTN>` | Hold button (A B SELECT START UP DOWN LEFT RIGHT) |
-| `RELEASE <BTN>` | Release button |
-| `TURBO ON\|OFF` | Toggle fast-forward |
-| `SCREENSHOT [file]` | Save PNG to C:/temp/ |
-| `LOG <msg>` | Print message to stdout |
-| `SAVE_STATE <path>` | Save state to file |
-| `LOAD_STATE <path>` | Restore state from file |
-| `WAIT_RAM8 <hex_addr> <hex_val>` | Block until g_ram[addr]==val (30s timeout) |
-| `ASSERT_RAM8 <hex_addr> <hex_val> [msg]` | Assert RAM value |
-| `EXIT [code]` | Exit with code (default 0) |
+Ghidra is not runtime proof. It can explain what the original code should do. The agent still needs to prove the recompiled build does it.
 
-Invoked as, from [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) in nesrecomp:
+## When a surface is missing
 
-```batch
-GameRecomp.exe rom.nes --script C:/temp/session.txt > C:/temp/stdout.txt 2>&1
-```
+If a project lacks the query the agent needs, add it to the debug surface when that is reasonable.
 
-`TURBO ON` can change what you measure, so a script used to reproduce a divergence should not use it. See [how changes go wrong here](/docs/agents/failure-modes). The button bitmask, for setting input over TCP rather than by script, is in [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp:
-
-```text title="TCP.md"
-0x01 = Right    0x08 = Up
-0x02 = Left     0x04 = Down
-0x10 = Start    0x20 = Select
-0x40 = B        0x80 = A
-```
-
-## MCP server configurations
-
-Four `.mcp.json` files exist in the fleet. All four are Ghidra over SSE, and all four use a different port.
-
-| Repository | Server name | Type | URL |
-|---|---|---|---|
-| [psxrecomp](https://github.com/mstan/psxrecomp) | `ghidra`, `ghidra_psx` | sse | `http://localhost:7777/sse` |
-| [ndsrecomp](https://github.com/mstan/ndsrecomp) | `ghidra` | sse | `http://localhost:2222/sse` |
-| [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp) | `ghidra_smw` | sse | `http://localhost:8078/sse` |
-
-The complete file, from [`.mcp.json`](https://github.com/mstan/psxrecomp/blob/master/.mcp.json) in psxrecomp:
-
-```json title=".mcp.json"
-{
-  "mcpServers": {
-    "ghidra": {
-      "type": "sse",
-      "url": "http://localhost:7777/sse"
-    },
-    "ghidra_psx": {
-      "type": "sse",
-      "url": "http://localhost:7777/sse"
-    }
-  }
-}
-```
-
-The tool an agent calls to prove Ghidra is up is named the same everywhere: `mcp__ghidra__get_program_info`, with `mcp__ghidra__get_code` for a disassembly at an address. Both appear in nesrecomp and Megaman3NESRecomp.
-
-> **Warning.** Three repositories gate all work on Ghidra MCP being reachable and ship no `.mcp.json` at all: nesrecomp, Megaman3NESRecomp and YoshiNESRecomp. An agent there has no configured server to reach, and the working configuration lives outside the tree. [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game) covers a gate you cannot satisfy.
-
-## What is not automated?
-
-Nothing in this fleet watches your change for you. Four repositories carry a workflow file, and none of the 36 agent instruction files mentions continuous integration at all.
-
-| Repository | Workflow | Triggers | What it runs |
-|---|---|---|---|
-| [psxrecomp](https://github.com/mstan/psxrecomp) | `.github/workflows/cli-release.yml` | `workflow_dispatch` and published releases only | Builds the CLI under MSYS2 MINGW64, runs `cli_boot_path_test` via ctest, smoke tests `psxrecomp.exe --help`, uploads and attaches the zip |
-| [snesrecomp](https://github.com/mstan/snesrecomp) | `native-analyzer.yml`, `cli-release.yml` | `pull_request`, `push` to main, `workflow_dispatch`, `release` | Three OS matrix; on Linux `cargo fmt -- --check` and `cargo clippy --locked --release --all-targets -- -D warnings`; plus pyinstaller packaging and `python tools/smoke_cli_package.py` |
-| [TombaRecomp](https://github.com/mstan/TombaRecomp) | `.github/workflows/release.yml` | `workflow_dispatch` with version and bump inputs | The multi platform release template for a PlayStation game repository |
-
-Read the psxrecomp workflow before you propose adding a check anywhere in this fleet. It explains why it stays out of pull requests. From [`.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml):
-
-```yaml title=".github/workflows/cli-release.yml"
-# Release packaging ONLY. Deliberately does NOT run on pull_request or on
-# pushes to master.
-#
-# It ran on both until 2026-07-25 and was a net negative: the Windows `build`
-# job failed often enough that a red check stopped carrying information, so it
-# was routinely ignored -- at which point it is pure noise plus CI minutes. A
-# check nobody trusts is worse than no check, because it still costs attention.
-```
-
-## Source
-
-- The protocol documents, principally [`nesrecomp/TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), [`vbrecomp/TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`gbarecomp/TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md), [`ndsrecomp/TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), [`cdirecomp/TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md) and [`psxrecomp/TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md).
-- [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md) for the script language, the traces and the gates; [`LegendOfZeldaNESRecomp/CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) for the shell client.
-- [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md) for the JSON surfaces.
-- [`psxrecomp/.mcp.json`](https://github.com/mstan/psxrecomp/blob/master/.mcp.json) and [`psxrecomp/.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml).
-
-## Next
-
-- [The TCP debug protocol](/docs/reference/tcp-protocol) for the wire format, the full command tables and the per console extensions.
-- [Checking your own work](/docs/agents/verification-rituals) for which of these surfaces each repository expects you to use before you claim a result.
-- [How changes go wrong here](/docs/agents/failure-modes) for what the miss logs, coverage reports and skip codes above are catching.
-- [Contributing as an agent](/docs/agents/contributing-as-an-agent) for how to record what a tool told you, in a form the next session can use.
+Do not hide one-off evidence in a private script or a console print that disappears after the session. The next person should be able to ask the same question.
