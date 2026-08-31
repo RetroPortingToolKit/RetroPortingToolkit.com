@@ -20,7 +20,7 @@ export const SITE = {
   /** Shown in the footer next to the copyright year. */
   owner: "Retro Porting Toolkit",
   /** Byline on articles and blog posts. */
-  author: "Matthew Stanley",
+  author: "Shokunin",
   /**
    * Contact address for feed authorship (RSS managingEditor/webMaster, Atom
    * <email>). Optional: both specs allow omitting it, and the feed generator

@@ -1,5 +1,6 @@
 ---
 title: "A recompiled version of Pepsiman lets you play the PS1 cult classic natively in your browser at 60 FPS"
+author: "Shokunin"
 kicker: "Press"
 tags: []
 featured: true

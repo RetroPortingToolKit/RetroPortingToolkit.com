@@ -1,5 +1,6 @@
 ---
 title: "Megaman X: Recompiled Release"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: true

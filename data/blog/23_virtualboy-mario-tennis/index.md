@@ -1,5 +1,6 @@
 ---
 title: "VirtualBoy Recomp Gets Its First Title: Mario Tennis"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: false

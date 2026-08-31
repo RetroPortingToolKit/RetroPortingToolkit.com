@@ -1,5 +1,6 @@
 ---
 title: "Character replacement running in Super Mario World"
+author: "Shokunin"
 kicker: "Video"
 tags: []
 featured: false

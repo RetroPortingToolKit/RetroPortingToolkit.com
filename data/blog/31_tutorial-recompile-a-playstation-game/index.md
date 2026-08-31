@@ -3,7 +3,7 @@ title: "Recompile a PlayStation game you own, start to finish"
 kicker: "Tutorial"
 desc: "Prerequisites, one scaffold command, generate, build, run, and an honest account of everything the first build does not finish."
 date: "2026-08-24"
-author: "Matthew Stanley"
+author: "Shokunin"
 tags: ["Tutorial", "PlayStation"]
 layout: "article"
 ---

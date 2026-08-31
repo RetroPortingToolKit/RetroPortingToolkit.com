@@ -1,5 +1,6 @@
 ---
 title: "psxrecomp Overhauled. Now BIOS + Tomba"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: true

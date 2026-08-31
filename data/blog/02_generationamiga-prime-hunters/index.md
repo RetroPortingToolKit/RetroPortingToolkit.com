@@ -1,5 +1,6 @@
 ---
 title: "Metroid Prime Hunters recomp brings the Nintendo DS classic to PC"
+author: "Shokunin"
 kicker: "Press"
 tags: []
 featured: false

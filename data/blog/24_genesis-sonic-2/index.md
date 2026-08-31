@@ -1,5 +1,6 @@
 ---
 title: "SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: false

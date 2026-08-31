@@ -1,5 +1,6 @@
 ---
 title: "segagenesisrecomp + Sonic the Hedgehog tech demo"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: false

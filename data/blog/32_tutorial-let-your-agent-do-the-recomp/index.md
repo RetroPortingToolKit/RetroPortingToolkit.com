@@ -3,7 +3,7 @@ title: "Let your agent do the recompilation"
 kicker: "Tutorial"
 desc: "The prompt to paste, the one scaffold flag detail that decides whether an agent ships or stalls, and the exact points where it has to stop and ask you to look."
 date: "2026-08-24"
-author: "Matthew Stanley"
+author: "Shokunin"
 tags: ["Tutorial", "Agents", "PlayStation"]
 layout: "article"
 ---

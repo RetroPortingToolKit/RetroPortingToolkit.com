@@ -1,5 +1,6 @@
 ---
 title: "Recomp + AI: 5 Months Later"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: true

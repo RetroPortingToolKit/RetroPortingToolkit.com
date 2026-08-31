@@ -1,5 +1,6 @@
 ---
 title: "Mega Man X4 Recomp is out now"
+author: "Shokunin"
 kicker: "Video"
 tags: []
 featured: false

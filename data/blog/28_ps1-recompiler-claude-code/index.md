@@ -1,5 +1,6 @@
 ---
 title: "I Built a PS1 Static Recompiler With No Prior Experience (and Claude Code)"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: true

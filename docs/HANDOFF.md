@@ -534,10 +534,9 @@ both pages already link their source article under `links:`.
 - `scripts/install-discord-agent.sh` installs the owner-approved launchd job
   only after both a Keychain token and a fail-closed local allowlist exist.
   Full setup and operational boundaries are in `docs/DISCORD_AGENT.md`.
-- Discord application provisioning is not yet complete: the Developer Portal
-  was logged out when setup began. The owner must sign in/complete 2FA in the
-  opened Chrome window; the agent can then create and configure the bot,
-  install it, and run the live mention-to-deploy test.
+- Discord application provisioning is complete. The bot is installed in the
+  intended server and channel with a local allowlist, its token is stored in
+  the login Keychain, and the launchd bridge is running.
 
 ## Discord live publishing test (2026-08-31)
 
@@ -548,3 +547,11 @@ both pages already link their source article under `links:`.
 - Verification: typecheck green, production build green with 184 prerendered
   routes, and all 767 tests green. Four existing documentation-date warnings
   remain unchanged.
+
+## Blog authorship (2026-08-31)
+
+- Every blog item now carries an explicit author. Posts syndicated or adapted
+  from Matthew Stanley's 1379.tech articles credit Matthew Stanley. All other
+  blog items credit Shokunin.
+- `SITE.author` is Shokunin, so feeds and any future post missing explicit
+  frontmatter use the same first-party default.

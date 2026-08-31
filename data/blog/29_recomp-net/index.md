@@ -1,5 +1,6 @@
 ---
 title: "recomp-net"
+author: "Shokunin"
 kicker: "Library"
 tags: ["Netplay"]
 featured: false

@@ -1,5 +1,6 @@
 ---
 title: "PS1 Classic Spyro: The Dragon Comes To PC, With The Help Of AI-Assisted Tool PSXRecomp"
+author: "Shokunin"
 kicker: "Press"
 tags: []
 featured: true

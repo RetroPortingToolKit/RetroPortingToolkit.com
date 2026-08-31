@@ -1,5 +1,6 @@
 ---
 title: "The first public Tomba! boot"
+author: "Shokunin"
 kicker: "Video"
 tags: []
 featured: false

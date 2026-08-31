@@ -1,5 +1,6 @@
 ---
 title: "Metroid Prime Hunters at 21:9 with mouse and keyboard"
+author: "Shokunin"
 kicker: "Video"
 tags: []
 featured: false

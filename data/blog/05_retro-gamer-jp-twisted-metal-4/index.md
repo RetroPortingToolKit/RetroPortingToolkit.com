@@ -1,5 +1,6 @@
 ---
 title: "PS1 Twisted Metal 4 comes to PC/Mac/Linux: static recompilation project released on GitHub"
+author: "Shokunin"
 kicker: "Press"
 tags: []
 featured: false

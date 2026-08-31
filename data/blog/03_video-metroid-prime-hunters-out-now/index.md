@@ -1,5 +1,6 @@
 ---
 title: "Metroid Prime Hunters Recomp is out now"
+author: "Shokunin"
 kicker: "Video"
 tags: []
 featured: false

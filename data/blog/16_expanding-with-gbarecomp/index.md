@@ -1,5 +1,6 @@
 ---
 title: "Expanding the *recomp ecosystem with GBARecomp"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: true

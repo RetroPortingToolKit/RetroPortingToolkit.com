@@ -3,7 +3,7 @@ title: "It boots, then it crashes"
 kicker: "Tutorial"
 desc: "Your port built, ran, and died twenty minutes in. That is the normal case: here is what a dispatch miss is, how to turn a crash address into a fix, and when the fix belongs in the framework instead."
 date: "2026-08-24"
-author: "Matthew Stanley"
+author: "Shokunin"
 tags: ["Tutorial", "Debugging", "Dispatch misses"]
 layout: "article"
 ---

@@ -1,5 +1,6 @@
 ---
 title: "Building & Enhancing Recomps: Ecosystem Updates"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: false

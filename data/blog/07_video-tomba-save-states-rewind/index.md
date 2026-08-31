@@ -1,5 +1,6 @@
 ---
 title: "Save states and rewind, shown off in Tomba!"
+author: "Shokunin"
 kicker: "Video"
 tags: []
 featured: false

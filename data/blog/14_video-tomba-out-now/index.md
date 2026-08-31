@@ -1,5 +1,6 @@
 ---
 title: "Tomba! Recomp is out now"
+author: "Shokunin"
 kicker: "Video"
 tags: []
 featured: false

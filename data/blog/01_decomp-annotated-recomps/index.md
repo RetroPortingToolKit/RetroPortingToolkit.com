@@ -1,5 +1,6 @@
 ---
 title: "The Future of Game Preservation is Decomp-Annotated-Recomps"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: true

@@ -1,5 +1,6 @@
 ---
 title: "Street Fighter Alpha 3 Recomp is out now"
+author: "Shokunin"
 kicker: "Video"
 tags: []
 featured: false

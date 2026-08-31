@@ -1,5 +1,6 @@
 ---
 title: "NES, SNES, Genesis, VirtualBoy, and PSX | A journey with AI and Recompilation"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: true

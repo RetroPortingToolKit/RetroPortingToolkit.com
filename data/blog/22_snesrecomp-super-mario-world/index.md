@@ -1,5 +1,6 @@
 ---
 title: "snesrecomp's First Title: Super Mario World"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: false

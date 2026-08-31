@@ -1,5 +1,6 @@
 ---
 title: "nesrecomp Achieves 10 Commercial Titles"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: true

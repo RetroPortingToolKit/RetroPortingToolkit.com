@@ -3,7 +3,7 @@ title: "Start a Game Boy Advance port by copying a working one"
 kicker: "Tutorial"
 desc: "gbarecomp has no scaffold script either, and a GBA port has more moving parts than a NES one: game.toml, symbols/, config/, and a baserom contract that refuses to launch on the wrong file."
 date: "2026-08-24"
-author: "Matthew Stanley"
+author: "Shokunin"
 tags: ["Tutorial", "Game Boy Advance", "gbarecomp"]
 layout: "article"
 ---

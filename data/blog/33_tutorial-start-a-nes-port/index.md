@@ -3,7 +3,7 @@ title: "Start a NES port by copying a working one"
 kicker: "Tutorial"
 desc: "nesrecomp has no scaffold script, so a new NES port begins as a hand assembled copy of a port that already builds. FaxanaduRecomp is the model."
 date: "2026-08-24"
-author: "Matthew Stanley"
+author: "Shokunin"
 tags: ["Tutorial", "NES", "nesrecomp"]
 layout: "article"
 ---

@@ -1,5 +1,6 @@
 ---
 title: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles"
+author: "Matthew Stanley"
 kicker: "1379.tech"
 tags: []
 featured: false

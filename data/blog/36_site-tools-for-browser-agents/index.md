@@ -1,5 +1,6 @@
 ---
 title: "Browser agents should not have to reverse-engineer websites"
+author: "Shokunin"
 kicker: "Site news"
 tags: ["Agents", "WebMCP", "Site tools"]
 featured: false
