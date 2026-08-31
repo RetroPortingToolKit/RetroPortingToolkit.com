@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import Home from "./pages/Home";
+import { AboutPage } from "./pages/AboutPage";
 import { ItemPage } from "./pages/ItemPage";
 import { DocsPage } from "./pages/DocsPage";
 // The editor is 2300 lines that only ever run on /admin, so it loads from its
@@ -261,6 +262,7 @@ function AppRoutes() {
         <Suspense fallback={null}>
           <Routes location={pageLocation ?? location}>
             <Route path="/" element={<Home />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/hardware" element={<Home tab="hardware" />} />
             <Route path="/games" element={<Home tab="game" />} />
             <Route path="/blog" element={<Home tab="blog" />} />
