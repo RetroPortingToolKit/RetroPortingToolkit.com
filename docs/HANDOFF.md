@@ -538,3 +538,13 @@ both pages already link their source article under `links:`.
   was logged out when setup began. The owner must sign in/complete 2FA in the
   opened Chrome window; the agent can then create and configure the bot,
   install it, and run the live mention-to-deploy test.
+
+## Discord live publishing test (2026-08-31)
+
+- The AI agents section now tells readers to expect a final recap naming the
+  files changed, checks run, commit, and published URL.
+- This change is the live end-to-end test of the Discord publishing agent from
+  an allowlisted request through production verification.
+- Verification: typecheck green, production build green with 184 prerendered
+  routes, and all 767 tests green. Four existing documentation-date warnings
+  remain unchanged.

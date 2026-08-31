@@ -4,7 +4,7 @@ summary: "How to brief, supervise, and verify AI agents working on recomp projec
 sectionTitle: "Working with AI agents"
 pageType: "reference"
 tags: ["Agents"]
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 This section is for people using AI agents on recomp projects.
@@ -18,3 +18,4 @@ Do not assume an agent will discover these rules by crawling the site. Treat the
 - [Debug surfaces agents can use](/docs/agents/machine-surfaces). TCP servers, traces, JSON output, screenshots, input commands, and other surfaces an agent can query.
 - [Making AI contributions reviewable](/docs/agents/contributing-as-an-agent). Commit rules, handoff expectations, and what never belongs in a change.
 - [When an agent cannot run the game](/docs/agents/when-you-cannot-run-the-game). What an agent can still check without the game, display, or oracle.
+- After an agent finishes, expect a recap that names the files changed, checks run, commit, and published URL.
