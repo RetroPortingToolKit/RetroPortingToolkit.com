@@ -3,7 +3,7 @@ title: "Mega Man X"
 kicker: "Super Nintendo"
 tags: ["Widescreen", "MSU-1"]
 featured: true
-desc: "Released and playable start to finish today, with true widescreen and CD-quality music mods."
+desc: "A mature SNESRecomp release you can play start to finish, with widescreen and MSU-1 music support."
 year: "2026"
 status: "Released"
 availability: "Public build"
@@ -21,7 +21,9 @@ updated: "2026-08-16"
 added: "2026-05-22"
 ---
 
-Mega Man X is [SNESRecomp](/hardware/super-nintendo)'s most mature title, a core project maintained alongside the framework itself. It is the one you can simply download and finish: from the opening highway through all eight Mavericks and Sigma, running as a native program on your PC.
+Mega Man X was one of the early [SNESRecomp](/hardware/super-nintendo) titles, and it has been kept up alongside the framework.
+
+It is the one you can download and finish: from the opening highway through all eight Mavericks and Sigma, running as a native program on your PC.
 
 ![Mega Man X running as a native program.](/previews/mega-man-x.mp4)
 
@@ -35,21 +37,19 @@ It is built from a dump you provide: on first launch the game asks for your Mega
 
 ## What the recomp adds
 
-The headline is experimental true widescreen. The renderer draws real additional gameplay at the sides instead of stretching the picture, so the extra space is level, not a smear.
+The headline is experimental true widescreen. The renderer draws real additional gameplay at the sides instead of stretching the picture.
 
 ![Widescreen in play: more rooftop and more sky, at the game's own pixel scale.](./widescreen-highway.png)
 
-It works out to about one third more horizontal area, roughly 16:9 from the 4:3 presentation, or 32:21 from square pixels. It is enabled from the launcher's Mods page.
+It shows about one third more horizontal area than the original 4:3 presentation.
 
 ![The same setting on an ocean stage.](./widescreen-ocean.png)
 
 The rest of what the build adds:
 
 - A mod loader, including an MSU-1 mod that streams CD-quality music in place of the original soundtrack.
-- Password saves through SRAM.
-- Three display presentations: 4:3 (CRT), 8:7 (square pixels), and 1:1.
-- Save states, turbo, fullscreen, and auto-detected Xbox, PlayStation, and Switch Pro controllers.
-- Built-in crash reporting that writes diagnostics you can attach to an issue.
+- Three display presentations: 4:3, 8:7, and 1:1.
+- Save states, turbo, and fullscreen.
 
 
 ## Sources
