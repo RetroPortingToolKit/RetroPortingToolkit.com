@@ -8,6 +8,7 @@ desc: "Notebookcheck reports on Pepsiman in the browser: the 1999 cult classic r
 date: "2026-07-28"
 venue: "Notebookcheck"
 layout: "article"
+cover: "/data/games/42_pepsiman/pepsiman-browser.jpg"
 links:
   - { label: "Read on Notebookcheck", href: "https://www.notebookcheck.net/A-recompiled-version-of-Pepsiman-lets-you-play-the-PS1-cult-classic-natively-in-your-browser-at-60-FPS.1354060.0.html" }
 ---
