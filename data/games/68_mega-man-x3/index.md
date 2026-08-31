@@ -20,7 +20,7 @@ Mega Man X3 is a SNESRecomp project.
 
 The stock game can be played from start to finish. The enhancement layer is still being checked.
 
-## Can I play it?
+## Playable status
 
 Yes, for the stock game. Mega Man X3 can be played from start to finish without enhancements.
 

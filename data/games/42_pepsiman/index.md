@@ -19,7 +19,7 @@ cover: "./pepsiman-browser.jpg"
 
 Pepsiman (1999) never released outside Japan, which makes it a fitting pick for a community recompilation with an unusual target: instead of a Windows or Linux binary, this one compiles the game to WebAssembly and runs it in a browser tab.
 
-## Can I play it?
+## Playable status
 
 Not at the covered address right now. The project, started by kem0X as RepsiMan and released publicly as Pepsiman Recompiled, was playable in the browser when Notebookcheck covered it in July 2026, built from BIOS, disc, and memory card data you provide.
 
@@ -29,9 +29,6 @@ As of this page's last check, the play URL from that coverage has been taken dow
 
 As covered: 60 FPS instead of the original framerate, widescreen or the original 4:3, texture and geometry corrections, saves kept in the browser, offline play as an installable web app, and a competitive leaderboard. It ran best on Chromium-based browsers, with known bugs on other browsers and on mobile.
 
-## Technical details
-
-The pipeline is [PSXRecomp](/hardware/playstation) with WebAssembly as the output target: the PlayStation code is translated ahead of time, so the browser runs compiled code rather than a general-purpose console emulator interpreting the disc. Browser features do the rest, with local storage holding saves and PWA installation covering offline play.
 
 ## Sources
 

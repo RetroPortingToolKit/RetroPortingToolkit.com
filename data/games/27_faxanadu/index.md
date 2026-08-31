@@ -25,9 +25,9 @@ It is also the game the [effort first got on screen at all](/blog/journey-with-a
 
 ![The first successful render, February 2026. The sky palette is wrong and the sprites are garbled, but the world is there.](/data/blog/19_journey-with-ai-and-recompilation/faxanadu_pc_LeclJi8wRk.png)
 
-## Can I play it?
+## Playable status
 
-Yes. A v2.2.0 Windows x64 build (2026-06-17) is on [GitHub Releases](https://github.com/mstan/FaxanaduRecomp/releases), with an experimental Linux AppImage alongside. It is built from a dump you provide, the USA version. The game runs from title screen through credits with no outstanding known bugs, though it has not been 100 percent playtested.
+Yes. Windows and experimental Linux builds are on [GitHub Releases](https://github.com/mstan/FaxanaduRecomp/releases). It is built from a dump you provide, the USA version. The game runs from title screen through credits with no outstanding known bugs, though it has not been 100 percent playtested.
 
 ## What the recomp adds
 
@@ -35,9 +35,6 @@ Password relief first. Faxanadu saves progress with long mantras instead of a ba
 
 It is also the showcase for the framework's Text Override System. Dialogue and glyphs are replaced at runtime from a JSON file, with hot reload, so an edit appears in the running game within about a second. That opens the door to retranslation and accessibility work without any ROM hacking. Save states and a fast-forward toggle round it out.
 
-## Technical details
-
-An MMC1 cartridge. The recompiled C is committed to the repository, and builds link a Nestopia oracle core used to verify behavior against emulation. The text system works through the runner's writable program-bank accessors, patching string data at load time across every rendering path, with multiple encoding registries for ASCII and tile-based dialogue fonts.
 
 ## Sources
 

@@ -20,9 +20,9 @@ cover: "./openpete-spyro.jpg"
 
 OpenPete is a community-built native PC port of Spyro the Dragon, named after Spyro's development codename. It is a hybrid: functions the fan decompilation has worked out by hand run as rewritten code, and [PSXRecomp](/hardware/playstation) covers everything the decompilation has not reached yet. The result plays like Spyro, but behaves like a modern PC game.
 
-## Can I play it?
+## Playable status
 
-Yes, on Windows. The current build is v0.1.4 (2026-08-17), downloadable from [openpete.com](https://openpete.com) and built from a disc dump you provide (Spyro the Dragon, NTSC-U, SCUS-94228).
+Yes, on Windows. Builds are downloadable from [openpete.com](https://openpete.com) and run from a disc dump you provide (Spyro the Dragon, NTSC-U, SCUS-94228).
 
 Linux builds from source today, with a packaged release planned, and macOS on Apple silicon is planned. The source tree is not yet public: the project says it still carries copyrighted game data used for validation, which has to be separated out first.
 
@@ -32,11 +32,6 @@ Rendering is decoupled from the original 29.913 Hz simulation, so the framerate 
 
 Beyond that: widescreen at 16:9, 21:9, or 32:9, extended draw distance, save states and rewind, HD texture pack support, music replacement for all 48 tracks, and optional PSX-style visual modes for anyone who wants the original look back. Gameplay is untouched, and the changes are presentation only. The developers have said they hope to extend the work to Spyro 2 and 3.
 
-## Technical details
-
-Three components meet in the middle. The spyro-1 matching decompilation supplies hand-written source for the functions it covers (Time Extension credits altro50's still-unfinished decompilation work). Matthew Stanley's PSXRecomp, an AI-assisted static recompiler, translates the remaining MIPS machine code to C. SoapyMan's PsyCross provides the platform layer in place of the PSY-Q libraries.
-
-On top of all that sits a custom Vulkan renderer that draws from game state directly rather than reproducing the PS1 GPU. The port is developed by Amec and tyscorp.
 
 ## Sources
 

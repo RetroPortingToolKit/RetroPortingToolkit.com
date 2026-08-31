@@ -19,9 +19,9 @@ cover: "./toystory2-gameplay.jpg"
 
 ToyStory2Recomp is a community project by PeriBluGaming that rebuilds Toy Story 2: Buzz Lightyear to the Rescue as a native program on [PSXRecomp](/hardware/playstation). The author sets expectations in the first line of the README: this is an in-development preview rather than a finished port, and depth will keep landing over months, not days.
 
-## Can I play it?
+## Playable status
 
-Yes, in the alpha sense. The first release, v0.1.0-alpha on 2026-08-07, publishes a Windows x64 build and an Intel macOS build, both marked pre-release, and both built around the framework's shared recomp-ui launcher.
+Yes, in the alpha sense. Windows and Intel macOS builds are published, both marked pre-release, and both built around the framework's shared recomp-ui launcher.
 
 The project's own status table says the game is playable from BIOS boot through gameplay, with crashes tracked in the repository's issue log. Booting, the disc-detect and licence screen, the title menu and options, new game and load game, and memory-card saving and loading are all listed as working. The intro video is listed as not working for now.
 
@@ -29,17 +29,12 @@ The download runs directly rather than compiling anything: extract the zip, run 
 
 ## What the recomp adds
 
-Two renderers: a CPU software rasterizer, and a GPU-authoritative OpenGL backend that is the default and falls back to software if GL fails to start. Supersampling runs at internal resolutions of 2x to 4x with optional linear filtering on present, and ships at 2x.
+Two renderers: a CPU software rasterizer, and a GPU-authoritative OpenGL backend that falls back to software if GL fails to start.
 
 The self-growing native cache is the interesting one. Areas you visit are converted to native code as you play, and the result is kept for later launches, so the game gets faster the more of it you have seen. The overlay cache is switched on in the game's own configuration.
 
 Widescreen at 16:9 is present, experimental and opt-in, and widens the field of view rather than stretching the picture. Controllers work in analog or D-pad modes. Launcher settings persist between sessions, and saves are standard .mcd memory-card files that emulators can also read.
 
-## Technical details
-
-PSXRecomp translates the game's MIPS R3000A machine code to C ahead of time, and that compiles into a native program running against a simulation of the PS1's hardware: GPU, SPU, GTE, and memory cards.
-
-The repository holds the game-specific half of that work: the configuration, the function seeds, regeneration scripts for Windows and for macOS and Linux, and the packaging script that produces a release zip. The framework itself is a submodule pinned to a known-good commit, and generated game code is kept out of the repository, so regeneration always runs against your own disc.
 
 ## Sources
 

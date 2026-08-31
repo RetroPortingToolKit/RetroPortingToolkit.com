@@ -21,9 +21,9 @@ cover: "/data/blog/20_nesrecomp-10-titles/MegaMan3Recomp_aYrwCUu1Ju.png"
 
 A core project: Mega Man 3 is one of the [ten commercial titles](/blog/nesrecomp-10-titles) supported by [NESRecomp](/hardware/nes), and one of the most demanding, on the most complex cartridge hardware the framework currently handles. It is a work in progress: the front of the game runs, the deep end is untested.
 
-## Can I play it?
+## Playable status
 
-The early stretch. A v0.0.1 Windows x64 build (2026-04-27) is on [GitHub Releases](https://github.com/mstan/Megaman3NESRecomp/releases), with an experimental Linux AppImage alongside; it is built from a dump you provide (USA version).
+The early stretch. Windows and experimental Linux builds are on [GitHub Releases](https://github.com/mstan/Megaman3NESRecomp/releases). It is built from a dump you provide (USA version).
 
 The title screen, main menu, and Robot Master stage select all work. Stages load with scrolling backgrounds and basic enemies, and movement, jumping, and the Mega Buster are functional.
 
@@ -33,11 +33,6 @@ Boss fights, special weapons, and passwords are untested and may stall the game.
 
 At this stage, the shared runner's conveniences: save states, a fast-forward toggle, and gamepad support. The enhancement work that released titles carry comes later; this build is about getting the game solid first.
 
-## Technical details
-
-An MMC3 (Mapper 4) cartridge with program and graphics bank switching and a scanline interrupt, the most involved of the four mapper families the framework supports. Those four families (NROM, MMC1, MMC3, GxROM) cover roughly 78 percent of the licensed NES library, per the framework README.
-
-Mega Man 3 was chosen partly for its comprehensive public disassembly, which seeds function discovery and defines data regions the recompiler should not treat as code.
 
 ## Sources
 

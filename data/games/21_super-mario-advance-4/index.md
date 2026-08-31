@@ -20,9 +20,9 @@ cover: "./boxart.png"
 
 Super Mario Advance 4: Super Mario Bros. 3 is the Game Boy Advance release of Super Mario Bros. 3, recompiled as a core project in the [Game Boy Advance lineup](/hardware/game-boy-advance). The original GBA code runs as a native Windows application wrapped in a modern launcher, with controller support, fullscreen display, audio settings, and save states.
 
-## Can I play it?
+## Playable status
 
-Yes, as an experimental preview on Windows. The current v0.0.2 release (2026-08-03) is a Windows x64 zip on the GitHub releases page. Run SuperMarioAdvance4Recomp.exe and the launcher asks for a dump you provide, the USA/Australia Rev 1 ROM plus a retail GBA BIOS, then remembers both for later launches. The game boots, reaches the title screen, and runs Super Mario Bros. 3 gameplay, but it is early: back up saves you care about and expect game-specific issues that have not been found yet.
+Yes, as an experimental preview on Windows. A Windows package is on the GitHub releases page. Run SuperMarioAdvance4Recomp.exe and the launcher asks for a dump you provide, the USA/Australia Rev 1 ROM plus a retail GBA BIOS, then remembers both for later launches. The game boots, reaches the title screen, and runs Super Mario Bros. 3 gameplay, but it is early: back up saves you care about and expect game-specific issues that have not been found yet.
 
 ## What the recomp adds
 
@@ -30,9 +30,6 @@ Yes, as an experimental preview on Windows. The current v0.0.2 release (2026-08-
 - Keyboard and modern game-controller support, windowed and fullscreen play with configurable presentation, and an in-game settings menu.
 - Cartridge saves plus save states: Shift+F1 to F9 saves a slot, F1 to F9 loads it.
 
-## Technical details
-
-The game builds on the gbarecomp framework, which statically recompiles the GBA game code to run as a native Windows x64 application; the launcher is the shared recomp-ui used across the lineup. The supported ROM revision and BIOS identities are documented in the repo's baserom.md and game.toml, and generation happens locally: ROM-derived generated code, copyrighted inputs, saves, and build output stay on your machine and are never included in releases.
 
 ## Sources
 

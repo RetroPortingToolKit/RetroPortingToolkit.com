@@ -20,11 +20,11 @@ cover: "./boxart.webp"
 
 The Legacy of Goku II is the sequel to [The Legacy of Goku](/games/dbz-legacy-of-goku) and the middle of the three Dragon Ball Z games in the [GBARecomp](/hardware/game-boy-advance) lineup, with [Buu's Fury](/games/dbz-buus-fury) after it. Its distinguishing detail is how hard the recompilation is checked: strict-static validation covers attract mode, gameplay, and a 6,000 frame traversal fuzz route with no interpreted instructions and no missing dispatches.
 
-## Can I play it?
+## Playable status
 
 Yes, as an experimental preview. The USA release boots through its attract sequence and into gameplay. It has not been tested exhaustively through the entire game, so back up saves you care about.
 
-The current release is v0.0.2 (2026-08-03), a Windows package on the GitHub releases page with a SHA-256 checksum beside it. It runs from dumps you provide: your Dragon Ball Z: The Legacy of Goku II (USA) ROM and a retail GBA BIOS, both selected in the launcher on first run and remembered afterwards.
+A Windows package is on the GitHub releases page with a SHA-256 checksum beside it. It runs from dumps you provide: your Dragon Ball Z: The Legacy of Goku II (USA) ROM and a retail GBA BIOS, both selected in the launcher on first run and remembered afterwards.
 
 ## What the recomp adds
 
@@ -32,11 +32,6 @@ Legacy of Goku II Adaptive Widescreen is optional and disabled by default. It ex
 
 Beyond that: keyboard and modern controller support, cartridge saves and save states (Shift+F1 through F9 to save, F1 through F9 to load), windowed and fullscreen play with sharp scaling and optional affine filtering, and an in-game settings menu.
 
-## Technical details
-
-The game is statically recompiled into a native Windows x64 application on gbarecomp, with ROM and BIOS setup through the shared recomp-ui launcher. The strict-static standard is the interesting number here: across attract mode, gameplay, and a 6,000 frame traversal fuzz route, no instruction fell through to an interpreter and no dispatch went missing, which is a stronger claim than "it boots and plays".
-
-Generation requires the supported ROM revision and a retail GBA BIOS, whose identities are recorded in the repository rather than shipped with it. ROM-derived generated code, copyrighted inputs, saves, and build output stay local and are never committed. Launcher box art is included for identification, and nothing else from the game is.
 
 ## Sources
 

@@ -1,5 +1,5 @@
 ---
-title: "Pokémon Emerald"
+title: "PokÃ©mon Emerald"
 kicker: "Game Boy Advance"
 tags: []
 featured: false
@@ -18,11 +18,11 @@ added: "2026-06-22"
 cover: "./pokemon-emerald-gameplay.webp"
 ---
 
-Pokémon Emerald completes Gen 3 coverage in the [Game Boy Advance lineup](/hardware/game-boy-advance) as a core project, joining [Ruby & Sapphire](/games/pokemon-ruby-sapphire) and [FireRed & LeafGreen](/games/pokemon-firered-leafgreen). It is the biggest of the three Gen 3 engines, and it runs here as a native PC game.
+PokÃ©mon Emerald completes Gen 3 coverage in the [Game Boy Advance lineup](/hardware/game-boy-advance) as a core project, joining [Ruby & Sapphire](/games/pokemon-ruby-sapphire) and [FireRed & LeafGreen](/games/pokemon-firered-leafgreen). It is the biggest of the three Gen 3 engines, and it runs here as a native PC game.
 
-## Can I play it?
+## Playable status
 
-Yes, as an early preview on Windows. The latest release, v0.0.3 (2026-07-17), ships an EmeraldRecomp package for Windows x64 and adds a pre-boot launcher. Download from the GitHub releases page, run it, and point it at a dump you provide: the runtime checks the file's fingerprint and only accepts the USA ROM.
+Yes, as an early preview on Windows. An EmeraldRecomp package is on the GitHub releases page. Run it and point it at a dump you provide: the runtime checks the file's fingerprint and only accepts the USA ROM.
 
 The game boots through the BIOS intro to the title screen and into gameplay, but this is a bring-up, not a finished port.
 
@@ -37,13 +37,6 @@ The README names Emerald's real-time clock and its larger battle and contest eng
 - The cartridge's real-time clock is modeled by the runtime, along with the flash chip the game saves to.
 - Keyboard controls out of the box: arrow keys for the D-Pad, Z and X for A and B, Enter for Start.
 
-## Technical details
-
-The ROM's ARM7TDMI machine code is statically translated to C, so every function the game runs becomes a generated C function. The GBA BIOS is recompiled and executed too rather than stubbed out, so the boot sequence and interrupt handlers run as recompiled code, while the PPU, the APU with the M4A sound engine, DMA, timers, the cartridge flash save chip and RTC are modeled by the shared gbarecomp runtime.
-
-The self-improvement loop uses an in-process JIT backend (sljit) that needs no compiler on the player's machine and writes healed code to a per-ROM cache, so coverage grows toward fully native as the game is played and stays improved across launches.
-
-Only symbol metadata, function names, addresses, and sizes, from the pret/pokeemerald decompilation enters the repo. None of its C source or build output does, and the ROM is never redistributed.
 
 ## Sources
 

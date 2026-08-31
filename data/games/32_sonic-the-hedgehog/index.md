@@ -23,11 +23,11 @@ Sonic the Hedgehog was the first game brought up on [SegaGenesisRecomp](/hardwar
 
 ![Green Hill Zone, running as a native build.](/previews/sonic-the-hedgehog.mp4)
 
-## Can I play it?
+## Playable status
 
 Playable alpha. Green Hill Zone is fully completable. Later zones run but still have missing objects while function discovery continues.
 
-The newest release is v0.6.0 (2026-06-17), which added a pre-boot launcher that verifies your ROM, sets up keyboard and gamepad controls, and exposes the settings before the game boots. Windows builds are on the Releases page, alongside an experimental Linux AppImage and an early macOS build from prior tags, and the README documents building from source on Windows, macOS, and Linux. Either way, the game is built from a ROM dump you provide.
+Windows builds are on the releases page, alongside an experimental Linux AppImage and an early macOS build. The pre-boot launcher verifies your ROM, sets up keyboard and gamepad controls, and exposes the settings before the game boots. Either way, the game is built from a ROM dump you provide.
 
 ## What the recomp adds
 
@@ -35,9 +35,6 @@ An opt-in 16:9 widescreen setting. The renderer draws extra columns on each side
 
 The launcher also offers an intro skip, window scaling, and volume control. Beyond that: save states in nine slots, a hold-to-turbo key, and plug-and-play gamepad support. Two further opt-in extras come from the shared engine: CRT-style color modes, and a cleaner FM audio path that substitutes only while it continuously proves it still matches the original sound.
 
-## Technical details
-
-The recompiler translates more than 530 of the ROM's 68000 subroutines into C, which compiles to native code and runs against a clean-room runtime with its own VDP renderer, bus, Z80 scheduling, and ymfm FM synthesis. The generated code runs on a cooperative fiber that interleaves with scanline rendering, and a clean-room interpreter tier catches static-dispatch misses. Bring-up moved fast: dual execution against a reference interpreter verified about 133 functions in a single day during the original tech demo. The AGPL clownmdemu core is used only by unshipped development builds, as a conformance oracle.
 
 ## Sources
 

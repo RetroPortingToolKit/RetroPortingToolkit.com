@@ -23,7 +23,7 @@ Super Mario Bros. runs here as a native PC program, rebuilt from the original ga
 
 ![The game running natively, with Mario's job handed to Pikachu](/previews/super-mario-bros.mp4)
 
-## Can I play it?
+## Playable status
 
 Yes. Windows builds are available on [GitHub Releases](https://github.com/mstan/SuperMarioBrosNESRecomp/releases), with an experimental Linux AppImage alongside. macOS support in the framework is newer and experimental, by building from source. The download contains no game data: it is built from a dump you provide, selected on first launch.
 
@@ -31,7 +31,7 @@ All worlds and levels are believed completable, though not every path has been e
 
 ## What this port adds
 
-Character replacements are the headline: five experimental swaps, off by default and enabled one at a time from the launcher's Mods screen. Each swap pulls its character from a separate dump you supply, and the launcher verifies it and derives the sprites, animations, and sounds into a local cache, so nothing from those games ships in the download.
+Character replacements are the headline: five experimental swaps, enabled one at a time from the launcher's Mods screen. Each swap pulls its character from a separate dump you supply, and the launcher verifies it and derives the sprites, animations, and sounds into a local cache, so nothing from those games ships in the download.
 
 Pikachu comes with his Smash 64 moveset.
 
@@ -57,9 +57,6 @@ Two display modes push further. An experimental widescreen mode fills a 16:9 fra
 
 Underneath the mods, the shared runner adds twelve save-state slots (Shift+F1 through Shift+F12 to save, F1 through F12 to load), a fast-forward toggle, and gamepad support. With every mod disabled you get the plain 4:3 game, verified byte-identical to the emulator reference.
 
-## Technical details
-
-A Mapper 0 (NROM) cartridge, the simplest layout NESRecomp covers. The 6502 machine code is translated to C at build time and compiled to native x64; the console's video, audio, and cartridge hardware are simulated by the shared runner library. Widescreen and Voxel 3D are presentation-only packages that never patch the stock ROM. On macOS the game runs natively but shows minor timing and demo differences that do not appear on Windows.
 
 ## Sources
 

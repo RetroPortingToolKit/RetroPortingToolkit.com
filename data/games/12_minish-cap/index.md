@@ -23,7 +23,7 @@ The Minish Cap is one of the clearest GBARecomp examples.
 
 It runs as a native app from a cartridge dump you provide. The port keeps the original game behavior, then adds host features around it.
 
-## Can I play it?
+## Playable status
 
 Yes, as an in-development preview. Windows builds are on the GitHub Releases page, and you can also build it from source.
 
@@ -42,9 +42,3 @@ Adaptive widescreen opens the view as the window gets wider. It shows more of th
 The extra width still needs game-specific care. HUD placement, dialogue boxes, room edges, and sprite behavior all have to be checked.
 
 Save states work from the keyboard: Shift+F1 through F9 saves a slot, and F1 through F9 loads it.
-
-## Technical note
-
-The game runs on the GBA's ARM7TDMI CPU. GBARecomp rebuilds that code as native code, then runs it against a runtime for the rest of the handheld.
-
-Only symbol metadata from the public decompilation is used here. The decompilation helps with names and discovery. It is not copied in as game source code.
