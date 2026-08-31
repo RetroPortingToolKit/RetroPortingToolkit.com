@@ -1,38 +1,46 @@
 ---
 title: "retcomm-rbengine"
-author: "Shokunin"
 kicker: "Library"
 tags: ["Rollback", "Save states"]
 featured: false
-desc: "The snapshot ring behind save states and rewind: a platform-agnostic rollback engine shared across the recomp ecosystems."
+desc: "A reusable rollback engine for recomp projects, built to support save states, rewind, and future rollback netplay."
 date: "2026-08-12"
 repo: "https://github.com/TechnicallyComputers/retcomm-rbengine"
 links:
-  - { label: "Watch: save states and rewind in Tomba", href: "/blog/video-tomba-save-states-rewind" }
-cover: "https://i.ytimg.com/vi/L36ppNkuJG0/hqdefault.jpg"
-videoUrl: "https://www.youtube.com/watch?v=L36ppNkuJG0"
+  - { label: "retcomm-rbengine on GitHub", href: "https://github.com/TechnicallyComputers/retcomm-rbengine" }
 verified: "2026-08-18"
-updated: "2026-08-31"
+updated: "2026-08-20"
 added: "2026-08-12"
 ---
 
-retcomm-rbengine is the ecosystem's rollback engine: a platform-agnostic library for snapshots, save states, and rewind. It began life inside psxrecomp's runtime and was lifted out with the PlayStation-specific types removed, so any recompilation host can use it. MIT licensed, maintained by TechnicallyComputers.
+retcomm-rbengine is the shared rollback engine for recomp projects.
+
+It gives ports a reusable base for features that need old game states: save states, rewind, replay work, and rollback netplay.
+
+The goal is the same as [recomp-net](/blog/recomp-net): do not make every port solve the same hard problem by itself.
 
 ## What it does
 
-Its modules manage frame timing and a tick-keyed snapshot ring. The snapshot ring is the substrate that save states are built on, and the same machinery enables rewind.
+A game can save its current state, restore an older state, and keep enough history to move backward and forward through recent frames.
 
-![Tomba on PSXRecomp, the runtime this library was lifted out of](/previews/retcomm-rbengine.mp4)
+That is the base for rewind. It is also the base for rollback netplay, where a game may need to rewind a few frames, apply late input, and replay back to the present.
+
+The library does not know the details of every console or every game. Each port still has to describe how its own state is saved and restored. retcomm-rbengine provides the shared structure around that work.
 
 ## Which projects use it
 
-[PSXRecomp](/hardware/playstation) builds on it for save states and rewind, both shown publicly in the Tomba showcase video (2026-08-12).
+Today, the public showcase is [PSXRecomp](/hardware/playstation), where the same rollback work supports save states and rewind.
 
-![Save states and rewind, shown off in Tomba](https://www.youtube.com/watch?v=L36ppNkuJG0)
+It is meant to be reused by other recomp ecosystems as they add the same kinds of features.
 
-Game-specific pieces, such as savestate serialization and state digests, stay in each engine and bind in through the library's hooks.
+That reuse matters. If every port builds its own rewind or rollback system, every port inherits its own edge cases. A shared engine lets the fixes carry forward.
+
+## For developers
+
+The library is maintained by TechnicallyComputers and is MIT licensed.
+
+It pairs with [recomp-net](/blog/recomp-net). recomp-net handles the netplay session. retcomm-rbengine handles the local rollback and state-history side.
 
 ## Sources
 
-- [Save states and rewind, shown off in Tomba (video)](/blog/video-tomba-save-states-rewind)
 - [retcomm-rbengine README (GitHub)](https://github.com/TechnicallyComputers/retcomm-rbengine)

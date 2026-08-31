@@ -6,6 +6,7 @@ date: "2026-08-24"
 author: "Shokunin"
 tags: ["Tutorial", "Game Boy Advance", "gbarecomp"]
 layout: "article"
+draft: true
 ---
 
 Game Boy Advance is the second console here where you start a port by copying a working one instead of running a scaffold script. It asks more of you than NES does. A NES port's whole per game input is one `game.toml`. A GBA port splits that across three places: a `game.toml` the runtime reads, a `symbols/` directory the recompiler reads, and a `config/<region>.toml` for the exact cartridge revision.
