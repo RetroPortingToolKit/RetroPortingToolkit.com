@@ -13,7 +13,7 @@ updated: "2026-08-25"
 
 Here the Z80 owns the whole machine. This is also where the emission mode the Genesis sound CPU depends on was written. The games are on the catalogue page, [/hardware/master-system-game-gear](/hardware/master-system-game-gear).
 
-> **You provide this.** You supply your own cartridge image, and neither it nor the C generated from it is ever committed: "ROMs are **never** committed (`.gitignore`d), and neither is the generated C (it is a derivative of the ROM)."
+> **You bring your own files.** You supply your own cartridge image, and neither it nor the C generated from it is ever committed: "ROMs are **never** committed (`.gitignore`d), and neither is the generated C (it is a derivative of the ROM)."
 
 ## Status, in the project's own words
 

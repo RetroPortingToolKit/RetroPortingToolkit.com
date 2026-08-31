@@ -24,7 +24,7 @@ From [`README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md), unde
 
 [`PRINCIPLES.md`](https://github.com/mstan/ndsrecomp/blob/main/PRINCIPLES.md) sets a hard gate on the order of work: "No cartridge, no commercial game, no "load a ROM real quick" happens until the console boots to the **interactive firmware menu** and matches the melonDS oracle".
 
-> **You provide this.** The runner needs your own hash-verified dumps in `bios/`: `biosnds9.rom`, `biosnds7.rom` and `firmware.bin`, plus your own cartridge image. An opt-in path substitutes the recompiled FreeBIOS (BSD-2-Clause), but "The retail dumps remain the default and the oracle-diffed source of truth."
+> **You bring your own files.** The runner needs your own hash-verified dumps in `bios/`: `biosnds9.rom`, `biosnds7.rom` and `firmware.bin`, plus your own cartridge image. An opt-in path substitutes the recompiled FreeBIOS (BSD-2-Clause), but "The retail dumps remain the default and the oracle-diffed source of truth."
 
 ## Two ARM cores, one event scheduler
 

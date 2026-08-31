@@ -24,7 +24,7 @@ The shipped claim lives downstream, in [MarioTennisVirtualBoyRecomp](https://git
 > title/warning screen versus the Beetle VB reference (0 / 86 016 pixels
 > differ at zero tolerance)."
 
-> **You provide this.** You supply your own cartridge image. The game repository "does not include or distribute any copyrighted ROM content." The Virtual Boy has no system ROM, so unlike most consoles here there is no BIOS dump to find. The recompiler bakes the expected CRC32 into `vb_game_expected_crc32()` and the runtime refuses to launch on a mismatch.
+> **You bring your own files.** You supply your own cartridge image. The game repository "does not include or distribute any copyrighted ROM content." The Virtual Boy has no system ROM, so unlike most consoles here there is no BIOS dump to find. The recompiler bakes the expected CRC32 into `vb_game_expected_crc32()` and the runtime refuses to launch on a mismatch.
 
 ## The NEC V810
 

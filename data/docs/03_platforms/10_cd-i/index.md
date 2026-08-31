@@ -74,7 +74,7 @@ The exported symbol is still called `genesis_log_dispatch_miss`, inherited from 
 
 There are three binaries, an oracle and a checker. `CdiRecompBios` recompiles the system ROM to C, `CdiRecomp` inventories a disc, `CdiRuntime` runs the result, and `CdiOracle` wraps a separately authored CD-i emulator, CeDImu, serving the same debug surface one port up so the two can be compared. The build order is not optional.
 
-> **You provide this.** cdirecomp ships no system ROM and no disc images. Its license note says the license "covers the cdirecomp source only. It grants no rights to any Philips, Nintendo, or other third-party intellectual property; you must supply your own legally obtained system ROM and disc images." See [the game file you supply](/docs/concepts/the-game-file-you-supply).
+> **You bring your own files.** cdirecomp ships no system ROM and no disc images. Its license note says the license "covers the cdirecomp source only. It grants no rights to any Philips, Nintendo, or other third-party intellectual property; you must supply your own legally obtained system ROM and disc images." See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
 ```sh
 cmake -S recompiler -B build/recompiler -G Ninja -DCMAKE_BUILD_TYPE=Release

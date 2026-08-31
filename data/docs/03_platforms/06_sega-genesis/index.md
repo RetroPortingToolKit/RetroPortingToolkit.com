@@ -13,7 +13,7 @@ updated: "2026-08-25"
 
 The hardware runs a 68000 and a Z80 at the same time over shared buses, and most of what is unusual here follows from that. The games are on the catalogue page, [/hardware/sega-genesis](/hardware/sega-genesis).
 
-> **You provide this.** No cartridge image and no prebuilt game binary is distributed. The Sonic 1 port README says it plainly: "**No prebuilt binaries are distributed, build from source below and supply your own ROM.**"
+> **You bring your own files.** No cartridge image and no prebuilt game binary is distributed. The Sonic 1 port README says it plainly: "**No prebuilt binaries are distributed, build from source below and supply your own ROM.**"
 
 ## Status, in the project's own words
 
