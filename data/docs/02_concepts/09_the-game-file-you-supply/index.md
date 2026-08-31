@@ -1,40 +1,77 @@
 ---
-title: "The game file you supply"
-summary: "Every port needs a game file you already have. Projects ship the tools, not copyrighted game data."
+title: "What is the game file contract?"
+summary: "Recomp projects provide the port, tools, and runtime. You provide legally obtained game files, and sometimes BIOS or system files, when the project asks for them."
 pageType: "concept"
 tags: ["Game files", "Verification", "Licensing"]
-updated: "2026-08-29"
+updated: "2026-08-30"
 ---
 
-Every port needs input from the original hardware: usually a cartridge dump, disc image, or system ROM. You provide those files from media you are authorized to use. The repositories and release archives provide the recompiler and runtime, not the game data.
+A recomp port usually needs a file from the original game.
 
-## Keep your files private
+That might be a cartridge dump, a disc image, or another format the project expects. Some systems may also need a BIOS or system file.
 
-Do not commit game images, retail BIOS files, or generated code derived from them. Keep them local to the project, follow the toolchain's ignore rules, and check its current documentation for the exact format it expects.
+This site and these projects provide the port, the tools, and the runtime. They do not provide copyrighted game files or copyrighted retail BIOS files.
 
-The required files vary by platform:
+Use legally obtained files.
 
-- PlayStation projects commonly use a `.cue` file with its matching `.bin` tracks, plus a BIOS where required.
-- Cartridge projects generally use a clean dump in the exact revision the port supports.
-- Some systems also need a separate coprocessor or system ROM.
+## Why does the exact file matter?
 
-For PlayStation discs, a Redump-style dump is a useful consistency target: the `.cue` describes the disc's track layout and the `.bin` files preserve those tracks. Follow the toolchain's current checker rather than converting files just to match a filename.
+A port is built around exact bytes.
 
-## Use a clean, matching dump
+Region, revision, patches, bad dumps, trimmed files, and converted disc images can all change those bytes. A file that looks close to you may be a different input to the port.
 
-Generated code is tied to exact bytes and addresses. A trimmed, patched, region-mismatched or otherwise altered image may be rejected—or may compile while behaving incorrectly. The port's own verification file is the authority for the revision it supports.
+That is why many ports check the file before they run. If the hash or layout does not match, the port should stop instead of guessing.
 
-When verification fails, stop and check the format, region and revision rather than looking for a download. This site does not describe how to obtain copyrighted files.
+Strict checks are not there to annoy you. They keep the port tied to the game version it was built and tested against.
 
-## Why the wording is deliberate
+## What about BIOS files?
 
-“Bring a game file you already have” is both a technical requirement and a boundary. It keeps the projects distributable and makes clear that a native port is built from the user's own input. The same rule applies to retail BIOS images and any generated artifacts derived from them.
+Some systems need BIOS or firmware behavior.
 
-For platform-specific prerequisites, use the [platform guide](/docs/platforms) and the starter repository linked from [recomp your own game](/docs/start/recomp-your-own-game). [Provenance](/docs/fleet/provenance) explains the project's redistributable components.
+There are two common cases:
+
+- The project can use a legal open-source BIOS alternative.
+- The project needs a legally obtained retail BIOS or system file.
+
+This site does not provide copyrighted retail BIOS files. If a project needs one, follow the project's instructions and use a legally obtained copy.
+
+If a project includes an open-source BIOS alternative, it should say so clearly.
+
+## What should never be committed?
+
+Do not commit:
+
+- game dumps
+- disc images
+- copyrighted retail BIOS files
+- generated code derived from those files
+- caches that contain captured game code
+
+Keep those files local. Follow the project's ignore rules.
+
+## Why not just support every dump?
+
+Supporting many revisions is possible, but it is work.
+
+Each revision may move code, change data, patch bugs, or alter timing. A port that supports one version does not automatically support another.
+
+The honest path is to support known inputs, verify them, and add more versions deliberately.
+
+## What should users do when verification fails?
+
+Stop and check the basics:
+
+- Is this the right region?
+- Is this the right revision?
+- Is the dump clean?
+- Is the disc image still in the expected format?
+- Does the project also need a BIOS or system file?
+
+Do not look for random downloads. The intended path is to use legally obtained files and follow the project instructions.
 
 ## Next
 
-- [Recomp your own game](/docs/start/recomp-your-own-game)
-- [What you need](/docs/start/what-you-need)
+- [What do I need to get started?](/docs/start/what-you-need)
+- [How do I recomp my own game?](/docs/start/recomp-your-own-game)
 - [Licenses](/docs/fleet/licenses)
-- [Glossary](/docs/concepts/glossary)
+- [What do these terms mean?](/docs/concepts/glossary)

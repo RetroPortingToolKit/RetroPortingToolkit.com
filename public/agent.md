@@ -236,8 +236,6 @@ Match it or the post will read as foreign to the site.
 - "Pokémon" keeps its accent.
 - Do not invent facts about a project. If you cannot source a claim, leave it
   out. Link the source instead.
-- Documentation pages do not reference N64Recomp, N64ModernRuntime or RT64.
-  That platform's story lives at /hardware/nintendo-64; link there instead.
 
 ## Other things you can do
 

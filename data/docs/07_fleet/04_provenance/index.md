@@ -288,12 +288,6 @@ bytes, no instruction text, no commentary.
 steps to regenerate its vendored 65816 core from upstream, and names the opcode
 harness that checks the result.
 
-**A boundary instead of a bare license.**
-[gcnlle](https://github.com/mstan/gcnlle)'s notices name the subsystems its
-runtime keeps exclusive ownership of while adapting an upstream design.
-[xboxlle-probe](https://github.com/mstan/xboxlle-probe)'s `NOTICE.md` records the
-source commit, the author, and what the standalone version added.
-
 ## The BIOS question, per project
 
 A console BIOS is the sharpest case: a file the project neither wrote nor owns.
@@ -443,8 +437,6 @@ model answers only the commands it has verified.
 - [mstan/snesrecomp](https://github.com/mstan/snesrecomp): [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/snesrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md)
 - [mstan/MinishCapRecomp](https://github.com/mstan/MinishCapRecomp): [`README.md`](https://github.com/mstan/MinishCapRecomp/blob/main/README.md)
 - [mstan/SuperMarioBrosNESRecomp](https://github.com/mstan/SuperMarioBrosNESRecomp): [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/THIRD-PARTY-LICENSES/README.md)
-- [mstan/gcnlle](https://github.com/mstan/gcnlle): [`THIRD_PARTY_NOTICES.md`](https://github.com/mstan/gcnlle/blob/master/THIRD_PARTY_NOTICES.md)
-- [mstan/xboxlle-probe](https://github.com/mstan/xboxlle-probe): [`NOTICE.md`](https://github.com/mstan/xboxlle-probe/blob/main/NOTICE.md)
 
 ## Next
 

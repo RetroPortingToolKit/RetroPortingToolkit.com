@@ -480,9 +480,12 @@ function TabContent({
                   );
                 })}
               </div>
-              <p className="hn-note" data-reveal>
-                <strong>{PLATFORM_NOTE.title}</strong> {PLATFORM_NOTE.body}
-              </p>
+              {(PLATFORM_NOTE.title || PLATFORM_NOTE.body) && (
+                <p className="hn-note" data-reveal>
+                  {PLATFORM_NOTE.title && <strong>{PLATFORM_NOTE.title}</strong>}{" "}
+                  {PLATFORM_NOTE.body}
+                </p>
+              )}
             </div>
           </section>
 

@@ -1,283 +1,163 @@
 ---
 title: "Catalog schema"
-summary: "Field by field for retcomm-catalog: the index file, the per-title manifest, how a title is verified, released, built, launched and matched online, and the two validators that no longer agree."
+summary: "How the launcher catalog describes ports, required game files, releases, launch settings, and compatibility in a form tools can read."
 pageType: "reference"
-tags: ["Schema", "Catalogue", "Agents", "PlayStation"]
+tags: ["Schema", "Catalog", "Launcher"]
 repos:
   - "https://github.com/TechnicallyComputers/retcomm-catalog"
-updated: "2026-08-25"
+updated: "2026-08-30"
 ---
 
-[retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog) is a machine-readable list of the ports a launcher can install. Its README calls it the "Official title catalog for [RetComM Launcher](https://github.com/TechnicallyComputers/RetComM-Launcher). JSON manifests listing supported recomp/decomp titles, ROM/BIOS identity, and GitHub release asset patterns. The launcher downloads this catalog independently of app updates."
+The catalog is the list a launcher can read when it wants to know what ports exist.
 
-So a program, and not a person, can ask what has been ported, how to tell whether a player's game file is the right one, where the builds are, and whether a title has netplay. Both files are documented below.
+It is not the port itself. It is not a game database for every retro game. It is a small set of JSON files that answer practical questions:
 
-> **Note.** The repository has no LICENSE file. It states no terms for copying these manifests or this schema, so this page states none either.
+- What is this port called?
+- What system is it for?
+- What game file does the user need to provide?
+- Does it need a BIOS or firmware file?
+- Where can the launcher get a release?
+- How should the launcher start it?
 
-## What is in it today
+The catalog should be boring on purpose. If a launcher has to guess, the schema did not do its job.
 
-When the fleet was surveyed the catalogue carried `schema_version: 1`, twelve titles, all of them `psx`, a `catalog_date` of `"2026-08-20T02:48:35Z"` and a `release_tag` of `"v2026.08.20.024835.20"`. Eight of the twelve declare a `netplay` object. The `snes`, `n64` and `genesis` paths the schema describes had no live example.
+## The two file types
 
-## The two files
+The catalog has one root file and one file per title.
 
-| File | What it is |
+| File | What it does |
 |---|---|
-| `index.json` | The catalogue root: freshness stamps, per-platform defaults, and the list of title ids |
-| `titles/<id>.json` | One manifest per title |
+| `index.json` | Lists the catalog version, platform defaults, and every title id. |
+| `titles/<id>.json` | Describes one port. |
 
-The three names have to agree: the `titles/<id>.json` filename, the `id` field inside it, and the entry in `index.json`. Publication CI fails when `index.json` lists a missing file, and approval CI fails when a title file is not in the index.
+The title id should match in three places:
+
+- the entry in `index.json`
+- the filename under `titles/`
+- the `id` field inside that title file
+
+That keeps launcher behavior simple. A tool should not need fuzzy matching to load a catalog entry.
 
 ## `index.json`
 
-| Field | Type | Required | Default | Meaning |
-|---|---|---|---|---|
-| `schema_version` | number | Not documented | 1 in the live file | Present in the shipped file. `SCHEMA.md` shows it in its example but does not list it in its field table. |
-| `name` | string | Not documented | `"RetComM supported titles"` | Catalogue display name |
-| `catalog_date` | string | Stamped by CI | none | "UTC stamp from publish CI: `YYYY-MM-DDTHH:MM:SSZ` (preferred) or legacy `YYYY-MM-DD`" |
-| `release_tag` | string | Stamped by CI | none | "GitHub release tag (e.g. `v2026.07.29.184100.12` = date + `HHMMSS` + issue)" |
-| `platform_defaults` | object | No | absent | "Optional per-platform defaults keyed by catalog `platform`" |
-| `platform_defaults.<platform>.bios_identity` | object | No | absent | "Applied to titles on that platform that omit `bios_identity`" |
-| `titles` | array of strings | Yes | none | Title ids, each of which must have a matching `titles/<id>.json` |
+`index.json` is the catalog table of contents.
 
-The head of the shipped file, showing how a platform default is written:
+| Field | Meaning |
+|---|---|
+| `schema_version` | The catalog format version. |
+| `name` | A display name for the catalog. |
+| `catalog_date` | When this catalog was published. |
+| `release_tag` | The release tag that produced this catalog. |
+| `platform_defaults` | Defaults shared by entries on the same platform. |
+| `titles` | The list of title ids. Each id should have a matching `titles/<id>.json`. |
 
-From [`index.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/index.json):
+Platform defaults are useful when many ports on the same system need the same BIOS identity. A title can override that default, or opt out when it does not apply.
 
-```json title="index.json"
-{
-  "schema_version": 1,
-  "name": "RetComM supported titles",
-  "platform_defaults": {
-    "gba": {
-      "bios_identity": {
-        "required": true,
-        "crc32": [
-          "81977335"
-        ],
-        "md5": [],
-        "sha1": [
-          "300c20df6731a33952ded8c436f7f186d25d3492"
-        ],
-        "sha256": [],
-        "sizes": [
-          16384
-        ],
-        "filenames": [
-          "gba_bios.bin",
-          "gba_bios.rom",
-          "bios.bin"
-        ]
-      }
-    },
-```
+## Title identity
 
-A title can refuse the default: "Title manifests may still set `bios_identity` to override the default, or `"bios_identity": null` to opt out of inheritance."
+Every title manifest needs enough identity to show a human what the port is.
 
-## `titles/<id>.json`: identity
+| Field | Meaning |
+|---|---|
+| `id` | Stable slug. Use lowercase letters, numbers, and hyphens. |
+| `name` | Human-readable title. |
+| `kind` | Usually `recomp`. Some entries may be `decomp`. |
+| `platform` | The system family, such as `psx`, `snes`, `nes`, `gba`, `nds`, `genesis`, `smsgg`, `vb`, or `cdi`. |
+| `description` | Short description for launchers and catalog views. |
+| `homepage` | Project or release page. |
+| `author_notes` | Optional note from the port author. |
+| `notes` | Maintainer notes for the catalog. |
 
-| Field | Type | Required | Default | Meaning |
-|---|---|---|---|---|
-| `id` | string | Yes | none | "Stable slug; matches filename". Must match `^[a-z0-9]+(?:-[a-z0-9]+)*$` |
-| `name` | string | Yes | none | "Display name", non-empty |
-| `kind` | `"recomp"` or `"decomp"` | Yes | `"recomp"` when normalized | Enum, enforced by both validators |
-| `platform` | string | Yes | none | "`snes`, `psx`, `n64`, `gba`, … (RomM + folder map)" |
-| `description` | string | No | absent | "Optional short blurb". Dropped when empty |
-| `homepage` | string | No | `https://github.com/<release.github>` | "Optional URL (hub "GitHub Source")" |
-| `author_notes` | string | No | absent | "Optional message from the recomp/decomp author to users; shown in the hub as **Author's Notes** (any length)" |
-| `notes` | string | No | absent | "Optional catalog/maintainer footnotes (identity sources, pins); not shown in the hub" |
-| `romm` | object | No | absent | "Optional match hints" |
+Keep descriptions short. The catalog is not where the project history belongs.
 
-## `titles/<id>.json`: verification
+## Game file identity
 
-`rom_identity` is required. It is how the launcher decides that the file a player already owns is the one this port was built for.
+The catalog uses hashes, sizes, serials, and filename hints to recognize the game file the user provides.
 
-> **You provide this.** Every entry here describes a game file you supply yourself. The catalogue stores digests, sizes and filename hints so a scan can recognise your copy. It stores no game content, and this repository distributes none. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
+It does not include that game file. The user supplies their own legally obtained dump. This site does not provide game files and does not tell users how to get them.
 
-| Field | Type | Required | Default | Meaning |
-|---|---|---|---|---|
-| `rom_identity` | object | Yes | none | "How we know the user owns the game (always include every digest field)" |
-| `rom_identity.crc32` | array of strings | No | `[]` | "Hex, e.g. `"f2ab92d4"` (empty `[]` if unused)". Lowercased by the Worker |
-| `rom_identity.md5` | array of strings | No | `[]` | "32-char lowercase hex (common in recomp README tables)" |
-| `rom_identity.sha1` | array of strings | No | `[]` | "40-char lowercase hex" |
-| `rom_identity.sha256` | array of strings | No | `[]` | "64-char lowercase hex" |
-| `rom_identity.disc_serials` | array of strings | No | `[]` | "PSX/etc, e.g. `"SLUS-00562"`" |
-| `rom_identity.sizes` | array of numbers | No | `[]` | "Optional byte lengths; when set, scan only hashes files of those sizes (disc dumps)". Non-positive entries are dropped |
-| `rom_identity.filenames` | array of strings | No | `[]` | "Suggested basenames for the hub when unmatched (No-Intro / Redump); search hints, not hard matching" |
-| `rom_identity.track_counts` | array of numbers | No | `[]` | "Optional exact cue `TRACK` counts". Integers of 1 or more |
-| `rom_identity.require_cue` | boolean | No | false, and automatically true when any `track_counts` entry exceeds 1 | "PSX titles use `.cue` + `.bin` only, not `.iso`/`.chd`" |
-| `rom_extensions` | array of strings | No | psx falls back to `[".cue", ".bin"]` | "Scan filter, e.g. `[".sfc",".smc"]`". On psx the Worker strips `.iso` and `.chd` |
-| `bios_identity` | object or `null` | No | inherited from `platform_defaults` | "Optional host BIOS / firmware the title needs" |
-| `bios_identity.required` | boolean | No | true when the object is present | Whether the BIOS must be found |
-| `bios_identity.crc32` / `.md5` / `.sha1` / `.sha256` | array of strings | No | `[]` | "Preferred dump checksums (include all keys; unused = `[]`)" |
-| `bios_identity.sizes` | array of numbers | No | `[]` | "Byte lengths to consider while scanning" |
-| `bios_identity.filenames` | array of strings | No | `[]` | "Basename hints (e.g. `SCPH1001.BIN`)" |
+| Field | Meaning |
+|---|---|
+| `rom_identity` | The checks used to recognize the correct game file. |
+| `rom_identity.crc32` | CRC32 hashes, if useful. |
+| `rom_identity.md5` | MD5 hashes, if useful. |
+| `rom_identity.sha1` | SHA-1 hashes, if useful. |
+| `rom_identity.sha256` | SHA-256 hashes, if useful. |
+| `rom_identity.disc_serials` | Disc serials for systems where that is useful. |
+| `rom_identity.sizes` | Expected file sizes. Useful before hashing large files. |
+| `rom_identity.filenames` | Filename hints. These help the user, but should not be the only match rule. |
+| `rom_identity.track_counts` | Expected track counts for disc images. |
+| `rom_identity.require_cue` | Whether the entry requires a cue sheet. |
+| `rom_extensions` | File extensions the launcher should scan for this entry. |
 
-The matching rule is loose on purpose, and it is stated once: "A title is considered to have a ROM identity when **any** of `crc32`, `md5`, `sha1`, `sha256`, or `disc_serials` is non-empty. Matching succeeds if **any** configured digest matches the scanned file". The CI validator checks the same thing, so a manifest with every digest array empty is rejected.
+A manifest should contain at least one real identity check. A filename alone is not enough.
 
-## `titles/<id>.json`: release
+## BIOS identity
 
-Where a built binary comes from.
+Some systems need a BIOS or firmware file.
 
-| Field | Type | Required | Default | Meaning |
-|---|---|---|---|---|
-| `release` | object | Yes | none | "Where to fetch builds" |
-| `release.github` | string, `owner/repo` | Yes | none | The repository whose releases hold the binaries |
-| `release.allow_prerelease` | boolean | No | false | "Allow GitHub pre-releases when no stable latest exists" |
-| `release.asset_glob.linux` / `.windows` / `.macos` | string | At least one | `""` | "Per-OS glob ... Prefer a pattern from the real asset name (`bpe-*linux*`, `*win64*`, …)" |
+Use a legally obtained BIOS if one is required. This site does not provide retail BIOS files. Some projects may provide open source BIOS alternatives where that makes sense.
 
-## `titles/<id>.json`: build
+| Field | Meaning |
+|---|---|
+| `bios_identity` | The checks used to recognize the BIOS or firmware file. |
+| `bios_identity.required` | Whether the file is required. |
+| `bios_identity.crc32`, `md5`, `sha1`, `sha256` | Hashes for known good files. |
+| `bios_identity.sizes` | Expected file sizes. |
+| `bios_identity.filenames` | Filename hints shown to the user. |
 
-Optional. When present and enabled, the launcher prefers building over downloading.
+A platform default can define common BIOS rules. A title manifest should only override it when that specific title needs something different.
 
-| Field | Type | Required | Default | Meaning |
-|---|---|---|---|---|
-| `build` | object | No | absent | "Optional local generate + cmake recipe. When `enabled`, RetComM **Install** prefers this path" |
-| `build.enabled` | boolean | No | absent | Turns the recipe on |
-| `build.source.github` | string | No | `release.github` | Source repository for the archive |
-| `build.source.ref` | string | No | `"main"` | "Tag / branch / commit pin for the source archive" |
-| `build.sdk` | object | No | absent | "Tools identity. Prefer harvesting emitters from the game release zip (`id` only)." |
-| `build.toolchain` | object | No | absent | "Prefer downloading `cmake-clang-v1` ... Set `min_version` to a semver floor" |
-| `build.generate` | object | No | absent | "Engine-specific generate args" |
-| `build.generate.engine` | `"snesrecomp"`, `"psxrecomp"` or `"gbarecomp"` | No | derived from `platform` | Which recompiler to drive |
-| `build.cmake` | object | No | absent | "`build_dir`, `target`, `config` (Release)" |
+## Release information
 
-## `titles/<id>.json`: launch, saves and netplay
+Release fields tell a launcher where to find the build.
 
-| Field | Type | Required | Default | Meaning |
-|---|---|---|---|---|
-| `install_dir_name` | string | Yes | falls back to `id` | "Folder under `apps/`". The CI validator requires it; the Worker fills it in |
-| `launch` | object | Yes | none | "Relative binary names: `linux`, `windows`, `macos`". At least one is required |
-| `saves` | object | No | absent | "Optional paths relative to install for sync later" |
-| `netplay` | object | No | absent | "Optional; omit when the title has no recomp-net lobby" |
-| `netplay.supported` | boolean | No | absent | "Must be `true` to advertise in the hub lobby" |
-| `netplay.stack` | string | No | `"recomp-net"` | "Currently only `"recomp-net"`". Any other value is rejected |
-| `netplay.game_name` | string | Yes when supported | none | "Exact WS `create`/`join`/`list` wire name (may differ from catalog `name` / `id`)" |
-| `netplay.game_version` | string | Yes when supported | none | "Lobby pin; align with baked `PSX_GAME_VERSION` / `SNES_GAME_VERSION` (empty → server `"dev"`)" |
-| `netplay.max_slots` | number | No | 2 | Seat count, floored at 2 |
-| `netplay.lobby_url` | string | No | the launcher's `config.netplay.lobby_url` | "Optional per-title WS override" |
-| `netplay.transports` | array of strings | No | absent | "Optional UI hints: `"lan"`, `"ice"`, `"direct"`" |
-| `netplay.match_caps_schema` | string | No | absent | "Optional host-settings family (`psx-v1`, `snes-v1`)" |
+| Field | Meaning |
+|---|---|
+| `release.github` | Repository that publishes the release. |
+| `release.tag` | Release tag to use, when fixed. |
+| `release.asset_patterns` | Asset names the launcher should look for. |
+| `release.prerelease` | Whether prereleases are allowed. |
+| `release.source_only` | Whether users must build it themselves. |
 
-`game_name` and `game_version` matter. The lobby server keys rooms on that pair, and `game_version` has to equal the version baked into the shipped binary, or players will not see each other's rooms. [recomp-net API](/docs/reference/recomp-net-api) is the library behind it.
+Be careful with release wording. Some projects can ship a ready-to-run build. Some require the user to build locally after providing their own game file. The catalog should describe the distribution model without making legal claims beyond what the project actually does.
 
-## A complete entry
+## Build and launch information
 
-The head of a shipped manifest, verbatim. The file continues to line 75 with `notes` and `build`.
+Build fields are for source-only entries. Launch fields are for installed builds.
 
-From [`titles/tomba-psx.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/titles/tomba-psx.json):
+| Field | Meaning |
+|---|---|
+| `build` | How a launcher or tool should build the port. |
+| `build.system` | The build system, such as CMake. |
+| `build.commands` | Commands to run. |
+| `launch` | How to start the installed port. |
+| `launch.executable` | Main executable or relative executable path. |
+| `launch.args` | Arguments the launcher should pass. |
+| `launch.working_dir` | Working directory to use. |
 
-```json title="titles/tomba-psx.json"
-{
-  "id": "tomba-psx",
-  "name": "Tomba!",
-  "kind": "recomp",
-  "platform": "psx",
-  "description": "Tomba! (USA) recompiled for the Sony PlayStation using psxrecomp.",
-  "homepage": "https://github.com/mstan/TombaRecomp",
-  "rom_identity": {
-    "crc32": ["b00ecb0d"],
-    "md5": ["c80636a28de4abcfa34f9e57fb3b043d"],
-    "sha1": ["c259ec7ff6ef4163913991f4e4db2eff71702818"],
-    "sha256": [
-      "25ada3dd51e70eb9f9218cd83fb02d73139750229fb44b012d62d183ab32eb13"
-    ],
-    "disc_serials": ["SCUS-94236"],
-    "sizes": [280193760],
-    "filenames": ["Tomba! (USA).cue", "tomba.cue", "Tomba! (USA).bin"],
-    "track_counts": [1],
-    "require_cue": true
-  },
-  "rom_extensions": [".cue", ".bin", ".car"],
-```
+Do not hide important setup inside prose. If a launcher needs it, make it structured.
 
-And the `netplay` object from the same file:
+## Compatibility and extras
 
-```json title="titles/tomba-psx.json"
-  "netplay": {
-    "supported": true,
-    "stack": "recomp-net",
-    "game_name": "TombaRecomp",
-    "game_version": "0.12.0-alpha",
-    "max_slots": 2,
-    "transports": ["lan", "ice"],
-    "match_caps_schema": "psx-v1"
-  },
-```
+Optional sections describe features that a launcher may show or use.
 
-The schema asks authors to ship every identity key even when it is empty, and publishes this block to copy.
+| Field | Meaning |
+|---|---|
+| `status` | Short status label for the port. |
+| `availability` | Whether a build is public, source-only, or unavailable. |
+| `saves` | Save file locations or save behavior. |
+| `netplay` | Whether the port exposes netplay and what it needs. |
+| `enhancements` | Optional features such as widescreen, renderer work, or quality settings. |
 
-From [`SCHEMA.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/SCHEMA.md):
+These fields should stay factual. A launcher needs to know what exists, not why the project is exciting.
 
-```json title="SCHEMA.md"
-"rom_identity": {
-  "crc32": [],
-  "md5": [],
-  "sha1": [],
-  "sha256": [],
-  "disc_serials": [],
-  "sizes": [],
-  "filenames": ["Game Name (USA).z64"],
-  "track_counts": [],
-  "require_cue": false
-}
-```
+## Safe schema rules
 
-## How a manifest reaches the catalogue
+Use structured fields for anything a tool must act on.
 
-The preferred path is the submission form, which "auto-fills digests and release globs from the source repo and opens a review issue. A maintainer with write access adds the **`approved`** label to merge `titles/<id>.json`, update `index.json`, and publish a new `catalog.zip` release (use **`approved-update`** only to overwrite an existing id)."
+Keep human notes short.
 
-The label is what starts the machinery. `approve-submission.yml` calls `apply_submission.py`. That script takes the **last** fenced `json` block in the issue body, checks it, writes `titles/<id>.json` with `indent=2`, and adds the id to `index.json` if it is missing. It prints `added:<id>` or `updated:<id>` on stdout, and exits non-zero on any validation failure, or on a duplicate id without `--allow-update`. Then `stamp_catalog_release.py` writes `catalog_date` and `release_tag`, and the workflow zips `index.json`, `titles`, `SCHEMA.md` and `README.md` into `catalog.zip` and creates the release.
+Do not use markdown files in random repositories as the authority for catalog behavior. They are useful clues, but the catalog should carry the actual data a launcher needs.
 
-| Script | Flag | Type | Default | What it does |
-|---|---|---|---|---|
-| `apply_submission.py` | `--body-file` | path | required | Path to the issue body markdown |
-| `apply_submission.py` | `--allow-update` | flag | false | Overwrite an existing `titles/<id>.json` |
-| `stamp_catalog_release.py` | `--tag` | string | required | Git tag and release name. Accepted grammar is `vYYYY.MM.DD` with an optional `.HHMMSS` or `.HHMM`, then an optional suffix |
-| `stamp_catalog_release.py` | `--date` / `--datetime` | string | `""` | `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SSZ`; empty derives from the tag, then from UTC now |
-
-Validate locally before pushing anything:
-
-```sh
-python3 -c "import json; json.load(open('index.json'))"
-for f in titles/*.json; do python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f"; done
-```
-
-The manual route is six steps: create `titles/<id>.json`, append `"<id>"` to the `titles` array in `index.json`, fill `rom_identity` from the game's own launcher gate or README table, point `release.github` at the shipping repository, rely on `platform_defaults` for GBA and PSX BIOS identity unless the title overrides it, then tag `v*` or run the Publish catalog workflow.
-
-## Two validators, and where they have drifted
-
-Two separate programs implement this schema, and the repository's own rule is that they stay in agreement. They no longer do.
-
-| Behaviour | `apply_submission.py` (CI) | `worker/src/index.js` (submission form) |
-|---|---|---|
-| Digest case | Left as written | Lowercased |
-| `rom_extensions` on psx | Left as written | `.iso` and `.chd` stripped |
-| `build.source.ref` | Left absent | Defaulted to `"main"` |
-| `require_cue` | Left as written | Set automatically from `track_counts` |
-| `kind`, `install_dir_name` | Enum checked, presence required | Coerced and defaulted |
-
-`SCHEMA.md` documents the `require_cue` rule. It says nothing about the psx extension filter or the lowercasing, so those two live only in the Worker's source.
-
-**Neither document names one of them as authoritative, and this page will not pick one.** What can be said is more useful. Only `apply_submission.py` runs on the path that writes into the repository, so it decides what ships. A manifest typed into an issue body therefore reaches `titles/` untidied, because the Worker never saw it. If you write a manifest by hand, write it in the tidy form yourself.
-
-## Documented fields with no live example
-
-In the twelve manifests present at survey time, `saves`, `bios_identity`, `romm.igdb_ids`, `netplay.lobby_url` and `build.sdk` never appear. BIOS identity for psx and gba comes from `index.json` `platform_defaults` instead. Treat those fields as specified but untested.
-
-## Fetching the catalogue
-
-Two stable entry points. The raw index file is `https://raw.githubusercontent.com/TechnicallyComputers/retcomm-catalog/main/index.json`. The packaged form is the `catalog.zip` asset on the latest release, which the launcher fetches from `https://github.com/TechnicallyComputers/retcomm-catalog/releases/latest/download/catalog.zip`. `catalog_date` and `release_tag` tell you how fresh it is.
-
-One publishing rule applies to anything built from this repository: "Never put ROM bytes or generated `src/gen` / `generated/` into catalog or pack artifacts."
-
-## Source
-
-- [retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog): [`SCHEMA.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/SCHEMA.md), [`README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md), [`index.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/index.json), [`titles/tomba-psx.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/titles/tomba-psx.json), [`submit/platform-defaults.json`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/submit/platform-defaults.json).
-- The two validators: [`.github/scripts/apply_submission.py`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/.github/scripts/apply_submission.py) and [`worker/src/index.js`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/worker/src/index.js). The workflows: [`.github/workflows/approve-submission.yml`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/.github/workflows/approve-submission.yml), [`.github/workflows/publish.yml`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/.github/workflows/publish.yml), [`.github/scripts/stamp_catalog_release.py`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/.github/scripts/stamp_catalog_release.py).
-
-## Next
-
-- [Machine-readable surfaces](/docs/agents/machine-surfaces) collects the rest of what an agent can drive in this fleet.
-- [recomp-net API](/docs/reference/recomp-net-api) is the library a title advertises through the `netplay` block.
-- [Every repository](/docs/fleet/repositories) is the same list written for people.
-- [PlayStation](/docs/platforms/playstation) is the toolchain every live entry currently belongs to, and [Glossary](/docs/concepts/glossary) defines ROM identity, disc image and title id as the fleet uses them.
+When in doubt, prefer a smaller manifest that is correct over a large manifest full of guesses.

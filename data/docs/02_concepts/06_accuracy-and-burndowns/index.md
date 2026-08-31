@@ -1,6 +1,6 @@
 ---
-title: "What correct enough means"
-summary: "How these projects turn accuracy into something you can measure: a seven-part scorecard per console, two conditions before any part counts as done, and each console's current state in its own words."
+title: "What does correct enough mean?"
+summary: "A recomp port is correct enough when it behaves faithfully for a clear, measured scope. A burndown records what has been checked and what has not."
 pageType: "concept"
 tags: ["Correctness", "Testing", "Accuracy"]
 repos:
@@ -9,109 +9,98 @@ repos:
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/smsggrecomp"
   - "https://github.com/mstan/segagenesisrecomp"
-updated: "2026-08-27"
+updated: "2026-08-30"
 ---
 
-"Does the port work" is not a question anyone can answer, so these projects stopped asking it. Six of them keep a **burndown** instead: a scorecard file, kept in the repository and updated as work lands, that splits the console into seven fixed parts, gives each part a status, names the outside reference it was checked against, and records how it was checked. A burndown is where a project writes down what it has measured and, just as importantly, what it has not.
+"Does it work?" is too vague.
 
-## The seven axes
+A better question is: **what has been measured, against what reference, and under what scope?**
 
-Each part is called an axis, and every burndown here uses the same seven, copied from psxrecomp's template:
+A recomp port can boot and still be wrong. It can play one level and still be wrong somewhere else. It can match the original game for one revision and fail on another.
 
-1. Instruction meanings
-2. Cycle and timing
-3. Interrupt and event timing
-4. Memory and hardware registers
-5. Video, audio and input
-6. Agreement between the static and the run-time recompiler paths
-7. [Determinism](/docs/concepts/determinism)
+Correctness is not a feeling. It is a claim with boundaries.
 
-The fixed shape is what makes two consoles comparable at all. It also means an axis cannot quietly vanish because nobody worked on it. It sits there with a status.
+## What is a burndown?
 
-The shape is where the sharing stops. Every row under those headings is one console's measurement, against one console's reference, under one console's scope. Axis 2 in particular is not a common yardstick: a project chasing exact cycles and a project running a whole frame at a time both have an axis 2, and the numbers in them are not the same kind of number. [Timing models](/docs/concepts/timing-models) says which console chose which, and is worth reading before comparing two rows.
+A **burndown** is a scorecard for accuracy work.
 
-## What makes an item done
+It lists the parts of the console or port that need to be faithful, then records the current status of each part. It is not a marketing checklist. It is a way to say what has been checked and what still needs work.
 
-The bar for the top status is two conditions, not one. The rule is used across the fleet; the wording is [gbarecomp](https://github.com/mstan/gbarecomp)'s, and the list in brackets is that console's references:
+The exact format can vary, but a useful burndown answers three questions:
 
-> Every item gets: **status**, the **external comparative(s)** to cross-reference
-> it against, and a **validation method**. "Looks good" is NOT a status
->
-> > **An item is only GREEN once it is BOTH (a) cross-referenced against a
-> > reference (GBATEK / NanoBoyAdvance source / mGBA source / a hardware test ROM)
-> > AND (b) runtime-validated against an accurate oracle. Self-agreement
-> > (compiled == our interp) is necessary but NOT sufficient.**
+1. What part of the machine are we talking about?
+2. What reference are we comparing against?
+3. How was this tested?
 
-An **oracle** is a reference version to compare against. Condition (b) is [co-simulation](/docs/concepts/co-simulation): the burndown is the ledger, co-simulation is the instrument that fills it in.
+Without those answers, "correct" does not mean much.
 
-Two more rules govern how an entry may be written. A difference somebody read about is "a **HYPOTHESIS, not a bug**" until it has been reproduced against the oracle on the same input. And no measurement may come from instrumentation switched on after the fact, because by then the interesting moment has usually gone past.
+## What usually gets measured?
 
-Scope goes into the claim itself. [smsggrecomp](https://github.com/mstan/smsggrecomp) says exactly what its numbers cover, in [`ACCURACY.md`](https://github.com/mstan/smsggrecomp/blob/main/ACCURACY.md):
+Projects often split accuracy into areas like these:
 
-> **What "exercised path" means, exactly:** boot through the attract/demo loop with
-> no input (plus a hand-played confirmation by the maintainer). It is **NOT**
-> whole-game, played-to-completion validation. [snip] Claims should always be quoted with this
-> scope.
+- instruction behavior
+- timing
+- interrupts and events
+- memory and hardware registers
+- video, audio, and input
+- agreement between compiled code and fallback paths
+- determinism
 
-## Two ways of counting progress
+Those areas make the work easier to discuss. They do not mean every console can be compared with one simple number.
 
-Worth knowing before you compare two scorecards. [nesrecomp](https://github.com/mstan/nesrecomp) uses a numbered ladder:
+Timing on SNES is not the same problem as timing on PlayStation. Audio on one console may be a whole separate processor. A handheld may have hardware quirks a home console never had.
 
-> Status scale: **0 NOT-MODELED · 1 WEAK · 2 PARTIAL · 3 STRONG · 4 GREEN** (GREEN ⇒ both
-> gate conditions in §0 met).
+The labels help organize the work. The details are still console-specific.
 
-gbarecomp uses checkboxes, plus a separate vocabulary for how finely a thing is modelled, from `CYCLE-ACCURATE` down to `NOT-MODELED`. So an item there can be done without being cycle accurate, and the document still says which.
+## When should something count as done?
 
-## What a real row looks like
+An item should only count as done when it has evidence.
 
-Two entries, quoted, because the texture is the point. These documents carry numbers, dates, file paths, and whatever is still open.
+At minimum, that means:
 
-Master System, axis 2, from [`SMS_GG_ACCURACY_BURNDOWN.md`](https://github.com/mstan/smsggrecomp/blob/main/SMS_GG_ACCURACY_BURNDOWN.md):
+- it was compared against a trustworthy reference
+- it was tested in a way that can be repeated
+- the scope is clear
 
-> - [x] **Per-anchor Δcycle vs Mesen: DONE 2026-06-28.** Anchor = IM1/VBlank
->   handler `0x0038`, 1798/1800 hits. Median Δ = **59,736 on both**; max Δ =
->   **79,206 identical**; **cumulative diff = −247 cyc over 1797 frames ≈ 0 net
->   drift** (−0.14 cyc/frame). The +0.043% gross total is thus CONFIRMED pure
->   boot-offset, not rate drift. Verdict: **JITTER-ONLY** (oscillates, no drift).
->   `_diag/accuracy/cyc0038_compare.json`.
+"Looks good" is useful as a first impression. It is not enough for a correctness claim.
 
+For mature projects, the stronger version is [co-simulation](/docs/concepts/co-simulation): run the port beside a trusted reference and stop at the first difference.
 
-Open items are written the same way. The GBA burndown records that memory wait times are fixed at the power-on default, so games that change them "diverge in cycle counts", and that one timing feature is not modelled at all: "NBA models this; we don't."
+## Why does scope matter?
 
-## Where each console stands
+Scope is the difference between an honest claim and an accidental overclaim.
 
-Quoted from the burndowns, not upgraded. Read every row with the scope it was measured under.
+"This game boots" is a claim.
 
-| Console | What its own document says |
-|---|---|
-| NES | All 8 rows of its status table at **3 STRONG**. No axis is GREEN on the document's own scale. |
-| SNES | Axis 1 STRONG, axis 2 "COMPLETE: model validated vs bsnes", PPU "VERIFIED PIXEL-EXACT vs bsnes". Axis 3 records that the runner "never raises an interrupt". |
-| GBA | Opened at 0 of 7 GREEN, "every axis failed gate-(b) until NBA was wired". After the burndown, on one game: "axes 1, 6, 7 GREEN; axis 2 near-GREEN". |
-| Virtual Boy | All 7 axes recorded as won for one game. Its oracle is "instruction-accurate, not cycle/pipeline-accurate", so the cycle axis cannot be green against that oracle alone. |
-| Master System and Game Gear | All 7 axes validated against two independent oracles, scoped to the exercised path. Its own biggest gap: "**Whole-game validation**: NOT done." |
-| Game Boy and Game Boy Color | Two documents report different results for overlapping ROMs, and neither supersedes the other, so there is no single current number. |
-| Genesis | No seven-axis burndown in the tree. Compiled and its own interpreter agree bit-exact over 2M cycles; the comparison against an outside emulator ended when that oracle was deleted. |
-| PlayStation | Every other burndown names psxrecomp's as the template. That file is not in the repository as cloned, so its per-axis verdicts are not documented here. |
+"This game reaches the attract loop with no known differences under this test" is a stronger and clearer claim.
 
-## What must not be claimed
+"This console is accurate" is usually too broad unless the project has a lot of evidence behind it.
 
-These are the projects' own limits on how their numbers may be used.
+Good docs should name the game, revision, test path, reference, and known gaps when the claim depends on them.
 
-- Do not say a game "works" or is fully verified. The repositories claim agreement over named tests, with named leftovers.
-- Do not say emulation is absent. Every project models devices, many keep an interpreter as a fallback on the way to full static coverage, and several link somebody else's emulator into development builds.
-- Do not treat co-simulation as proof of hardware correctness. Only an independent oracle arbitrates that.
-- Do not quote a number without its test and its scope, because the projects do not.
+## How should users read maturity?
 
-## Source
+Treat maturity as practical confidence, not a universal guarantee.
 
-- nesrecomp: [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md). gbarecomp: [`GBA_ACCURACY_BURNDOWN.md`](https://github.com/mstan/gbarecomp/blob/main/GBA_ACCURACY_BURNDOWN.md)
-- smsggrecomp: [`ACCURACY.md`](https://github.com/mstan/smsggrecomp/blob/main/ACCURACY.md), [`SMS_GG_ACCURACY_BURNDOWN.md`](https://github.com/mstan/smsggrecomp/blob/main/SMS_GG_ACCURACY_BURNDOWN.md). vbrecomp: [`VB_ACCURACY_BURNDOWN.md`](https://github.com/mstan/vbrecomp/blob/master/VB_ACCURACY_BURNDOWN.md)
-- gbrecompiled: [`GATE5_SCORECARD.md`](https://github.com/mstan/gbrecompiled/blob/master/GATE5_SCORECARD.md), [`COSIM_ORACLE.md`](https://github.com/mstan/gbrecompiled/blob/master/COSIM_ORACLE.md)
-- snesrecomp: [`SNES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_ACCURACY_BURNDOWN.md). segagenesisrecomp: [`COSIM.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COSIM.md)
+psxrecomp is the gold-standard framework in this ecosystem today. SNES is the next strongest reference point. Other projects are useful, but many are still early, experimental, or focused on a smaller problem.
+
+That is not an insult to those projects. It is just the state of the work.
+
+A mature framework usually has better discovery, stronger runtime behavior, clearer tests, and fewer surprises when a new game is added.
+
+## What should not be claimed?
+
+Do not say a port is perfect because it boots.
+
+Do not say a whole console is solved because one game looks good.
+
+Do not say co-simulation proves real hardware behavior in every case. It proves agreement with the reference used for that test.
+
+Do not hide scope. If a result only covers one game, one path, one region, or one build, say that.
 
 ## Next
 
-- [Co-simulation](/docs/concepts/co-simulation) is the instrument that satisfies condition (b).
-- [Timing models](/docs/concepts/timing-models) explains what axis 2 is measuring.
-- [Set up co-simulation](/docs/guides/set-up-co-simulation) produces the evidence a row needs.
-- [Debug a divergence](/docs/guides/debug-a-divergence) turns an open row into a located bug.
+- [How do we compare a port to the original?](/docs/concepts/co-simulation)
+- [When should timing be changed?](/docs/concepts/timing-models)
+- [Why does determinism matter?](/docs/concepts/determinism)
+- [What do these terms mean?](/docs/concepts/glossary)

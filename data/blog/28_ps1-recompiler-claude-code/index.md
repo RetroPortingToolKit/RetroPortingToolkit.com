@@ -31,13 +31,10 @@ In 2024, that experiment succeeded. I was the founding developer in the revival 
 To be transparent: I’m not trained in compilers, MIPS assembly, or GPU rendering pipelines. I do have friends in the reverse engineering space (shoutout to [TASBot](https://tas.bot/)), and I’ve followed projects like:
 
 - **[Ship of Harkinian](https://www.shipofharkinian.com/)**
-- **[Super Mario 64 PC port](https://github.com/n64decomp/sm64)**
 
-Both projects painstakingly decompiled games by hand to run natively on PC. Later tools like [**n64recomp**](https://github.com/N64Recomp/N64Recomp) pushed the idea further by going from decompilation to recompilation.
+Projects like this painstakingly decompile games by hand to run natively on PC. Recompilation pushed the idea in a different direction: translate the original binary instead of rebuilding the whole program from source.
 
-The Nintendo 64 and the PlayStation share a useful property: their games were typically **compiler-generated**, not hand-written assembly. That makes them good candidates for static recompilation.
-
-The N64 scene now has **[n64recomp](https://github.com/N64Recomp/N64Recomp)**, a mature general-purpose tool. The PlayStation scene, as far as I know, doesn't. The closest equivalent I found was **[PS1Recomp](https://github.com/nihirunoherr/PS1Recomp)**, which describes itself as a proof of concept. So I decided to experiment.
+The PlayStation has a useful property: many of its games were compiler-generated, not hand-written assembly. That makes them good candidates for static recompilation. The closest PlayStation equivalent I found was **[PS1Recomp](https://github.com/nihirunoherr/PS1Recomp)**, which describes itself as a proof of concept. So I decided to experiment.
 
 I wanted to see whether modern AI tooling could help accelerate this process, even though I personally lacked deep expertise in this area. After about three weeks of brute-force iteration, I produced **[psxrecomp](https://github.com/mstan/psxrecomp)**, a prototype tool that can take a retail ISO and produce a surprisingly playable demo.
 
@@ -201,7 +198,7 @@ However, the game still has issues:
 
 My original goal was simple:
 
-> Create a **PlayStation counterpart to n64recomp**.
+> Create a real **PlayStation static recompiler**.
 
 I believe this project now provides a foundation for that idea. To push the tool forward, the next step is getting **one game fully functional**. *Tomba!* already runs surprisingly well, it just needs continued iteration.
 

@@ -1,21 +1,23 @@
 ---
 title: "Concepts"
-summary: "The ten ideas every repository in this fleet assumes you already have, from the two halves of a toolchain to what these projects mean when they say a port is correct enough."
+summary: "The core ideas behind recomp ports, explained before the docs get console-specific."
 sectionTitle: "Concepts"
 pageType: "reference"
 tags: ["Concepts"]
-updated: "2026-08-25"
+updated: "2026-08-30"
 ---
 
-Every repository here documents itself, and none of them explains the technique. These ten pages are that missing layer: the things a README here takes for granted. Read them when a repository's own documentation stops making sense, or read them straight through if you plan to work on any of this.
+This section explains the ideas behind recomp ports.
 
-- [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime). Every project is two programs. This is what each one does.
-- [Telling code from data](/docs/concepts/code-discovery). A binary does not say which bytes are instructions. This is the hardest part of the job.
-- [High level and low level](/docs/concepts/hle-and-lle). The fleet's sharpest disagreement, with both sides and no winner declared.
-- [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time). Code that only exists once the game is running, and how a PlayStation port catches it.
-- [Co-simulation](/docs/concepts/co-simulation). How these projects decide whether the translation is correct. If you read one page here, read this one.
-- [What correct enough means](/docs/concepts/accuracy-and-burndowns). How accuracy is turned into something you can measure, and where each console stands.
-- [Timing models](/docs/concepts/timing-models). How closely a build tracks the console's clock, and what a looser model breaks.
-- [Determinism](/docs/concepts/determinism). Save states, rewind and netplay all need the game to repeat itself exactly.
-- [The game file you supply](/docs/concepts/the-game-file-you-supply). The contract every port makes with its user, in the projects' own words.
-- [Glossary](/docs/concepts/glossary). Forty-five terms, defined the way the fleet uses them, with the contradictions marked.
+Start here when a guide uses a word you do not know yet, or when you want to understand what a port is doing under the hood. These pages are still high level. They are meant to make the technical docs easier, not replace them.
+
+- [What are the recompiler and runtime?](/docs/concepts/recompiler-and-runtime). The two main parts most projects are built around.
+- [How does a project tell code from data?](/docs/concepts/code-discovery). Why finding the real program inside a game file is hard.
+- [What are HLE and LLE?](/docs/concepts/hle-and-lle). Two ways to handle console behavior around the game.
+- [What about code you cannot see ahead of time?](/docs/concepts/code-you-cannot-see-ahead-of-time). What happens when a game creates or loads code while it is running.
+- [How do we compare a port to the original?](/docs/concepts/co-simulation). How projects check whether the translated code still behaves correctly.
+- [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns). How faithfulness becomes a list of concrete problems to fix.
+- [When should timing be changed?](/docs/concepts/timing-models). Why timing changes are advanced work and need measurement.
+- [Why does determinism matter?](/docs/concepts/determinism). Why save states, rewind, and netplay need repeatable behavior.
+- [What is the game file contract?](/docs/concepts/the-game-file-you-supply). What the project expects you to provide, and why the site does not provide it.
+- [What do these terms mean?](/docs/concepts/glossary). Short definitions for common recomp words.

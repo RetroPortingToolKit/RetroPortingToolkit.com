@@ -1,6 +1,6 @@
 ---
 title: "Licenses"
-summary: "A repository-by-repository license census for the fleet, including the 48 that carry no license file, plus the third-party licenses each toolchain bundles or links."
+summary: "A repository-by-repository license census for the fleet, plus the third-party licenses each toolchain bundles or links."
 pageType: "reference"
 tags: ["Licensing", "Attribution", "Fleet"]
 repos:
@@ -10,22 +10,20 @@ repos:
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/segagenesisrecomp"
-  - "https://github.com/mstan/gcnlle"
 updated: "2026-08-25"
 ---
 
 Every license below was read from the license file itself, not from a README
-summary. The 48 repositories that declare nothing are listed too: a missing
-license file is a fact you need. This is what the files say. It is not legal
-advice.
+summary. Repositories that declare nothing are listed too: a missing license
+file is a fact you need. This is what the files say. It is not legal advice.
 
 ## The census in numbers
 
 | Measure | Count |
 |---|---|
-| Repositories surveyed | 83 |
-| Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | 35 |
-| Carrying no license file at all | 48 |
+| Repositories surveyed | current fleet |
+| Carrying a license file (`LICENSE`, `LICENSE.md`, `COPYING`, `LICENSE-recompiler`) | many |
+| Carrying no license file at all | many |
 | Distinct license identities found | 5 |
 
 The five identities are PolyForm Noncommercial 1.0.0, MIT, GPL-3.0, a
@@ -44,10 +42,7 @@ copyright holder.
 | [mstan/segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) | PolyForm Noncommercial 1.0.0 | [`LICENSE-recompiler`](https://github.com/mstan/segagenesisrecomp/blob/master/LICENSE-recompiler) and [`LICENSE.md`](https://github.com/mstan/segagenesisrecomp/blob/master/LICENSE.md) | Two license files whose text is not the same. See below |
 | [mstan/ndsrecomp](https://github.com/mstan/ndsrecomp) | MIT | [`LICENSE`](https://github.com/mstan/ndsrecomp/blob/main/LICENSE) | Holder `Copyright (c) 2026 Matthew Stanley`. Covers the project's own source; the shipped `nds_runner` binary is a GPL-3.0-or-later combined work |
 | [mstan/vbrecomp](https://github.com/mstan/vbrecomp) | MIT | [`LICENSE`](https://github.com/mstan/vbrecomp/blob/master/LICENSE) | 53 lines: the MIT text plus an in-file `# Attribution` section |
-| [mstan/gcnlle](https://github.com/mstan/gcnlle) | GNU GPL v3 | [`LICENSE`](https://github.com/mstan/gcnlle/blob/master/LICENSE) | Stock FSF text. The README states GPL-3.0 with GPL-2.0-or-later components under compatible GPLv3 terms |
 | [mstan/smsggrecomp](https://github.com/mstan/smsggrecomp) | **None** | no license file | README states the license is "Not yet declared" |
-| [mstan/gbrecompiled](https://github.com/mstan/gbrecompiled) | **None** | no license file | Development fork of `arcanite24/gb-recompiled`. The upstream terms are not stated in the repository |
-| [mstan/xboxlle-probe](https://github.com/mstan/xboxlle-probe) | MIT | [`LICENSE`](https://github.com/mstan/xboxlle-probe/blob/main/LICENSE) | Restated in [`SECURITY.md`](https://github.com/mstan/xboxlle-probe/blob/main/SECURITY.md) |
 
 ## Shared services and components
 
@@ -81,8 +76,6 @@ copyright holder.
 | [mstan/DKC2Recomp](https://github.com/mstan/DKC2Recomp) | MIT | `LICENSE` | `Copyright (c) 2026 DKC2 Port contributors`. An MIT game repo built on a PolyForm-NC framework |
 | [mstan/MetroidPrimeHuntersRecomp](https://github.com/mstan/MetroidPrimeHuntersRecomp) | MIT | `LICENSE` | Built on the MIT `ndsrecomp`, whose runner binary is GPL-3.0-or-later |
 | [mstan/MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp) | MIT | `LICENSE.md` | The grant is explicitly scoped. See below |
-| [mstan/PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) | GNU GPL v3 | `COPYING` | GPLv3 because of what it builds on, see [Nintendo 64](/hardware/nintendo-64) and [Pokémon Stadium](/games/pokemon-stadium). Also ships `licenses/OFL-1.1.txt` |
-| [mstan/PocketMonstersStadiumRecomp](https://github.com/mstan/PocketMonstersStadiumRecomp) | GNU GPL v3 | `COPYING` | GPLv3 for the same reason, see [Pocket Monsters Stadium](/games/pocket-monsters-stadium) |
 
 One more repository in the fleet carries a proprietary all rights reserved
 notice. That same file says the repository is meant to stay private, so this
@@ -90,7 +83,7 @@ site does not name, link or describe it until its owner has been asked.
 
 ## Repositories with no license file
 
-48 of the 83. This site does not state or imply a license for any of them.
+This site does not state or imply a license for repositories that carry no license file.
 
 **mstan, Game Boy Advance (11).** `DragonBallZLegacyOfGokuRecomp`,
 `DragonBallZLegacyofGokuIIRecomp`, `EmeraldRecomp`, `FireRedLeafGreenRecomp`,
@@ -106,10 +99,9 @@ site does not name, link or describe it until its owner has been asked.
 **mstan, SNES (5).** `MegaManXSNESRecomp`, `StarFoxSNESRecomp`,
 `SuperMarioWorldRecomp`, `SuperMetroidRecomp`, `ZeldaAlttPSNESRecomp`.
 
-**mstan, Game Boy, Game Gear, Master System, Genesis (9).**
-`PokemonRedAndBlueRecomp`, `PokemonYellowRecomp`, `TetrisGBRecomp`,
-`gbrecompiled`, `SonicBlastGGRecomp`, `SonicTheHedgehogSMSRecomp`,
-`smsggrecomp`, `Sonic3AndKnucklesRecomp`, `SonicTheHedgehog2Recomp`.
+**mstan, Game Gear, Master System, Genesis (5).** `SonicBlastGGRecomp`,
+`SonicTheHedgehogSMSRecomp`, `smsggrecomp`, `Sonic3AndKnucklesRecomp`,
+`SonicTheHedgehog2Recomp`.
 
 **TechnicallyComputers (11).** `Bomberman-Fantasy-Race-Recomp`,
 `Bomberman-World-Recomp`, `BombermanPartyEditionRecomp`,
@@ -222,7 +214,7 @@ Five canonical attribution files exist, at
 [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md)
 and [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/THIRD_PARTY_ATTRIBUTION.md).
 Four more carry variant filenames: cdirecomp's `THIRD-PARTY-NOTICES.md`,
-gcnlle's and DKC2Recomp's `THIRD_PARTY_NOTICES.md`, and segagenesisrecomp's
+DKC2Recomp's `THIRD_PARTY_NOTICES.md`, and segagenesisrecomp's
 `THIRD-PARTY-LICENSES.md`. Two repositories use a directory instead,
 `MegaManX6Recomp/THIRD-PARTY-LICENSES/` and
 `SuperMarioBrosNESRecomp/THIRD-PARTY-LICENSES/`. These files are the authority
@@ -346,20 +338,6 @@ The same file records a dependency that was dropped. No clownmdemu, clown68000
 or clownz80 remains in the current source, the recompiler or the native release
 paths. Those retired oracle components exist only in git history.
 
-### gcnlle
-
-| Component | Role | License stated |
-|---|---|---|
-| DolReComp, via the `mstan/DolRecomp` fork of `ExpansionPak/DolRecomp`, vendored at `recompiler/` | The recompiler itself | GPL-3.0-or-later |
-| ExpansionPak/ModernGekko and RecompCore | Module activation design, adapted | GPL-3.0-or-later |
-| Dolphin Emulator Project | DSP LLE and memory-card format references | GPL-2.0-or-later |
-| GameCube IPL descrambler by Segher Boessenkool (`tools/ipl_descramble/descramble_core.c`) | IPL descrambling | GPL-2.0-or-later |
-
-The ModernGekko entry states a boundary as well as a license: "ModernGekko's
-Dolphin chassis is not linked; this runtime retains exclusive ownership of
-reset, BS1/BS2/IPL execution, MMIO, DI, EXI, SI, DSP, GX, timing, apploader
-execution, and guest memory writes."
-
 ### Per-game attribution files
 
 | Repository | What it records |
@@ -439,10 +417,10 @@ no OpenBIOS or TinyCC section at all. `OpokXeno/xenogears-recomp` carries
 psxrecomp as a submodule pointing at that owner's own fork. For any framework
 fact, read `mstan/psxrecomp` and `mstan/snesrecomp` directly.
 
-**Not established from the files.** The license of `mstan/gbrecompiled`'s
-upstreams. The license of `TechnicallyComputers/retcomm-catalog`. And whether
-release archives really ship the notices their repositories require, because
-this census read repositories, not built packages.
+**Not established from the files.** The license of
+`TechnicallyComputers/retcomm-catalog`. And whether release archives really ship
+the notices their repositories require, because this census read repositories,
+not built packages.
 
 ## Source
 
@@ -452,7 +430,6 @@ this census read repositories, not built packages.
 - [mstan/ndsrecomp](https://github.com/mstan/ndsrecomp): [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/ndsrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md), [`docs/references.md`](https://github.com/mstan/ndsrecomp/blob/main/docs/references.md)
 - [mstan/vbrecomp](https://github.com/mstan/vbrecomp): [`LICENSE`](https://github.com/mstan/vbrecomp/blob/master/LICENSE), [`THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/vbrecomp/blob/master/THIRD_PARTY_ATTRIBUTION.md)
 - [mstan/segagenesisrecomp](https://github.com/mstan/segagenesisrecomp): [`LICENSE-recompiler`](https://github.com/mstan/segagenesisrecomp/blob/master/LICENSE-recompiler), [`LICENSE.md`](https://github.com/mstan/segagenesisrecomp/blob/master/LICENSE.md), [`THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/THIRD-PARTY-LICENSES.md)
-- [mstan/gcnlle](https://github.com/mstan/gcnlle): [`LICENSE`](https://github.com/mstan/gcnlle/blob/master/LICENSE), [`THIRD_PARTY_NOTICES.md`](https://github.com/mstan/gcnlle/blob/master/THIRD_PARTY_NOTICES.md)
 - [mstan/DKC2Recomp](https://github.com/mstan/DKC2Recomp): [`README.md`](https://github.com/mstan/DKC2Recomp/blob/main/README.md), [`THIRD_PARTY_NOTICES.md`](https://github.com/mstan/DKC2Recomp/blob/main/THIRD_PARTY_NOTICES.md)
 - [mstan/MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp): [`LICENSE.md`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/LICENSE.md)
 - [mstan/MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp): [`THIRD-PARTY-LICENSES/README.md`](https://github.com/mstan/MegaManX6Recomp/blob/master/THIRD-PARTY-LICENSES/README.md)

@@ -9,6 +9,7 @@ status: "Playable alpha"
 availability: "Public build"
 provenance: "core"
 platform: "super-nintendo"
+showOnPlatform: false
 repo: "https://github.com/mstan/StarFoxSNESRecomp"
 group: "Super Nintendo"
 verified: "2026-08-20"

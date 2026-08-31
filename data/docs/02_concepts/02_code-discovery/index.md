@@ -1,39 +1,66 @@
 ---
-title: "Telling code from data"
-summary: "A game file is a flat collection of bytes. Before a recompiler can translate it, it has to work out which bytes are instructions."
+title: "How does a project tell code from data?"
+summary: "A game file is just bytes. Before a recompiler can translate it, the project has to find which bytes are instructions and which bytes are not."
 pageType: "concept"
 tags: ["Code discovery", "Recompiler"]
-updated: "2026-08-29"
+updated: "2026-08-30"
 ---
 
-A cartridge or disc image does not label its contents. Instructions sit beside graphics, music, text and tables. The first job of a recompiler is therefore discovery: finding the code and leaving everything else alone.
+A game file is just bytes.
+
+Some bytes are program instructions. Some are graphics, music, text, tables, padding, or other data. The file usually does not label them for you.
+
+Before a recompiler can translate a game, it has to find the code. That step is called **discovery**.
 
 ![A short sequence of bytes can look like valid instructions from one starting point and nonsense from another.](./discovery.svg)
 
-## The basic approach
+## Why is this hard?
 
-1. Start at addresses the hardware guarantees, such as a reset or interrupt entry point.
-2. Follow calls, jumps and branches from those known points.
-3. Look for code that is reached indirectly through tables or data-driven addresses.
-4. Check each candidate before treating it as a function.
-5. Watch for addresses that appear only while the game is running.
+The tool cannot translate every byte as code.
 
-The first two steps are evidence. The middle steps are informed guesses. A runtime fallback handles anything that cannot be proven before launch.
+Data can look like code by accident. A sprite, a sound table, or a list of numbers may decode into instructions that look real but never run. If the recompiler treats that data as code, the port can become wrong in strange ways.
 
-## Why it is difficult
+The tool also cannot ignore code it does not understand. If the game jumps to a function that was never translated, the port needs a fallback or the game stops there.
 
-Instructions vary in length on many older CPUs, so starting one byte off can make every following instruction look wrong. Data is the harder trap: a graphic or a table can decode as perfectly plausible machine code. A good discovery pass is designed to reject harmful false positives without pretending it can be perfect.
+Good discovery is the balance: find the real code, avoid fake code, and leave room for the project to learn more while the game runs.
 
-Some systems add another complication. A CPU may switch instruction modes, or the game may load new code into the same memory area during play. In those cases, the same address can mean different things at different times.
+## Where does discovery start?
 
-## What this means for a port
+The project begins from places the console guarantees.
 
-Discovery quality determines how much of a game can be compiled ahead of time. Missing code does not automatically mean the project is unusable; it means that particular path needs more analysis, a runtime fallback, or both. This is why a port's status is always about a specific game and revision, not a promise about an entire console.
+That might be a reset address, an interrupt address, a known executable header, or another entry point the hardware defines. From there, the tool follows calls, jumps, and branches.
 
-For the practical consequences, read [code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time) and the [platform guide](/docs/platforms). The implementation details and current commands belong in each toolchain's repository.
+When the code jumps through a table or computes an address at runtime, the tool may need help from project settings or later test runs.
+
+## What about assembly games?
+
+Many older games were written partly or fully in assembly.
+
+Strictly, that code was not "compiled" from C or another high-level language the first time. It was still assembled into machine code. Recompilation still applies here because the port is translating the machine instructions that shipped in the game.
+
+So for NES, SNES, and other assembly-heavy systems, "recompiled" means: find the original machine instructions and translate them into a modern native build.
+
+## Can decompilations help?
+
+Yes.
+
+A good decompilation or disassembly can act like a map. It may identify functions, name useful addresses, or show which ranges are data instead of code.
+
+That does not mean the port ships somebody else's decompilation. The port still builds from the game file the user provides. The decompilation helps the project understand that file.
+
+Super Mario World is a good example of this kind of help. Community knowledge and disassembly work can make SNES discovery clearer without changing the basic contract of the port.
+
+## What happens when discovery misses something?
+
+A missed function is not automatically a disaster.
+
+Mature runtimes usually have an interpreter fallback. If the game reaches code that was not translated, the interpreter can run it more slowly while the project records what happened.
+
+That feedback helps the next build. The goal is not to stay in the interpreter forever. The goal is to learn the missing path, translate it, and make the port faster and more complete.
 
 ## Next
 
-- [The recompiler and the runtime](/docs/concepts/recompiler-and-runtime)
-- [Co-simulation](/docs/concepts/co-simulation)
-- [Platforms](/docs/platforms)
+- [What are the recompiler and runtime?](/docs/concepts/recompiler-and-runtime)
+- [What about code you cannot see ahead of time?](/docs/concepts/code-you-cannot-see-ahead-of-time)
+- [How do we compare a port to the original?](/docs/concepts/co-simulation)
+- [How is a port made?](/docs/start/how-a-port-is-made)

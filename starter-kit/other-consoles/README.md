@@ -1,7 +1,7 @@
 # Starting a port on a console with no scaffolding
 
 `psxrecomp` is the only toolchain in the fleet that ships a scaffold script. On
-the other eight you start a new port by copying the shape of a working one and
+the others you start a new port by copying the shape of a working one and
 changing what is game specific.
 
 This page tells you which port to copy, what the per game input is called on that
@@ -64,15 +64,13 @@ Almost everything else is generated, gitignored, or optional.
 | NES | [`nesrecomp`](https://github.com/mstan/nesrecomp) | [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp) | `game.toml`, plus `baserom_annotations.csv` |
 | SNES | [`snesrecomp`](https://github.com/mstan/snesrecomp) | [DKC2Recomp](https://github.com/mstan/DKC2Recomp) | a `recomp/` directory of bank configuration |
 | Game Boy Advance | [`gbarecomp`](https://github.com/mstan/gbarecomp) | [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) | `game.toml`, plus `symbols/` and `config/` |
-| Game Boy | [`gbrecompiled`](https://github.com/mstan/gbrecompiled) | [PokemonYellowRecomp](https://github.com/mstan/PokemonYellowRecomp) | see that repository, it documents its own build dependencies |
 | Genesis | [`segagenesisrecomp`](https://github.com/mstan/segagenesisrecomp) | [SonicTheHedgehogRecomp](https://github.com/mstan/SonicTheHedgehogRecomp) | `blacklist.txt` and `debug.ini`, with scripts under `scripts/` |
 | Master System, Game Gear | [`smsggrecomp`](https://github.com/mstan/smsggrecomp) | [SonicTheHedgehogSMSRecomp](https://github.com/mstan/SonicTheHedgehogSMSRecomp) | see that repository |
 | Virtual Boy | [`vbrecomp`](https://github.com/mstan/vbrecomp) | [MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp) | see that repository |
 | Nintendo DS | [`ndsrecomp`](https://github.com/mstan/ndsrecomp) | [MetroidPrimeHuntersRecomp](https://github.com/mstan/MetroidPrimeHuntersRecomp) | see that repository |
 
-CD-i, GameCube and Xbox are deliberately absent. Those projects describe
-themselves as early development or as research instruments, not as a route to a
-playable port, and you should not start a game project on them.
+CD-i is deliberately absent. That project describes research work, not a current
+route to a normal playable port.
 
 ## The shape of the work
 
@@ -104,7 +102,7 @@ structure; what you are replacing is everything that names the old game.
 ## Be realistic about the timeline
 
 On PlayStation, a scaffold command can hand you a booting tree in one session.
-On these eight consoles you are hand assembling that same tree first, and the
+On these consoles you are hand assembling that same tree first, and the
 per game input in step 3 is authored rather than probed. Budget an afternoon to
 reach a first build, and expect the same weeks of soak afterwards that every port
 needs.

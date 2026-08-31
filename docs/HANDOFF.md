@@ -73,12 +73,10 @@ captures are added, `cover:` in frontmatter also works).
 
 Every fact on the site was verified against the repos/articles/press on 2026-08-18.
 Notes-vs-source corrections applied: snesrecomp is alpha (not late beta); ndsrecomp is
-pre-alpha but Metroid Prime Hunters is public alpha (not pre-alpha); gcnrecompiled was
-renamed gcnlle and builds on DolRecomp (ModernGekko not referenced); ALttP widescreen
+pre-alpha but Metroid Prime Hunters is public alpha (not pre-alpha); ALttP widescreen
 caps at 446px (~2:1), not 21:9; no 21:9 claim verified for Buu's Fury or Mario Kart
 Super Circuit; Pokemon host-clock RTC sync not documented; Mega Man X "no slowdown" not
-documented; NES Mesen HD texture pack support not documented; mstan/xboxlle does not
-exist publicly (only xboxlle-probe).
+documented; NES Mesen HD texture pack support not documented.
 
 ## Content follow-ups (missing sources)
 
@@ -97,8 +95,8 @@ exist publicly (only xboxlle-probe).
   on the SNES page without its own page.
 - 2026-08-19: screenshots harvested from the project repos (mstan/psxrecomp,
   snesrecomp, gbarecomp, per-game repos) now live in the item folders and are
-  referenced via `cover:`/`gallery:`. Platforms without authentic media (Genesis,
-  GameCube, Xbox) still use generated cover art. The ndsrecomp showcase images for
+  referenced via `cover:`/`gallery:`. Platforms without authentic media still use
+  generated cover art. The ndsrecomp showcase images for
   non-public projects (MKDS, SM64DS) were deliberately NOT used.
 
 
@@ -149,9 +147,7 @@ exist publicly (only xboxlle-probe).
   images became card covers. Press pages stay as attributed summaries by
   design (other outlets' copyright).
 - Reprints had four references to non-public projects (RKA screenshot, Legaia
-  paragraph, two SM64DS screenshots); excised per the standing rule. The
-  n64decomp/sm64 reference in the founding article is unrelated prior art and
-  stays.
+  paragraph, two SM64DS screenshots); excised per the standing rule.
 - GitHub warns that psxrecomp.mp4 (61 MB) exceeds its 50 MB recommendation
   (hard limit is 100 MB; push succeeded). If more large videos land, consider
   compressing to ~720p crf 26 before committing.
@@ -159,8 +155,8 @@ exist publicly (only xboxlle-probe).
 ## Card system + nav (2026-08-19)
 
 - Platform cards use console photography from Wikimedia Commons in
-  public/consoles/ (Evan-Amos). PlayStation, NES, SNES, GBA, DS, GameCube,
-  CD-i, Xbox are public domain; sega-genesis.jpg and virtual-boy.jpg are
+  public/consoles/ (Evan-Amos). PlayStation, NES, SNES, GBA, DS and CD-i are
+  public domain; sega-genesis.jpg and virtual-boy.jpg are
   CC BY-SA 3.0 and need visible credit if the design ever surfaces captions.
   Photos are `object-fit: contain` on a light plate, not cropped.
 - Kicker chips render on news cards only; game and platform cards carry the
@@ -184,7 +180,7 @@ exist publicly (only xboxlle-probe).
   "games are the byproduct, the ecosystem is the product" thesis and the
   never-modify-the-ROM rule, stories are widescreen / shared mod loader /
   sensors (images copied from the article into public/covers/), platformNote
-  names the Xbox first frame, GameCube boot menu, and CD-i BIOS.
+  names the CD-i BIOS.
 - New home.json key `featuredPost` renders a "From the build log" banner
   (validated: cover asset + blog page must exist).
 - Platform pages list their games ("Games on {platform}") in the media pane,
@@ -236,14 +232,12 @@ exist publicly (only xboxlle-probe).
   prerenderer. Facts corrected against the repo: no universal "game file is
   never modified" (Super Mario World's co-op build patches your ROM on first
   launch), "byte for byte" scoped to widescreen output only, fingerprint
-  checks attributed to the runtime and hedged with "most projects", the green
-  dot attributed to Xbox research rather than to a real console, and the
+  checks attributed to the runtime and hedged with "most projects", and the
   Virtual Boy tech-demo status attributed to vbrecomp.
 - cd-i does now have a clip, cut from the shell/menu at 0 to 5s rather than
   the Philips logos deeper in the same source.
 - Checking a clip for black bars: cropdetect gives FALSE POSITIVES on games
-  whose own background is black (Virtual Boy reports 494:352, GameCube 636:360
-  while being perfectly framed). Measure max luminance per edge strip across
+  whose own background is black. Measure max luminance per edge strip across
   the frames instead; a real letterbox bar stays pinned near 16.
 
 ## Media sourcing (2026-08-19, fourth pass)
@@ -255,7 +249,7 @@ exist publicly (only xboxlle-probe).
   all intro); re-download rather than trusting them.
 - ALWAYS cropdetect before cutting a clip:
   `ffmpeg -ss <t> -t 2 -i <src> -vf cropdetect=24:2:0 -f null -`
-  Cutting by eye left black bars baked into gamecube, virtual-boy and
+  Cutting by eye left black bars baked into virtual-boy and
   super-mario-bros, which read as broken card art. Verify the finished clip
   the same way; it should report crop=640:360:0:0.
 - Sources that are NOT montages, despite their names: nesrecomp.mp4 is one
@@ -385,10 +379,7 @@ a sort key.
 45 games and 10 platforms became 70 and 13. Everything new was written from
 the project's own README and releases.
 
-New platforms: Game Boy (mstan/gbrecompiled), Master System and Game Gear
-(mstan/smsggrecomp), Nintendo 64 (NO platform repo: the Stadium projects build
-on forks of Mr-Wiseguy's N64Recomp, credited as prior work, and the page omits
-`repo:` rather than pointing at someone else's project).
+New platforms included Master System and Game Gear (mstan/smsggrecomp).
 
 Find missing projects with:
   gh search repos "R.A.I.D. community" --limit 100 --json fullName

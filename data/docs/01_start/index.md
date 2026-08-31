@@ -1,19 +1,23 @@
 ---
 title: "Start here"
-summary: "Six pages, in order, from never having heard of static recompilation to having something running on your own machine."
+summary: "Six short pages, in order, from never having heard of static recompilation to having a real toolchain running."
 sectionTitle: "Start here"
 pageType: "reference"
 tags: ["Orientation"]
-updated: "2026-08-26"
+updated: "2026-08-30"
 ---
 
-If you have just arrived, read this section in order. It assumes nothing: not that you know what static recompilation is, not that you have used a recompiled port, not that you have a toolchain built. By the end you can hold a conversation about the subject, and you have one console's toolchain running. Everything else on this site assumes you have been through here or already knew it.
+Start here if you are new to static recompilation.
 
-- [What static recompilation is](/docs/start/what-is-static-recompilation). The idea in plain language, what it buys, and what it costs. Start here if you only read one page.
-- [How a port is made](/docs/start/how-a-port-is-made). The whole pipeline as one story, from a game file to a native application, with each stage named.
-- [Is this emulation?](/docs/start/is-this-emulation). No, and here is where emulation does come in.
-- [Getting started](/docs/start/what-you-need). The tools each toolchain wants, and the one thing no project supplies: the game file, which you provide yourself.
-- [Quickstart](/docs/start/quickstart). The shortest real path from nothing to something running, on one console, with a check at the end that tells you whether it worked.
-- [Recomp your own game](/docs/start/recomp-your-own-game). You own a game and want a port of it. Start here, and hand this page to an agent if one is doing the work.
+This section assumes very little. You do not need to know how a console works. You do not need to be comfortable in a terminal yet. You only need to be curious about how old games can become native ports.
 
-When you want the ideas underneath, go to [Concepts](/docs/concepts). When you want your console, go to [Platforms](/docs/platforms).
+Read these pages in order. By the end, you should know what a recomp port is, what files you are expected to provide, and what the first real toolchain looks like.
+
+- [What is static recompilation?](/docs/start/what-is-static-recompilation). The idea in plain language, what it buys, and what it costs. Start here if you only read one page.
+- [How is a port made?](/docs/start/how-a-port-is-made). The usual path from a game file to a native application.
+- [Is this emulation?](/docs/start/is-this-emulation). No, but emulation is still part of the story.
+- [What do I need to get started?](/docs/start/what-you-need). The tools you need to play, build, or start a port.
+- [Developer quickstart](/docs/start/quickstart). The shortest real path from nothing to one working recomp toolchain.
+- [How do I recomp my own game?](/docs/start/recomp-your-own-game). You own a game and want a port of it. Start here.
+
+When you want the ideas underneath, go to [Concepts](/docs/concepts). When you want a specific console, go to [Platforms](/docs/platforms).

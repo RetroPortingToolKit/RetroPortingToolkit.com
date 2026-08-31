@@ -41,15 +41,6 @@ The others name it as their model, by name, in their own documents.
   ordinary program.
 - [ndsrecomp](https://github.com/mstan/ndsrecomp) models its dispatch tiers on
   psxrecomp and lists itself in the same family.
-- [gcnlle](https://github.com/mstan/gcnlle) states the goal in one line.
-
-From [`docs/DESIGN.md`](https://github.com/mstan/gcnlle/blob/master/docs/DESIGN.md):
-
-```text title="docs/DESIGN.md"
-Build a **static recompiler for the Nintendo GameCube**, in the same mold as
-our existing PlayStation project (`psxrecomp`).
-```
-
 The copying is not only design. Every PlayStation game port builds its releases
 from a workflow copied out of psxrecomp, and the copy says so in its first line.
 
@@ -87,7 +78,7 @@ It is the reusable extraction of the SNES-recomp "launcher_ng" launcher,
 generalized behind a small C ABI.
 ```
 
-Today 58 game ports pin it, across eight consoles.
+Today many game ports pin it across several consoles.
 
 ## One netplay stack, four consumers
 
@@ -127,36 +118,19 @@ A game port is a thin repository over one framework, joined by a git submodule
 pinned to a single commit. That pin records which version of the framework the
 port was built against.
 
-The pins are not uniform. The 58 recomp-ui gitlinks point at 19 different
-commits. The furthest behind is 231 commits back from the default branch and the
-closest is one. Two ports point the submodule URL at a fork instead of the
+The pins are not uniform. The recomp-ui gitlinks point at many different
+commits. Two ports point the submodule URL at a fork instead of the
 original, and three pin a named feature branch. Two other repositories have left
 the submodule mechanism and carry a snapshot of a framework as an ordinary
 directory, so a fact about a framework should be read in the framework
 repository, never in one of those copies.
 
-## Code that came from outside the fleet
-
-Three cases, all of them stated by the repository itself.
-
-- [gbrecompiled](https://github.com/mstan/gbrecompiled) is a development fork.
-  Its README names the canonical project, `arcanite24/gb-recompiled`, and the
-  second upstream whose runtime work was merged in.
-- gcnlle vendors a fork of `ExpansionPak/DolRecomp` as its recompiler and
-  records the upstream base commit, the fork commit and the dates in
-  [`recompiler/UPSTREAM.md`](https://github.com/mstan/gcnlle/blob/master/recompiler/UPSTREAM.md).
-  That code is GPL-3.0-or-later.
-- Two Nintendo 64 ports build on a framework this fleet did not write and are
-  GPLv3 as a result. That platform's history is on
-  [Nintendo 64](/hardware/nintendo-64) and on each game's page.
-
 ## Source
 
-- psxrecomp as the named model: [`SNES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_ACCURACY_BURNDOWN.md) and [`SNES_COSIM.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_COSIM.md), [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md) and [`docs/MULTITIER_PORT_PROPOSAL.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MULTITIER_PORT_PROPOSAL.md), [`COSIM.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COSIM.md), [`GBA_ACCURACY_BURNDOWN.md`](https://github.com/mstan/gbarecomp/blob/main/GBA_ACCURACY_BURNDOWN.md), [`ndsrecomp/README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md), [`gcnlle/docs/DESIGN.md`](https://github.com/mstan/gcnlle/blob/master/docs/DESIGN.md). The copied release workflow: [`TombaRecomp/.github/workflows/release.yml`](https://github.com/mstan/TombaRecomp/blob/master/.github/workflows/release.yml).
+- psxrecomp as the named model: [`SNES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_ACCURACY_BURNDOWN.md) and [`SNES_COSIM.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_COSIM.md), [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md) and [`docs/MULTITIER_PORT_PROPOSAL.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MULTITIER_PORT_PROPOSAL.md), [`COSIM.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COSIM.md), [`GBA_ACCURACY_BURNDOWN.md`](https://github.com/mstan/gbarecomp/blob/main/GBA_ACCURACY_BURNDOWN.md), [`ndsrecomp/README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md). The copied release workflow: [`TombaRecomp/.github/workflows/release.yml`](https://github.com/mstan/TombaRecomp/blob/master/.github/workflows/release.yml).
 - The shared cores: [`m68k-recomp-core/PROVENANCE.md`](https://github.com/mstan/m68k-recomp-core/blob/main/PROVENANCE.md) and [`README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md).
 - The netplay stack: [`recomp-net/README.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`recomp-net-server/README.md`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).
 - The travelling parts: [`snesrecomp/THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/snesrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md), [`segagenesisrecomp/THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/THIRD-PARTY-LICENSES.md).
-- Code from outside: [`gbrecompiled/README.md`](https://github.com/mstan/gbrecompiled/blob/master/README.md), [`gcnlle/recompiler/UPSTREAM.md`](https://github.com/mstan/gcnlle/blob/master/recompiler/UPSTREAM.md).
 - The pins come from every `.gitmodules` file and every gitlink in the fleet, read together.
 
 ## Next

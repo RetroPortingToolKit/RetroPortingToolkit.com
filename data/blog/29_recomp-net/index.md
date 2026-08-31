@@ -19,7 +19,7 @@ Delay-sync lockstep netplay: every player's copy runs the same simulation, and e
 
 ## Which projects use it
 
-The shipped delay-sync session is used by the [PlayStation](/hardware/playstation) and [Super Nintendo](/hardware/super-nintendo) recomp netplay builds, and the library is aimed at recompilation hosts generally, N64Recomp included. Its documentation also spells out the host-side patterns an engine needs for netplay to feel good: stall gracefully while waiting on a peer, keep the simulation deterministic, and recover from network jitter without inventing inputs.
+The shipped delay-sync session is used by the [PlayStation](/hardware/playstation) and [Super Nintendo](/hardware/super-nintendo) recomp netplay builds, and the library is aimed at recompilation hosts generally. Its documentation also spells out the host-side patterns an engine needs for netplay to feel good: stall gracefully while waiting on a peer, keep the simulation deterministic, and recover from network jitter without inventing inputs.
 
 ## Sources
 

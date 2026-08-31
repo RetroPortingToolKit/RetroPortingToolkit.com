@@ -83,6 +83,8 @@ export interface Item {
   provenance?: "core" | "community";
   /** Games items: slug of the hardware ecosystem page this project runs on. */
   platform?: string;
+  /** Games items: set false to keep a project page out of its platform showcase. */
+  showOnPlatform?: boolean;
   /** "Beta" | "Alpha": how far along a platform ecosystem is */
   maturity?: string;
   /** first commit in the project's own repository */

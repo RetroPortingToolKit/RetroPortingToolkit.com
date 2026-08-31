@@ -1,6 +1,6 @@
 ---
 title: "Debug a divergence"
-summary: "A co-simulation run has halted, or a port looks wrong: how to read the halt report, prove the comparator is not blind, and localise the fault to one write and one function, organised by the symptom you actually have."
+summary: "When a port disagrees with the reference, start from the first visible split, classify the failure, and fix the recompiler, runtime, or game config instead of patching generated code."
 pageType: "guide"
 tags: ["Debugging", "Co-simulation", "Correctness"]
 repos:
@@ -8,251 +8,141 @@ repos:
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/cdirecomp"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/SuperMarioWorldRecomp"
-  - "https://github.com/mstan/PokemonStadiumRecomp"
-updated: "2026-08-27"
+updated: "2026-08-30"
 ---
 
-Something is wrong with a port: a comparison halted at a checkpoint, or the screen is black, or the sound is a click. The work that follows goes from the first differing checkpoint down to the one write and the one function behind it. [Proving it with co-simulation](/docs/concepts/co-simulation) explains what co-simulation is and why it halts where it does. Start here once it has printed a report.
+A divergence means the port and the reference stopped agreeing.
 
-## Read the halt report before touching anything
+That reference might be an emulator oracle, an interpreter path, a previous known-good run, or a hardware-event trace. The important part is that you are comparing the port to something more trusted than your eyes.
 
-On a chain mismatch the coordinator prints the checkpoint number and the guest cycle, both chain hashes, both sub-hash lines, CPU and device field dumps, and the last 16 ring rows from each side. Three fields do most of the work.
+Do not start by guessing. Start by finding the first moment where the two runs split.
 
-The **first differing sub-hash names the subsystem**, which decides whether you read a CPU emitter or a video model. The **checkpoint and cycle** give you a window to re-run with a smaller stride. The **cycle skew warning** is not a divergence at all. If the two sides parked at different cycles, the coordinator says so, and that is harness nondeterminism rather than a guest bug. Fix it before anything else, because every comparison after it is meaningless. Oracle, chain hash, sub-hash and dispatch miss are defined in [the glossary](/docs/concepts/glossary).
+## What should I check first?
 
-## Do not trust a green run you have not gated
+Check for missed code before anything else.
 
-A comparator can go blind and keep reporting agreement. This is not hypothetical. In psxrecomp a stride-2 parser misaligned on the leading status word of a reply and returned `chain=None` for both sides, so every comparison was `None == None`, which is to say equal, forever. The run was clean and it was measuring nothing.
+A dispatch miss means the game jumped to code the recompiler did not translate. That can make the game skip a whole subroutine and keep running in a broken state.
 
-That is why fault injection is a gate and not an extra. Four checks: recompiled against recompiled must be zero, interpreter against interpreter must be zero, an **injected fault must halt at the right place and name the right subsystem**, and a hash versus byte audit forces a full compare even when the hashes agree. Only the third catches a blind comparator, because a broken one passes the first two trivially.
+If the project writes a dispatch-miss log, read it after every run. If it is not empty, fix discovery or configuration first.
 
-The same class of bug hides in the hasher, and the guard against it is five lines.
+Do not debug graphics, audio, timing, or gameplay while known code is missing.
 
-From [`tools/nes_cosim.py`](https://github.com/mstan/nesrecomp/blob/master/tools/nes_cosim.py):
+## What does the report tell me?
 
-```python title="tools/nes_cosim.py"
-def assert_hash_nonnull(rows, label):
-    """Guard against a silently-blind hasher: the sub-hashes must not all be a
-    single constant across the run (a constant hasher passes A-vs-A trivially)."""
-    seen = set()
-    for r in rows[: min(len(rows), 50)]:
-        seen.add(r["sub"]["ram"])
-    if len(seen) <= 1:
-        print(f"  ! {label}: ram sub-hash is CONSTANT across frames — hasher may be blind")
-        return False
-    return True
-```
+A good divergence report tells you:
 
-The psxrecomp coordinator now refuses to continue when it cannot parse a chain. It prints that the tool is blind and stops, rather than reporting agreement.
+- where the two runs stopped agreeing;
+- which part of the machine differs first;
+- what each side thought the state was;
+- what happened shortly before the split.
 
-> **Warning.** If gate 3 has not been run on this build of the comparator, run it before you spend a day reading generated C.
+The first difference matters more than the biggest symptom.
 
-## The loop every repository runs
+A black screen ten frames later may have started as one bad register write. A bad sound effect may have started as a timer or DMA issue. A crash may have started as a missed overlay.
 
-Before any symptom-specific work, every DEBUG document runs one loop. psxrecomp's is the shortest, from [`DEBUG.md`](https://github.com/mstan/psxrecomp/blob/master/DEBUG.md):
+## Why not just inspect the broken screen?
 
-```text title="DEBUG.md"
-0. Tool validation (first use only)
-1. Sync state (NOT frame number)
-2. Dump full state (native + oracle) via TCP debug server
-3. Diff bytes
-4. Find FIRST divergence
-5. Trace writer (function + instruction + call path)
-6. Classify (codegen / runner / timing / config)
-7. Fix the tool (never generated output)
+Visible symptoms are late.
 
-If ANY step is skipped:
--> STOP and restart
-```
+By the time a player sees a black screen, the real bug may already be several systems back.
 
-Three rules inside it appear in nearly every repository, and they are the ones people break.
+Walk backward:
 
-**Sync on hardware events, not frame numbers.** Frames drift after a single timing glitch. On ndsrecomp they cannot work at all: the DS has two CPUs at different clocks. gbarecomp lists the sync points it accepts: VBlank IRQ count, DMA completion count per channel, timer overflow count per timer, SWI count, BIOS IRQ return count, and a specific PC at a function entry.
+1. find the last good checkpoint;
+2. find the first bad checkpoint;
+3. find the first changed subsystem;
+4. find the write or instruction that made it change;
+5. fix the layer that produced that write.
 
-**Query the always-on ring, never arm and re-run.** From gbarecomp's [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md): probes query the ring buffer for the window you care about. If the event you need is not in the ring, make the ring longer. Starting a process and talking to it takes real time, so by the time you armed a trace, the interesting event already happened.
+That is slower than guessing, but it avoids fixing the symptom instead of the cause.
 
-**Never pause and step two observers to synchronise them.** Pause-and-step is for a human at a debugger, not for lining up two processes. To compare two observers you free-run, query the rings, and diff. Co-simulation is the one exception, because it parks at a fixed guest cycle rather than when someone notices a flag.
+## What tools are usually involved?
 
-## By symptom
+Most mature projects grow a TCP debug server.
 
-### The game silently skips whole subroutines
+That server lets tools ask the running port for state: registers, memory, frame captures, screenshots, input state, timing counters, dispatch misses, and recent trace rings.
 
-Check this before anything else, every run, in every toolchain that has it. From gbarecomp's [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md):
+TCP is preferred here over MCP because debug clients restart often. Ports crash. Oracles restart. Harnesses reconnect. A plain TCP surface handles that better than a long-lived tool session that can get confused when the process under it disappears.
 
-```text title="DEBUG.md"
-# RULE 0a — DISPATCH MISS CHECK (every run, before any debugging)
+This is also useful for AI-assisted debugging. A tool can take a screenshot, press inputs, read state, compare memory, and report what changed without needing a human to stare at the window.
 
-Before anything else, read `dispatch_misses.log` next to the game
-executable.
+TCP input is not a replacement for real gameplay testing. It is useful for visual verification and basic control: moving through menus, pressing buttons, walking in a straight line, or repeating simple actions that are not timing-sensitive.
 
-- If non-empty: add the listed functions (with detected mode: ARM or
-  THUMB) to `game.toml [functions]`, regenerate, rebuild, re-run.
-- Repeat until `dispatch_misses.log` is empty.
+The exact commands differ by project. The shape is the same: expose the machine state through a tool surface instead of sprinkling one-off print statements through the runtime.
 
-A game with dispatch misses is FUNDAMENTALLY BROKEN. Do not debug
-anything else until resolved.
-```
+## How do I classify the bug?
 
-vbrecomp, smsggrecomp and cdirecomp state the same rule for their own dispatchers, and all of them call it a silent game-breaking bug. The live equivalent over TCP is `dispatch_miss_info`. psxrecomp attaches the counters to `ping`, so every heartbeat carries `dispatch_miss_total` and `dispatch_miss_unique`.
+Use the first difference to decide where the fix belongs.
 
-### It boots to a black screen
+| First bad thing | Likely layer |
+|---|---|
+| Wrong instruction result. | Recompiler or decoder. |
+| Correct CPU state, wrong video memory. | Runtime hardware model or DMA path. |
+| Correct memory, wrong pixels. | Renderer or presentation path. |
+| Code jumps to an unknown address. | Discovery or overlay handling. |
+| State changes at the wrong time. | Timing or scheduler. |
+| Only one game needs a known address. | Game config. |
 
-A black screen is almost never a renderer bug. From PokemonStadiumRecomp's [`DEBUG.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/DEBUG.md):
+Do not edit generated code. Fix the source of generation or the runtime, then regenerate.
 
-```text title="DEBUG.md"
-## First-divergence rule
+## What if the comparison tool is wrong?
 
-Always find the **first** divergence, not a downstream symptom.
+That can happen.
 
-- A black screen ten frames after boot is rarely a renderer bug.
-  It's usually an earlier state divergence whose only visible
-  manifestation is the blank frame.
-- Walk back: latest known-good frame → first divergent frame →
-  first divergent function call → first divergent register / mem
-  store within that function.
-```
+A comparator can be blind if it fails to read real state, compares empty values, or accidentally ignores the field that changed.
 
-Two platform traps sit under this symptom. On gcnlle an all-black screenshot can be the correct output: until the GX command processor is modelled the menu never draws, and a `mean_luma` near 16 is how you tell a correct black frame from a broken one. On psxrecomp, plain `screenshot` and `screenshot_file` capture native 15-bit VRAM and cannot see anything that exists only in the hi-res mirror, so use `screenshot_hires` to check those.
+Before trusting a green comparison, prove the tool can fail. Inject a known difference and make sure the run reports it in the right place.
 
-Whatever you find, hold the bar psxrecomp sets for calling it fixed:
+A green run only means something if the harness is able to catch a red one.
 
-```text
-Examples of FALSE success:
-- "counter reached 0" is NOT success if the shell still retries
-- "IRQ fired" is NOT success if the waiting code still loops
-- "callback returned" is NOT success if the owning state machine does not advance
-- "data structure written" is NOT success if the consumer still rejects it
-- "handler installed" is NOT success if the VBlank counter never increments
-- "chain head populated" is NOT success if pixels don't reach the screen
-```
+## What if the game is slow?
 
-### Graphics are wrong
+First, check whether the game is actually running native code.
 
-Classify the corruption before you pick a memory region. From YoshiNESRecomp's [`DEBUG.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/DEBUG.md):
+A fallback interpreter can keep a game moving while missing paths are discovered, but it is slower. If too much code stays in fallback, the port may work but feel bad.
 
-```text title="DEBUG.md"
-## TITLE SCREEN TRIAGE
+Then check observer cost. Debug tools can slow the process if they ask for large dumps or screenshots too often.
 
-Before deep debugging, classify the corruption:
+After that comes real optimization work.
 
-- Wrong tile SHAPES → CHR / mapper issue
-- Correct shapes, wrong tiles → nametable issue
-- Wrong colors → palette issue
+This can be a large phase, especially on later systems. Recompilation is not automatically fast enough just because code becomes native. The runtime, renderer, scheduler, memory model, audio path, debug hooks, and generated code shape can all matter.
 
-This determines which memory region to inspect first.
-```
+Like emulator performance work, this may take many passes. It can take weeks, even with AI helping. Measure before optimizing, and keep correctness checks close while changing performance-sensitive code.
 
-gbarecomp adds the render-versus-data split: if VRAM, OAM and palette writes match but the framebuffer differs, it is almost certainly a render bug. Compare `ppu_state` and `framebuf_diff`.
+A timing shortcut that helps one game can break another.
 
-SuperMarioWorldRecomp has the best worked example. It walks a visible Layer 3 corruption down to a one-line emitter bug in six steps: find the first divergent byte in the VRAM write differ, move to the block trace, find the matching call on each side, diff those calls to the first register disagreement, read the emitter code that produces that register, then regenerate and check visually.
+## What should my bug report include?
 
-Two of its warnings generalise. Do not just stare at the generated C: a 500 line function will not show you a bug that depends on a value arriving from before the call. And a first-call comparison without filtering lands on an early exit on both sides.
+A useful report includes:
 
-### It desyncs from the oracle
+1. the game and platform;
+2. the framework revision;
+3. the expected behavior;
+4. the observed behavior;
+5. the first divergence, not only the final symptom;
+6. the subsystem that differs first;
+7. the suspected layer;
+8. the fix or next command needed;
+9. the re-test plan.
 
-This is the main loop, with two additions. Walk backwards to the **first** divergence, because later differences are consequences and only the first has a cause. Then switch surfaces: the frame ring finds the first frame where the byte diverges, and the write ring finds the write that produced it. gbarecomp's sequence for "which store produced this byte":
+That is enough for someone else to continue the investigation.
 
-```text
-5. **Trace the writer** — function + instruction + call path. For
-   "which store produced this byte":
-   - Arm `rdb_range` covering the suspect address.
-   - Run past the divergence.
-   - `rdb_dump` — the last entry at that address is the bug writer.
-   - For block context: `trace_blocks_range` around the writer's PC
-     and `get_block_trace` for register state at each block entry.
-   - To park right before the bad write: `rdb_watch_add addr=<a>
-     val=<bad>`.
-```
+## What should I avoid?
 
-For a cheap first cut, gbarecomp's `state_hash` is one read-only call over IWRAM, EWRAM, VRAM, palette and OAM plus the cycle counter. It localises by region and doubles as a run-twice determinism probe. gcnlle's `cosim_pages` returns hashes for up to 256 four-kilobyte pages, so you can narrow a memory mismatch before fetching bytes. On Genesis, `python tools/boot_smoke.py --game sonic1 --port 4380 --dump-on-diff` dumps the full 64KB of work RAM when the run differs from its baseline.
+Do not:
 
-Finish by classifying, because the class decides who fixes it. psxrecomp's five classes each name the file to change:
+- edit generated code by hand;
+- add game-specific hacks to a shared runtime;
+- stub a missing function so the game keeps moving;
+- silence an unmapped hardware read because it is noisy;
+- call a green run meaningful before the comparator is tested.
 
-```text
-codegen:
-- Wrong C emitted by strict_translator
-- Fix: recompiler/src/strict_translator.cpp
-
-runner:
-- Wrong hardware simulation (MMIO, DMA, IRQ, GPU, timers)
-- Fix: runtime/src/*.c
-
-timing:
-- Events fire at wrong cycle / wrong order
-- Fix: runtime timing logic
-
-config:
-- Missing function seed, wrong address alias
-- Fix: seed files, address_aliases.json
-
-discovery:
-- Function not found, dispatch miss
-- Fix: function finder pipeline
-```
-
-gbarecomp reduces its nine classes to the same decision: decoder and codegen faults go to the tool, runtime, timing, I/O and device faults go to the console core, and metadata faults go to `game.toml`.
-
-### It crashes, freezes, or the watchdog trips
-
-psxrecomp writes three files: `psx_crash.txt`, `psx_last_run_report.json` and `psx_freeze_heartbeat.json`. The heartbeat carries the counters that separate a guest bug from a runtime bug. `bail_first` counts detected contract violations, meaning wild control transfers, and a small count with the game continuing normally is the fix working. `bail_resolved` and `bail_flattened` count how those were recovered. `bail_anomaly` must stay zero. Anything else is a runtime bug.
-
-For a freeze inside interpreted code there are two tripwires. `s3_smear_watch` latches the first interpreted instruction in a PC window that clobbers a callee-saved register, and `callret_watch` records the return path that let it come back. The equivalents elsewhere are `crash_status`, `freeze_status` and `watchdog_status` on vbrecomp, and on segagenesisrecomp a dump of the last 64 bus accesses and function entries. One rule applies everywhere, from PokemonStadiumRecomp: do not disable a watchdog assertion. If the watchdog fires, the state is wrong, so fix the state.
-
-### Audio is wrong
-
-Two failure classes need different tools. If the **generated stream** is wrong, use the register-write taps: `fm_state`, `psg_state`, `fm_trace`, `audio_stats` and `audio_wav` on Genesis, `audio_state` and `audio_cap` on GBA, the SPU family on PlayStation.
-
-If the stream is right but the **speaker got something else**, a WAV capture cannot see it, because the WAV taps the generated stream. Genesis built rings for that case: `dropped_flushes` and `underrun_flushes` are splices the speaker heard and the WAV never shows, and `audio_delivery_dump {"path":"x.txt"}` is the probe for "I just heard a click". One caution from gbarecomp: some games drive game logic timing off audio DMA, so audio can be a correctness bug.
-
-### It is slow
-
-Check for observer interference first. The debug server runs on the main thread, so every millisecond spent sending a response is a millisecond the game does not run. Two apparent idle-loop problems in psxrecomp turned out to be a TCP client draining large dumps slowly and throttling the main loop to 6 fps. The tell is a large `tcp_send_stall_ms` delta in `psx_freeze_heartbeat.json`, alongside `tcp_clients_dropped`. Responses too big for the 15 second budget belong in the `*_dump_file` variants.
-
-Then check whether the code is actually running natively. The interpreter is a fallback, and areas that never compiled stay slow, which in development usually means `gcc` is not on `PATH` for the `gcc` tier. Query `overlay_loader_status`, `autocompile_status` and `dispatch_stats`, then profile with the rings rather than a stopwatch: `frame_perf`, `phase_profile`, `phase_hot`, `stack_profile`.
-
-## Write the finding down in the shape they expect
-
-Three repositories want the same nine things in a divergence report. A report missing one gets rejected.
-
-1. The target behaviour.
-2. The oracle used.
-3. The sync point, as a hardware-event count.
-4. The diff: subsystem, address, expected, actual.
-5. The first divergence, as a measured index.
-6. The writer: function, PC, call path.
-7. The classification.
-8. A minimal fix in the recompiler, the runtime or the config. Never in generated code.
-9. A re-test plan.
-
-## What never happens
-
-gbarecomp lists the forbidden moves, and the whole fleet repeats them:
-
-```text
-- Editing `generated/*.c` by hand.
-- Adding `if (game == "minish_cap")` to the GBA core.
-- Stubbing an SWI to "return what the game expects."
-- Silencing an unmapped IO read because it's noisy.
-- Pausing both native and oracle and stepping in lockstep.
-```
-
-PokemonStadiumRecomp adds: do not stub in C, stub in `game.toml`, so the stub is declared, diffable and removable.
-
-When the tooling cannot answer your question, that is a stop condition, not permission to improvise. psxrecomp says to stop, say exactly what data is missing and what command is needed, ask how to proceed, and build the tooling if approved. It also forbids the obvious workaround: no `fprintf` to stderr in source code, ever. The TCP server is the instrumentation surface, and if TCP cannot see something, TCP has to grow until it can.
-
-## Source
-
-- psxrecomp: [`DEBUG.md`](https://github.com/mstan/psxrecomp/blob/master/DEBUG.md), [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md), [`tools/cosim.py`](https://github.com/mstan/psxrecomp/blob/master/tools/cosim.py), [`tools/debug_client.py`](https://github.com/mstan/psxrecomp/blob/master/tools/debug_client.py)
-- gbarecomp: [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md), [`docs/DEBUGGING.md`](https://github.com/mstan/gbarecomp/blob/main/docs/DEBUGGING.md), [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md)
-- segagenesisrecomp: [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md). vbrecomp: [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`DEBUG.md`](https://github.com/mstan/vbrecomp/blob/master/DEBUG.md)
-- cdirecomp: [`DEBUG.md`](https://github.com/mstan/cdirecomp/blob/master/DEBUG.md), [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). gcnlle: [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md). ndsrecomp: [`DEBUG.md`](https://github.com/mstan/ndsrecomp/blob/main/DEBUG.md), [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md)
-- Worked cases: [`SuperMarioWorldRecomp/docs/TROUBLESHOOTING.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/docs/TROUBLESHOOTING.md), [`PokemonStadiumRecomp/DEBUG.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/DEBUG.md), [`YoshiNESRecomp/DEBUG.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/DEBUG.md), [`nesrecomp/tools/nes_cosim.py`](https://github.com/mstan/nesrecomp/blob/master/tools/nes_cosim.py)
+Missing information is not permission to guess. Add the tool you need, then run the test again.
 
 ## Next
 
-- [Proving it with co-simulation](/docs/concepts/co-simulation) is the theory behind this guide.
-- [TCP debug protocol](/docs/reference/tcp-protocol) is the command table behind every probe here.
-- [How changes go wrong here](/docs/agents/failure-modes) is the same ground for an agent.
-- [Errors and exit codes](/docs/reference/errors-and-exit-codes) is what the tools return when they fail.
+- [Set up co-simulation](/docs/guides/set-up-co-simulation), for reference-vs-port runs.
+- [Co-simulation](/docs/concepts/co-simulation), for the concept behind the tooling.
+- [TCP debug protocol](/docs/reference/tcp-protocol), for the debug-server surface.
+- [Errors and exit codes](/docs/reference/errors-and-exit-codes), when a tool refuses to continue.

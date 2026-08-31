@@ -22,7 +22,7 @@ That is why the failure arrives late. Boot code, the title screen and the first 
 
 When translated code jumps to an address the game computed, it calls a dispatch function that maps that address to a generated C function. When there is no entry for it, that is a **dispatch miss**, and it is the most important diagnostic in this ecosystem.
 
-Most toolchains here write them to a file called `dispatch_misses.log` next to the game executable, and four of them make reading it the rule that runs before any other debugging. gbrecompiled spells the same idea `interp_fallbacks.log`, with bank and address per line.
+Most toolchains here write them to a file called `dispatch_misses.log` next to the game executable, and several of them make reading it the rule that runs before any other debugging.
 
 From [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md):
 
@@ -152,13 +152,11 @@ Do not disable a watchdog assertion. If the watchdog fires, the state is wrong. 
 - [nesrecomp](https://github.com/mstan/nesrecomp): `README.md`, `TCP.md`, `COSIM.md`
 - [psxrecomp](https://github.com/mstan/psxrecomp): `DEBUG.md`, `TCP_COMMANDS.md`
 - [vbrecomp](https://github.com/mstan/vbrecomp): `TCP.md`
-- [gbrecompiled](https://github.com/mstan/gbrecompiled): `README.md`
 - [smsggrecomp](https://github.com/mstan/smsggrecomp): `DEBUG.md`
 - [FaxanaduRecomp](https://github.com/mstan/FaxanaduRecomp): `game.toml`, `baserom_annotations.csv`
 - [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp): `game.toml`, `symbols/minishcap_reviewed.toml`, `CLAUDE.md`
 - [BoktaiRecomp](https://github.com/Shy/BoktaiRecomp): `variants/boktai1_usa/symbols/boktai1_usa_recompile.toml`
 - [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp): `CLAUDE.md`
-- [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): `DEBUG.md`
 
 ## Read next
 

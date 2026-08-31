@@ -26,7 +26,7 @@ Five minutes is real, and it helps to know what it measures. The long work went 
 - fills in the packaging script, and the GitHub Actions release workflow if you ask for it
 - runs the first generate and the first build, if you ask it to
 
-The other eight toolchains here have no equivalent. On NES, SNES, Game Boy Advance, Game Boy, Genesis, Master System, Virtual Boy or DS you copy the shape of a working port by hand.
+The other toolchains here have no equivalent. On NES, SNES, Game Boy Advance, Genesis, Master System, Virtual Boy or DS you copy the shape of a working port by hand.
 
 ## Before you start
 

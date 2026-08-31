@@ -343,6 +343,7 @@ function parseItem(path: string, raw: string, assetUrls: AssetUrlMap): Item | nu
     provenance:
       fm.provenance === "core" || fm.provenance === "community" ? fm.provenance : undefined,
     platform: asString(fm.platform) || undefined,
+    showOnPlatform: fm.showOnPlatform !== false,
     arch: asString(fm.arch) || undefined,
     repo: asString(fm.repo) || undefined,
     maturity: asString(fm.maturity) || undefined,

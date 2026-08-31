@@ -9,6 +9,7 @@ status: "Playable alpha"
 availability: "Public build"
 provenance: "core"
 platform: "game-boy-advance"
+showOnPlatform: false
 repo: "https://github.com/mstan/EmeraldRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"

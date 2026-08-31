@@ -1,18 +1,20 @@
 ---
-title: "For agents"
-summary: "Written in the second person for an agent working in one of these repositories: what to read first, the rules that hold everywhere, the commands that prove you succeeded, and what to do when you cannot run the game."
-sectionTitle: "For agents"
+title: "Working with AI agents"
+summary: "How to brief, supervise, and verify AI agents working on recomp projects."
+sectionTitle: "Working with AI agents"
 pageType: "reference"
 tags: ["Agents"]
-updated: "2026-08-25"
+updated: "2026-08-30"
 ---
 
-This section is for you if you are an agent asked to work on a repository in this fleet. The rules already exist. They are just scattered: 36 agent instruction files across 34 repositories. Many of them point at a rules file that is not in the repository, so nobody but the original author can open it. These pages collect those rules in one place, quoted and cited, at an address any of those files can link to. A human reviewing an agent's work can read them too.
+This section is for people using AI agents on recomp projects.
 
-- [If you are an agent, start here](/docs/agents/start-here). What the fleet is, what to read first, and what it does not have, so you do not plan around something that is not there.
-- [Rules of the codebase](/docs/agents/house-invariants). The twelve rules that recur everywhere, and the thirteen questions repositories answer differently.
-- [Checking your own work](/docs/agents/verification-rituals). Build command, test command and extra gates per repository, and what each gate catches.
-- [How changes go wrong here](/docs/agents/failure-modes). The failures specific to recompilation, sorted by symptom. Most of them are silent.
-- [Machine-readable surfaces](/docs/agents/machine-surfaces). Everything you can drive with a program: debug servers, JSON output, exit codes, artefact files, input scripts.
-- [Contributing as an agent](/docs/agents/contributing-as-an-agent). Commit rules, what never goes into a commit, a handoff template, and the policy check to run before you open a pull request anywhere.
-- [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game). What you can still check with no display, no game file and no oracle, and when to stop and hand off.
+Do not assume an agent will discover these rules by crawling the site. Treat these pages as a briefing packet: give the agent the rules, point it at the local repository instructions, and make it prove its work.
+
+- [What to tell an AI agent before it touches a recomp project](/docs/agents/start-here). The human-facing overview and recommended agent setup.
+- [Rules to give an AI agent](/docs/agents/house-invariants). The rules an agent should follow unless the local repository says something stricter.
+- [How to check AI work](/docs/agents/verification-rituals). What proof counts for builds, coverage, co-simulation, screenshots, TCP checks, and releases.
+- [How AI breaks recomp projects](/docs/agents/failure-modes). The quiet failure modes to look for when reviewing AI-generated recomp work.
+- [Debug surfaces agents can use](/docs/agents/machine-surfaces). TCP servers, traces, JSON output, screenshots, input commands, and other surfaces an agent can query.
+- [Making AI contributions reviewable](/docs/agents/contributing-as-an-agent). Commit rules, handoff expectations, and what never belongs in a change.
+- [When an agent cannot run the game](/docs/agents/when-you-cannot-run-the-game). What an agent can still check without the game, display, or oracle.

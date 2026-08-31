@@ -55,7 +55,7 @@ The rest of what the build adds:
 
 This was the first game recompiled without an explicit disassembly as reference, a milestone for the toolchain. Execution is LLE-first: an authoritative 65816 interpreter is the correctness floor, statically compiled function bodies are exact, proven materializations on top of it, and anything the static pass cannot prove keeps running through the interpreter.
 
-Hardware outside the main CPU, the PPU, the SPC700 audio coprocessor, and DMA, runs through the framework's own runner: recompile the CPU, emulate the silicon. A community port of this recompilation to original Xbox hardware exists as [Mega Man X for Xbox](/games/mega-man-x-xbox).
+Hardware outside the main CPU, the PPU, the SPC700 audio coprocessor, and DMA, runs through the framework's own runner: recompile the CPU, emulate the silicon.
 
 ## Sources
 

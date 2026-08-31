@@ -1,118 +1,137 @@
 ---
-title: "If you are an agent, start here"
-summary: "Orientation for an agent dropped into one of these repositories: what to read first, the rules that hold everywhere, the commands that decide whether you succeeded, and the things this fleet does not have."
+title: "What to tell an AI agent before it touches a recomp project"
+summary: "How to brief an AI agent before it works on static recompilation code."
 pageType: "project"
 tags: ["Agents", "Conventions", "Verification"]
-repos:
-  - "https://github.com/mstan/psxrecomp"
-  - "https://github.com/mstan/nesrecomp"
-  - "https://github.com/mstan/gbarecomp"
-  - "https://github.com/mstan/segagenesisrecomp"
-  - "https://github.com/mstan/ndsrecomp"
-updated: "2026-08-25"
+updated: "2026-08-30"
 ---
 
-You have been asked to change something in one of these repositories. The repository may not tell you how it wants to be worked in. This page does. Read it before you touch a file.
+These pages are for people using AI agents on recomp projects.
 
-## What this fleet is
+Do not assume the agent will find this page on its own. Give it the rules. Paste the important parts into the session. Point it at the local repository instructions. Then make it prove the work.
 
-A set of static recompilation toolchains, one per console, plus a much larger set of per-game repositories that use them.
+Recomp projects are unusually easy for AI to damage. The game can boot while skipping real logic. A patch can compile while weakening accuracy. A "temporary" stub can survive for months because it looks harmless.
 
-A static recompiler reads a game's binary, which is the compiled machine code the console ran, and writes out source code that an ordinary compiler can build. The projects here write C.
+The goal is not to make the diff sound smart. The goal is to preserve correctness.
 
-A toolchain repository owns the recompiler and the runtime. A game repository owns its config, its game-specific hooks and its regenerated C, and no framework code. [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) says it flatly: "The recompiler and runner are the source of truth."
+## What to give the agent first
 
-Correctness is not decided by looking at the screen. A reference implementation, called the oracle, runs beside the recompiled build, and the two are compared.
+Do not assume every project already has the same instruction files.
 
-Of the 86 repositories surveyed, 34 carry an agent instruction file, and all 34 belong to the [mstan](https://github.com/mstan) account. Work moves between sessions through markdown committed to the repository, so what you write down is part of the deliverable.
+If a project already has local instructions, tell the agent to read them before editing. If it does not, start from system-agnostic templates and have the agent adapt them to that project.
 
-## The repository you are in
+These starter files are intentionally generic:
 
-Look in the root for `CLAUDE.md` and `AGENTS.md`. There are 36 such files across 34 repositories; [gbrecompiled](https://github.com/mstan/gbrecompiled) and [nesrecomp](https://github.com/mstan/nesrecomp) carry both. They come in three shapes.
+| Starter file | Use it for |
+|---|---|
+| [AGENTS.md](/agent-templates/AGENTS.md) | The rules any AI agent should follow in this repo: where fixes belong, what never to edit, required checks, commit rules, and handoff expectations. |
+| [CLAUDE.md](/agent-templates/CLAUDE.md) | A compatibility file for projects that still use Claude-specific instructions. Keep it aligned with `AGENTS.md` instead of letting two rule sets drift. |
+| [README.md](/agent-templates/README.md) | Human setup: what the project is, what works today, what files the user must legally provide, and how to build or launch it. |
+| [DEBUG.md](/agent-templates/DEBUG.md) | How to observe the running port: dispatch misses, coverage, traces, screenshots, co-simulation, known failure modes, and common commands. |
+| [TCP_COMMANDS.md](/agent-templates/TCP_COMMANDS.md) | The debug protocol: port, request shape, response shape, commands, error format, and examples. Rename it to `TCP.md` if that is the local convention. |
 
-**A framework constitution** is long and self-contained: [psxrecomp](https://github.com/mstan/psxrecomp) at 511 lines, [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp) at 475, [vbrecomp](https://github.com/mstan/vbrecomp) at 302, [gbrecompiled](https://github.com/mstan/gbrecompiled) at 286, [nesrecomp](https://github.com/mstan/nesrecomp) at 264. Read it in full. It is the authority for that toolchain.
+The local repository wins when it has specific rules. These site pages are a fallback and a shared philosophy. They are not a replacement for the instructions in the repo being changed.
 
-**A deferring game repository** is 1 to 3 KB: a pointer to its framework plus five or six local rules. The six PlayStation game repositories are near copies of one another, and so are the six Game Boy Advance ones. Read the local rules, then read the framework file.
+If the local file points at a path the agent cannot open, make it say so. It should not invent missing rules.
 
-**Two files are different.** [`xboxlle-probe/AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) is a safety document about talking to real hardware. [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md) is a source-port working agreement, not a recompiler.
+## What kind of work is this?
 
-Then open the documents that file names, usually `PRINCIPLES.md`, `TCP.md` or `TCP_COMMANDS.md`, `DEBUG.md` and `COSIM.md`. The protocol documents matter most, because the debug server is how you observe anything at all. See [the TCP debug protocol](/docs/reference/tcp-protocol) and [machine-readable surfaces](/docs/agents/machine-surfaces).
+A recomp project usually has more than one repository involved.
 
-### When the file points somewhere you cannot go
+Make the agent identify where it is working before it edits anything.
 
-In at least 14 repositories the rules defer to something that is not in the repository. That is the normal case, not a broken one. [`YoshiNESRecomp/CLAUDE.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/CLAUDE.md) opens with an absolute Windows path:
+| Repo type | What it usually owns |
+|---|---|
+| Framework repo | Recompiler, runtime, hardware model, shared tooling. |
+| Game repo | Game config, hooks, allowed assets, release packaging. |
 
-> "**Read `F:\Projects\PRINCIPLES.md` first.** Those global principles override
-> anything in this file. This file specializes them for Yoshi."
+A framework repo is the reusable system layer. It is where the console rules live: CPU behavior, memory, timing, graphics, audio, input, code generation, debug tools, and shared runtime behavior.
 
-The PlayStation game repositories reach their framework through a Windows directory junction, which does not survive a clone. [`vbrecomp/CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md) cites a rule in `~/.claude/CLAUDE.md`, a personal config file. [`Megaman3NESRecomp/CLAUDE.md`](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md) points at a reference held "in memory", which is not a place you can open.
+A game repo is the specific port. It usually says "take this game file, verify its identity, generate the code, build this app, and apply these game-specific hooks."
 
-Do not rebuild the missing rules by guessing. [Rules of the codebase](/docs/agents/house-invariants) is the version you can read.
+Many game repos include the framework as a submodule. A submodule is a pointer to another Git repository at one exact commit. It may look like a normal folder, but it has its own history. Updating a submodule means changing that pointer, and usually also committing the framework change in the framework repo first.
 
-Only 34 of the 86 repositories have an agent file at all, and no repository outside the mstan account has one. In the other 52, these pages are what you have. Use them as defaults, say in your report that you did, and do not invent a house style the repository has never stated.
+That distinction matters:
 
-## What you must not break
+| Change | Usually belongs in |
+|---|---|
+| CPU instruction behavior | Framework repo |
+| Hardware timing default | Framework repo |
+| Debug server command used by every game | Framework repo |
+| Code discovery rule used by many games | Framework repo |
+| Game hash, serial, or identity rule | Game repo |
+| Game-specific symbol overlay or config | Game repo |
+| Release packaging for one port | Game repo |
+| Custom renderer or enhancement for one game | Game repo, unless it becomes reusable framework behavior |
 
-Twelve rules recur across the fleet. [Rules of the codebase](/docs/agents/house-invariants) quotes and cites each one. Short form:
+A framework bug should not be hidden in one game. A game-specific rule should not become the default for a whole console.
 
-1. Fix the tool, never the output. Generated C is a build artefact and is never hand-edited.
-2. No stubs. A function is fully implemented or it aborts.
-3. Find the first divergence. Everything after it is a consequence.
-4. Sync on hardware events, never on frame numbers.
-5. Ring buffers are always on. Query them backward. Never arm a trace, run, and hope.
-6. A dispatch miss is a silent game-breaking bug. Check after every run.
-7. If the tool you need does not exist, build it. Never route around broken tooling.
-8. Unknown is an acceptable answer. Guessing is not.
-9. No speculative progress. Code without a proof artefact is invalid.
-10. No game files, dumps, saves or diagnostic output in git.
-11. The game file's hash gates the program. Do not weaken an identity gate.
-12. Read the constitution at session start. Surface a failed precondition before you work, not after.
+## Recommendations from the development team
 
-## The loop, and what ends it
+> **Note from Matthew Stanley ([mstan](https://github.com/mstan)), aka Gamemaster**
+>
+> For everyday recomp work, the strongest results have come from Opus 5 and GPT 5.5 High.
+>
+> For extremely complex problems, the most useful pattern has been orchestration: use Fable or Sol as the lead reviewer, then have them challenge subagents running Opus 5 or GPT 5.5 High.
+>
+> The value is not "more agents." The value is adversarial review, independent hypotheses, and forcing every claim to come with proof.
+>
+> In practice, Opus 5 is strong but can struggle with very long-running tasks. GPT 5.5 High tends to hold longer solo threads better. Fable and Sol are most useful when the problem is too tangled for one everyday agent to keep straight.
 
-Every framework file describes the same four beats: build the recompiler, regenerate, build the game, run it and observe. [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) writes it out as nine steps.
+Treat these as experience notes, not a permanent model ranking. The important idea is the workflow: harder recomp problems benefit from independent review and proof pressure.
 
-From [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) in nesrecomp, lines 73 to 84:
+## The short briefing
 
-```text title="CLAUDE.md"
-1. BUILD recompiler     →  NESRecomp.exe  (only when recompiler src changes)
-2. RUN recompiler       →  generates <game>_full.c in game project's generated/
-3. BUILD game project   →  GameName.exe  (after runner or game changes)
-4. RUN game (timed)     →  start, wait 10s, kill
-5. OBSERVE screenshot   →  Read C:/temp/nes_shot_01.png  (saved every 60 NES frames)
-6. IDENTIFY bug         →  wrong pixels → ppu_renderer.c;  crash → Ghidra
-7. GHIDRA if needed     →  understand what the 6502 code actually does
-8. FIX the bug          →  runtime.c / ppu_renderer.c / code_generator.c
-9. GOTO 1 (or 3 if only runner changed)
-```
+Give the agent this standard:
 
-A build that succeeds is not the check. The checks are the dispatch-miss file next to the executable, the coverage report, and the oracle comparison.
+- Follow the local repo instructions first.
+- Do not edit generated code.
+- Do not add stubs.
+- Find the first divergence.
+- Align by hardware events, not frame numbers.
+- Check dispatch misses after runs.
+- Check coverage when the project reports it.
+- Use TCP, traces, screenshots, or co-simulation when available.
+- Say what could not be tested.
+- Leave a handoff that another person can continue.
 
-Four repositories say what done means precisely enough to settle it without a human. [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp) wants a strict pass: zero misses, zero interpreted instructions, zero healed code, zero unmapped accesses, zero unhandled I/O. [gbarecomp](https://github.com/mstan/gbarecomp) wants the coverage report to read FULLY STATIC. [psxrecomp](https://github.com/mstan/psxrecomp) wants pixels on screen. [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) wants the user to confirm end to end. [Checking your own work](/docs/agents/verification-rituals) has the commands. If you cannot launch the game at all, read [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game) first.
+If the agent cannot explain how it will prove the change, it is not ready to edit.
 
-## What this fleet does not have
+## What proof should look like
 
-Read this as a list of things not to assume.
+Good proof is specific:
 
-- **No CI will judge your change.** Four repositories carry a workflow file, and none of the 36 agent files mentions CI. The [psxrecomp workflow](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml) skips pull requests and pushes to master on purpose: "A check nobody trusts is worse than no check, because it still costs attention."
-- **No formatter, linter or naming convention.** The one formatting gate is [snesrecomp](https://github.com/mstan/snesrecomp)'s native-analyzer workflow, which runs `cargo fmt -- --check` and `clippy`. Do not reformat to a standard nobody stated.
-- **No specification for the TCP debug protocol**, and no schema, version or capability negotiation. Nine repositories describe the same transport in their own words, and two spellings of the error key are in use.
-- **No port registry, and the ports collide.** Port 4380 is claimed by four different projects.
-- **No glossary, no rule versioning, no index** of which repository solves which problem. Only psxrecomp dates its own rule changes.
-- **Not every repository has a test command.** The six PlayStation game repositories and the two Sonic release repositories have none.
-- **Three repositories gate all work on a Ghidra MCP server and ship no `.mcp.json`.** [nesrecomp](https://github.com/mstan/nesrecomp), [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp) and [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp) each say no Ghidra means no action.
-- **No handoff standard.** Nine handoff documents exist under eight filenames, and no agent file tells you to write one. [Contributing as an agent](/docs/agents/contributing-as-an-agent) supplies a template.
+- the build command ran
+- the game launched
+- the debug server answered
+- dispatch misses were empty
+- coverage did not regress
+- the oracle matched
+- the screenshot showed the expected output
+- the release archive contained only allowed files
 
-## Source
+Pick the proof that matches the claim. A screenshot does not prove timing. A build does not prove gameplay. A unit test does not prove a full route.
 
-- The five largest constitutions: [`psxrecomp/CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md), [`gbrecompiled/CLAUDE.md`](https://github.com/mstan/gbrecompiled/blob/master/CLAUDE.md), [`Megaman3NESRecomp/CLAUDE.md`](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), [`vbrecomp/CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md), [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md).
-- [`nesrecomp/AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md), eight lines, the shortest file in the corpus.
-- [`xboxlle-probe/AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) and [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md), the two files unlike the rest.
-- [`psxrecomp/.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml), the fleet's only written position on CI.
+## What to watch for
 
-## Next
+Stop the agent when it:
 
-- [Rules of the codebase](/docs/agents/house-invariants), the twelve rules in full.
-- [Checking your own work](/docs/agents/verification-rituals), the build and test command per repository.
-- [How changes go wrong here](/docs/agents/failure-modes), the ways a good-looking change breaks here.
-- [Glossary](/docs/concepts/glossary), for oracle, dispatch miss and burndown.
+- patches generated files
+- adds placeholder behavior
+- explains around a failing check
+- treats a skipped test as a pass
+- says "probably" where a trace or oracle result is needed
+- uses one game to justify a framework rule
+- weakens a game or BIOS identity gate
+- commits dumps, game files, BIOS files, saves, or local junk
+
+These are not style problems. They are correctness problems.
+
+## Next pages
+
+Read these in order:
+
+- [Rules to give an agent](/docs/agents/house-invariants)
+- [How to check AI work](/docs/agents/verification-rituals)
+- [How AI breaks recomp projects](/docs/agents/failure-modes)
+- [Debug surfaces agents can use](/docs/agents/machine-surfaces)

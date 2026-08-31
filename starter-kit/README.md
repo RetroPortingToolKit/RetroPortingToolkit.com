@@ -14,7 +14,7 @@ they want.
 The [Retro Porting Toolkit](https://retroportingtoolkit.com) is a set of static
 recompilers: they take the original program off a disc or cartridge you own,
 translate its machine code to C, and build it as a native application. There are
-toolchains for twelve consoles and around sixty games have been ported with them.
+toolchains for several consoles and many games have been ported with them.
 
 This repository is the on ramp. It does not contain a recompiler, and it does not
 contain any game data. It contains the shortest honest path from "I want to port
@@ -32,13 +32,13 @@ introductions skip, so it is first here instead:
 | Console | Scaffolding | Realistic first step |
 |---|---|---|
 | PlayStation | Yes, a real scaffold script | One command creates the project, probes your disc and can build it |
-| NES, SNES, Game Boy Advance, Game Boy, Genesis, Master System, Virtual Boy, DS | None | Copy the shape of an existing port and adapt it by hand |
-| CD-i, GameCube, Xbox | Not applicable | These are research projects, not a route to a playable port |
+| NES, SNES, Game Boy Advance, Genesis, Master System, Virtual Boy, DS | None | Copy the shape of an existing port and adapt it by hand |
+| CD-i | Not applicable | Research project, not a route to a normal playable port |
 
 PlayStation is the one that goes fast, because `psxrecomp` ships
 `tools/new_project_layout/`. That tooling is why a contributor could decide to
 port Street Fighter Alpha 3 and have it running the same session. On the other
-eight toolchains you are copying a working port and changing what is
+toolchains you are copying a working port and changing what is
 game specific, which is a longer afternoon rather than a coffee break.
 
 Nothing here will tell you a Genesis port is five minutes of work.
@@ -71,7 +71,7 @@ which is the authority.
 
 ## Everything else
 
-[`other-consoles/`](other-consoles/) covers the eight toolchains without
+[`other-consoles/`](other-consoles/) covers the toolchains without
 scaffolding: which existing port to copy for each console, what the per game
 recompiler input is called there, and what you have to change.
 

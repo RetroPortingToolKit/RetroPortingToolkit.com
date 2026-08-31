@@ -1,117 +1,97 @@
 ---
-title: "High level and low level"
-summary: "LLE is the floor: every toolchain here runs the console's own firmware as its baseline. HLE is allowed above that floor for convenience and speed, and only because the floor is what proves it correct."
+title: "What are HLE and LLE?"
+summary: "LLE follows the console closely. HLE replaces part of the console with native code. HLE is useful, but HLE-first becomes a trap without a faithful floor."
 pageType: "concept"
 tags: ["Architecture", "LLE", "HLE", "Correctness"]
 repos:
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-27"
+updated: "2026-08-30"
 ---
 
-Two abbreviations turn up in every repository here.
+Two short terms show up a lot in recomp projects: **LLE** and **HLE**.
 
-**LLE** means low level emulation. It runs the console's own code: the firmware the machine actually shipped with, and the game's code on top of it. That code is either recompiled ahead of time or acted out one instruction at a time.
+**LLE** means low level emulation. It follows the console closely. That can mean running the console's own firmware, recompiling it, or interpreting the original instructions.
 
-**HLE** means high level emulation. It skips the console's code and runs a native reimplementation written to do the same job.
+**HLE** means high level emulation. It replaces some console behavior with native code that does the same job at a higher level.
 
-Say a game asks the console to open a file. Under LLE, the console's own file code runs and does the work. Under HLE, native code hands back an answer, and the console's code never runs.
+Example: a game asks the console BIOS to read something from a disc.
 
-## The rule
+With LLE, the console's own BIOS code handles the request.
 
-LLE is the floor. Every toolchain here runs the console's own firmware as its baseline. HLE is allowed only for convenience and performance, and it must have the LLE floor underneath it to assert correctness against.
+With HLE, the port may skip that BIOS code and answer the request with native code.
 
-That is the fleet's position. [gcnlle](https://github.com/mstan/gcnlle) writes it as an order of work:
+## Is HLE bad?
 
-> "**LLE / static recompilation / native execution is the baseline.** Architect as much of the system that way as you can, and on platforms that recompile their own firmware/BIOS, run that recompiled firmware."
+No.
 
-The same document names the one banned shape: "load-bearing HLE that fakes the answer". That means making up a result so a milestone looks done, with no faithful version under it and nothing checking it.
+HLE can make a port easier to use, faster, or easier to ship. For example, a project might use HLE to skip a slow boot screen, route file access through a modern system, or replace a well-understood service with native code.
 
-[cdirecomp](https://github.com/mstan/cdirecomp) is the plainest case. It recompiles the CD-i's whole system ROM and runs the real operating system as native code, instead of hand writing stubs for its system calls. Some consoles have no firmware to recompile. On a cartridge machine the floor is the console's own instructions, run faithfully. The rest of the rule is the same.
+The danger is not HLE itself. The danger is HLE that becomes the only truth.
 
-A project's name does not tell you its position. cdirecomp is named `recomp` and calls its philosophy "**LLE (low-level emulation) and static / native-first**". The [glossary](/docs/concepts/glossary) records the other name collisions.
+If the port replaces console behavior and has no faithful version to compare against, a wrong answer can look correct just because the game kept running.
 
-## Why the floor is required
+## What is the rule?
 
-A reimplementation can only be proven correct by comparing it against the real thing. Take the console's own code away and a wrong replacement looks exactly like a right one. The game runs either way, and nobody can tell which one they have. A fake answer also hides bugs in the recompiler, because the code that would have exposed them no longer runs.
+The developer rule is: **faithful LLE is always the floor.**
 
-So the floor is not there for purity. It is there to make every shortcut checkable. gcnlle puts the reason in one line:
+That floor can be a recompiled BIOS, a recompiled system ROM, an interpreter, a trusted emulator used for comparison, or another path that follows the original machine closely.
 
-> "Both are safe for the same reason the fake-the-answer kind is not: an independent thing is always diffing them, so they cannot silently mask a bug."
+HLE can sit above that floor. It can be faster. It can be easier to use. It can remove a BIOS or ROM file requirement when a legal replacement is good enough for the job.
 
-The comparing is [co-simulation](/docs/concepts/co-simulation). Two versions of the console run the same game from the same reset, both stop at the same point in game time, and the run halts at the first difference. That needs a faithful version to be the other side of the comparison. Remove the floor and there is nothing left to check against.
+But HLE should not define correctness by itself.
 
-[snesrecomp](https://github.com/mstan/snesrecomp) says the same thing about meaning. The ROM and the live processor state are its correctness model, and an HLE handler is never allowed to define what the game does.
+The LLE path is the blueprint and the success criteria. A higher-level replacement is acceptable when it behaves like the faithful path for the thing it replaces.
 
-## What HLE is allowed to be
+## Why is HLE-first a trap?
 
-Two reasons are accepted. Both keep the floor linked and runnable.
+An HLE shortcut can be good enough for one game.
 
-**Convenience.** [psxrecomp](https://github.com/mstan/psxrecomp) lays a layer over the PlayStation BIOS so a player can skip the boot animation. Its rule for that layer:
+That is the trap.
 
-> "**LLE remains the reference implementation and the oracle.** It stays fully
-> linked, load-bearing, and selectable; every BIOS call the HLE layer does
-> not implement transparently falls through to the recompiled BIOS, so HLE is
-> never load-bearing beyond what it covers and never becomes the verification
-> oracle."
+If the project only needs one game to boot, a hand-written answer may look fine. The game asks for one behavior, the shortcut returns something close enough, and the milestone turns green.
 
-The mechanism is one function pointer, checked before the recompiled BIOS runs. A nonzero return means the call was handled against the game's own memory. Zero falls through to the console's own code.
+That is why HLE can start to look like a stub. It is not automatically fake behavior, but it can become fake behavior if it replaces the console without being checked against the faithful path.
 
-From [`runtime/src/bios_hle.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/bios_hle.c):
+But a console ecosystem is bigger than one game. The next game may use the same BIOS call, hardware feature, timing detail, or edge case differently. Then the shortcut is no longer a shortcut. It is a game-specific hack that other games inherit.
 
-```c title="runtime/src/bios_hle.c"
-static int bios_hle_dispatch(struct CPUState* cpu, uint32_t phys)
-{
-    if (phys == 0xB0u) {
-        uint32_t fn = cpu->gpr[9]; /* $t1 — the PSY-Q thunk's function number */
-        int handled = s_call_hle_on ? hle_service_b0(cpu, fn) : 0;
-        hle_record(0xB0u, fn, cpu, handled ? cpu->gpr[2] : 0u,
-                   handled ? PSX_HLE_ROUTE_HLE : PSX_HLE_ROUTE_LLE);
-        return handled;
-    }
-    if (phys == 0xA0u || phys == 0xC0u) {
-        /* No A0/C0 services implemented in v1 — observe + fall through. */
-        hle_record(phys, cpu->gpr[9], cpu, 0u, PSX_HLE_ROUTE_LLE);
-        return 0;
-    }
-    if (psx_bios_image.shell_entry_phys != 0 &&
-        phys == psx_bios_image.shell_entry_phys)
-        return hle_boot_shell_skip(cpu);
-    return 0;
-}
-```
+Enough of those hacks turn the framework into a pile of special cases. They become hard to remove because something already depends on them.
 
-The layer costs nothing when it is off: "With HLE off the build is byte-identical to a build without the tier." Timing through it is approximate, so "LLE remains the timing oracle."
+LLE fights that drift. It keeps the project tied to what the machine actually did, even before every game needs every feature.
 
-**Performance.** [ndsrecomp](https://github.com/mstan/ndsrecomp) allows a measured replacement, and only after the floor has passed its own checks:
+That matters later. A feature that one early game never used may become required by a later game. On PlayStation, a serial link cable is a good example of the kind of hardware feature that can matter only when a game finally asks for it. If the floor stays faithful, the project has a place to implement that feature correctly instead of guessing around old HLE behavior.
 
-> "The boot, BIOS, firmware, recompiled CPU, and software-renderer paths above are
-> the accuracy floor. Once that floor passes the independent-oracle gates, a
-> measured subsystem or title routine may receive an optimized/HLE replacement.
-> That replacement may become the normal path, but the original implementation
-> stays linked, forceable, and authoritative for differential verification and
-> fallback."
+## Where does HLE fit?
 
-A replacement starts off by default. It has to be forced on and proven against the floor. It earns default-on status one item at a time.
+HLE is still useful.
 
-A layer is permitted, not required. [snesrecomp](https://github.com/mstan/snesrecomp) states the floor side of the same rule: its interpreter is the correctness floor, not a last resort, and anything built above it answers to that floor. A toolchain that builds no layer at all is following the rule too.
+It can make a port faster. It can make setup easier. It can avoid asking the user for a BIOS or ROM file when a legal high-level replacement is appropriate. It can also make a finished port feel more like a normal modern app.
 
-![The floor is the same in all three: the console's own instructions, recompiled or interpreted. What differs is how high above it a replacement may sit. psxrecomp hooks the BIOS entry vector. ndsrecomp allows a hook only at an exact function start. snesrecomp holds the interpreter as the correctness floor that everything above it answers to.](./layering.svg)
+The key is order.
 
-## Source
+Build or keep the faithful path first. Use it as the reference. Then add HLE where it helps, with the LLE path still available to check it.
 
-- [gcnlle](https://github.com/mstan/gcnlle): [`PRINCIPLES.md`](https://github.com/mstan/gcnlle/blob/master/PRINCIPLES.md) for the baseline rule, the banned shape, and the test to apply before adding any HLE.
-- [cdirecomp](https://github.com/mstan/cdirecomp): [`PRINCIPLES.md`](https://github.com/mstan/cdirecomp/blob/master/PRINCIPLES.md) and [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md).
-- [psxrecomp](https://github.com/mstan/psxrecomp): [`CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) for the oracle rule, [`runtime/include/bios_hle.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/bios_hle.h) and [`runtime/src/bios_hle.c`](https://github.com/mstan/psxrecomp/blob/master/runtime/src/bios_hle.c) for the layer.
-- [ndsrecomp](https://github.com/mstan/ndsrecomp): [`PRINCIPLES.md`](https://github.com/mstan/ndsrecomp/blob/main/PRINCIPLES.md), [`HLE_ARCHITECTURE.md`](https://github.com/mstan/ndsrecomp/blob/main/HLE_ARCHITECTURE.md).
-- [snesrecomp](https://github.com/mstan/snesrecomp): [`docs/LLE_FIRST_ANALYSIS.md`](https://github.com/mstan/snesrecomp/blob/main/docs/LLE_FIRST_ANALYSIS.md).
+This is why mature projects care about [co-simulation](/docs/concepts/co-simulation), reference emulators, fallback paths, and selectable low-level modes. They are not just developer tools. They keep convenience from silently becoming incorrect behavior.
+
+## How do projects use this today?
+
+psxrecomp is the clearest mature example. It can run with a low-level BIOS path, and it can also use higher-level helpers for convenience. The important part is that the lower-level path remains available as the reference.
+
+snesrecomp leans on a faithful interpreter as its floor. That is a good fit for SNES work, where correctness and timing details matter a lot and many games are close to the hardware.
+
+Other systems are at different levels of maturity. The useful question is not "does this project use HLE?" The useful question is "what checks the HLE path?"
+
+## What should users take away?
+
+For players, HLE and LLE are mostly invisible. A good port should just behave like the original game.
+
+For developers, the distinction matters. HLE can be a practical tool, but it should not be used to fake progress. The port needs a faithful path that can catch mistakes.
 
 ## Next
 
-- [Co-simulation](/docs/concepts/co-simulation) is how anything above the floor gets checked.
-- [PlayStation](/docs/platforms/playstation) is the convenience layer in place.
-- [Nintendo DS](/docs/platforms/nintendo-ds) is the performance path.
-- [CD-i](/docs/platforms/cd-i) recompiles its console's whole system ROM.
+- [How do we compare a port to the original?](/docs/concepts/co-simulation)
+- [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns)
+- [What are the recompiler and runtime?](/docs/concepts/recompiler-and-runtime)
+- [PlayStation](/docs/platforms/playstation)

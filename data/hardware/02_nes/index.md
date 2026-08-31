@@ -3,7 +3,7 @@ title: "NES"
 kicker: "6502"
 tags: ["Voxel 3D", "Text override", "Save states", "Mouse Zapper"]
 featured: true
-desc: "Ten commercial NES games rebuilt as native apps from your own cartridge dump, no BIOS needed, including a Zelda you can orbit in 3D."
+desc: "A source-only ecosystem for native NES ports from your own cartridge dump, with experiments like text replacement, save states, mouse light-gun input, mods, and alternate renderers."
 year: "2026"
 status: "Playable alpha"
 maturity: "Beta"
@@ -19,27 +19,26 @@ verified: "2026-08-18"
 cover: "/consoles/nes.jpg"
 ---
 
-Ten commercial NES games run as native apps built from your own cartridge dump, with no BIOS required at all. NESRecomp translates each cartridge's original program into C at build time and compiles it for modern systems, while a runner library stands in for the console's picture and sound hardware.
+NESRecomp turns NES cartridge code into native apps. You provide your own cartridge dump.
+
+This ecosystem is practical, but still early. The older the console is, the simpler the CPU may look, but the cartridge hardware can still make each game its own problem.
 
 ## What runs today
 
-Ten titles have game repos, in varying states of completeness. Fully playable or believed so: [Super Mario Bros.](/games/super-mario-bros), [Duck Hunt](/games/duck-hunt), [The Legend of Zelda](/games/legend-of-zelda), [Faxanadu](/games/faxanadu), [Yoshi](/games/yoshi), [Yoshi's Cookie](/games/yoshis-cookie), and [Gumshoe](/games/gumshoe) (end to end, with one cosmetic HUD bug). [Dr. Mario](/games/dr-mario) is playable with one player tested, [Metroid](/games/metroid) covers the starting area, and [Mega Man 3](/games/mega-man-3) is a work in progress through its early stages.
+Several public projects exist today, including [Super Mario Bros.](/games/super-mario-bros), [Duck Hunt](/games/duck-hunt), [The Legend of Zelda](/games/legend-of-zelda), [Faxanadu](/games/faxanadu), [Yoshi](/games/yoshi), [Yoshi's Cookie](/games/yoshis-cookie), [Gumshoe](/games/gumshoe), [Dr. Mario](/games/dr-mario), [Metroid](/games/metroid), and [Mega Man 3](/games/mega-man-3).
 
-Cartridge mapper support covers roughly 78% of the licensed NES library. Windows x64 is the primary, mature platform; macOS support is experimental and newly added (a community contribution by Nat Budin), and Linux likely works through the same path but is less tested.
+Each game repo is the authority for what works. Some are playable end to end. Some are useful framework targets. Some are still there to prove out a mapper, renderer, or workflow.
 
-## What the recomp adds
+## What NES ports can add
 
-- An opt-in Voxel 3D renderer that reads the live tile map and rebuilds the scene in 3D: The Legend of Zelda becomes an orbitable tabletop diorama, and Super Mario Bros. a first-person experiment. The game underneath is unmodified.
-- A text override system with hot reload: edit a JSON file while the game runs and the new text appears in about a second. Faxanadu is the showcase, and it opens the door to retranslation and accessibility work without ROM hacking.
-- Twelve save-state slots on F1 through F12, with Shift to save.
-- Mouse-as-Zapper substitution, so Duck Hunt and Gumshoe play with a mouse instead of a light gun.
-- Turbo fast-forward on Tab, hotplug gamepad support, and crisp integer scaling that never stretches the picture.
+- Save states and fast-forward without changing the game file.
+- Mouse input for Zapper-style games.
+- Runtime text replacement for translation and accessibility work.
+- Character swaps and other opt-in mods.
+- Alternate renderers that sit outside the original game logic.
 
-## Technical details
+## How to read the status
 
-NESRecomp reads a cartridge's 6502 machine code and rebuilds it as C: a JSR becomes a direct C function call and branches become gotos. Function discovery runs in two phases, a breadth-first walk from the interrupt vectors plus a pointer-table scanner that finds dynamically dispatched handlers, and code that cannot be resolved statically runs in durable interpreter islands whose discovery logs feed coverage back to the project. The decoder recognizes every undocumented 6502 opcode, emitting full semantics for the ones NES games actually use. Supported mappers are 0 (NROM), 1 (MMC1), 4 (MMC3), and 66 (GxROM), which the README puts at roughly 78% of the licensed library. The recompiler is pure C11; game runners use SDL2.
+NESRecomp is strongest when the game uses cartridge hardware the framework already understands. A new mapper or unusual hardware pattern can still turn one "simple" NES game into real framework work.
 
-## Sources
-
-- [NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)](https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/)
-- [nesrecomp Achieves 10 Commercial Titles (1379.tech)](https://1379.tech/nesrecomp-achieves-10-commercial-titles/)
+This is why the public game list is not the same thing as whole-console support.

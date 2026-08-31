@@ -265,7 +265,7 @@ function ArticleEndCard({ item }: { item: Item }) {
 
 // A small linked tile for a game: cover, title, status. Used by the platform
 // pages' games showcase and the related-games strip on game pages.
-function GameTile({ game }: { game: Item }) {
+function GameTile({ game, showStatus = true }: { game: Item; showStatus?: boolean }) {
   const link = useItemNavigate(game);
   return (
     <a className="game-tile" href={link.href} onClick={link.onClick}>
@@ -287,7 +287,7 @@ function GameTile({ game }: { game: Item }) {
       />
       <span className="game-tile-text">
         <span className="game-tile-title">{game.title}</span>
-        {game.status && <span className="game-tile-status">{game.status}</span>}
+        {showStatus && game.status && <span className="game-tile-status">{game.status}</span>}
       </span>
     </a>
   );
@@ -295,14 +295,16 @@ function GameTile({ game }: { game: Item }) {
 
 // Platform pages showcase the games that run on them, linked to their pages.
 function PlatformGames({ item }: { item: Item }) {
-  const games = itemsForCatalogKind("game").filter((g) => g.platform === item.slug);
+  const games = itemsForCatalogKind("game").filter(
+    (g) => g.platform === item.slug && g.showOnPlatform !== false,
+  );
   if (games.length === 0) return null;
   return (
     <div className="platform-games">
       <h2 className="platform-games-title">Games on {item.title}</h2>
       <div className="game-tile-grid">
         {games.map((g) => (
-          <GameTile key={g.slug} game={g} />
+          <GameTile key={g.slug} game={g} showStatus={false} />
         ))}
       </div>
     </div>
