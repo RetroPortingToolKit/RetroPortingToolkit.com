@@ -8,6 +8,7 @@ import {
   isYouTubeSrc,
   readingTimeMin,
   youtubeEmbedUrl,
+  youtubeThumb,
 } from "@/lib/contentCore";
 import { useItemNavigate } from "@/lib/useItemNavigate";
 import { svgCover } from "@/lab/labContent";
@@ -22,6 +23,9 @@ import type { LinkRef } from "@/lib/types";
 interface Props {
   item: Item;
   variant?: "modal" | "page";
+  /** False while another modal covers this detail. Rich media is replaced by
+      static poster content so hidden players and decoders release their work. */
+  mediaActive?: boolean;
 }
 
 const delayed = (ms: number): CSSProperties => ({ animationDelay: `${ms}ms` });
@@ -75,7 +79,7 @@ function VideoHero({ item }: { item: Item }) {
 // News video pages use the talk layout this template came with: a
 // viewport-capped stage with the title, channel and date, and the description
 // visible below it without scrolling.
-function VideoDetail({ item }: { item: Item }) {
+function VideoDetail({ item, mediaActive }: { item: Item; mediaActive: boolean }) {
   const embed = youtubeEmbedUrl(item.videoUrl ?? "");
   if (!embed) return null;
   const meta = [item.venue, formatArticleDate(item.date || item.year)]
@@ -88,19 +92,30 @@ function VideoDetail({ item }: { item: Item }) {
           {/* The player is embedded on open and starts muted, the way the
               talk pages this layout comes from behave. Videos are embedded,
               never re-hosted. */}
-          <iframe
-            className="talk-detail-iframe"
-            src={embed}
-            title={item.title}
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-            allowFullScreen
-          />
+          {mediaActive ? (
+            <iframe
+              className="talk-detail-iframe"
+              src={embed}
+              title={item.title}
+              allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <img
+              className="talk-detail-cover"
+              src={item.cover || youtubeThumb(item.videoUrl)}
+              alt=""
+              aria-hidden="true"
+            />
+          )}
         </div>
         <div className="talk-detail-meta">
           <h1 className="talk-detail-title">{item.title}</h1>
           {meta && <div className="talk-detail-date">{meta}</div>}
           {item.body && (
-            <Markdown className="talk-detail-desc">{item.body}</Markdown>
+            <Markdown className="talk-detail-desc" mediaActive={mediaActive}>
+              {item.body}
+            </Markdown>
           )}
         </div>
         <AdjacentItems item={item} />
@@ -109,9 +124,9 @@ function VideoDetail({ item }: { item: Item }) {
   );
 }
 
-export function ItemDetail({ item }: Props) {
+export function ItemDetail({ item, mediaActive = true }: Props) {
   if (item.kind === "hardware") {
-    return <LabSplit item={item} slides={[]} />;
+    return <LabSplit item={item} slides={[]} mediaActive={mediaActive} />;
   }
   // News videos read like ramine.net talks: player on top, title and
   // description right below.
@@ -120,23 +135,25 @@ export function ItemDetail({ item }: Props) {
     item.kicker === "Video" &&
     isYouTubeSrc(item.videoUrl)
   ) {
-    return <VideoDetail item={item} />;
+    return <VideoDetail item={item} mediaActive={mediaActive} />;
   }
   // Blog: split entries render two-pane in BOTH modal and page (a live demo
   // deserves the full page). Everything else reads as an article.
   if (item.kind === "blog" && blogIsSplit(item)) {
-    return <LabSplit item={item} />;
+    return <LabSplit item={item} mediaActive={mediaActive} />;
   }
-  return <DefaultDetail item={item} />;
+  return <DefaultDetail item={item} mediaActive={mediaActive} />;
 }
 
 // in-site lightbox; only true externals leave the site.
 function LinksBlock({
   links,
   delay,
+  mediaActive = true,
 }: {
   links: LinkRef[];
   delay: number;
+  mediaActive?: boolean;
 }) {
   const [video, setVideo] = useState<string | null>(null);
   if (links.length === 0) return null;
@@ -173,7 +190,7 @@ function LinksBlock({
           </a>
         );
       })}
-      {video && <VideoLightbox url={video} onClose={() => setVideo(null)} />}
+      {video && mediaActive && <VideoLightbox url={video} onClose={() => setVideo(null)} />}
     </div>
   );
 }
@@ -369,7 +386,15 @@ function AdjacentItems({ item }: { item: Item }) {
 }
 
 // ProjectSplit, but the right pane can be the running thing, and it renders on the full page too.
-function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }) {
+function LabSplit({
+  item,
+  slides: slidesProp,
+  mediaActive,
+}: {
+  item: Item;
+  slides?: Slide[];
+  mediaActive: boolean;
+}) {
   const slides: Slide[] = slidesProp ?? item.gallery.map((g) => ({
     src: g.src,
     srcSet: g.srcSet,
@@ -452,10 +477,12 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
           )}
           {item.body && (
             <div className="blur-in" style={delayed(320)}>
-              <Markdown className="modal-content">{item.body}</Markdown>
+              <Markdown className="modal-content" mediaActive={mediaActive}>
+                {item.body}
+              </Markdown>
             </div>
           )}
-          <LinksBlock links={item.links} delay={520} />
+          <LinksBlock links={item.links} delay={520} mediaActive={mediaActive} />
           {item.kind !== "blog" && (
           <p className="game-data-notice blur-in" style={delayed(480)}>
             Game files not included. This project requires a dump you provide
@@ -477,28 +504,43 @@ function LabSplit({ item, slides: slidesProp }: { item: Item; slides?: Slide[] }
             <div className="lab-demo-bar">
               <span className="lab-demo-bar-label">Live demo</span>
             </div>
-            <iframe
-              className="lab-demo-frame"
-              src={item.demo}
-              title={`${item.title} · live demo`}
-              loading="lazy"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; microphone; xr-spatial-tracking; fullscreen"
-              allowFullScreen
-            />
+            {mediaActive ? (
+              <iframe
+                className="lab-demo-frame"
+                src={item.demo}
+                title={`${item.title} · live demo`}
+                loading="lazy"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; microphone; xr-spatial-tracking; fullscreen"
+                allowFullScreen
+              />
+            ) : item.cover && !isVideoSrc(item.cover) ? (
+              <img className="lab-demo-frame" src={item.cover} alt="" aria-hidden="true" />
+            ) : (
+              <div className="lab-demo-frame" aria-hidden="true" />
+            )}
           </>
         ) : item.kind === "hardware" ? (
           // A platform's media pane is its catalog. Console art and a lone
           // clip added nothing that the game cards do not say better.
           <PlatformGames item={item} />
+        ) : mediaActive ? (
+            <LazyProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
+        ) : slides[0]?.poster || slides[0]?.lqip ? (
+            <img
+              className="lab-demo-frame"
+              src={slides[0].poster ?? slides[0].lqip}
+              alt=""
+              aria-hidden="true"
+            />
         ) : (
-          <LazyProjectCarousel slides={slides} showThumbs autoplayDelay={3000} />
+            <div className="lab-demo-frame" aria-hidden="true" />
         )}
       </div>
     </div>
   );
 }
 
-function DefaultDetail({ item }: { item: Item }) {
+function DefaultDetail({ item, mediaActive }: { item: Item; mediaActive: boolean }) {
   // Game pages read as articles: one column, with the video embeds and
   // screenshots placed inline through the body where they earn their spot.
   const isArticle = item.kind === "blog" || item.kind === "game";
@@ -506,7 +548,7 @@ function DefaultDetail({ item }: { item: Item }) {
   // in-masthead figure (articles). Articles keep the cover INSIDE
   // .modal-body--article so the desktop modal's click-outside bounds still fit.
   const coverMedia = item.cover ? (
-    isVideoSrc(item.cover) ? (
+    isVideoSrc(item.cover) && mediaActive ? (
       <video
         className="img"
         poster={item.poster}
@@ -519,6 +561,15 @@ function DefaultDetail({ item }: { item: Item }) {
         <source src={item.cover} />
         {item.coverFallback && <source src={item.coverFallback} />}
       </video>
+    ) : isVideoSrc(item.cover) ? (
+      item.poster || item.coverLqip ? (
+        <img
+          className="img"
+          src={item.poster ?? item.coverLqip}
+          alt=""
+          aria-hidden="true"
+        />
+      ) : null
     ) : (
       <img
         className="img"
@@ -689,14 +740,16 @@ function DefaultDetail({ item }: { item: Item }) {
 
         {item.body && (
           <div className="blur-in" style={delayed(320)}>
-            <Markdown className="modal-content">{item.body}</Markdown>
+            <Markdown className="modal-content" mediaActive={mediaActive}>
+              {item.body}
+            </Markdown>
           </div>
         )}
 
         {item.gallery.length > 0 && (
           <div className="modal-gallery blur-in" style={delayed(420)}>
             {item.gallery.map((g, i) =>
-              isYouTubeSrc(g.src) ? (
+              isYouTubeSrc(g.src) && mediaActive ? (
                 // Embedded talk/demo videos sit in the gallery like any other
                 // slide (the mobile carousel already supports this).
                 <iframe
@@ -708,7 +761,15 @@ function DefaultDetail({ item }: { item: Item }) {
                   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                 />
-              ) : isVideoSrc(g.src) ? (
+              ) : isYouTubeSrc(g.src) ? (
+                <img
+                  key={i}
+                  className="g-item"
+                  src={youtubeThumb(g.src)}
+                  alt={g.caption || "Video"}
+                  loading="lazy"
+                />
+              ) : isVideoSrc(g.src) && mediaActive ? (
                 <video
                   key={i}
                   className="g-item"
@@ -722,6 +783,16 @@ function DefaultDetail({ item }: { item: Item }) {
                   <source src={g.src} />
                   {g.srcFallback && <source src={g.srcFallback} />}
                 </video>
+              ) : isVideoSrc(g.src) ? (
+                g.poster || g.lqip ? (
+                  <img
+                    key={i}
+                    className="g-item"
+                    src={g.poster ?? g.lqip}
+                    alt={g.caption || ""}
+                    loading="lazy"
+                  />
+                ) : null
               ) : (
                 <img
                   key={i}
@@ -741,7 +812,13 @@ function DefaultDetail({ item }: { item: Item }) {
           // show all their links.
           const startAt =
             item.kind === "blog" && item.venue && item.links[0] ? 1 : 0;
-          return <LinksBlock links={item.links.slice(startAt)} delay={520} />;
+          return (
+            <LinksBlock
+              links={item.links.slice(startAt)}
+              delay={520}
+              mediaActive={mediaActive}
+            />
+          );
         })()}
         {item.kind !== "blog" && (
           <p className="game-data-notice blur-in" style={delayed(480)}>

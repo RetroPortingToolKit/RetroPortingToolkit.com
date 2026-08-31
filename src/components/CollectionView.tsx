@@ -65,7 +65,7 @@ for (const k of ["hardware", "game", "blog"] as const) {
   for (const m of labAll[k]) MEDIA_BY_KEY.set(`${m.kind}-${m.slug}`, m);
 }
 
-function KindGrid({ items }: { kind: Kind; items: Item[] }) {
+function KindGrid({ items, still = false }: { kind: Kind; items: Item[]; still?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
   // Opening an item from this overlay swaps it for the item modal while keeping
@@ -81,7 +81,12 @@ function KindGrid({ items }: { kind: Kind; items: Item[] }) {
       {items.map((item) => {
         const m = MEDIA_BY_KEY.get(`${item.kind}-${item.slug}`);
         return m ? (
-          <SpatialCard key={`${item.kind}-${item.slug}`} media={m} onOpen={onOpen} />
+          <SpatialCard
+            key={`${item.kind}-${item.slug}`}
+            media={m}
+            onOpen={onOpen}
+            still={still}
+          />
         ) : null;
       })}
     </div>
@@ -104,7 +109,7 @@ function DocsList({ items }: { items: Item[] }) {
   );
 }
 
-export function CollectionBody({ items }: { items: Item[] }) {
+export function CollectionBody({ items, still = false }: { items: Item[]; still?: boolean }) {
   const buckets: Record<Kind, Item[]> = {
     hardware: [],
     game: [],
@@ -118,7 +123,7 @@ export function CollectionBody({ items }: { items: Item[] }) {
     kind === "docs" ? (
       <DocsList items={buckets[kind]} />
     ) : (
-      <KindGrid kind={kind} items={buckets[kind]} />
+      <KindGrid kind={kind} items={buckets[kind]} still={still} />
     );
 
   if (items.length === 0) {
@@ -204,7 +209,9 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active =
         ref={modalRef}
         tabIndex={-1}
         role="dialog"
-        aria-modal="true"
+        aria-modal={!covered}
+        aria-hidden={covered || undefined}
+        inert={covered ? "" : undefined}
         aria-label={title}
         onKeyDown={trapFocus}
       >
@@ -235,7 +242,7 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active =
                 {items.length} {items.length === 1 ? "item" : "items"}
               </div>
             </header>
-            <CollectionBody items={items} />
+            <CollectionBody items={items} still={covered} />
           </div>
         </div>
         <CloseButton onClose={requestClose} />
@@ -278,12 +285,15 @@ function MobileSheet({ title, eyebrow, intro, items, onClose, covered }: Props) 
         if (!o && !covered) requestClose();
       }}
       shouldScaleBackground
+      modal={!covered}
     >
       <Drawer.Portal>
         <Drawer.Overlay className="sheet-overlay" />
         <Drawer.Content
           className="sheet-content"
           aria-describedby={undefined}
+          aria-hidden={covered || undefined}
+          inert={covered ? "" : undefined}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             if (!covered) focusScroller(scrollRef.current);
@@ -304,7 +314,7 @@ function MobileSheet({ title, eyebrow, intro, items, onClose, covered }: Props) 
                   {items.length} {items.length === 1 ? "item" : "items"}
                 </div>
               </header>
-              <CollectionBody items={items} />
+              <CollectionBody items={items} still={covered} />
             </div>
           </div>
         </Drawer.Content>

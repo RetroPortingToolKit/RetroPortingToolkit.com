@@ -13,6 +13,7 @@ export interface InlineMarkdownVideoStateInput {
   nearViewport: boolean;
   userActivated: boolean;
   ambientAllowed: boolean;
+  enabled?: boolean;
 }
 
 export interface InlineMarkdownVideoState {
@@ -28,9 +29,10 @@ export function inlineMarkdownVideoState({
   nearViewport,
   userActivated,
   ambientAllowed,
+  enabled = true,
 }: InlineMarkdownVideoStateInput): InlineMarkdownVideoState {
-  const activated = nearViewport || userActivated;
-  const ambient = nearViewport && ambientAllowed && !userActivated;
+  const activated = enabled && (nearViewport || userActivated);
+  const ambient = enabled && nearViewport && ambientAllowed && !userActivated;
   return {
     src: activated ? src : undefined,
     autoPlay: ambient,
@@ -47,9 +49,11 @@ function isPlaybackKey(event: KeyboardEvent<HTMLVideoElement>): boolean {
 export function InlineMarkdownVideo({
   src,
   title,
+  active = true,
 }: {
   src: string;
   title: string;
+  active?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [nearViewport, setNearViewport] = useState(false);
@@ -60,13 +64,17 @@ export function InlineMarkdownVideo({
     nearViewport,
     userActivated,
     ambientAllowed,
+    enabled: active,
   });
 
   // Assigning no src at all is the load boundary. preload="none" alone is a
   // hint browsers may ignore, whereas an absent URL cannot start a request.
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || typeof IntersectionObserver === "undefined") return;
+    if (!video || !active || typeof IntersectionObserver === "undefined") {
+      setNearViewport(false);
+      return;
+    }
     const observer = new IntersectionObserver(
       (entries) => {
         setNearViewport(entries.some((entry) => entry.isIntersecting));
@@ -75,7 +83,18 @@ export function InlineMarkdownVideo({
     );
     observer.observe(video);
     return () => observer.disconnect();
-  }, []);
+  }, [active]);
+
+  // Removing the React src prop stops future loads. Calling load() as the
+  // layer becomes covered also releases the resource already selected by a
+  // playing element instead of leaving its decoder alive behind the top modal.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || active) return;
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+  }, [active]);
 
   // React's autoplay attribute is not reliable on a src assigned after mount,
   // especially in Safari. Make the allowed ambient attempt directly. A policy
@@ -99,6 +118,7 @@ export function InlineMarkdownVideo({
   }, [state.autoPlay, state.src, userActivated]);
 
   const activate = () => {
+    if (!active) return;
     // Put the URL on the element inside the gesture itself. Waiting for the
     // state update can make a browser treat the native control's play request
     // as an autoplay attempt, forcing the visitor to press Play twice.

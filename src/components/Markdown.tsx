@@ -11,6 +11,7 @@ import { calloutKindFromLabel, parseFenceInfo, type CalloutKind } from "@/lib/ma
 interface MarkdownProps {
   children: string;
   className?: string;
+  mediaActive?: boolean;
 }
 
 // The text content of a hast node, which is what rehype-slug slugged and what
@@ -106,7 +107,7 @@ function MarkdownYouTube({ id, title }: { id: string; title: string }) {
   );
 }
 
-export function Markdown({ children, className }: MarkdownProps) {
+export function Markdown({ children, className, mediaActive = true }: MarkdownProps) {
   return (
     <div className={className}>
       <ReactMarkdown
@@ -208,7 +209,11 @@ export function Markdown({ children, className }: MarkdownProps) {
             return (
               <span className="md-figure">
                 {isVideo ? (
-                  <InlineMarkdownVideo src={url} title={alt || "Video"} />
+                  <InlineMarkdownVideo
+                    src={url}
+                    title={alt || "Video"}
+                    active={mediaActive}
+                  />
                 ) : (
                   <img src={url} alt={alt ?? ""} loading="lazy" decoding="async" />
                 )}

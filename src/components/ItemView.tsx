@@ -307,7 +307,9 @@ function DesktopModal({ item, onClose, covered }: Props) {
         ref={modalRef}
         tabIndex={-1}
         role="dialog"
-        aria-modal="true"
+        aria-modal={!covered}
+        aria-hidden={covered || undefined}
+        inert={covered ? "" : undefined}
         aria-label={item.title}
         onKeyDown={trapFocus}
       >
@@ -346,7 +348,7 @@ function DesktopModal({ item, onClose, covered }: Props) {
             }
           >
               <article className="modal-article" style={accentVars(item)}>
-                <ItemDetail item={item} />
+                <ItemDetail item={item} mediaActive={!covered} />
               </article>
           </div>
         </div>
@@ -422,13 +424,17 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
 
   return (
     <>
-      <div className={"proj-mobile" + (open ? " open" : "")}>
+      <div
+        className={"proj-mobile" + (open ? " open" : "")}
+        aria-hidden={covered || isFull || undefined}
+        inert={covered || isFull ? "" : undefined}
+      >
         <NavControls
           item={item}
           onClose={requestClose}
           enableKeyboard={!covered}
         />
-        {item.demo ? (
+        {item.demo && !covered ? (
           // a blog entry's live demo fills the top half (where a project's carousel goes)
           <iframe
             className="lab-demo-frame"
@@ -438,8 +444,17 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; microphone; xr-spatial-tracking; fullscreen"
             allowFullScreen
           />
-        ) : (
+        ) : !covered ? (
           <LazyProjectCarousel slides={slides} autoplayDelay={3000} />
+        ) : slides[0]?.poster || slides[0]?.lqip ? (
+          <img
+            className="lab-demo-frame"
+            src={slides[0].poster ?? slides[0].lqip}
+            alt=""
+            aria-hidden="true"
+          />
+        ) : (
+          <div className="lab-demo-frame" aria-hidden="true" />
         )}
       </div>
       <Drawer.Root
@@ -458,6 +473,8 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
           <Drawer.Content
             className="proj-sheet"
             aria-describedby={undefined}
+            aria-hidden={covered || undefined}
+            inert={covered ? "" : undefined}
             onOpenAutoFocus={(event) => {
               event.preventDefault();
               if (!covered) focusScroller(sheetScrollRef.current);
@@ -500,7 +517,9 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
                   </div>
                 )}
               {item.body && (
-                <Markdown className="modal-content">{item.body}</Markdown>
+                <Markdown className="modal-content" mediaActive={!covered}>
+                  {item.body}
+                </Markdown>
               )}
               {item.links.length > 0 && (
                 <div className="modal-links">
@@ -562,12 +581,15 @@ function MobileSheet({ item, onClose, covered }: Props) {
         if (!o && !covered) requestClose();
       }}
       shouldScaleBackground
+      modal={!covered}
     >
       <Drawer.Portal>
         <Drawer.Overlay className="sheet-overlay" />
         <Drawer.Content
           className="sheet-content"
           aria-describedby={undefined}
+          aria-hidden={covered || undefined}
+          inert={covered ? "" : undefined}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
             if (!covered) focusScroller(scrollRef.current);
@@ -589,7 +611,7 @@ function MobileSheet({ item, onClose, covered }: Props) {
               }
               style={accentVars(item)}
             >
-                <ItemDetail item={item} />
+                <ItemDetail item={item} mediaActive={!covered} />
             </div>
           </div>
         </Drawer.Content>

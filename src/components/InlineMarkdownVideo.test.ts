@@ -63,6 +63,18 @@ describe("inlineMarkdownVideoState", () => {
       }),
     ).toEqual({ src, autoPlay: false, preload: "none" });
   });
+
+  it("removes the source while its containing overlay is covered", () => {
+    expect(
+      inlineMarkdownVideoState({
+        src,
+        nearViewport: true,
+        userActivated: true,
+        ambientAllowed: true,
+        enabled: false,
+      }),
+    ).toEqual({ src: undefined, autoPlay: false, preload: "none" });
+  });
 });
 
 describe("InlineMarkdownVideo", () => {
