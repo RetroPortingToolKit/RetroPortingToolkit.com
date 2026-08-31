@@ -50,7 +50,20 @@ DISCORD_ALLOWED_ROLE_IDS="optional-role-id"
 ```
 
 At least one user or role is required. Guild and channel restrictions are
-always required. IDs are Discord's numeric IDs copied with Developer Mode.
+always required. IDs can be resolved without copying them through chat. After
+the bot is installed in its server, load its token from Keychain and run:
+
+```sh
+export DISCORD_BOT_TOKEN="$(security find-generic-password -s retroportingtoolkit-discord-bot -w)"
+DISCORD_TARGET_GUILD="server name" \
+DISCORD_TARGET_CHANNEL="channel name" \
+DISCORD_TARGET_ROLES="role name,role name" \
+node scripts/configure-discord-agent.mjs
+unset DISCORD_BOT_TOKEN
+```
+
+The configurator resolves exact names to IDs, rejects missing or ambiguous
+matches, writes `config.env` with mode 600, and never writes the token.
 
 After the bot token is stored in Keychain and the config exists, install the
 explicitly owner-approved persistent process:
