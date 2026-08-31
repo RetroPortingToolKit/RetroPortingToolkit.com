@@ -493,3 +493,19 @@ both pages already link their source article under `links:`.
 - Browser automation verifies engine-visible behavior only. Any Safari-native
   cursor or physical trackpad claim still requires the deployed build to be
   exercised in real Safari on macOS under the project contract.
+
+## Blog and overlay hardening (2026-08-31)
+
+- Covered item and collection overlays are inert and hidden from assistive
+  technology. Their videos, embeds, demos and carousels release or withhold
+  media sources until the layer becomes active again.
+- All item, collection and portal lightbox dialogs share one focus owner. The
+  topmost dialog wraps Tab, focuses the correct scroll container on entry and
+  restores its opener on exit; lightboxes also isolate the app beneath them.
+- Blog feeds now validate required identity/date fields, reject invalid dates
+  and duplicate canonical URLs, exclude drafts, and sort equal dates by slug.
+  Feed tests cover escaping and require exact parity with published blog
+  routes. The escaping test found and fixed double-escaped query parameters.
+- Verification: typecheck green, production build green (894 modules, 192
+  prerendered routes, 36 feed posts), and all 780 tests green. The six existing
+  documentation-date warnings remain unchanged.
