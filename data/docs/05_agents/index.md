@@ -16,5 +16,5 @@ Do not assume an agent will discover these rules by crawling the site. Treat the
 - [How to check AI work](/docs/agents/verification-rituals). What proof counts for builds, coverage, co-simulation, screenshots, TCP checks, and releases.
 - [How AI breaks recomp projects](/docs/agents/failure-modes). The quiet failure modes to look for when reviewing AI-generated recomp work.
 - [Debug surfaces agents can use](/docs/agents/machine-surfaces). TCP servers, traces, JSON output, screenshots, input commands, and other surfaces an agent can query.
-- [Contributing as an agent](/docs/agents/contributing-as-an-agent). Commit rules, handoff expectations, and what never belongs in a change.
-- [When you cannot run the game](/docs/agents/when-you-cannot-run-the-game). What an agent can still check without the game, display, or oracle.
+- [Making AI contributions reviewable](/docs/agents/contributing-as-an-agent). Commit rules, handoff expectations, and what never belongs in a change.
+- [When an agent cannot run the game](/docs/agents/when-you-cannot-run-the-game). What an agent can still check without the game, display, or oracle.
