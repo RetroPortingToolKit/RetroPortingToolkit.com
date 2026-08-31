@@ -30,7 +30,6 @@ Where a cell says UNKNOWN, the repository does not document one. That is a fact 
 | [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) | `_build_recomp.bat` via PowerShell, then `_build_native.bat` per game | co-simulation harness built with `-DGENESIS_BUILD_COSIM=ON`; `tools/audit_runner_purity.py` | `dispatch_misses.toml` must be empty; a boot-smoke baseline commits alongside its code change; one runtime instance at a time, `taskkill` before relaunch |
 | [smsggrecomp](https://github.com/mstan/smsggrecomp) | `cd recompiler && cmake -S . -B build -A x64 && cmake --build build --config Release` | decoder, ops and frontend self-tests under `tests/` | `dispatch_misses.log` empty; the user verifies end to end |
 | [cdirecomp](https://github.com/mstan/cdirecomp) | build `CdiRecompBios` and `CdiRecomp`, then `CdiRecompBios bios/cdi490a.rom --emit`; oracle via `cmake -S oracle -B build/oracle -G Ninja -DCMAKE_BUILD_TYPE=Release` | `tools/first_divergence.py`, which pages both PC streams from sequence 0 | dispatch misses resolved before any other debugging |
-| [gcnlle](https://github.com/mstan/gcnlle) | `./build.sh` | the repository states it "passes the 14-test runtime suite in each configuration when the MinGW CTest runner is used" | take a screenshot before asserting anything about visible state |
 | [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp) | `cmake -G Ninja -B build -S . -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=gcc`; `cmake --build build -j 8` | `ctest --test-dir build`; `ctest --test-dir build -R sm_widescreen`; `python3 snesrecomp/tests/v2/run_tests.py` | `./tools/regen.sh --strict-idempotent` requires a byte-identical double regeneration; always a full regeneration, never `--banks` |
 | [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp) | UNKNOWN in `CLAUDE.md`; `CODEX_ANALYSIS.md` shows `MSBuild.exe smw.sln /p:Configuration=Oracle /p:Platform=x64 /m /v:minimal` | `python snesrecomp\tests\test_attract_demo_regression.py`; `python snesrecomp\tests\v2\run_tests.py` | RULE 0: never pause the runtime |
 | [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp) | build the nesrecomp recompiler, run `NESRecomp.exe` over the ROM, then `cmake --build build --config Release` | a seven-step debugging protocol with a mandated response format | full-state dump validation; a timeseries requirement |
@@ -38,7 +37,6 @@ Where a cell says UNKNOWN, the repository does not document one. That is a fact 
 | [LegendOfZeldaNESRecomp](https://github.com/mstan/LegendOfZeldaNESRecomp) | `_zelda_release.bat` builds stock and HD; `cmake --build build_release --target LegendOfZeldaNESRecomp` | a TCP inspection loop over port 4370 | requires a stock PRG0 file matching the documented SHA-1 |
 | [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp) | `tools/regen.ps1` after a metadata or recompiler change | `tools/verify-strict.ps1` | a strict pass is zero dispatch misses, interpreted instructions, healed or cached code, unmapped accesses and unhandled I/O; `tools/make_release.ps1` output must be free of game content |
 | [DKC2Recomp](https://github.com/mstan/DKC2Recomp) | `cmake -S . -B build`, `cmake --build build --config Release`, or `make test` | `ctest --test-dir build -C Release --output-on-failure`; `make verify-rom ROM=...`; `make boot-rom ROM=...` | the complete suite before and after a milestone; strict warnings, never silence errors globally |
-| [xboxlle-probe](https://github.com/mstan/xboxlle-probe) | `make -j2` under nxdk, as CI runs it | `python -m unittest discover -s tests -v`; `python -m py_compile host/xbox_probe.py` | a human authorisation gate before any hardware action; CI asserts `test -s bin/default.xbe` |
 | [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp), [EmeraldRecomp](https://github.com/mstan/EmeraldRecomp), [RubySapphireRecomp](https://github.com/mstan/RubySapphireRecomp), [FireRedLeafGreenRecomp](https://github.com/mstan/FireRedLeafGreenRecomp) | MSYS2 mingw64 plus Ninja, invoked from PowerShell | defers to `gbarecomp`'s own rules and `DEBUG.md` | an ordered validation milestone ladder, "each measured (no eyeballing)" |
 | the three [Dragon Ball Z](https://github.com/mstan/DragonBallZBuusFuryRecomp) repositories | `tools/regen.ps1` from a verified USA game file; MSYS2 mingw64 with CMake and Ninja | defers to `gbarecomp/DEBUG.md` | the SHA-1 identity gate must not be weakened |
 | [TombaRecomp](https://github.com/mstan/TombaRecomp), [Tomba2Recomp](https://github.com/mstan/Tomba2Recomp), [ApeEscapeRecomp](https://github.com/mstan/ApeEscapeRecomp), [TsumuLightRecomp](https://github.com/mstan/TsumuLightRecomp), [MegaManX4Recomp](https://github.com/mstan/MegaManX4Recomp), [MegaManX5Recomp](https://github.com/mstan/MegaManX5Recomp), [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp) | defers to `psxrecomp-v4/CLAUDE.md` | UNKNOWN. None of the six documents a test command | after every run, resolve all dispatch misses before any other debugging |
@@ -63,13 +61,6 @@ From [`AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md) in D
 cmake -S . -B build
 cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
-```
-
-From [`AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) in xboxlle-probe, lines 55 to 57, the only repository that says what verification remains when the resource it depends on is unavailable:
-
-```sh
-python -m unittest discover -s tests -v
-python -m py_compile host/xbox_probe.py
 ```
 
 ## What each gate catches
@@ -114,7 +105,7 @@ Catches failures in a scripted run, where nobody is watching the screen. [nesrec
 
 ### Screenshots and frame dumps
 
-Catches what the other gates were not looking at. [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) requires a screenshot before you assert anything about visible state. Formats differ per toolchain, and repositories disagree on whether captures should be automatic, so follow the local rule.
+Catches what the other gates were not looking at. Formats differ per toolchain, and repositories disagree on whether captures should be automatic, so follow the local rule.
 
 ## The four repositories that say what done means
 
@@ -147,7 +138,6 @@ If your repository is one of the thirty, adopt one of the four above, say which 
 
 - The verification sections of the 36 agent instruction files, principally [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md), [`gbarecomp/CLAUDE.md`](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md), [`MegaManZeroRecomp/CLAUDE.md`](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md), [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md) and [`psxrecomp/CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md).
 - [`nesrecomp/COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md), the fullest gate suite in the fleet, including the fault-injection gate that checks the checker, and [`nesrecomp/AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md) on who may claim a patch is validated.
-- [`xboxlle-probe/AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) and [`.github/workflows/ci.yml`](https://github.com/mstan/xboxlle-probe/blob/main/.github/workflows/ci.yml), the only repository that documents verification without its privileged resource.
 
 ## Next
 

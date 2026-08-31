@@ -157,7 +157,6 @@ Do not disable a watchdog assertion. If the watchdog fires, the state is wrong. 
 - [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp): `game.toml`, `symbols/minishcap_reviewed.toml`, `CLAUDE.md`
 - [BoktaiRecomp](https://github.com/Shy/BoktaiRecomp): `variants/boktai1_usa/symbols/boktai1_usa_recompile.toml`
 - [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp): `CLAUDE.md`
-- [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): `DEBUG.md`
 
 ## Read next
 

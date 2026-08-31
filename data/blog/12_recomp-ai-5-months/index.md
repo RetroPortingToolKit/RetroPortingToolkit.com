@@ -129,10 +129,6 @@ One benefit I did not fully appreciate at the beginning is that AI also helps ot
 
 Instead, I find my value is more as the project maintainer. When users stand up a new game on a branch or fork of the ecosystem, I'm able to act as an arbiter before intaking their code, ensuring the pitfalls of improper abstraction, hardcoding, etc. don't pollute the ecosystem. Most often, I use the games I stood up as a QA regression test against new contributions before merging them.
 
-This kind of reuse is being done with the SNES ecosystem in a creative way, wherein another developer is using SNESRecomp as the basis for bringing the recompiled version of *Mega Man X* to Xbox.
-
-![Megaman X ported to original Xbox (credit: Haguero)](./mmx-xbox-port.mp4)
-
 My goal is to enable others to use these tools as a foundation for their own projects
 
 ## A Polarized Reaction

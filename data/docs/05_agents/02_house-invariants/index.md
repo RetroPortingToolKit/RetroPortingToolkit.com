@@ -39,7 +39,7 @@ From [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) in 
 >
 > If generated code is wrong → fix `recompiler/src/code_generator.c` and regenerate.
 
-Also in [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md), [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md), [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) and [ApeEscapeRecomp](https://github.com/mstan/ApeEscapeRecomp/blob/master/CLAUDE.md). It is the most repeated rule in the corpus, in at least twenty of the thirty-four repositories.
+Also in [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md), [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md) and [ApeEscapeRecomp](https://github.com/mstan/ApeEscapeRecomp/blob/master/CLAUDE.md). It is the most repeated rule in the corpus.
 
 ### No stubs
 
@@ -79,7 +79,7 @@ From [`CLAUDE.md`](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md) in gb
 >   overflow count, SWI count, BIOS-IRQ-return count, specific PC at
 >   specific function entry.
 
-Also in [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp/blob/master/CLAUDE.md), [`ndsrecomp/TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md) and [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md).
+Also in [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp/blob/master/CLAUDE.md) and [`ndsrecomp/TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md).
 
 ### Always-on ring buffers, queried backward
 
@@ -93,7 +93,7 @@ From [`CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md) in v
 > historical events. Probes QUERY the ring; they do NOT arm a trace,
 > run a workload, and hope.
 
-Also in [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/CLAUDE.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md), which lists five rings, [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/CLAUDE.md) and [`gcnlle/docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md).
+Also in [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/CLAUDE.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md), which lists five rings, and [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/CLAUDE.md).
 
 ### A dispatch miss is a silent game-breaking bug
 
@@ -143,7 +143,7 @@ From [`CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) in 
 > cannot answer a question from the disasm, Ghidra, or the Beetle oracle,
 > the answer is "I don't know yet" — not a confident guess.
 
-Also in [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp/blob/master/CLAUDE.md) and [xboxlle-probe](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md). The rule binds hardest when you can measure least: see [when you cannot run the game](/docs/agents/when-you-cannot-run-the-game).
+Also in [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md) and [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp/blob/master/CLAUDE.md). The rule binds hardest when you can measure least: see [when you cannot run the game](/docs/agents/when-you-cannot-run-the-game).
 
 ### No speculative progress
 
@@ -179,7 +179,7 @@ From [`AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md) in D
 > - Never add ROMs, save files, extracted graphics, music, BRR samples, level
 >   data, screenshots, or generated game binaries to the repository.
 
-Also in [xboxlle-probe](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md), which adds IP and MAC addresses, credentials, console-unique identifiers and unsanitised probe logs, plus [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md), [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/CLAUDE.md) and [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp/blob/master/CLAUDE.md).
+Also in [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md), [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/CLAUDE.md) and [MegaManX6Recomp](https://github.com/mstan/MegaManX6Recomp/blob/master/CLAUDE.md).
 
 > **You provide this.** You supply your own game file. These repositories do not contain one and do not distribute one, which is why the identity gate below exists at all. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
@@ -231,7 +231,7 @@ One term below needs a definition first. An interpreter reads the game's instruc
 | Pausing the runtime | Forbidden in [SuperMarioWorldRecomp](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/CLAUDE.md), whose RULE 0 says a paused observation invalidates every conclusion drawn from it. Removed in [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md), where `pause`, `continue`, `step` and `run_to_frame` are still registered and always return an error. Advised against in [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md) and [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/CLAUDE.md). Supported in [`nesrecomp/TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), [`vbrecomp/TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md) and [`cdirecomp/TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). Recommended for frame-by-frame analysis in [LegendOfZeldaNESRecomp](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) |
 | printf debugging | Absolute in [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md), which forbids `fprintf(stderr, ...)` "ever, for any reason", and in [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp/blob/master/CLAUDE.md). Allowed for a crash banner in [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md). A step in the debugging loop in [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), restricted to hot paths in [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md). [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md) forbids it near the top of its file and requires `printf(...)` with `fflush(stdout)` three hundred lines later |
 | Whether an interpreter exists | Does not exist and must not be written, in [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) and [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md). A carve-out inside that same psxrecomp file, whose rule 18 requires a small MIPS interpreter for code installed while the game runs. The default for uncovered code in [SuperMetroidRecomp](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md). Allowed under conditions in [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md) and [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md). A showstopper in [MinishCapRecomp](https://github.com/mstan/MinishCapRecomp/blob/main/CLAUDE.md) |
-| Where HLE sits | Inside [`psxrecomp/CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) alone the position moves three times through dated amendments: no HLE layer, then a permitted subsystem replacement, then a standing swappable tier, then the default. [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) forbids drifting toward an HLE boot. [cdirecomp](https://github.com/mstan/cdirecomp/blob/master/CLAUDE.md) recompiles the system ROM with no hand-written stubs. [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md) allows only an opt-in shadow that never becomes the verify oracle. [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md) calls HLE opt-in convenience and never the correctness oracle. See [high level and low level](/docs/concepts/hle-and-lle) |
+| Where HLE sits | Inside [`psxrecomp/CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md) alone the position moves three times through dated amendments: no HLE layer, then a permitted subsystem replacement, then a standing swappable tier, then the default. [cdirecomp](https://github.com/mstan/cdirecomp/blob/master/CLAUDE.md) recompiles the system ROM with no hand-written stubs. [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/CLAUDE.md) allows only an opt-in shadow that never becomes the verify oracle. [MegaManZeroRecomp](https://github.com/mstan/MegaManZeroRecomp/blob/main/CLAUDE.md) calls HLE opt-in convenience and never the correctness oracle. See [high level and low level](/docs/concepts/hle-and-lle) |
 | How hard a gate Ghidra is | A hard session gate with no exceptions in [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md): no Ghidra means no action. A checklist item that stops and asks in [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md). Demoted in [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md), which says SLEIGH bugs exist so Ghidra is not the source of truth for execution correctness. Not the discovery mechanism at all in [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md) and [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/CLAUDE.md), where static disassembly is ground truth |
 | Automatic screenshots | Automatic every 60 frames in [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md). Forbidden in [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md) and [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp/blob/master/CLAUDE.md), which want script-triggered captures. Those two use nesrecomp, so the disagreement is inside one toolchain |
 | Screenshot format | PNG in [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md), which bans BMP as too large for token limits. Client-side BMP or PPM in [`cdirecomp/TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md) |

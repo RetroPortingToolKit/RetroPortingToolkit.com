@@ -4,8 +4,6 @@ summary: "What an agent can still verify with no display, no game file, no Ghidr
 pageType: "guide"
 tags: ["Agents", "Verification", "Testing"]
 repos:
-  - "https://github.com/mstan/xboxlle-probe"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/SuperMetroidRecomp"
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/vbrecomp"
@@ -21,7 +19,7 @@ Five resources decide what is open to you. Each one you lack removes a class of 
 - **The repository and a compiler.** Enough to build the framework and run its own test suites. This is the floor and it is usually there.
 - **Ghidra over MCP.** In [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), no Ghidra means no action. Repositories that gate on it may ship no `.mcp.json`, so there may be no server to reach at all.
 - **The game file.** Without it there is no regeneration, no run, and no way past the identity gate, which is built to refuse.
-- **A display.** Without one there is no screenshot, and [gcnlle](https://github.com/mstan/gcnlle/blob/master/CLAUDE.md) requires a screenshot before you assert anything about visible state.
+- **A display.** Without one there is no screenshot, so you cannot make a visual claim.
 - **A second process for the oracle.** Comparison is how this fleet establishes correctness. No oracle means no correctness claim, only a consistency claim.
 
 > **You provide this.** You supply your own game file. The repositories do not contain one and do not distribute one, so an agent working from a clean clone will not have one. That is expected, not a misconfiguration. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
@@ -42,20 +40,7 @@ You should now see a pass or fail count. Watch for skips: [SuperMetroidRecomp](h
 
 ### 3. Compile-check the host tooling
 
-[xboxlle-probe](https://github.com/mstan/xboxlle-probe) is the only repository that states what verification remains when the resource it depends on is unavailable.
-
-From [`AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) in xboxlle-probe, lines 52 to 60:
-
-> Without a human-authorized hardware session, verification is limited to:
->
-> ```sh
-> python -m unittest discover -s tests -v
-> python -m py_compile host/xbox_probe.py
-> ```
->
-> Building the XBE is safe if it does not deploy or launch it.
-
-The last line carries the transferable idea. Producing an artefact is safe. Using it is the part that needs the resource you lack.
+When a repository includes host-side tools, compile or lint those tools separately from the game. Producing an artefact is usually safe. Using it is the part that needs the resource you lack.
 
 ### 4. Check the structural rules that need no run
 
@@ -102,14 +87,7 @@ The rule against guessing does not relax because you have fewer resources. It bi
 - that a **divergence is resolved**. That needs two implementations running to the same hardware event.
 - that there are **no dispatch misses**, unless you produced the artefact yourself this session.
 
-What you can say is what you measured. [`gcnlle/docs/HANDOFF_2026-08-09.md`](https://github.com/mstan/gcnlle/blob/master/docs/HANDOFF_2026-08-09.md) is the model. It fixes the permitted claim in advance and names what is still unestablished.
-
-> The allowed current claim is: **the measured route clears the 66/s
-> unthrottled emulation-capacity gate without removing the retained
-> software/interpreter/DSP-LLE paths. A complete exercised force-floor gate,
-> actual 60-Hz presentation, and release-quality audio are not yet established.**
-
-Write your own version of that sentence. It is the most useful thing you can leave behind.
+What you can say is what you measured. Write one sentence that names the measured result and the important things still unverified. It is the most useful thing you can leave behind.
 
 ## What to write down instead
 
@@ -127,7 +105,6 @@ When the check cannot be finished, the handoff is the deliverable. [Contributing
 Some of these are hard stops written into the repositories.
 
 - **Ghidra is down and you are in a repository that gates on it.** [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md) say no reading files, no writing code, no suggestions.
-- **You are in [xboxlle-probe](https://github.com/mstan/xboxlle-probe) and the work needs hardware.** A human must identify the exact target and confirm authorisation first, and you must not scan a network or infer a host address. Stop and ask.
 - **Your change touches indirect jumps, relocation or hardware interaction.** Those need a proof artefact, and code without proof is invalid in [psxrecomp](https://github.com/mstan/psxrecomp) and [vbrecomp](https://github.com/mstan/vbrecomp).
 - **The framework the repository defers to is not present.** Do not reimplement the missing framework rules from context.
 
@@ -148,8 +125,6 @@ If you learn something the repositories do not say, that belongs in your handoff
 
 ## Source
 
-- [`xboxlle-probe/AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md), the fleet's only stated safe-verification boundary.
-- [`gcnlle/docs/HANDOFF_2026-08-09.md`](https://github.com/mstan/gcnlle/blob/master/docs/HANDOFF_2026-08-09.md), for the required handback and the permitted-claim sentence.
 - [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md), for `build/last_run_report.json` and the code 77 skip; [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [`nesrecomp/TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), for the trace paths, the sidecar log format and the shell note.
 - [`GumshoeNESRecomp/CODEX_SUMMARY.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/CODEX_SUMMARY.md) and [`SuperMarioBrosNESRecomp/TCP.md`](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/TCP.md), for the two recorded environment failures.
 

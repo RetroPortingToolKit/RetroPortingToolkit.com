@@ -185,7 +185,7 @@ a bare path as the whole info string works when the block has no language
   is static, or as near it as a game allows (core developer, 2026-08-28).
 - The "re" in recompilation is loose, and a page may say so once where it
   helps. A game written by hand in assembly was never compiled in the first
-  place, so NES, SNES and Game Boy titles are being compiled once here rather
+  place, so NES and SNES titles are being compiled once here rather
   than re-compiled. The pipeline is the same either way, so one word covers
   both.
 - Being strict, the part that turns a binary back into code is a decoder.
@@ -217,10 +217,6 @@ a bare path as the whole info string works when the block has no language
 - "Pokémon" keeps its accent.
 - Do not invent facts about a project. If a claim cannot be sourced, leave it
   out and link the source instead.
-- Documentation pages under `data/docs/` do not reference N64Recomp,
-  N64ModernRuntime or RT64 (owner's standing decision, 2026-08-25). The
-  hardware and game pages keep that platform's lineage and licensing story; a
-  docs page that needs it links to /hardware/nintendo-64.
 - Never mention these non-public projects: Mario Kart DS, Super Mario 64 DS,
   Pokémon Black, Rocket Knight Adventures, Legend of Legaia.
 

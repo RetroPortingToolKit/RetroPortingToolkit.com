@@ -26,11 +26,10 @@ If you are trying your first port, start with the strongest path.
 - [Master System and Game Gear](/docs/platforms/master-system-game-gear). Experimental Z80 target. Useful for timing work, but not the first place to start.
 - [Nintendo DS](/docs/platforms/nintendo-ds). Early and experimental. Able to run commercial titles, but still needs optimization and refinement.
 
-## Research and probes
+## Research
 
 - [CD-i](/docs/platforms/cd-i). Research path around full system ROM behavior, not a normal game-port route.
 - [Virtual Boy](/docs/platforms/virtual-boy). Focused experimental target for one narrow runtime.
-- [Xbox](/docs/platforms/xbox). A probe and research path, not a normal porting route.
 
 ## How should I read these pages?
 

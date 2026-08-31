@@ -10,7 +10,6 @@ repos:
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/cdirecomp"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/smsggrecomp"
 updated: "2026-08-25"
@@ -22,7 +21,7 @@ Nine repositories describe that server in their own words. This page puts them t
 
 ## One transport, many command sets
 
-The transport is shared. All nine documents describe the same one, and two of them say where they got it. [gcnlle](https://github.com/mstan/gcnlle)'s [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md) "mirrors psxrecomp's `debug_server.c` (JSON-over-newline), sized to gcnrecomp", and [vbrecomp](https://github.com/mstan/vbrecomp)'s [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md) was "Adapted from `recomp-template/NES/TCP.md` with V810 / VB specifics."
+The transport is shared. The protocol documents describe the same basic shape. [vbrecomp](https://github.com/mstan/vbrecomp)'s [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md) was "Adapted from `recomp-template/NES/TCP.md` with V810 / VB specifics."
 
 The command sets differ, and they differ by console. A Virtual Boy server answers `vip_state` because the Virtual Boy has a VIP chip. The core set below works everywhere. Check anything under [per-console extensions](#per-console-extensions) before you rely on it.
 
@@ -34,7 +33,7 @@ The command sets differ, and they differ by console. A Virtual Boy server answer
 
 | Property | Value |
 |---|---|
-| Address | TCP on `127.0.0.1`. gcnlle states the bind is localhost only |
+| Address | TCP on `127.0.0.1`. |
 | Concurrency | One client at a time |
 | Framing | Line based. One request per line terminated by `\n`, one JSON response line back, terminated by `\n` |
 | Encoding | JSON, one object per line. A bare command word is also accepted for the simplest commands |
@@ -62,7 +61,7 @@ nesrecomp states the rules most clearly and the other documents repeat them. Fro
 
 ### Request and response envelopes
 
-[psxrecomp](https://github.com/mstan/psxrecomp) gives the three shapes most compactly, and gcnlle copies them word for word. From [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp:
+[psxrecomp](https://github.com/mstan/psxrecomp) gives the three shapes most compactly. From [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp:
 
 ```text title="TCP_COMMANDS.md"
 Protocol: **JSON over newline**, one object per line, responses on same connection.
@@ -90,7 +89,7 @@ This is the one place the transport differs, and no repository writes it down. A
 | Lineage | Failure envelope | Stated in |
 |---|---|---|
 | NES | `{"ok":false,"err":"..."}` | [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp, [`TCP.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/TCP.md) in YoshiNESRecomp |
-| PlayStation, Game Boy Advance, Virtual Boy, CD-i, GameCube | `{"id": N, "ok": false, "error": "<msg>"}` | [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp, [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md) in gbarecomp, [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md) in vbrecomp, [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md) in cdirecomp, [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md) in gcnlle |
+| PlayStation, Game Boy Advance, Virtual Boy, CD-i | `{"id": N, "ok": false, "error": "<msg>"}` | [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp, [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md) in gbarecomp, [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md) in vbrecomp, [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md) in cdirecomp |
 
 So read `ok` first, then read whichever of `err` and `error` is there. Do not test for `error` alone. On half the fleet a failure would then look like a success.
 
@@ -112,12 +111,12 @@ These 26 commands appear with the same name and the same meaning in more than on
 
 | Command | Arguments | Response | Documented in | Notes |
 |---|---|---|---|---|
-| `ping` | none | Heartbeat. psxrecomp adds the current frame number, ndsrecomp returns `{"pong":true}`, cdirecomp `{ok,pong}`, gcnlle `{block, pc}`, gbarecomp's implementation returns `{"ok":true,"who":"gbarecomp_native"}` | psx, nes, gba, nds, cdi, vb, gcn, genesis, smsgg | The only command every server answers. Use it to prove the port is live before anything else |
-| `frame` | none | Current frame number. nesrecomp adds the last executed function name | psx, nes, gba, vb, gcn | Alias of `ping` on gcnlle |
+| `ping` | none | Heartbeat. psxrecomp adds the current frame number, ndsrecomp returns `{"pong":true}`, cdirecomp `{ok,pong}`, gbarecomp's implementation returns `{"ok":true,"who":"gbarecomp_native"}` | psx, nes, gba, nds, cdi, vb, genesis, smsgg | The only command every server answers. Use it to prove the port is live before anything else |
+| `frame` | none | Current frame number. nesrecomp adds the last executed function name | psx, nes, gba, vb | |
 | `get_registers` | none | The full CPU register file, contents per architecture | psx, nes, gba, cdi, vb, gcn, genesis | Alias `regs`. psxrecomp returns 32 GPRs plus PC, HI and LO, and on native also COP0 SR/Cause/EPC, I_STAT and I_MASK. nesrecomp returns A, X, Y, S, P, flags, current bank and frame. cdirecomp returns `{ok,pc,sr,usp,d0..d7,a0..a7}`. ndsrecomp takes a `cpu` argument, 9 or 7 |
-| `read_ram` | `addr`, `len` | Bytes as a hex string | psx, nes, vb, gcn, genesis | psxrecomp will return up to the full 2 MB in one response line; gcnlle caps at 64 KB. ndsrecomp and cdirecomp spell it `read_mem` |
-| `dump_ram` | `addr`, `len` | Same as `read_ram` | psx, nes, vb, gcn | An alias on psxrecomp and gcnlle. On nesrecomp it is a bulk dump capped at 8192 bytes |
-| `write_ram` | psxrecomp `addr`, `val`; gcnlle `addr`, `hex` | ok | psx, nes, vb, gcn | The argument names differ and so does the width: psxrecomp writes exactly one byte and the parameter is `val`, not `hex`. cdirecomp lists `write_mem` as planned, not live |
+| `read_ram` | `addr`, `len` | Bytes as a hex string | psx, nes, vb, genesis | psxrecomp will return up to the full 2 MB in one response line. ndsrecomp and cdirecomp spell it `read_mem` |
+| `dump_ram` | `addr`, `len` | Same as `read_ram` | psx, nes, vb | An alias on psxrecomp. On nesrecomp it is a bulk dump capped at 8192 bytes |
+| `write_ram` | psxrecomp `addr`, `val` | ok | psx, nes, vb | psxrecomp writes exactly one byte and the parameter is `val`. cdirecomp lists `write_mem` as planned, not live |
 | `read_frame_ram` | `addr`, `len`, `frame` | RAM as of one ring buffer frame | psx, nes, vb | gbarecomp splits it per region: `read_frame_iwram`, `read_frame_ewram`, `read_frame_vram`, `read_frame_io` |
 | `history` | none | Ring buffer stats, including how many frames are available | psx, nes, gba, vb | |
 | `get_frame` | `frame` | The full frame record from the ring | psx, nes, gba, vb, genesis | Planned but not live on cdirecomp |
@@ -126,10 +125,10 @@ These 26 commands appear with the same name and the same meaning in more than on
 | `first_failure` | none | The first frame where verify mode diverged | psx, nes, gba | vbrecomp documents `first_divergence` for the same job. cdirecomp lists `first_divergence` as planned |
 | `frame_diff` | one frame, or two | Verify diffs, or a two frame comparison of RAM, nametable, palette and OAM | nes, gba, vb | |
 | `memory_diff` | `region`, one of `ram`, `nt`, `pal`, `oam`, `all` | Current state against a historical frame | nes, gba, vb | |
-| `set_input` | psxrecomp `buttons`, optional `frames`, `lx`, `ly`, `rx`, `ry`; gcnlle `buttons`, `stick_x`, `stick_y`, `substick_x`, `substick_y`, `trigger_l`, `trigger_r`, `reset`; cdirecomp `mask[,dx,dy]` | Echoes the resulting state | psx, nes, gba, vb, gcn, cdi | Bit layouts are per console and not interchangeable. The PS1 mask is inverted, 0 means pressed. ndsrecomp uses `keys` with a `mask` and `touch` with `x`, `y`, `down` |
+| `set_input` | psxrecomp `buttons`, optional `frames`, `lx`, `ly`, `rx`, `ry`; cdirecomp `mask[,dx,dy]` | Echoes the resulting state | psx, nes, gba, vb, cdi | Bit layouts are per console and not interchangeable. The PS1 mask is inverted, 0 means pressed. ndsrecomp uses `keys` with a `mask` and `touch` with `x`, `y`, `down` |
 | `press` | buttons, frame count | ok | psx, nes, gba, vb | nesrecomp holds for 2 frames by default |
 | `clear_input` | none | Removes input and analog axis overrides | psx, nes, gba, vb | |
-| `screenshot` | optional `path` | psxrecomp writes a PNG of the current display, default `psx_screenshot.png` in the runtime working directory, and answers with one metadata line `{path,width,height}`. gcnlle decodes the XFB to PPM at `_work/screenshot.ppm` and answers `{path, width, height, xfb_addr, mean_luma}` | psx, nes, gba, vb, gcn, smsgg | Alias `screenshot_file`. The format is not uniform: PNG on NES where "BMP is prohibited", client-side BMP or PPM on CD-i. ndsrecomp returns pixels instead, through `framebuffer` |
+| `screenshot` | optional `path` | psxrecomp writes a PNG of the current display, default `psx_screenshot.png` in the runtime working directory, and answers with one metadata line `{path,width,height}`. | psx, nes, gba, vb, smsgg | Alias `screenshot_file`. The format is not uniform: PNG on NES where "BMP is prohibited", client-side BMP or PPM on CD-i. ndsrecomp returns pixels instead, through `framebuffer` |
 | `watch` | `addr` | Byte level memory watchpoint, fires per frame on change | psx, genesis | Yoshi's NES port documents its own `watch`, `follow` and `follow_history` |
 | `unwatch` | `addr` | Removes a watchpoint | psx, genesis | |
 | `dispatch_miss_info` | none | Count plus a ring of `call_by_address` misses | nes, gba, vb, cdi | smsggrecomp spells it `dispatch_misses`. ndsrecomp has no command: it appends to `dispatch_misses.log` next to the runner. cdirecomp's oracle always answers 0, because an interpreter never misses |
@@ -153,7 +152,6 @@ Most servers are not always listening.
 | ndsrecomp | `debug.ini`, plus `--serve` for the headless surface or `--interactive` for play mode |
 | vbrecomp | `debug.ini` keys `runtime.debug_port` and `oracle.debug_port`, or `--port N` |
 | segagenesisrecomp | `debug.ini` next to the executable. Precedence is `--port N`, then `port=N` in `debug.ini`, then the `DEFAULT_DEBUG_PORT` macro |
-| gcnlle | Set `GCN_DEBUG_PORT`. "When unset, the rings still record, there is just no query surface" |
 | smsggrecomp | `--port <N>`, off by default |
 | cdirecomp | Per build |
 
@@ -239,10 +237,6 @@ The frame ring holds 36,000 entries, about 12 minutes at 50.27 Hz. Each record c
 | Reverse debugger | `rdb_status`, `rdb_range`, `rdb_range_clear`, `rdb_reset`, `rdb_count`, `rdb_dump`, `trace_calls`, `trace_calls_reset`, `get_call_trace`, `trace_blocks`, `trace_blocks_reset`, `trace_blocks_range`, `get_block_trace`, `rdb_break`, `rdb_break_clear`, `rdb_break_list`, `rdb_step_block`, `rdb_break_continue`, `rdb_watch_add`, `rdb_watch_clear`, `rdb_watch_list`, `rdb_watch_continue`, `rdb_parked`, `rdb_anchor_on`, `rdb_anchor_off`, `rdb_anchor_status`, `rdb_iwram_at_block`, `rdb_ewram_at_block` |
 
 The burndown group states its response shapes. `state_hash` returns `{ok,cycles,iwram,ewram,vram,pal,oam,hash}`, an FNV-1a-64 over IWRAM, EWRAM, VRAM, PAL and OAM plus `g_runtime_cycles`. `symbol {addr}` returns something like `{"ok":true,"name":"UpdateAnimationVariableFrames","offset":16}`. The `rdb_*` group is a documented design, not verified behaviour; see below.
-
-### GameCube
-
-[gcnlle](https://github.com/mstan/gcnlle) is built around three always-on rings: MMIO and block/PC at 262144 entries each, events at 65536. On top of those sits a checkpoint family that arms at dispatcher boundaries rather than at any PC you name: `checkpoint_arm`, `checkpoint_status`, `checkpoint_resume` and `checkpoint_continue`. Ring and state queries are `mmio_dump`, `block_dump`, `gpr_probe_dump`, `pc_seen`, `event_dump`, `dsp_state`, `rtc_state`, `audio_state` and `gx_draw_state`. Co-simulation has its own family: `cosim_status`, `cosim_step {count}`, `cosim_run_to {pc, max_instructions?}`, `cosim_state` (alias `state_hash`), `cosim_cpu_bytes`, `cosim_pages {space?, start?, count?}` and `cosim_inject {kind: gpr|ram|timebase, ...}`. `GCN_COSIM=1` requires `GCN_DEBUG_PORT`.
 
 Read `mean_luma` in a `screenshot` response before you call a black frame a bug. Until the GX command processor is modelled, an all black image with `mean_luma` around 16 is the correct output today.
 
@@ -336,7 +330,7 @@ echo '{"cmd":"zelda_state"}' | ncat localhost 4370
 echo '{"cmd":"read_ram","addr":847,"len":12}' | ncat localhost 4370
 ```
 
-Two projects ship a client that passes anything through, so every registered command is reachable without adding a mapping. psxrecomp's `python tools/debug_client.py <cmd> [args]` targets the native port, `--port 4380` targets the Beetle oracle, and `compare <cmd>` runs on both and shows the differences. Extra `key=value` arguments become JSON fields, so `debug_client.py --port 4370 gpu_frame_dump frame=14528 count=65536` works with no code change. gcnlle's `python tools/gcn_debug_client.py [--port N] <cmd> [key=value ...]` works the same way, defaults to port 4380, and returns 2 on missing arguments. psxrecomp's client exits 1 when the connection is refused, so a script can use it to check whether anything is listening.
+psxrecomp ships a client that passes anything through, so every registered command is reachable without adding a mapping. `python tools/debug_client.py <cmd> [args]` targets the native port, `--port 4380` targets the Beetle oracle, and `compare <cmd>` runs on both and shows the differences. Extra `key=value` arguments become JSON fields, so `debug_client.py --port 4370 gpu_frame_dump frame=14528 count=65536` works with no code change. psxrecomp's client exits 1 when the connection is refused, so a script can use it to check whether anything is listening.
 
 ## Source
 
@@ -345,7 +339,7 @@ Two projects ship a client that passes anything through, so every registered com
 - [gbarecomp](https://github.com/mstan/gbarecomp): [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md) and [`src/debug/tcp_debug_server.cpp`](https://github.com/mstan/gbarecomp/blob/main/src/debug/tcp_debug_server.cpp).
 - [ndsrecomp](https://github.com/mstan/ndsrecomp): [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), [`runner/src/debug_server.cpp`](https://github.com/mstan/ndsrecomp/blob/main/runner/src/debug_server.cpp) and [`PLAN.md`](https://github.com/mstan/ndsrecomp/blob/main/PLAN.md).
 - [vbrecomp](https://github.com/mstan/vbrecomp): [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`runtime/src/debug_server.c`](https://github.com/mstan/vbrecomp/blob/master/runtime/src/debug_server.c) and [`runtime/src/beetle_debug_server.c`](https://github.com/mstan/vbrecomp/blob/master/runtime/src/beetle_debug_server.c).
-- [cdirecomp](https://github.com/mstan/cdirecomp): [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). [gcnlle](https://github.com/mstan/gcnlle): [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md) and [`tools/gcn_debug_client.py`](https://github.com/mstan/gcnlle/blob/master/tools/gcn_debug_client.py).
+- [cdirecomp](https://github.com/mstan/cdirecomp): [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md).
 - [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp): [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md) and [`runner/cmd_server.c`](https://github.com/mstan/segagenesisrecomp/blob/master/runner/cmd_server.c). [smsggrecomp](https://github.com/mstan/smsggrecomp): [`DEBUG.md`](https://github.com/mstan/smsggrecomp/blob/main/DEBUG.md).
 
 ## Next

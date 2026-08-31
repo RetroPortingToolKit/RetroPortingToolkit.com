@@ -14,7 +14,7 @@ links:
 
 My long term goal is to plant the seed for all legacy systems to have static recompilers, in hopes to blossom various types of ports and extensibility.
 
-Gameboy Advance was always an obvious target, and with the [recent news of the decompilation of The Minish Cap](https://github.com/zeldaret/tmc) getting an early PC port, it felt like it was a good jumping off point, since standing up these ecosystems is always easier with an accompanied decompilation for the first few games.
+Game Boy Advance was always an obvious target, and with the [recent news of the decompilation of The Minish Cap](https://github.com/zeldaret/tmc) getting an early PC port, it felt like it was a good jumping off point, since standing up these ecosystems is always easier with an accompanied decompilation for the first few games.
 
 Following the same philosophy I set forth with Playstation, this was done to be all encompassing. The first bootable binary I stood up was not a game, but the BIOS itself.
 
@@ -22,7 +22,7 @@ Following the same philosophy I set forth with Playstation, this was done to be 
 
 While underwhelming on its own, it sets a foundation for correctness for all games to build on. The GBA BIOS isn't as interactive as say, even the Playstation, but it is a foundation towards completeness.
 
-While too early to tell, I'm also curious to see if someday we'll see creative uses of the gameboy "download mode", wherein it can be sent game data from other Gameboy Advances (or even Gamecubes) via link cable.
+While too early to tell, I'm also curious to see if someday we'll see creative uses of the Game Boy Advance "download mode", where it can be sent game data from another system over a link cable.
 
 > 💡 This is my first **32-bit** target. The GBA freely *interworks* two different instruction sets, 32-bit ARM and 16-bit THUMB, switching between them mid-execution. The recompiler has to decode and translate both, and handle every switch correctly. The **GBA BIOS** is statically recompiled and runs through the same native dispatch path as the game code (you supply your own BIOS dump). The hardware, the PPU, DMA, timers, interrupts, audio FIFOs, and cartridge save chips, is modeled faithfully rather than faked.
 

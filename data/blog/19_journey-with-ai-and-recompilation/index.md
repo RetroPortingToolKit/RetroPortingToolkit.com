@@ -42,13 +42,11 @@ It took me a while to get it down, but once I did, I started to see just how emp
 
 My day job consists of working with backend web services and databases. I have never been a game developer, neither as a professional nor a hobbyist. Though I have tinkered with modding games for years, with my first major discovery being a "[million dollar exploit](https://www.youtube.com/watch?v=ShsoED-goDg)" in Valve's Team Fortress 2 economy. In the years following, I ended up picking up most of the sysadmin work for my gaming community Team Fortress 2, Minecraft, Killing Floor, etc. game servers. Later on, I would go on to build a prototype (*without* AI) and found a fan-made private server for a live service game, [GUNDAM EVOLUTION](https://1379.tech/the-making-of-side-7-gundam-evolution-private-server-project/), that saw an abrupt shutdown only a year after its release.
 
-I have always been an avid enthusiast of retro games. I had a slew of hand-me-down systems from my older brothers, ranging from the NES through to the Nintendo 64, eventually buying my first own game console, the Gamecube, many years ago.
+I have always been an avid enthusiast of retro games. I had a slew of hand-me-down systems from my older brothers, and I eventually bought my first own game console many years ago.
 
 I follow the emulation and modding scenes closely, too. Despite having the systems, I did tinker with emulation at a young age, if not for fascination more than any other reason.
 
-In more recent years, I have enjoyed seeing all the various decompilations and mods, as well as amazing showcases like [Triforce%](https://www.youtube.com/watch?v=f9cCtRYMKm4) (shoutout to the [TASBot](https://tas.bot/wiki/Main_Page) team!), where my friend and his team added new content to The Legend of Zelda: Ocarina of Time using a stock Nintendo 64, a stock cartridge of Ocarina of Time, and a regular controller as the starting point for a mind-blowing showcase.
-
-More practically, I have also been following various decompilations, with [Ship of Harkinian](https://www.shipofharkinian.com/), a decompilation turned PC port for Ocarina of Time, allowing for improvements starting higher frame rates, wider aspect ratios all the way through to mods like [replacing Link with Megaman](https://www.youtube.com/watch?v=fNpD_ILt46E).
+In more recent years, I have enjoyed seeing all the various decompilations, recompilations, mods, and fan showcases that make older games feel active again.
 
 ![](./SonicTheHedgehogRecomp_cJeXxJybYL.png)
 
@@ -90,7 +88,7 @@ My methodologies began to mature around the idea of having a time-series ring bu
 
 ## The second system: Playstation
 
-Once I was able to get Faxanadu built, I wanted to pivot to see how approachable this was for other systems. I set my sights on the Playstation. Though it may have seen like a complicated second choice, I understood from my following of the scene that both the Nintendo 64 and the Playstation are considered *easier* because that generation was amongst the first to start using *compilers* for their games rather than just writing in assembly. The Nintendo64 already had a static recompiler, but nothing existed for the Playstation. Both systems made use of MIPS, making me hope that at least some of the discovery done in the N64 space would carry over.
+Once I was able to get Faxanadu built, I wanted to pivot to see how approachable this was for other systems. I set my sights on the Playstation. Though it may have seemed like a complicated second choice, many PlayStation games were compiler-generated rather than entirely handwritten assembly. That made the system feel more approachable than it looked at first.
 
 In the end, I was able to get a clunky prototype to load. [Tomba](/blog/ps1-recompiler-claude-code) was able to load in. Its FMVs and first area were able to load, albeit with many audio and visual glitches, but it was again proving the concept.
 
@@ -172,21 +170,17 @@ Tomba is in a healthier state, but likely requires additional playtesting. I wou
 
 ### New Systems
 
-#### Gameboy Advance
+#### Game Boy Advance
 
-The Gameboy Advance is a good next target for a new system to be built. [The Minish Cap](https://gbatemp.net/threads/pc-port-for-the-legend-of-zelda-the-minish-cap-gets-its-first-playable-build.681470/) recently got 100% decompiled and got its first build. While decomps don't translate 1:1 to recomps, the decompilation will be beneficial and there's likely some runtime work in the decomp that can accelerate development.
+The Game Boy Advance is a good next target for a new system to be built. [The Minish Cap](https://gbatemp.net/threads/pc-port-for-the-legend-of-zelda-the-minish-cap-gets-its-first-playable-build.681470/) recently got 100% decompiled and got its first build. While decomps don't translate 1:1 to recomps, the decompilation will be beneficial and there's likely some runtime work in the decomp that can accelerate development.
 
 #### Phillips CDI
 
 The Phillips CDI was a game system I never owned, but I'm aware it has a few Nintendo licensed titles on it. I'm aware that its emulation scene is ultimately poor, and I hope this'll be an opportunity to give it more of a second life.
 
-#### Out of scope
-
-Given that the Nintendo 64 and Gameboy (Color) have existing recompilation projects, I don't have any intention to prioritize those for now. My hope is to set a foundation for systems that don't yet have one and hopefully enable various modding communities to feel empowered to bring their respective games and systems into the modern age.
-
 #### Looking to the Future
 
-As tooling continues to mature and I'm able to set some foundations for these earlier ecosystems, I may someday consider looking at later generation consoles, like Gamecube (which has begun to also see decompilations), Wii, DS, etc. I'm sure that as systems get more complex, I'll be limited in both AI tooling again (as well as token costs). Though with how fast AI is evolving, it's hard to say.
+As tooling continues to mature and I'm able to set some foundations for these earlier ecosystems, I may someday consider looking at later generation consoles. I'm sure that as systems get more complex, I'll be limited in both AI tooling again (as well as token costs). Though with how fast AI is evolving, it's hard to say.
 
 ## Closing Thoughts
 

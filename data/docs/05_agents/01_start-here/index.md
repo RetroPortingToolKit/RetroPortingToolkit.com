@@ -34,7 +34,7 @@ Look in the root for `CLAUDE.md` and `AGENTS.md`. These files come in three shap
 
 **A deferring game repository** is 1 to 3 KB: a pointer to its framework plus five or six local rules. The six PlayStation game repositories are near copies of one another, and so are the six Game Boy Advance ones. Read the local rules, then read the framework file.
 
-**Two files are different.** [`xboxlle-probe/AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) is a safety document about talking to real hardware. [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md) is a source-port working agreement, not a recompiler.
+**Some files are different.** [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md) is a source-port working agreement, not a recompiler.
 
 Then open the documents that file names, usually `PRINCIPLES.md`, `TCP.md` or `TCP_COMMANDS.md`, `DEBUG.md` and `COSIM.md`. The protocol documents matter most, because the debug server is how you observe anything at all. See [the TCP debug protocol](/docs/reference/tcp-protocol) and [machine-readable surfaces](/docs/agents/machine-surfaces).
 
@@ -107,7 +107,7 @@ Read this as a list of things not to assume.
 
 - Large constitution examples: [`psxrecomp/CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md), [`Megaman3NESRecomp/CLAUDE.md`](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), [`vbrecomp/CLAUDE.md`](https://github.com/mstan/vbrecomp/blob/master/CLAUDE.md), [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md).
 - [`nesrecomp/AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md), eight lines, the shortest file in the corpus.
-- [`xboxlle-probe/AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md) and [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md), the two files unlike the rest.
+- [`DKC2Recomp/AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md), a file unlike the rest.
 - [`psxrecomp/.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml), the fleet's only written position on CI.
 
 ## Next

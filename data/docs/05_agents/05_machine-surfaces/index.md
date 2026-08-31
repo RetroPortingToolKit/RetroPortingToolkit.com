@@ -9,7 +9,6 @@ repos:
   - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/ndsrecomp"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/SuperMetroidRecomp"
 updated: "2026-08-25"
 ---
@@ -29,7 +28,7 @@ Most of this fleet is driven by a human watching a game window. Not all of it. T
 
 ## The TCP debug protocol
 
-Nine repositories ship a protocol document: `TCP.md` in SuperMarioBrosNESRecomp, YoshiNESRecomp, cdirecomp, gbarecomp, ndsrecomp, nesrecomp and vbrecomp, and `TCP_COMMANDS.md` in psxrecomp and gcnlle. All nine describe the same transport. The argument and return shapes per command are in [the TCP debug protocol reference](/docs/reference/tcp-protocol); below is enough to open a connection and read what comes back.
+Several repositories ship a protocol document: `TCP.md` in SuperMarioBrosNESRecomp, YoshiNESRecomp, cdirecomp, gbarecomp, ndsrecomp, nesrecomp and vbrecomp, and `TCP_COMMANDS.md` in psxrecomp. They describe the same basic transport. The argument and return shapes per command are in [the TCP debug protocol reference](/docs/reference/tcp-protocol); below is enough to open a connection and read what comes back.
 
 ### Transport
 
@@ -51,9 +50,9 @@ This is the one place the transport really differs. A client that works across t
 | Lineage | Failure envelope | Documented in |
 |---|---|---|
 | NES | `{"ok":false,"err":"..."}` | [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md) in nesrecomp, [`TCP.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/TCP.md) in YoshiNESRecomp |
-| PlayStation, Game Boy Advance, Virtual Boy, CD-i, GameCube | `{"id": N, "ok": false, "error": "<msg>"}` | [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp, and the same envelope in gbarecomp, vbrecomp, cdirecomp and gcnlle |
+| PlayStation, Game Boy Advance, Virtual Boy, CD-i | `{"id": N, "ok": false, "error": "<msg>"}` | [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) in psxrecomp, and the same envelope in gbarecomp, vbrecomp and cdirecomp |
 
-The psxrecomp envelope also puts `id` first, and gcnlle copies it verbatim. Read `ok` to decide success, then read whichever of `err` or `error` is present.
+The psxrecomp envelope also puts `id` first. Read `ok` to decide success, then read whichever of `err` or `error` is present.
 
 ### The common core
 
@@ -71,7 +70,7 @@ Present in every server, with the spellings each project uses. UNKNOWN means the
 | `dispatch_miss_info` | UNKNOWN | yes | yes | yes | log file | yes | UNKNOWN |
 | `first_divergence` / `first_failure` | `first_failure` | `first_failure` | `first_divergence` | UNKNOWN | harness side | planned | UNKNOWN |
 
-Each server then adds hardware queries for its own console, which is the reason to open the specific document: `vip_state`, `vsu_state` and `psw_state` on Virtual Boy; `gx_state`, `gx_run_sample`, `gx_write_sample` and `dma_sample` on Nintendo DS; `read_nametable`, `read_oam`, `read_chr` and `mapper_state` on NES; `gte_state`, `mdec_state`, `gp1_dump` and `gpu_frame_dump` on PlayStation; `video_state`, `ikat_events`, `ciap_events` and `mount_disc` on CD-i; `checkpoint_arm`, `checkpoint_continue`, `pc_seen` and `gpr_probe_dump` on GameCube.
+Each server then adds hardware queries for its own console, which is the reason to open the specific document: `vip_state`, `vsu_state` and `psw_state` on Virtual Boy; `gx_state`, `gx_run_sample`, `gx_write_sample` and `dma_sample` on Nintendo DS; `read_nametable`, `read_oam`, `read_chr` and `mapper_state` on NES; `gte_state`, `mdec_state`, `gp1_dump` and `gpu_frame_dump` on PlayStation; `video_state`, `ikat_events`, `ciap_events` and `mount_disc` on CD-i.
 
 ### Turning the server on
 
@@ -81,7 +80,6 @@ Most servers are not always running.
 |---|---|
 | nesrecomp | A `debug.ini` file in the same directory as the game executable, or a game specific CLI flag that enables debug mode |
 | gbarecomp | Active whenever `debug.ini` is present, or the `--verify` or `--oracle` CLI flags are set, including Release builds |
-| gcnlle | Set the `GCN_DEBUG_PORT` environment variable, for example `4380` |
 
 Ports are assigned per project and they collide. Port 4380 is claimed at once by the psx-beetle oracle, Yoshi's native runtime, cdirecomp's native runtime and segagenesisrecomp. Port 4370 is claimed by psx-runtime and five different NES games. The stated convention is native port plus one for the oracle, though the Game Boy Advance pair 19842 and 19843 does not match it. The full allocation is on [the TCP port registry](/docs/reference/tcp-port-registry).
 
@@ -230,7 +228,6 @@ Nothing in this fleet watches your change for you. Four repositories carry a wor
 
 | Repository | Workflow | Triggers | What it runs |
 |---|---|---|---|
-| [xboxlle-probe](https://github.com/mstan/xboxlle-probe) | `.github/workflows/ci.yml` | `push`, `pull_request` | `python -m py_compile host/xbox_probe.py`, then `python -m unittest discover -s tests -v`, then clones the pinned nxdk and builds the XBE, asserting `test -s bin/default.xbe` |
 | [psxrecomp](https://github.com/mstan/psxrecomp) | `.github/workflows/cli-release.yml` | `workflow_dispatch` and published releases only | Builds the CLI under MSYS2 MINGW64, runs `cli_boot_path_test` via ctest, smoke tests `psxrecomp.exe --help`, uploads and attaches the zip |
 | [snesrecomp](https://github.com/mstan/snesrecomp) | `native-analyzer.yml`, `cli-release.yml` | `pull_request`, `push` to main, `workflow_dispatch`, `release` | Three OS matrix; on Linux `cargo fmt -- --check` and `cargo clippy --locked --release --all-targets -- -D warnings`; plus pyinstaller packaging and `python tools/smoke_cli_package.py` |
 | [TombaRecomp](https://github.com/mstan/TombaRecomp) | `.github/workflows/release.yml` | `workflow_dispatch` with version and bump inputs | The multi platform release template for a PlayStation game repository |
@@ -249,7 +246,7 @@ Read the psxrecomp workflow before you propose adding a check anywhere in this f
 
 ## Source
 
-- The nine protocol documents, principally [`nesrecomp/TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), [`vbrecomp/TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`gbarecomp/TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md), [`ndsrecomp/TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), [`cdirecomp/TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md), [`psxrecomp/TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md) and [`gcnlle/docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md).
+- The protocol documents, principally [`nesrecomp/TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), [`vbrecomp/TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`gbarecomp/TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md), [`ndsrecomp/TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), [`cdirecomp/TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md) and [`psxrecomp/TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md).
 - [`nesrecomp/CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md) and [`COSIM.md`](https://github.com/mstan/nesrecomp/blob/master/COSIM.md) for the script language, the traces and the gates; [`LegendOfZeldaNESRecomp/CLAUDE.md`](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md) for the shell client.
 - [`SuperMetroidRecomp/CLAUDE.md`](https://github.com/mstan/SuperMetroidRecomp/blob/main/CLAUDE.md) for the JSON surfaces.
 - [`psxrecomp/.mcp.json`](https://github.com/mstan/psxrecomp/blob/master/.mcp.json) and [`psxrecomp/.github/workflows/cli-release.yml`](https://github.com/mstan/psxrecomp/blob/master/.github/workflows/cli-release.yml).

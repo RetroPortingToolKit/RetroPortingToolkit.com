@@ -4,7 +4,6 @@ summary: "LLE follows the console closely. HLE replaces part of the console with
 pageType: "concept"
 tags: ["Architecture", "LLE", "HLE", "Correctness"]
 repos:
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/cdirecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/ndsrecomp"

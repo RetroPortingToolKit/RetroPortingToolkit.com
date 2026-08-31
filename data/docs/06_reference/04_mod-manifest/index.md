@@ -9,7 +9,6 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/TombaRecomp"
-  - "https://github.com/mstan/PokemonStadiumRecomp"
 updated: "2026-08-25"
 ---
 
@@ -316,10 +315,6 @@ PlayStation, NES and SNES share the package design above. The differences that m
 
 The same package vocabulary, and mod support is a per-game build opt-in there too. snesrecomp keeps its own `docs/MOD_PACKAGES.md`; its format level is not recorded here.
 
-### Nintendo 64
-
-[PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp) has no mod format yet. Its `MODDING.md` says: "**Status: deferred.** Modding is intentionally out of scope until the base game boots and is playable."
-
 ### The file-drop layer
 
 Some NES ports predate packages and still document a path with no manifest at all. Drop `text_overrides.json` and a `tiles/` directory beside the executable and the game finds them. No manifest, no hashes, no packaging step. [Write a mod](/docs/guides/write-a-mod) covers it.
@@ -336,7 +331,7 @@ Some NES ports predate packages and still document a path with no manifest at al
 - [psxrecomp](https://github.com/mstan/psxrecomp): [`docs/MOD_PACKAGES.md`](https://github.com/mstan/psxrecomp/blob/master/docs/MOD_PACKAGES.md), [`README.md`](https://github.com/mstan/psxrecomp/blob/master/README.md), [`runtime/include/mod_plugins.h`](https://github.com/mstan/psxrecomp/blob/master/runtime/include/mod_plugins.h), [`tools/psxmod_pack.py`](https://github.com/mstan/psxrecomp/blob/master/tools/psxmod_pack.py), [`docs/NETPLAY.md`](https://github.com/mstan/psxrecomp/blob/master/docs/NETPLAY.md).
 - [xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp): [`MOD_AUTHORING.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MOD_AUTHORING.md) and [`MODS.md`](https://github.com/OpokXeno/xenogears-recomp/blob/master/MODS.md).
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`docs/MOD_PACKAGES.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MOD_PACKAGES.md) and [`MODDING.md`](https://github.com/mstan/nesrecomp/blob/master/MODDING.md). [snesrecomp](https://github.com/mstan/snesrecomp): [`README.md`](https://github.com/mstan/snesrecomp/blob/main/README.md).
-- [TombaRecomp](https://github.com/mstan/TombaRecomp): the shipped manifests under [`mods/preloaded/packages/`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages). [PokemonStadiumRecomp](https://github.com/mstan/PokemonStadiumRecomp): [`MODDING.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/MODDING.md).
+- [TombaRecomp](https://github.com/mstan/TombaRecomp): the shipped manifests under [`mods/preloaded/packages/`](https://github.com/mstan/TombaRecomp/blob/master/mods/preloaded/packages).
 
 ## Next
 

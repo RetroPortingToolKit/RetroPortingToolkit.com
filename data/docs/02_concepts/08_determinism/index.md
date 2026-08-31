@@ -10,7 +10,6 @@ repos:
   - "https://github.com/TechnicallyComputers/recomp-net"
   - "https://github.com/TechnicallyComputers/retcomm-rbengine"
   - "https://github.com/mstan/MegaManXSNESRecomp"
-  - "https://github.com/mstan/gcnlle"
 updated: "2026-08-30"
 ---
 

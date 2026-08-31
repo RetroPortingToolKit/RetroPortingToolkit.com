@@ -109,7 +109,7 @@ I was exceptionally happy with the outcome of Mario Kart: Super Circuit. Below i
 
 ### Warioware Twisted & Gyro
 
-The gameboy advance had a number of novel games and hardware peripherals. Amongst them were gyroscopes and light sensors.
+The Game Boy Advance had a number of novel games and hardware peripherals. Amongst them were gyroscopes and light sensors.
 
 Eager to see how well I could adapt these to offer these games a new life, I took an attempt at Warioware Twisted. Recompiling Warioware was the easy part. The real challenge came in gyroscope integration.
 
@@ -230,36 +230,6 @@ When I'll find to time to do these remains TBD, although I am hopeful I can attr
 
 With Tibo's generous and frequent Codex resets, I've been needing to find places to burndown extra token usage. Standing up a new ecosystem is by far one of the most expensive tasks, but with usage to burn, I was able to make some gains across multiple aspirational platforms.
 
-## Xbox
-
-Xbox probably comes off as a peculiar choice to many given that it's already a PC with and x86. I still there's an opportunity grow an ecosystem with a faithful LLE floor, but it is divergent in that there's less being done insofar as recompilation. As it's already x86, the focus is less on decoding and recompiling and more around the LLE aspect of the OS around it. The NV2A graphics card lends itself to be a challenge, but I am hopeful that if I'm able to set up a faithful LLE environment around it, that probing it and having it fall into place will eventually unlock some of the mysteries that have surrounded it.
-
-Visually, Xbox LLE only recently achieved the most basic milestone: it is now only barely rendering it's first frame in the BIOS boot. While that doesn't feel like a lot, a lot went on behind the scenes to get it to this point. This single image represents a faithful end-to-end take. A real boot rom and a retail Microsoft kernel run shipped. NV2A GPU commands emulated, and pixels travel from guest RAM through to an emulated display controller into an SDL3 window. HLE and emulation has been minimized in this standup.
-
-![2026-08-01 | One green dot. Every pixel of it traveled ROM → retail kernel → GPU command stream → guest RAM → display controller. That's the whole point.](./xbox-first-frame.webp)
-
-While most of my systems rely on an emulator as an oracle, little exists for LLE faithfulness when it comes to Xbox. Therefore, I chose the next best option, if not an overall *better* option: I chose a *real* Xbox.
-
-My current Xbox is softmodded with a custom dashboard. It is hooked up to my local network. With that in mind, I had Fable write me a custom probing piece of software to effectively allow Claude or Codex to do arbitrary code execution on the system. The outcome was a small piece of homebrew, [xboxlle-probe](https://github.com/mstan/xboxlle-probe), available here for any interested in similarly exploring their Xbox's internals.
-
-![xboxlle-agent running on my Xbox on my living room TV](./xbox-probe-tv.jpg)
-
-## Gamecube
-
-**GameCube, low-level.** gcnlle recompiles the GameCube's boot ROM and runs its native menu in full: the rolling cube animation, calendar, settings, memory card manager. Performance is poor, and likely the next focus point before moving much further in this ecosystem.
-
-Memory card management works, games can boot, and the real time clock syncs to Windows RTC on boot.
-
-![Gamecube BIOS, recompiled](./gcn-bios-demo.mp4)
-
-Exactly one title has been attempted so far: Legend of Zelda The Wind Waker. Below features a side by side of what 8 hours of Sol was able to get me on from first render to a much more mature render (even if still imperfect). At present, frame rate is not even at 1 FPS, so I'll have to spend quite a bit of time there
-
-![](./gcn-boot.webp)
-
-![Wind Waker title screen](./gcn-windwaker-title.webp)
-
-Unlike my other projects, which are typically ground-up, GCN is one where I chose to borrow from other projects. DolRecomp was used for the decoding of the games. A fork was required to handle some of the BIOS functions. For the runtime, ModernGekko was adapted as well, an HLE focused static recompiler runtime for the Gamecube. ModernGekko borrows from Dolphin, and while Dolphin is an emulator, it is a world class one, and something I aim to borrow from for performance optimization. These tools are all adapted accordingly to avoid losing sight of my LLE goal.
-
 ## Phillips CD-i
 
 Continuing in the spirit of LLE first, the CD-i began with its BIOS. At this stage, the BIOS is functional, complete even with Windows host matching RTC sync on boot.
@@ -272,7 +242,7 @@ The BIOS is usable at this point, and even capable of booting into a game. Only 
 
 ## PSP
 
-The PSP has had about as much time as the Xbox in terms of LLE recompilation development, but still has not even gotten close to rendering yet. The PSP itself is a uniquely difficult system. Furthermore, like the Xbox, it lacks a good hardware faithful emulator. Therefore, I chose a similar approach to probing the PSP by using a *real* PSP.
+The PSP is still early LLE recompilation research and has not gotten close to rendering yet. The PSP itself is a uniquely difficult system, and it lacks a good hardware-faithful emulator. Therefore, I chose a similar approach to probing the PSP by using a *real* PSP.
 
 ![My old softmodded PSP, dug out and hooked up by USB to talk to Claude](./psp-probe.jpg)
 
@@ -286,4 +256,4 @@ I'm very grateful to everyone who has been using my ecosystems and submitting PR
 
 ---
 
-Related: [The Minish Cap](/games/minish-cap) and [Mega Man Zero](/games/mega-man-zero) on [Game Boy Advance](/hardware/game-boy-advance), plus [Original Xbox](/hardware/original-xbox) research.
+Related: [The Minish Cap](/games/minish-cap) and [Mega Man Zero](/games/mega-man-zero) on [Game Boy Advance](/hardware/game-boy-advance).

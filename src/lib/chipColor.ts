@@ -29,7 +29,6 @@ const LABEL_COLOR: Record<string, string> = {
   "Sega Genesis": TEAL,
   "Virtual Boy": AMBER,
   "Nintendo DS": FOREST,
-  "Original Xbox": OLIVE,
   Library: OLIVE,
   "1379.tech": COBALT,
   Press: AMBER,

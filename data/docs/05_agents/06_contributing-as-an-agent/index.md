@@ -7,7 +7,6 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/segagenesisrecomp"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/GumshoeNESRecomp"
   - "https://github.com/mstan/YoshiNESRecomp"
 updated: "2026-08-25"
@@ -65,7 +64,6 @@ After "never edit generated code", this is the most consistent rule in the fleet
 - Anything derived from them: extracted graphics, music, sample data, level data, generated code derived from a game file.
 - Runtime output: save files, memory cards, screenshots, diagnostic output, logs, build outputs, release binaries.
 - Analysis databases, such as Ghidra project files.
-- In the Xbox probe repository, an extra list, because the target is real hardware: BIOS, flash, EEPROM, HDD, dashboard, kernel or game dumps; IP or MAC addresses; FTP or HTTP credentials; HDD serial numbers, console-unique keys or other per-console identifiers; unsanitized probe logs.
 
 > **You provide this.** Every port in this fleet needs a game file that you supply yourself, and that file stays outside the repository. DKC2Recomp states it plainly: "The private ROM must remain outside Git." The projects do not distribute game files. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
@@ -75,7 +73,7 @@ After "never edit generated code", this is the most consistent rule in the fleet
 
 **Identity gates.** The runtime hash-verifies the game file and refuses to launch with an unknown one. DragonBallZBuusFuryRecomp says "Do not weaken the identity gate", and MinishCapRecomp adds that new versions are added by checksum, "not by guessing". Loosening a hash check to make something run is not a fix.
 
-**Architectural locks.** Several repositories state a decision as closed: one backend in segagenesisrecomp, low level emulation first in gcnlle, the recompiled and dispatched BIOS in gbarecomp, one machine plus a flag rather than a fork in smsggrecomp, no interpreter in psxrecomp and vbrecomp. The fleet contradicts itself on that last one, and psxrecomp carries a later rule requiring a small interpreter for one bounded case, so read the whole file before you conclude what is locked.
+**Architectural locks.** Several repositories state a decision as closed: one backend in segagenesisrecomp, the recompiled and dispatched BIOS in gbarecomp, one machine plus a flag rather than a fork in smsggrecomp, no interpreter in psxrecomp and vbrecomp. The fleet contradicts itself on that last one, and psxrecomp carries a later rule requiring a small interpreter for one bounded case, so read the whole file before you conclude what is locked.
 
 **Rules from another repository.** The fleet disagrees with itself on pausing the runtime, print debugging, unit tests, `game.cfg` against `game.toml`, and how a dispatch miss may be resolved. The general form is simple:
 
@@ -139,12 +137,7 @@ Why each field is there:
 7. **Options.** Ranked and mutually exclusive, so the next session chooses one instead of attempting all of them.
 8. **Caveats.** Your own uncertainty about your own findings. The best example in the fleet retracts a divergence its author had reported, after finding it came from fast forward.
 9. **Reproduction assets.** Paths to captures, scripts and screenshots. Without them the next session repeats your setup instead of your analysis.
-10. **Required handback.** Say in advance what the next report must contain and what claim it may make. From [`docs/HANDOFF_2026-08-09.md`](https://github.com/mstan/gcnlle/blob/master/docs/HANDOFF_2026-08-09.md) in gcnlle:
-
-> "The allowed current claim is: **the measured route clears the 66/s
-> unthrottled emulation-capacity gate without removing the retained
-> software/interpreter/DSP-LLE paths. A complete exercised force-floor gate,
-> actual 60-Hz presentation, and release-quality audio are not yet established.**"
+10. **Required handback.** Say in advance what the next report must contain and what claim it may make.
 
 Two habits go with it. Keep findings apart from fixes: the Codex summary in GumshoeNESRecomp says it contains only verifiable facts and proposes no fix, which is what makes an audit possible. And a handoff may commission tooling instead of a fix: SuperMarioWorldRecomp's VRAM differ handoff asks the next session to make "first divergent VRAM write" a one-shot query, and supplies the sites to hook and the code to add.
 
@@ -158,8 +151,6 @@ So check before you send anything. Before you open a pull request against any re
 
 This fleet's own repositories are the safe destination for work you do as an agent. They are built with AI assistance and their documentation is written for agents. The rules there are the commit conventions above. They vary by repository, and where a repository is silent the default is to ask its owner rather than open a pull request.
 
-The [Nintendo 64](/hardware/nintendo-64) page carries that platform's upstream story, including what its upstream projects say about AI-generated code.
-
 Everything on this page comes from one account's repositories. No repository in this fleet outside the `mstan` account carries a `CLAUDE.md` or an `AGENTS.md`, so none of it is a convention of the wider recompilation community.
 
 ## Source
@@ -167,8 +158,8 @@ Everything on this page comes from one account's repositories. No repository in 
 - [mstan/nesrecomp](https://github.com/mstan/nesrecomp): [`AGENTS.md`](https://github.com/mstan/nesrecomp/blob/master/AGENTS.md), [`CLAUDE.md`](https://github.com/mstan/nesrecomp/blob/master/CLAUDE.md)
 - [mstan/psxrecomp](https://github.com/mstan/psxrecomp): [`CLAUDE.md`](https://github.com/mstan/psxrecomp/blob/master/CLAUDE.md)
 - [mstan/segagenesisrecomp](https://github.com/mstan/segagenesisrecomp): [`CLAUDE.md`](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md), and [mstan/smsggrecomp](https://github.com/mstan/smsggrecomp): [`CLAUDE.md`](https://github.com/mstan/smsggrecomp/blob/main/CLAUDE.md)
-- [mstan/DKC2Recomp](https://github.com/mstan/DKC2Recomp): [`AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md), and [mstan/xboxlle-probe](https://github.com/mstan/xboxlle-probe): [`AGENTS.md`](https://github.com/mstan/xboxlle-probe/blob/main/AGENTS.md)
-- Handoffs: [`HANDOFF.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/HANDOFF.md) in YoshiNESRecomp; [`SESSION_HANDOFF.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/SESSION_HANDOFF.md), [`CODEX_SUMMARY.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/CODEX_SUMMARY.md) and [`CODEX_AUDIT_BY_CLAUDE.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/CODEX_AUDIT_BY_CLAUDE.md) in GumshoeNESRecomp; [`docs/HANDOFF_2026-08-09.md`](https://github.com/mstan/gcnlle/blob/master/docs/HANDOFF_2026-08-09.md) in gcnlle; [`HANDOFF_VRAM_DIFFER.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/HANDOFF_VRAM_DIFFER.md) in SuperMarioWorldRecomp; [`NOTES_TO_CODEX.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/NOTES_TO_CODEX.md) in PokemonStadiumRecomp
+- [mstan/DKC2Recomp](https://github.com/mstan/DKC2Recomp): [`AGENTS.md`](https://github.com/mstan/DKC2Recomp/blob/main/AGENTS.md)
+- Handoffs: [`HANDOFF.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/HANDOFF.md) in YoshiNESRecomp; [`SESSION_HANDOFF.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/SESSION_HANDOFF.md), [`CODEX_SUMMARY.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/CODEX_SUMMARY.md) and [`CODEX_AUDIT_BY_CLAUDE.md`](https://github.com/mstan/GumshoeNESRecomp/blob/master/CODEX_AUDIT_BY_CLAUDE.md) in GumshoeNESRecomp; [`HANDOFF_VRAM_DIFFER.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/HANDOFF_VRAM_DIFFER.md) in SuperMarioWorldRecomp
 
 ## Next
 

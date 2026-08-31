@@ -12,7 +12,6 @@ repos:
   - "https://github.com/mstan/smsggrecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/cdirecomp"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/vbrecomp"
 updated: "2026-08-25"
 ---
@@ -374,25 +373,6 @@ gba_recompile --bios <path>
 
 `--symbol-map` and `--no-symbol-map` are also parsed, but the usage text above does not list them.
 
-## gcnlle
-
-### gcn_debug_client.py
-
-Thirteen lines of Python that reach the whole debug surface. `key=value` arguments become JSON fields, and both hex and decimal numbers stay numbers.
-
-```sh
-python tools/gcn_debug_client.py read_ram addr=0x80000034 len=8
-```
-
-| Flag | Type | Default | Meaning |
-|---|---|---|---|
-| `--port N` | int | 4380 | Target port |
-| `<cmd> [key=value ...]` | positional | required | Command and its JSON fields |
-
-### gcn_cosim.py
-
-Drives the co-simulation harness: the port and a reference emulator run side by side and are compared. Subcommands: `runtime-capture`, `runtime-pub-sweep`, `dolphin-ipl-capture`, `gate1`, `ab-step`. Its flags cover capture shaping (`--draw-state`, `--pc-seen PC`, `--block-dump-count N`, `--fifo-dump-count N`, `--sample-pub N`, `--byte-audit-every N`), memory watching (`--watch-range LO:HI`, `--watch-dump-count N`), register probes (`--gpr-probe-pc PC`, `--gpr-probe-dump-count N`, `--gpr-probe-memory [PC:]GPR:OFFSET:LENGTH`, `--gpr-probe-memory-deref [PC:]GPR:PTR_OFFSET:READ_OFFSET:LENGTH`), checkpoints (`--checkpoint-pc PC`, `--checkpoint-gpr N`, `--checkpoint-gpr-value V`, `--checkpoint-lr LR`), snapshots (`--snapshot-save PATH`, `--snapshot-exit`) and alignment (`--align-dolphin-timebase-at N`, `--pad-pulse 0:0:10000`).
-
 ## ndsrecomp
 
 ### nds_recompile
@@ -567,7 +547,7 @@ Four Python helpers ship with it. `tools/_ping.py --port 4390` checks a server i
 - snesrecomp: [`snesrecomp_cli.py`](https://github.com/mstan/snesrecomp/blob/main/snesrecomp_cli.py). gbarecomp: [`tools/cli.py`](https://github.com/mstan/gbarecomp/blob/main/tools/cli.py), [`tools/gba_recompile/main.cpp`](https://github.com/mstan/gbarecomp/blob/main/tools/gba_recompile/main.cpp)
 - segagenesisrecomp: [`recompiler/src/main_genesis.c`](https://github.com/mstan/segagenesisrecomp/blob/master/recompiler/src/main_genesis.c), [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md)
 - smsggrecomp: [`recompiler/src/main_sms.c`](https://github.com/mstan/smsggrecomp/blob/main/recompiler/src/main_sms.c). ndsrecomp: [`recompiler/src/main.cpp`](https://github.com/mstan/ndsrecomp/blob/main/recompiler/src/main.cpp). cdirecomp: [`README.md`](https://github.com/mstan/cdirecomp/blob/master/README.md), [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md)
-- gcnlle: [`tools/gcn_debug_client.py`](https://github.com/mstan/gcnlle/blob/master/tools/gcn_debug_client.py), [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md). vbrecomp: [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`README.md`](https://github.com/mstan/vbrecomp/blob/master/README.md)
+- vbrecomp: [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`README.md`](https://github.com/mstan/vbrecomp/blob/master/README.md)
 
 ## Next
 

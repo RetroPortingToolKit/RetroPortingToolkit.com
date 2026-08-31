@@ -8,9 +8,7 @@ repos:
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/cdirecomp"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/SuperMarioWorldRecomp"
-  - "https://github.com/mstan/PokemonStadiumRecomp"
 updated: "2026-08-27"
 ---
 
@@ -99,7 +97,7 @@ vbrecomp, smsggrecomp and cdirecomp state the same rule for their own dispatcher
 
 ### It boots to a black screen
 
-A black screen is almost never a renderer bug. From PokemonStadiumRecomp's [`DEBUG.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/DEBUG.md):
+A black screen is almost never a renderer bug.
 
 ```text title="DEBUG.md"
 ## First-divergence rule
@@ -114,7 +112,7 @@ Always find the **first** divergence, not a downstream symptom.
   store within that function.
 ```
 
-Two platform traps sit under this symptom. On gcnlle an all-black screenshot can be the correct output: until the GX command processor is modelled the menu never draws, and a `mean_luma` near 16 is how you tell a correct black frame from a broken one. On psxrecomp, plain `screenshot` and `screenshot_file` capture native 15-bit VRAM and cannot see anything that exists only in the hi-res mirror, so use `screenshot_hires` to check those.
+On psxrecomp, plain `screenshot` and `screenshot_file` capture native 15-bit VRAM and cannot see anything that exists only in the hi-res mirror, so use `screenshot_hires` to check those.
 
 Whatever you find, hold the bar psxrecomp sets for calling it fixed:
 
@@ -166,7 +164,7 @@ This is the main loop, with two additions. Walk backwards to the **first** diver
      val=<bad>`.
 ```
 
-For a cheap first cut, gbarecomp's `state_hash` is one read-only call over IWRAM, EWRAM, VRAM, palette and OAM plus the cycle counter. It localises by region and doubles as a run-twice determinism probe. gcnlle's `cosim_pages` returns hashes for up to 256 four-kilobyte pages, so you can narrow a memory mismatch before fetching bytes. On Genesis, `python tools/boot_smoke.py --game sonic1 --port 4380 --dump-on-diff` dumps the full 64KB of work RAM when the run differs from its baseline.
+For a cheap first cut, gbarecomp's `state_hash` is one read-only call over IWRAM, EWRAM, VRAM, palette and OAM plus the cycle counter. It localises by region and doubles as a run-twice determinism probe. On Genesis, `python tools/boot_smoke.py --game sonic1 --port 4380 --dump-on-diff` dumps the full 64KB of work RAM when the run differs from its baseline.
 
 Finish by classifying, because the class decides who fixes it. psxrecomp's five classes each name the file to change:
 
@@ -198,7 +196,7 @@ gbarecomp reduces its nine classes to the same decision: decoder and codegen fau
 
 psxrecomp writes three files: `psx_crash.txt`, `psx_last_run_report.json` and `psx_freeze_heartbeat.json`. The heartbeat carries the counters that separate a guest bug from a runtime bug. `bail_first` counts detected contract violations, meaning wild control transfers, and a small count with the game continuing normally is the fix working. `bail_resolved` and `bail_flattened` count how those were recovered. `bail_anomaly` must stay zero. Anything else is a runtime bug.
 
-For a freeze inside interpreted code there are two tripwires. `s3_smear_watch` latches the first interpreted instruction in a PC window that clobbers a callee-saved register, and `callret_watch` records the return path that let it come back. The equivalents elsewhere are `crash_status`, `freeze_status` and `watchdog_status` on vbrecomp, and on segagenesisrecomp a dump of the last 64 bus accesses and function entries. One rule applies everywhere, from PokemonStadiumRecomp: do not disable a watchdog assertion. If the watchdog fires, the state is wrong, so fix the state.
+For a freeze inside interpreted code there are two tripwires. `s3_smear_watch` latches the first interpreted instruction in a PC window that clobbers a callee-saved register, and `callret_watch` records the return path that let it come back. The equivalents elsewhere are `crash_status`, `freeze_status` and `watchdog_status` on vbrecomp, and on segagenesisrecomp a dump of the last 64 bus accesses and function entries. Do not disable a watchdog assertion. If the watchdog fires, the state is wrong, so fix the state.
 
 ### Audio is wrong
 
@@ -238,8 +236,6 @@ gbarecomp lists the forbidden moves, and the whole fleet repeats them:
 - Pausing both native and oracle and stepping in lockstep.
 ```
 
-PokemonStadiumRecomp adds: do not stub in C, stub in `game.toml`, so the stub is declared, diffable and removable.
-
 When the tooling cannot answer your question, that is a stop condition, not permission to improvise. psxrecomp says to stop, say exactly what data is missing and what command is needed, ask how to proceed, and build the tooling if approved. It also forbids the obvious workaround: no `fprintf` to stderr in source code, ever. The TCP server is the instrumentation surface, and if TCP cannot see something, TCP has to grow until it can.
 
 ## Source
@@ -247,8 +243,8 @@ When the tooling cannot answer your question, that is a stop condition, not perm
 - psxrecomp: [`DEBUG.md`](https://github.com/mstan/psxrecomp/blob/master/DEBUG.md), [`TCP_COMMANDS.md`](https://github.com/mstan/psxrecomp/blob/master/TCP_COMMANDS.md), [`tools/cosim.py`](https://github.com/mstan/psxrecomp/blob/master/tools/cosim.py), [`tools/debug_client.py`](https://github.com/mstan/psxrecomp/blob/master/tools/debug_client.py)
 - gbarecomp: [`DEBUG.md`](https://github.com/mstan/gbarecomp/blob/main/DEBUG.md), [`docs/DEBUGGING.md`](https://github.com/mstan/gbarecomp/blob/main/docs/DEBUGGING.md), [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md)
 - segagenesisrecomp: [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md). vbrecomp: [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), [`DEBUG.md`](https://github.com/mstan/vbrecomp/blob/master/DEBUG.md)
-- cdirecomp: [`DEBUG.md`](https://github.com/mstan/cdirecomp/blob/master/DEBUG.md), [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). gcnlle: [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md). ndsrecomp: [`DEBUG.md`](https://github.com/mstan/ndsrecomp/blob/main/DEBUG.md), [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md)
-- Worked cases: [`SuperMarioWorldRecomp/docs/TROUBLESHOOTING.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/docs/TROUBLESHOOTING.md), [`PokemonStadiumRecomp/DEBUG.md`](https://github.com/mstan/PokemonStadiumRecomp/blob/main/DEBUG.md), [`YoshiNESRecomp/DEBUG.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/DEBUG.md), [`nesrecomp/tools/nes_cosim.py`](https://github.com/mstan/nesrecomp/blob/master/tools/nes_cosim.py)
+- cdirecomp: [`DEBUG.md`](https://github.com/mstan/cdirecomp/blob/master/DEBUG.md), [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). ndsrecomp: [`DEBUG.md`](https://github.com/mstan/ndsrecomp/blob/main/DEBUG.md), [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md)
+- Worked cases: [`SuperMarioWorldRecomp/docs/TROUBLESHOOTING.md`](https://github.com/mstan/SuperMarioWorldRecomp/blob/main/docs/TROUBLESHOOTING.md), [`YoshiNESRecomp/DEBUG.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/DEBUG.md), [`nesrecomp/tools/nes_cosim.py`](https://github.com/mstan/nesrecomp/blob/master/tools/nes_cosim.py)
 
 ## Next
 

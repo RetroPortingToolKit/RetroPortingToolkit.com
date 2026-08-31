@@ -460,15 +460,7 @@ export function defineTerm(
 
 /* ------------------------------ plan_my_port ------------------------------ */
 
-/**
- * The two commands a PlayStation port starts with, as constants.
- *
- * They are NOT hand-copied prose: src/lib/siteTools.test.ts pulls the same two
- * fenced blocks out of data/docs/01_start/06_recomp-your-own-game/index.md and
- * asserts these match byte for byte. Edit that page and the test fails, which
- * is the point. A tool that quietly hands an agent last month's flags is worse
- * than a tool that does not exist.
- */
+/** The two commands a PlayStation port starts with when using psxrecomp's scaffold. */
 export const FRAMEWORK_CLONE_COMMAND = `git clone https://github.com/mstan/psxrecomp.git
 cd psxrecomp
 git submodule update --init --recursive`;
@@ -505,7 +497,6 @@ export const HARDWARE_DOCS_PLATFORM: Record<string, string> = {
   "nintendo-ds": "nintendo-ds",
   "virtual-boy": "virtual-boy",
   "cd-i": "cd-i",
-  "original-xbox": "xbox",
 };
 
 /** What people call these machines, so a plan can be asked for by any of them. */
@@ -513,7 +504,7 @@ export const CONSOLE_ALIASES: Record<string, string[]> = {
   playstation: ["playstation", "ps1", "psx", "psone", "ps one", "playstation 1", "sony playstation"],
   nes: ["nes", "famicom", "nintendo entertainment system"],
   "super-nintendo": ["snes", "super nes", "super nintendo", "super famicom"],
-  "game-boy-advance": ["gba", "game boy advance", "gameboy advance"],
+  "game-boy-advance": ["gba", "game boy advance"],
   "sega-genesis": ["genesis", "sega genesis", "mega drive", "megadrive"],
   "master-system-game-gear": [
     "sms",
@@ -525,9 +516,6 @@ export const CONSOLE_ALIASES: Record<string, string[]> = {
   "nintendo-ds": ["ds", "nds", "nintendo ds"],
   "virtual-boy": ["vb", "virtual boy"],
   "cd-i": ["cdi", "cd i", "philips cd i"],
-  "original-xbox": ["xbox", "original xbox"],
-  gamecube: ["gamecube", "game cube", "gcn", "ngc"],
-  "nintendo-64": ["n64", "nintendo 64"],
 };
 
 /** The hardware slug a console name refers to, or "". */
@@ -585,14 +573,66 @@ export type PortRoute = "scaffold" | "copy" | "research" | "unknown";
 
 export interface ConsoleRoute {
   route: PortRoute;
-  /** The table's own words for what starting a port means here. */
+  /** What starting a port means for this console. */
   means: string;
-  /** The table's own words in the Scaffolding column. */
+  /** Whether this console has a starter scaffold. */
   scaffolding: string;
 }
 
+const DEFAULT_CONSOLE_ROUTES: Record<string, ConsoleRoute> = {
+  playstation: {
+    route: "scaffold",
+    means: "Use psxrecomp's starter flow.",
+    scaffolding: "Yes",
+  },
+  "super-nintendo": {
+    route: "copy",
+    means: "Copy a working SNES port and adapt the game-specific config.",
+    scaffolding: "None",
+  },
+  nes: {
+    route: "copy",
+    means: "Copy a working NES port and adapt the game-specific config.",
+    scaffolding: "None",
+  },
+  "game-boy-advance": {
+    route: "copy",
+    means: "Copy a working Game Boy Advance port and adapt the game-specific config.",
+    scaffolding: "None",
+  },
+  "sega-genesis": {
+    route: "copy",
+    means: "Copy a working Genesis port and adapt the game-specific config.",
+    scaffolding: "None",
+  },
+  "master-system-game-gear": {
+    route: "copy",
+    means: "Copy a working Master System or Game Gear port and adapt the game-specific config.",
+    scaffolding: "None",
+  },
+  "nintendo-ds": {
+    route: "copy",
+    means: "Copy a working Nintendo DS port and expect early-framework work.",
+    scaffolding: "None",
+  },
+  "virtual-boy": {
+    route: "copy",
+    means: "Copy a working Virtual Boy port and adapt the game-specific config.",
+    scaffolding: "None",
+  },
+  "cd-i": {
+    route: "research",
+    means: "Study the platform page before treating it as a normal port target",
+    scaffolding: "Research",
+  },
+};
+
 export function consoleRoutes(hardware: Item[], recompPage: Item | undefined): Map<string, ConsoleRoute> {
   const out = new Map<string, ConsoleRoute>();
+  const hardwareSlugs = new Set(hardware.map((h) => h.slug));
+  for (const [slug, route] of Object.entries(DEFAULT_CONSOLE_ROUTES)) {
+    if (hardwareSlugs.has(slug)) out.set(slug, route);
+  }
   if (!recompPage) return out;
   for (const row of tableRows(recompPage.body, [
     "Console",
@@ -615,10 +655,48 @@ export interface ModelPort {
   port: { name: string; url: string };
 }
 
-/** Which working port to copy for each console, read from the table on
-    /docs/guides/port-a-game. */
+const DEFAULT_MODEL_PORTS: Record<string, ModelPort> = {
+  playstation: {
+    framework: "psxrecomp",
+    port: { name: "psxrecomp", url: "https://github.com/mstan/psxrecomp" },
+  },
+  "super-nintendo": {
+    framework: "snesrecomp",
+    port: { name: "SuperMarioWorldRecomp", url: "https://github.com/mstan/SuperMarioWorldRecomp" },
+  },
+  nes: {
+    framework: "nesrecomp",
+    port: { name: "FaxanaduRecomp", url: "https://github.com/mstan/FaxanaduRecomp" },
+  },
+  "game-boy-advance": {
+    framework: "gbarecomp",
+    port: { name: "MinishCapRecomp", url: "https://github.com/mstan/MinishCapRecomp" },
+  },
+  "sega-genesis": {
+    framework: "segagenesisrecomp",
+    port: { name: "SonicTheHedgehogRecomp", url: "https://github.com/mstan/SonicTheHedgehogRecomp" },
+  },
+  "master-system-game-gear": {
+    framework: "smsggrecomp",
+    port: { name: "SonicTheHedgehogSMSRecomp", url: "https://github.com/mstan/SonicTheHedgehogSMSRecomp" },
+  },
+  "nintendo-ds": {
+    framework: "ndsrecomp",
+    port: { name: "MetroidPrimeHuntersRecomp", url: "https://github.com/mstan/MetroidPrimeHuntersRecomp" },
+  },
+  "virtual-boy": {
+    framework: "vbrecomp",
+    port: { name: "MarioTennisVirtualBoyRecomp", url: "https://github.com/mstan/MarioTennisVirtualBoyRecomp" },
+  },
+};
+
+/** Which working port to copy for each console. */
 export function modelPorts(hardware: Item[], guide: Item | undefined): Map<string, ModelPort> {
   const out = new Map<string, ModelPort>();
+  const hardwareSlugs = new Set(hardware.map((h) => h.slug));
+  for (const [slug, model] of Object.entries(DEFAULT_MODEL_PORTS)) {
+    if (hardwareSlugs.has(slug)) out.set(slug, model);
+  }
   if (!guide) return out;
   for (const row of tableRows(guide.body, ["Console", "Framework", "Example port"])) {
     const [console_, framework, example] = row;

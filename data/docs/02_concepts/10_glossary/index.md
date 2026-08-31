@@ -12,8 +12,6 @@ repos:
   - "https://github.com/mstan/smsggrecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/cdirecomp"
-  - "https://github.com/mstan/gcnlle"
-  - "https://github.com/mstan/xboxlle-probe"
 updated: "2026-08-30"
 ---
 

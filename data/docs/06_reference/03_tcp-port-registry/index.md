@@ -10,13 +10,12 @@ repos:
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/cdirecomp"
-  - "https://github.com/mstan/gcnlle"
   - "https://github.com/mstan/segagenesisrecomp"
   - "https://github.com/mstan/smsggrecomp"
 updated: "2026-08-25"
 ---
 
-Every debug server in this fleet listens on `127.0.0.1`. The port comes from whichever project the server belongs to, and each project chose on its own, so several picked the same number. Four projects claim port 4380. Two claim 19842.
+Every debug server in this fleet listens on `127.0.0.1`. The port comes from whichever project the server belongs to, and each project chose on its own, so several picked the same number. Several projects claim port 4380. Two claim 19842.
 
 Nothing breaks until you run two of them at once, and then the failure is quiet. A client cannot tell which process answered it. A second server left listening on a port is recorded as producing co-simulation differences that are not real. Below is the full list of ports, and what to do when two projects you need share one.
 
@@ -38,7 +37,6 @@ Sorted by port. "What listens" names the process. On several ports that is a rec
 | 4380 | [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp) | the native runner | [`TCP.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/TCP.md) |
 | 4380 | [cdirecomp](https://github.com/mstan/cdirecomp) | the native runner | [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md), [`CLAUDE.md`](https://github.com/mstan/cdirecomp/blob/master/CLAUDE.md) |
 | 4380 | segagenesisrecomp | the native runner, per the compiled-in default named in its boot smoke section | [`CLAUDE.md`](https://github.com/mstan/segagenesisrecomp/blob/master/CLAUDE.md), [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md) |
-| 4380 | [gcnlle](https://github.com/mstan/gcnlle) | `gcn_boot`, when `GCN_DEBUG_PORT` is set to this documented example value | [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md), [`tools/gcn_debug_client.py`](https://github.com/mstan/gcnlle/blob/master/tools/gcn_debug_client.py) |
 | 4381 | YoshiNESRecomp | the Nestopia oracle | [`TCP.md`](https://github.com/mstan/YoshiNESRecomp/blob/master/TCP.md) |
 | 4381 | cdirecomp | the CeDImu oracle | [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md) |
 | 4381 | segagenesisrecomp | the oracle, per the compiled-in default | [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md) |
@@ -57,14 +55,13 @@ Sorted by port. "What listens" names the process. On several ports that is a rec
 | 19888 | [DragonBallZLegacyofGokuIIRecomp](https://github.com/mstan/DragonBallZLegacyofGokuIIRecomp) | the native runtime | [`CLAUDE.md`](https://github.com/mstan/DragonBallZLegacyofGokuIIRecomp/blob/main/CLAUDE.md) |
 | 19889 | [DragonBallZBuusFuryRecomp](https://github.com/mstan/DragonBallZBuusFuryRecomp) | the native runtime | [`CLAUDE.md`](https://github.com/mstan/DragonBallZBuusFuryRecomp/blob/main/CLAUDE.md) |
 | 19892 | [EmeraldRecomp](https://github.com/mstan/EmeraldRecomp) | the native runtime | [`CLAUDE.md`](https://github.com/mstan/EmeraldRecomp/blob/main/CLAUDE.md) |
-| Not fixed | gcnlle | Dolphin, on whatever `GCN_TRACE_TCP_PORT` is set to. No default is documented | [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md) |
 | Not fixed | smsggrecomp | `--port <N>`, off by default. Its debug document has not chosen an oracle port | [`DEBUG.md`](https://github.com/mstan/smsggrecomp/blob/main/DEBUG.md) |
 
 ## Where ports collide
 
 ### Port 4380
 
-Four projects claim it, and one more names it as its example value.
+Several projects claim it.
 
 | Claimant | What it is |
 |---|---|
@@ -72,7 +69,6 @@ Four projects claim it, and one more names it as its example value.
 | YoshiNESRecomp | the native runner |
 | cdirecomp | the native runner |
 | segagenesisrecomp | the native runner, per its compiled-in default |
-| gcnlle | the documented example value for `GCN_DEBUG_PORT`, and the default in its own client script |
 
 The clash you will hit is psxrecomp against one of the three native runners. A PlayStation co-simulation session already holds 4380 for its oracle, so starting cdirecomp, segagenesisrecomp or Yoshi without moving a port puts two servers on one number. From outside, only `ping` tells you which one you reached: psxrecomp returns a frame number, cdirecomp returns `{ok,pong}`.
 
@@ -121,7 +117,6 @@ Every project documents a way to change its port. Use it instead of closing the 
 | ndsrecomp | `--port N` on `nds_runner`, default 19842. `debug.ini` is named as the configuration path |
 | vbrecomp | `--port N`, or `debug.ini` keys `runtime.debug_port` and `oracle.debug_port`, or `[runtime] debug_port` and `[runtime] oracle_port` in the game TOML |
 | segagenesisrecomp | Precedence is `--port N`, then `port=N` in `debug.ini`, then the `DEFAULT_DEBUG_PORT` macro |
-| gcnlle | The `GCN_DEBUG_PORT` environment variable. With it unset "the rings still record, there is just no query surface" |
 | smsggrecomp | `--port <N>`. The server does not start without it |
 
 vbrecomp's example configuration sets both halves of a pair in one file. Verbatim, from [`debug.ini.example`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/debug.ini.example) in MarioTennisVirtualBoyRecomp:
@@ -177,7 +172,7 @@ Several repositories require a reachable Ghidra MCP server but ship no `.mcp.jso
 - [nesrecomp](https://github.com/mstan/nesrecomp): [`TCP.md`](https://github.com/mstan/nesrecomp/blob/master/TCP.md), which carries the per-game port list and the renumbering rule. Game ports: [SuperMarioBrosNESRecomp](https://github.com/mstan/SuperMarioBrosNESRecomp/blob/master/TCP.md), [YoshiNESRecomp](https://github.com/mstan/YoshiNESRecomp/blob/master/TCP.md), [Megaman3NESRecomp](https://github.com/mstan/Megaman3NESRecomp/blob/master/CLAUDE.md), [LegendOfZeldaNESRecomp](https://github.com/mstan/LegendOfZeldaNESRecomp/blob/master/CLAUDE.md).
 - [gbarecomp](https://github.com/mstan/gbarecomp): [`TCP.md`](https://github.com/mstan/gbarecomp/blob/main/TCP.md). [ndsrecomp](https://github.com/mstan/ndsrecomp): [`TCP.md`](https://github.com/mstan/ndsrecomp/blob/main/TCP.md), [`ISSUES.md`](https://github.com/mstan/ndsrecomp/blob/main/ISSUES.md), [`.mcp.json`](https://github.com/mstan/ndsrecomp/blob/main/.mcp.json).
 - [vbrecomp](https://github.com/mstan/vbrecomp): [`TCP.md`](https://github.com/mstan/vbrecomp/blob/master/TCP.md), and [`debug.ini.example`](https://github.com/mstan/MarioTennisVirtualBoyRecomp/blob/master/debug.ini.example) in MarioTennisVirtualBoyRecomp.
-- [cdirecomp](https://github.com/mstan/cdirecomp): [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md). [gcnlle](https://github.com/mstan/gcnlle): [`docs/TCP_COMMANDS.md`](https://github.com/mstan/gcnlle/blob/master/docs/TCP_COMMANDS.md).
+- [cdirecomp](https://github.com/mstan/cdirecomp): [`TCP.md`](https://github.com/mstan/cdirecomp/blob/master/TCP.md).
 - [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp): [`DEBUG.md`](https://github.com/mstan/segagenesisrecomp/blob/master/DEBUG.md) and [`runner/cmd_server.c`](https://github.com/mstan/segagenesisrecomp/blob/master/runner/cmd_server.c). [smsggrecomp](https://github.com/mstan/smsggrecomp): [`DEBUG.md`](https://github.com/mstan/smsggrecomp/blob/main/DEBUG.md).
 - Game repositories with their own ports: [RubySapphireRecomp](https://github.com/mstan/RubySapphireRecomp), [DragonBallZLegacyOfGokuRecomp](https://github.com/mstan/DragonBallZLegacyOfGokuRecomp), [DragonBallZLegacyofGokuIIRecomp](https://github.com/mstan/DragonBallZLegacyofGokuIIRecomp), [DragonBallZBuusFuryRecomp](https://github.com/mstan/DragonBallZBuusFuryRecomp), [EmeraldRecomp](https://github.com/mstan/EmeraldRecomp), each in its own `CLAUDE.md`.
 

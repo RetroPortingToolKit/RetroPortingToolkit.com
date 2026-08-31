@@ -47,7 +47,7 @@ The word is a little loose.
 
 Many later games were built with compilers. For those games, recompilation means taking compiled machine code, turning it back into source code, and compiling it again for a new machine.
 
-Older games are not always like that. NES, SNES, and Game Boy games were often written by hand in assembly. Strictly, those games are being compiled this way for the first time.
+Older games are not always like that. NES and SNES games were often written by hand in assembly. Strictly, those games are being compiled this way for the first time.
 
 The process is still the same enough that this site uses one word for all of it.
 
