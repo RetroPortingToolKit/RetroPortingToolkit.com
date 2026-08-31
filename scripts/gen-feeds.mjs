@@ -94,16 +94,20 @@ function absHref(href) {
   return href;
 }
 function inlineMd(text) {
-  let s = escXml(text);
-  // links first so their inner text isn't mangled by later passes
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
-    return `<a href="${escAttr(absHref(href))}">${label}</a>`;
+  const links = [];
+  // Hold generated anchors outside the later Markdown replacements. Parsing
+  // raw input means hrefs are escaped exactly once for HTML.
+  let s = String(text).replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+    const token = `\0${links.length}\0`;
+    links.push(`<a href="${escAttr(absHref(href))}">${inlineMd(label)}</a>`);
+    return token;
   });
+  s = escXml(s);
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   s = s.replace(/(^|[\s(])\*([^*]+)\*/g, "$1<em>$2</em>");
   s = s.replace(/(^|[\s(])_([^_]+)_/g, "$1<em>$2</em>");
   s = s.replace(/`([^`]+)`/g, "<code>$1</code>");
-  return s;
+  return s.replace(/\0(\d+)\0/g, (_, index) => links[Number(index)]);
 }
 function mdToHtml(md) {
   const blocks = md.split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
@@ -242,7 +246,30 @@ function buildJsonFeed(posts) {
 // Render the feeds in memory (used by the dev middleware for live parity) so
 // the exact same bytes are produced in dev and at build time.
 export function renderFeeds() {
-  const posts = collectBlog();
+  return renderFeedsFromPosts(collectBlog());
+}
+
+export function renderFeedsFromPosts(inputPosts) {
+  const published = Array.isArray(inputPosts)
+    ? inputPosts.filter((post) => post?.draft !== true)
+    : [];
+  if (published.length === 0) throw new Error("Cannot render an empty blog feed.");
+  const posts = [...published].sort((a, b) => {
+    const dateDelta = asDate(b.date).getTime() - asDate(a.date).getTime();
+    if (dateDelta) return dateDelta;
+    return a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0;
+  });
+  const urls = new Set();
+  for (const post of posts) {
+    if (!post?.slug || !post?.url || !post?.date) {
+      throw new Error("Every feed post needs a slug, URL, and publication date.");
+    }
+    if (Number.isNaN(asDate(post.date).getTime())) {
+      throw new Error(`Invalid publication date for ${post.slug}: ${post.date}`);
+    }
+    if (urls.has(post.url)) throw new Error(`Duplicate feed URL: ${post.url}`);
+    urls.add(post.url);
+  }
   return {
     count: posts.length,
     rss: buildRss(posts),

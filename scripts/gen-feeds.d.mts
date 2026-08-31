@@ -11,5 +11,7 @@ export declare function renderFeeds(): {
   json: string;
 };
 
+export declare function renderFeedsFromPosts(posts: unknown[]): ReturnType<typeof renderFeeds>;
+
 /** Writes those three files into a built site; returns how many posts. */
 export declare function generateFeeds(distDir?: string): number;
