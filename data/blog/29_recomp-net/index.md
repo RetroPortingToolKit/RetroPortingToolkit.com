@@ -3,7 +3,7 @@ title: "recomp-net"
 kicker: "Library"
 tags: ["Netplay"]
 featured: false
-desc: "The ecosystem's multiplayer plumbing: one shared library gives recompiled games their online and LAN netplay."
+desc: "A reusable netplay library for recomp projects, powering PSXRecomp multiplayer now and aimed at other ecosystems next."
 date: "2026-07-18"
 repo: "https://github.com/TechnicallyComputers/recomp-net"
 verified: "2026-08-18"
@@ -11,15 +11,31 @@ updated: "2026-08-19"
 added: "2026-07-18"
 ---
 
-Multiplayer is infrastructure, and recomp-net is where this ecosystem keeps it: a portable netcode library that recompiled games link against instead of each writing their own. It is written in C11, builds with CMake, and is MIT licensed, maintained by TechnicallyComputers.
+recomp-net is the shared netplay library for recomp projects.
+
+The goal is simple: a game port should not have to invent online play from scratch. It should be able to use one library for sessions, player input, LAN play, and internet play, then focus on the game itself.
 
 ## What it does
 
-Delay-sync lockstep netplay: every player's copy runs the same simulation, and each frame waits until the other side's inputs arrive, offset by a fixed input delay. The library owns the session and the transports: UDP on a LAN, optional internet connectivity through ICE (via libjuice) with STUN address discovery, and ranked local interface discovery for LAN launchers. Matchmaking is deliberately out of scope; the open-source sibling recomp-net-server provides the WebSocket lobby. A rollback mode is in development alongside [retcomm-rbengine](/blog/retcomm-rbengine), the companion rollback engine, starting from a portable input contract.
+It lets two or more players run the same recompiled game together and keep their copies in sync.
+
+That sounds small, but it is one of the hard parts of multiplayer. Both players need to see the same game state. Inputs need to arrive at the right time. The host needs to handle disconnects, slow connections, and local network setup without each game solving that again.
+
+recomp-net gives ports a reusable base for that work.
 
 ## Which projects use it
 
-The shipped delay-sync session is used by the [PlayStation](/hardware/playstation) and [Super Nintendo](/hardware/super-nintendo) recomp netplay builds, and the library is aimed at recompilation hosts generally. Its documentation also spells out the host-side patterns an engine needs for netplay to feel good: stall gracefully while waiting on a peer, keep the simulation deterministic, and recover from network jitter without inventing inputs.
+Today, recomp-net powers netplay work in the [PlayStation](/hardware/playstation) ecosystem.
+
+It is meant to be reused beyond one console. The same library is expected to fit other recomp ecosystems, including [Super Nintendo](/hardware/super-nintendo), as those ports grow their multiplayer support.
+
+That reuse matters. If every project builds its own netplay layer, every project inherits its own bugs. A shared library lets the fixes carry forward.
+
+## For developers
+
+The library is maintained by TechnicallyComputers. It is written in C11, builds with CMake, and is MIT licensed.
+
+The current shipped path is delay-sync netplay. Rollback support is being developed alongside [retcomm-rbengine](/blog/retcomm-rbengine).
 
 ## Sources
 
