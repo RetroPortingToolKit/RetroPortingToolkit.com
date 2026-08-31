@@ -1,7 +1,7 @@
 ---
 title: "Bomberman World"
 kicker: "PlayStation"
-tags: ["Netplay", "Five players"]
+tags: []
 featured: false
 desc: "Crystal hunts and armored boss fights: the solo quest of the three Bomberman projects, on a release every few days."
 year: "2026"
@@ -13,7 +13,7 @@ repo: "https://github.com/TechnicallyComputers/Bomberman-World-Recomp"
 group: "PlayStation"
 cover: "./boxart.png"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-08-31"
 added: "2026-08-08"
 ---
 
@@ -27,15 +27,13 @@ The flow is the one this group uses across its titles. Run a release zip standal
 
 ## What the recomp adds
 
-The player count, carried across. Bomberman World was a five player game on a multitap, and the project keeps that number: five in the game config, and five netplay slots in the RetComM catalogue entry, over the shared [recomp-net](/blog/recomp-net) stack on either LAN or ICE transports. That entry is a declaration in the catalogue, not a tested result.
-
-Past the player count the project ships nothing of its own. No widescreen, no mods, no translation layer. What you get is the framework's defaults: the OpenGL renderer at 4:3, digital pads, and memory cards written to a saves folder next to the game.
+The project ships no enhancements of its own. No widescreen, no mods, no translation layer. What you get is the framework's defaults: the OpenGL renderer at 4:3, digital controls, and memory cards written to a saves folder next to the game.
 
 ## Technical details
 
 PSXRecomp translates the disc's MIPS R3000A code to C and compiles it as a native program. Function starts come from a Ghidra export checked into the repository, and the recompiler runs in strict mode, so the seed list is the contract rather than a hint. Names accumulate through a progressive symbol map: a symbols file is synced by script into a generated header, which is how a project like this turns addresses into readable code over time without rewriting what has already been generated.
 
-Framework versions are pinned by submodule gitlink for psxrecomp, recomp-ui, and the nested recomp-net, deliberately, rather than floating on whatever the framework's own branch happens to be. A pins snapshot file sits alongside as a record, but the gitlinks are what release CI actually builds.
+Framework versions are pinned by submodule gitlink rather than floating on whatever the framework's own branch happens to be. A pins snapshot file sits alongside as a record, but the gitlinks are what release CI actually builds.
 
 ## Sources
 

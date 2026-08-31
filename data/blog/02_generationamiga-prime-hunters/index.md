@@ -15,7 +15,7 @@ cover: "/covers/mph-2119.jpg"
 
 Independent coverage from GenerationAmiga, published the day after the v0.3.0-alpha release. This is outside reporting rather than a team post, and it introduces the Metroid Prime Hunters recomp, a static recompilation of the DS game, to an audience beyond the recompilation scene.
 
-The article covers the essentials of the release: a native Windows and Linux program rather than the game running inside a general-purpose console emulator, Prime-style WASD and mouse controls in place of the DS's stylus scheme, adaptive widescreen with known visual bugs still being worked through, and experimental Wiimmfi support for online play. The article presents the release as an alpha, matching how the project describes itself.
+The article covers the essentials of the release: a native Windows and Linux program rather than the game running inside a general-purpose console emulator, Prime-style WASD and mouse controls in place of the DS's stylus scheme, and adaptive widescreen with known visual bugs still being worked through. The article presents the release as an alpha, matching how the project describes itself.
 
 The piece is notable as the first press coverage of the Nintendo DS ecosystem, whose underlying framework is still very early pre-alpha even as its one public game consumer reached a playable public alpha.
 

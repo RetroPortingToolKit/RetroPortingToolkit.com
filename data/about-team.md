@@ -1,6 +1,6 @@
 Retro Porting Toolkit is a collaborative initiative around native ports of classic games.
 
-The team works across static recompilation, runtime accuracy, debugging tools, release packaging, netplay, and public documentation. The project is still evolving, and so is this page.
+The team works across static recompilation, runtime accuracy, debugging tools, release packaging, and public documentation. The project is still evolving, and so is this page.
 
 > **Note.** This is a boilerplate team page. Each team member should replace their placeholder with their own description before the page is linked publicly.
 
@@ -26,7 +26,7 @@ Bio to be supplied by tetrisgm.
 
 ### TechnicallyComputers
 
-Significant contributor to PSXRecomp, recomp-net, and recomp-rbengine.
+Significant contributor to PSXRecomp and recomp-rbengine.
 
 Bio to be supplied by TechnicallyComputers.
 

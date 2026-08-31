@@ -8,7 +8,7 @@ repos:
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 Two short terms show up a lot in recomp projects: **LLE** and **HLE**.
@@ -61,7 +61,7 @@ Enough of those hacks turn the framework into a pile of special cases. They beco
 
 LLE fights that drift. It keeps the project tied to what the machine actually did, even before every game needs every feature.
 
-That matters later. A feature that one early game never used may become required by a later game. On PlayStation, a serial link cable is a good example of the kind of hardware feature that can matter only when a game finally asks for it. If the floor stays faithful, the project has a place to implement that feature correctly instead of guessing around old HLE behavior.
+That matters later. A feature that one early game never used may become required by a later game. If the floor stays faithful, the project has a place to implement that feature correctly instead of guessing around old HLE behavior.
 
 ## Where does HLE fit?
 

@@ -12,21 +12,17 @@ links:
 cover: "https://i.ytimg.com/vi/L36ppNkuJG0/hqdefault.jpg"
 videoUrl: "https://www.youtube.com/watch?v=L36ppNkuJG0"
 verified: "2026-08-18"
-updated: "2026-08-20"
+updated: "2026-08-31"
 added: "2026-08-12"
 ---
 
-retcomm-rbengine is the ecosystem's rollback engine: a platform-agnostic library of the host policies that make rollback netplay, and the snapshots underneath it, feel playable. It began life inside psxrecomp's runtime and was lifted out with the PlayStation-specific types removed, so any recompilation host can use it. MIT licensed, maintained by TechnicallyComputers.
+retcomm-rbengine is the ecosystem's rollback engine: a platform-agnostic library for snapshots, save states, and rewind. It began life inside psxrecomp's runtime and was lifted out with the PlayStation-specific types removed, so any recompilation host can use it. MIT licensed, maintained by TechnicallyComputers.
 
 ## What it does
 
-Six small modules that together manage time: a scheduler for admit pacing (when to run a frame, when to wait, when to invent an input), per-slot input history with hold-last invention, hash confirmation that compares local and peer frame commits, a tick-keyed snapshot ring, a filter for stale rollback messages, and a monotonic clock helper.
-
-The snapshot ring is the substrate that save states are built on, and the same machinery enables rewind.
+Its modules manage frame timing and a tick-keyed snapshot ring. The snapshot ring is the substrate that save states are built on, and the same machinery enables rewind.
 
 ![Tomba on PSXRecomp, the runtime this library was lifted out of](/previews/retcomm-rbengine.mp4)
-
-The library depends on [recomp-net](/blog/recomp-net), which owns the network session and wire protocol. This one owns what the host does with them.
 
 ## Which projects use it
 

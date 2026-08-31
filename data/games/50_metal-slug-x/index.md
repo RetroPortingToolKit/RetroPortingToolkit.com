@@ -12,7 +12,7 @@ platform: "playstation"
 repo: "https://github.com/TechnicallyComputers/Metal-Slug-X-Recomp"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-08-31"
 added: "2026-08-07"
 cover: "./boxart.png"
 ---
@@ -25,7 +25,7 @@ In alpha, on a fast cadence. Six releases landed between 2026-08-14 and 2026-08-
 
 It builds from a dump you provide, the USA disc SLUS-01212, verified by size, MD5, and SHA-1 first. OpenBIOS boots it unless you supply a retail BIOS.
 
-One practical note the project raises about dumps: it flags Track-01-only cue sheets, which fail the multi-track netplay and catalog gates, and asks for a full Redump cue instead.
+One practical note the project raises about dumps: it flags Track-01-only cue sheets and asks for a full Redump cue instead.
 
 ## What the recomp adds
 

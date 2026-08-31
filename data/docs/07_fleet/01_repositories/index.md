@@ -11,8 +11,7 @@ repos:
   - "https://github.com/mstan/recomp-ui"
   - "https://github.com/mstan/m68k-recomp-core"
   - "https://github.com/mstan/z80-recomp-core"
-  - "https://github.com/TechnicallyComputers/recomp-net"
-updated: "2026-08-25"
+updated: "2026-08-31"
 ---
 
 The fleet includes per-console projects, shared components and game ports. Each one is listed here with its role and the toolchain it belongs to. That attribution is usually the first fact you need, and no single repository states it. For what a console's toolchain does rather than where it lives, read the [platform pages](/docs/platforms).
@@ -44,9 +43,7 @@ Separately versioned repositories that other projects consume as git submodules.
 | [mstan/m68k-recomp-core](https://github.com/mstan/m68k-recomp-core) | "Shared clean-room Motorola 68000-family static-recompiler frontend". A shared decoder, validator and annotation reader, plus two platform profiles, `genesis` and `scc68070`. Shipped as a source package, not a library, because it depends on consumer-owned headers | segagenesisrecomp, cdirecomp |
 | [mstan/z80-recomp-core](https://github.com/mstan/z80-recomp-core) | "Shared Zilog Z80 static-recompiler runtime contract and verified instruction semantics". The decoder and C emitter still live in smsggrecomp; this is the platform-neutral layer their output consumes | segagenesisrecomp, smsggrecomp |
 | [mstan/recomp-ui](https://github.com/mstan/recomp-ui) | "A shared, **console-agnostic launcher and in-game settings UI** for static-recompilation game ports." One Dear ImGui core, composed per console from a single profile row | 58 game ports across eight consoles |
-| [TechnicallyComputers/recomp-net](https://github.com/TechnicallyComputers/recomp-net) | "Portable **delay-sync** netcode library for recompilation / modern-runtime hosts". C11, version 0.1.0, with a rollback architecture on a branch | psxrecomp, nesrecomp, snesrecomp, segagenesisrecomp |
-| [TechnicallyComputers/recomp-net-server](https://github.com/TechnicallyComputers/recomp-net-server) | The lobby and signalling control plane for recomp-net, in Rust. Explicitly "**not** part of the `recomp-net` library tree" | Run as a service, not linked |
-| [TechnicallyComputers/retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | "Portable **rollback host helpers**". recomp-net owns the wire and the state machine, this owns the host policy that makes rollback feel playable | psxrecomp |
+| [TechnicallyComputers/retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | Portable snapshot and rollback helpers used for save states and rewind | psxrecomp |
 | [TechnicallyComputers/retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog) | JSON manifests of supported titles, downloaded by the RetComM Launcher independently of app updates. Twelve titles at the time of this survey, all PlayStation | The launcher, over HTTP |
 
 ## Game ports
@@ -69,8 +66,8 @@ Twenty repositories. Eighteen pin psxrecomp as a submodule, at path `psxrecomp` 
 | [OpokXeno/xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp) | Points both its psxrecomp and its recomp-ui submodules at that owner's own forks |
 | [PeriBluGaming/ToyStory2Recomp](https://github.com/PeriBluGaming/ToyStory2Recomp) | Declares no submodules. Carries a partial snapshot of the framework and a vendored copy of recomp-ui as a plain tree |
 | [Alexbeav/syphon-filter-2-recompiled](https://github.com/Alexbeav/syphon-filter-2-recompiled) | Declares no submodules, and ships a setup kit rather than a binary |
-| [TechnicallyComputers/MastersOfTerasKasiRecomp](https://github.com/TechnicallyComputers/MastersOfTerasKasiRecomp) | Netplay title, with disc identity requirements in its `game.toml` |
-| [TechnicallyComputers/BombermanPartyEditionRecomp](https://github.com/TechnicallyComputers/BombermanPartyEditionRecomp) | Netplay title |
+| [TechnicallyComputers/MastersOfTerasKasiRecomp](https://github.com/TechnicallyComputers/MastersOfTerasKasiRecomp) | Carries disc identity requirements in its `game.toml` |
+| [TechnicallyComputers/BombermanPartyEditionRecomp](https://github.com/TechnicallyComputers/BombermanPartyEditionRecomp) | |
 | [TechnicallyComputers/Bomberman-World-Recomp](https://github.com/TechnicallyComputers/Bomberman-World-Recomp) | |
 | [TechnicallyComputers/Bomberman-Fantasy-Race-Recomp](https://github.com/TechnicallyComputers/Bomberman-Fantasy-Race-Recomp) | |
 | [TechnicallyComputers/Klonoa-Door-to-Phantomile](https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile) | |
@@ -167,7 +164,6 @@ Some repositories declare no submodules at all. The rest declare at least one, a
 | [gbarecomp](https://github.com/mstan/gbarecomp) | 14 | Every Game Boy Advance port |
 | [nesrecomp](https://github.com/mstan/nesrecomp) | 10 | Every NES port |
 | [snesrecomp](https://github.com/mstan/snesrecomp) | 7 gitlinks plus 1 vendored tree | Every SNES port |
-| [recomp-net](https://github.com/TechnicallyComputers/recomp-net) | 4 | nesrecomp, psxrecomp and snesrecomp at `lib/recomp-net`; segagenesisrecomp at `external/recomp-net` |
 | [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp) | 3 | Every Genesis port |
 | [m68k-recomp-core](https://github.com/mstan/m68k-recomp-core) | 2 | segagenesisrecomp and cdirecomp, both at `external/m68k-recomp-core` |
 | [z80-recomp-core](https://github.com/mstan/z80-recomp-core) | 2 | segagenesisrecomp and smsggrecomp, both at `external/z80-recomp-core` |
@@ -192,7 +188,7 @@ A shared component is not the same everywhere it is used. Three details.
 - The repository list, the toolchain attribution per game port and the canonical port layout come from each repository's `.gitmodules`, from the `*.pin` files used where a framework is not a submodule, and from each README.
 - The dependency map comes from every `.gitmodules` file and every gitlink in the fleet, read together.
 - Status quotations come from the README of the repository being quoted. Toolchain READMEs: [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/README.md), [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/README.md), [snesrecomp](https://github.com/mstan/snesrecomp/blob/main/README.md), [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/README.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/README.md), [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/README.md), [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/README.md), [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/README.md), [cdirecomp](https://github.com/mstan/cdirecomp/blob/master/README.md).
-- Shared component descriptions: [`m68k-recomp-core/README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md), [`recomp-net/README.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/README.md), [`recomp-net-server/README.md`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).
+- Shared component descriptions: [`m68k-recomp-core/README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).
 
 ## Next
 

@@ -48,7 +48,7 @@ On Windows, prefer MSYS2 MinGW over MSVC: that is the configuration release buil
 
 You do not need a BIOS dump. The framework bundles OpenBIOS, which is MIT licensed, and builds against it by default. If a game turns out to need a retail BIOS, pass `--bios` with your own `SCPH1001.BIN` later. You learn that when the game misbehaves, not in advance.
 
-> **You provide this.** You supply the disc image, from a copy you own: a `.cue` file with its `.bin` tracks beside it. Nothing here distributes game data or helps you find any. Use a full multi track dump. A single track dump warns, and it fails the gates online play uses. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
+> **You provide this.** You supply the disc image, from a copy you own: a `.cue` file with its `.bin` tracks beside it. Nothing here distributes game data or helps you find any. Use a full multi track dump. See [the game file you supply](/docs/concepts/the-game-file-you-supply).
 
 ## 1. Get the framework
 
@@ -77,21 +77,19 @@ The script asks for everything else, in this order, with these defaults:
 | Prompt | Default |
 |---|---|
 | `Project name (e.g. MyGameRecomp)` | none, required |
-| `Max players (1-8)` | `2` |
 | `Zip / CI artifact prefix` | an acronym derived from the name |
 | `Short game description (optional)` | empty |
 | `Publisher (optional)` / `Release year (optional)` | empty |
 | `Region` | `USA` |
 | `Include recomp-ui launcher submodule?` | `Y` |
 | `Enable first-run setup wizard + Generate & rebuild?` | `Y` |
-| `Enable netplay UI (needs nested recomp-net)?` | `N` |
 | `Add GitHub Actions release workflow (Linux/Windows/macOS)?` | `Y` |
 | `Fetch libretro boxart now? (needs network)` | `Y` |
 | `Run Generate now (emitters + OpenBIOS + game C)?` | `N` |
 | `Configure & build psx-runtime after Generate?` | `Y` |
 | `Create GitHub repo with gh (needs auth)?` | `N` |
 
-Two answers matter. Answer `1` to the players question for a single player game, and both netplay prompts are skipped. Answer `Y` to Generate and the script translates the game and builds it before it finishes. That is the difference between a tree of stubs and something you can run tonight.
+One answer matters. Answer `Y` to Generate and the script translates the game and builds it before it finishes. That is the difference between a tree of stubs and something you can run tonight.
 
 **You should see** the script print its phases: `== External disc (no full copy) ==`, then `== Probing disc (identity + seeds + TOC fp) ==`, then `== Sync symbols header ==`, then a `== Done ==` block listing next steps and the number of seeds the probe found. If the probe failed it says so, and leaves a template `game.toml` for you to fill in by hand.
 
@@ -103,7 +101,6 @@ Change into the new repository and open `game.toml`. The rest of the toolchain r
 [game]
 name = "Street Fighter Alpha 3"
 id = "SLUS-00821"
-players = 2
 exe = "disc/SLUS_008.21"
 disc = "disc/Street Fighter Alpha 3 (USA).cue"
 load_address = "0x80113B00"
@@ -170,9 +167,8 @@ If you answered Y to boxart + Generate (+ optional build), you get a local
 playable tree (OpenBIOS / optional retail BIOS C). You still must:
 
 1. **Boot / soak** — fix missing seeds, overlays, FMV/runtime quirks in `game.toml`
-2. **Netplay QA** — LAN then lobby; confirm digests + TOC fp; pin `VERSION`
-3. **Polish** — more symbols in `symbols.toml`, boxart name mismatches
-4. **Ship** — scaffold already creates the repo and pushes once at the end when
+2. **Polish** — more symbols in `symbols.toml`, boxart name mismatches
+3. **Ship** — scaffold already creates the repo and pushes once at the end when
    you opt in; otherwise push manually. Enable Actions, tag `vX.Y.Z` (CI ships
    setup-host **without** `generated/` — end users run Generate locally / via wizard)
 ```
@@ -187,8 +183,6 @@ The runtime carries a small interpreter as a fallback. psxrecomp's README states
 That covers code the game writes into RAM while it runs: the interpreter picks it up and play continues, so a miss there costs speed, not correctness. A function the static pass never found is handled the other way on purpose. The runtime does not interpret around it, because that would hide the gap. It records the address and stops.
 
 Either way the fix is the same. You play, you find one, you add its address as a seed, you regenerate, you build, and you play again. That loop is the port.
-
-**Netplay QA** applies only if the title has multiplayer and you turned it on. Test LAN, then the lobby. You are checking that the disc digests and the TOC fingerprint gate correctly, so a partial dump cannot go online against a full one.
 
 **Polish** means naming functions in `symbols.toml`. Run `python3 tools/sync_symbols.py` and each name becomes a `PSX_FN_*` entry in `psx_symbols.h`.
 

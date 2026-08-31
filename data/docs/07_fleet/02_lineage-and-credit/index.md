@@ -1,6 +1,6 @@
 ---
 title: "Lineage and credit"
-summary: "How the projects in this fleet descend from each other: the framework the others were modelled on, the two CPU cores several toolchains share, the shared netplay stack, and the commit each game port pins."
+summary: "How the projects in this fleet descend from each other: the framework the others were modelled on, the CPU cores several toolchains share, and the commit each game port pins."
 pageType: "concept"
 tags: ["Lineage", "Credit", "Licensing"]
 repos:
@@ -8,14 +8,12 @@ repos:
   - "https://github.com/mstan/m68k-recomp-core"
   - "https://github.com/mstan/z80-recomp-core"
   - "https://github.com/mstan/recomp-ui"
-  - "https://github.com/TechnicallyComputers/recomp-net"
-updated: "2026-08-25"
+updated: "2026-08-31"
 ---
 
 The toolchains here are not independent projects. One of them is the model the
 others were built from. Two CPU frontends were pulled out of one framework and
-are now shared repositories. The netplay code is a single library that four
-toolchains link. Every game port records the exact framework commit it was built
+are now shared repositories. Every game port records the exact framework commit it was built
 against. Those are the lines of descent inside the fleet, and each one can be
 checked in the repositories themselves.
 
@@ -80,21 +78,6 @@ generalized behind a small C ABI.
 
 Today many game ports pin it across several consoles.
 
-## One netplay stack, four consumers
-
-Netplay is not rewritten per console. Four repositories under
-`TechnicallyComputers` hold it.
-
-| Repository | What it does | Who uses it |
-|---|---|---|
-| [recomp-net](https://github.com/TechnicallyComputers/recomp-net) | The netcode library. C11, version 0.1.0 | psxrecomp, nesrecomp, snesrecomp, segagenesisrecomp |
-| [retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | Rollback host policy. recomp-net owns the wire, this owns the feel | psxrecomp |
-| [recomp-net-server](https://github.com/TechnicallyComputers/recomp-net-server) | The lobby and signalling service, in Rust | Run as a service, not linked |
-| [retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog) | JSON manifests of shipped titles | The RetComM Launcher, over HTTP |
-
-Only one part of that stack is console-specific: a packet type in recomp-net for
-Game Boy Advance link cable transfers.
-
 ## Small parts that travelled
 
 Two components moved between projects and are credited at every stop.
@@ -129,7 +112,6 @@ repository, never in one of those copies.
 
 - psxrecomp as the named model: [`SNES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_ACCURACY_BURNDOWN.md) and [`SNES_COSIM.md`](https://github.com/mstan/snesrecomp/blob/main/SNES_COSIM.md), [`NES_ACCURACY_BURNDOWN.md`](https://github.com/mstan/nesrecomp/blob/master/NES_ACCURACY_BURNDOWN.md) and [`docs/MULTITIER_PORT_PROPOSAL.md`](https://github.com/mstan/nesrecomp/blob/master/docs/MULTITIER_PORT_PROPOSAL.md), [`COSIM.md`](https://github.com/mstan/segagenesisrecomp/blob/master/COSIM.md), [`GBA_ACCURACY_BURNDOWN.md`](https://github.com/mstan/gbarecomp/blob/main/GBA_ACCURACY_BURNDOWN.md), [`ndsrecomp/README.md`](https://github.com/mstan/ndsrecomp/blob/main/README.md). The copied release workflow: [`TombaRecomp/.github/workflows/release.yml`](https://github.com/mstan/TombaRecomp/blob/master/.github/workflows/release.yml).
 - The shared cores: [`m68k-recomp-core/PROVENANCE.md`](https://github.com/mstan/m68k-recomp-core/blob/main/PROVENANCE.md) and [`README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md).
-- The netplay stack: [`recomp-net/README.md`](https://github.com/TechnicallyComputers/recomp-net/blob/main/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`recomp-net-server/README.md`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).
 - The travelling parts: [`snesrecomp/THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/snesrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md), [`segagenesisrecomp/THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/THIRD-PARTY-LICENSES.md).
 - The pins come from every `.gitmodules` file and every gitlink in the fleet, read together.
 

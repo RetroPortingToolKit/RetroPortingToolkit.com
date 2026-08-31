@@ -6,7 +6,7 @@ tags: ["Static recompilation", "Recompiler", "Runtime"]
 repos:
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 Static recompilation is a way to turn an old console game into a native app.
@@ -73,7 +73,7 @@ That is why a port is more than generated code. It is translated game logic plus
 
 A recompiled port can feel like a normal PC app.
 
-It can have a launcher, controller settings, widescreen options, save states, rewind, netplay, mods, translations, and other features that are hard to add from outside a black-box emulator.
+It can have a launcher, controller settings, widescreen options, save states, rewind, mods, translations, and other features that are hard to add from outside a black-box emulator.
 
 Those features still need discipline. The faithful game should be the baseline. Extra features should be optional, and with them off the port should behave like the original game.
 

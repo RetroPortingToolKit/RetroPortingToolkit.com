@@ -7,7 +7,7 @@ repos:
   - "https://github.com/mstan/smsggrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/gbarecomp"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 Most users should not think about timing at all.
@@ -45,7 +45,7 @@ Timing mistakes often look like unrelated bugs.
 - audio drifts
 - input is missed
 - a race condition appears only on some machines
-- netplay or replay checks desync
+- replay checks desync
 
 The visible problem is usually not where the mistake started.
 

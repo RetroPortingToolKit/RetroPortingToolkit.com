@@ -4,7 +4,7 @@ summary: "The core ideas behind recomp ports, explained before the docs get cons
 sectionTitle: "Concepts"
 pageType: "reference"
 tags: ["Concepts"]
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 This section explains the ideas behind recomp ports.
@@ -18,6 +18,6 @@ Start here when a guide uses a word you do not know yet, or when you want to und
 - [How do we compare a port to the original?](/docs/concepts/co-simulation). How projects check whether the translated code still behaves correctly.
 - [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns). How faithfulness becomes a list of concrete problems to fix.
 - [When should timing be changed?](/docs/concepts/timing-models). Why timing changes are advanced work and need measurement.
-- [Why does determinism matter?](/docs/concepts/determinism). Why save states, rewind, and netplay need repeatable behavior.
+- [Why does determinism matter?](/docs/concepts/determinism). Why save states and rewind need repeatable behavior.
 - [What is the game file contract?](/docs/concepts/the-game-file-you-supply). What the project expects you to provide, and why the site does not provide it.
 - [What do these terms mean?](/docs/concepts/glossary). Short definitions for common recomp words.

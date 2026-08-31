@@ -3,7 +3,7 @@ title: "Yoshi"
 kicker: "NES"
 tags: []
 featured: false
-desc: "The NES puzzle game as a native PC build, believed fully playable, two-player versus included."
+desc: "The NES puzzle game as a native PC build, believed fully playable, with save states and fast-forward."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -14,7 +14,7 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-08-03"
+updated: "2026-08-31"
 added: "2026-03-29"
 cover: "/data/blog/20_nesrecomp-10-titles/YoshiRecomp_IiG8QxDtHO.png"
 ---
@@ -27,7 +27,7 @@ Yes, and it is believed fully playable. A v1.1.0 Windows x64 build (2026-04-07) 
 
 ![A-TYPE at level 01, low speed, one of the two single-player puzzle modes.](/data/blog/20_nesrecomp-10-titles/YoshiRecomp_Vis0ZsyM2I.png)
 
-Both single-player puzzle modes, two-player versus, and the attract demo all run end to end, with both controller ports working. Audio is still basic while full sound mixing lands in the framework.
+Both single-player puzzle modes and the attract demo run end to end. Audio is still basic while full sound mixing lands in the framework.
 
 ## What the recomp adds
 

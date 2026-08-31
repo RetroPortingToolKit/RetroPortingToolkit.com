@@ -5,7 +5,7 @@ pageType: "reference"
 tags: ["Schema", "Catalog", "Launcher"]
 repos:
   - "https://github.com/TechnicallyComputers/retcomm-catalog"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 The catalog is the list a launcher can read when it wants to know what ports exist.
@@ -147,7 +147,6 @@ Optional sections describe features that a launcher may show or use.
 | `status` | Short status label for the port. |
 | `availability` | Whether a build is public, source-only, or unavailable. |
 | `saves` | Save file locations or save behavior. |
-| `netplay` | Whether the port exposes netplay and what it needs. |
 | `enhancements` | Optional features such as widescreen, renderer work, or quality settings. |
 
 These fields should stay factual. A launcher needs to know what exists, not why the project is exciting.

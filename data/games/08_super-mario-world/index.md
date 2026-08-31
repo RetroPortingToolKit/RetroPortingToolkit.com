@@ -3,7 +3,7 @@ title: "Super Mario World"
 kicker: "Super Nintendo"
 tags: ["Adaptive widescreen", "MSU-1", "Mods"]
 featured: true
-desc: "The flagship SNES recompilation: believed playable end to end, with adaptive widescreen, CD-quality music, and a two-player co-op build with netplay."
+desc: "The flagship SNES recompilation: believed playable end to end, with adaptive widescreen, CD-quality music, and character replacement mods."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -18,11 +18,11 @@ links:
 cover: "https://i.ytimg.com/vi/Owuku0zj4As/hq2.jpg"
 videoUrl: "https://www.youtube.com/watch?v=Owuku0zj4As"
 verified: "2026-08-18"
-updated: "2026-08-15"
+updated: "2026-08-31"
 added: "2026-04-01"
 ---
 
-Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever recompiled, and it is still the flagship of the core project. The whole game runs as a native program on your PC. A separate co-op build goes further and puts Mario and Luigi in the same level at the same time, on one machine or over the internet.
+Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever recompiled, and it is still the flagship of the core project. The whole game runs as a native program on your PC.
 
 ![Super Mario World running as a native program.](/previews/super-mario-world.mp4)
 
@@ -40,8 +40,6 @@ Start with the picture. There are three view modes: Standard 4:3, Fixed 16:9, an
 
 The rest of what the build adds:
 
-- Simultaneous co-op: a separate build where both players are active in levels at once. It applies the 2 Player Simultaneous Co-op Hack by Noobish Noobsicle, Bloony Fox, and NesDraug to your own ROM on first launch. Widescreen and MSU-1 are disabled in this build for now.
-- Netplay: the co-op build supports two-player online or LAN play. The host plays Mario, the guest plays Luigi, and the launcher handles lobbies.
 - MSU-1 audio: CD-quality streaming music with a music pack you supply. Without one you get the authentic soundtrack.
 - Save states, turbo, and auto-detected controllers with a position-true default mapping.
 

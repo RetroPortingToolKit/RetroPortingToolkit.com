@@ -14,7 +14,7 @@ group: "NES"
 links:
   - { label: "NESRecomp: From Faxanadu to 4 Supported Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-08-03"
+updated: "2026-08-31"
 added: "2026-03-28"
 cover: "/data/blog/20_nesrecomp-10-titles/DrMarioRecomp_eoeWPp44eP.png"
 ---
@@ -27,11 +27,11 @@ Yes, in single player. A v1.1.0 Windows x64 build (2026-04-07) is on [GitHub Rel
 
 ![One-player mode at level 00, medium speed, four viruses left in the bottle.](/data/blog/20_nesrecomp-10-titles/DrMarioRecomp_8cliR8zN4q.png)
 
-One-player mode is tested through virus clearing. The options menu works for level, speed, and music selection, and all three music settings play. Two-player controls are mapped but unverified, ending sequences are untested, and audio may run slightly fast in some configurations.
+One-player mode is tested through virus clearing. The options menu works for level, speed, and music selection, and all three music settings play. Ending sequences are untested, and audio may run slightly fast in some configurations.
 
 ## What the recomp adds
 
-Controls are fully remappable through a plain settings file generated next to the executable on first run, with keyboard layouts for both players. The shared runner adds save states and a fast-forward toggle.
+Controls are fully remappable through a plain settings file generated next to the executable on first run. The shared runner adds save states and a fast-forward toggle.
 
 ## Technical details
 

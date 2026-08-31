@@ -1,7 +1,7 @@
 ---
 title: "PlayStation"
 kicker: "MIPS"
-tags: ["Widescreen", "Netplay", "Mods", "Save states"]
+tags: ["Widescreen", "Mods", "Save states"]
 featured: true
 desc: "The gold-standard ecosystem here: native PlayStation ports, OpenBIOS boot for many projects, community ports, mods, widescreen, save states, and rewind."
 year: "2026"
@@ -16,6 +16,7 @@ links:
   - { label: "Read: PSXRecomp overhaul on 1379.tech", href: "https://1379.tech/psxrecomp-overhauled-now-bios-tomba/" }
   - { label: "Watch: Tomba save states and rewind", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
 verified: "2026-08-18"
+updated: "2026-08-31"
 cover: "/consoles/playstation.jpg"
 ---
 
@@ -43,7 +44,6 @@ The exact list should live in project repos. This page is here to explain the pl
 - Mods as toggleable packages.
 - Runtime translations.
 - Optional visual fixes for PlayStation-era rendering artifacts.
-- Netplay work through the shared recomp-net ecosystem.
 - Faster repeat launches as more game code is discovered and cached.
 
 ## What to expect

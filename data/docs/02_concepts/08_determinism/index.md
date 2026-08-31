@@ -1,23 +1,22 @@
 ---
 title: "Why does determinism matter?"
-summary: "Save states, rewind, recordings, and rollback netplay only work when the port can repeat the same game state exactly."
+summary: "Save states, rewind, and recordings only work when the port can repeat the same game state exactly."
 pageType: "concept"
-tags: ["Correctness", "Netplay", "Save states"]
+tags: ["Correctness", "Save states"]
 repos:
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/DKC2Recomp"
-  - "https://github.com/TechnicallyComputers/recomp-net"
   - "https://github.com/TechnicallyComputers/retcomm-rbengine"
   - "https://github.com/mstan/MegaManXSNESRecomp"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 Determinism means the same starting state and the same inputs produce the same result.
 
 That sounds simple. It is not.
 
-A recomp port is native code running on a modern computer, but the game still expects the old console's behavior. If two runs drift apart, features like save states, rewind, input recordings, and rollback netplay become unreliable.
+A recomp port is native code running on a modern computer, but the game still expects the old console's behavior. If two runs drift apart, features like save states, rewind, and input recordings become unreliable.
 
 ## Why do save states need it?
 
@@ -35,16 +34,6 @@ The runtime keeps recent snapshots in a ring. When the player rewinds, the port 
 
 That only feels clean when restore is complete. If audio, graphics, timers, or controller state are not restored correctly, rewind exposes it quickly.
 
-## Why does netplay need it?
-
-Rollback netplay is stricter.
-
-Two players may briefly predict each other's inputs. When the real inputs arrive, the game rolls back, replays the frames, and expects both machines to land on the same state.
-
-If they do not, the session desyncs.
-
-That means the port has to produce the same result across machines, settings, and runs. Host-only details cannot leak into the simulation. A graphics setting, thread timing difference, random pointer value, or platform-specific floating point difference must not change the game state.
-
 ## What makes this harder than an emulator?
 
 An emulator usually has one central machine model. It can stop between instructions and serialize that model.
@@ -61,14 +50,13 @@ A deterministic port should avoid:
 - letting graphics settings change game logic
 - relying on thread timing for game behavior
 - accepting save states from incompatible builds
-- allowing mods or patches to affect netplay without all peers agreeing
 - treating "it loaded" as proof that a state restored correctly
 
 The strict version is simple: restore the state, run again, and prove the game lands in the same place.
 
 ## What should users take away?
 
-Save states, rewind, and netplay are not just nice extras. They require the port to understand the full machine well enough to put it back exactly.
+Save states and rewind are not just nice extras. They require the port to understand the full machine well enough to put it back exactly.
 
 When a project supports those features well, it is usually a sign that the runtime is becoming more mature.
 
@@ -76,5 +64,4 @@ When a project supports those features well, it is usually a sign that the runti
 
 - [How do we compare a port to the original?](/docs/concepts/co-simulation)
 - [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns)
-- [recomp-net API](/docs/reference/recomp-net-api)
 - [What do these terms mean?](/docs/concepts/glossary)

@@ -10,7 +10,7 @@ repos:
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/vbrecomp"
   - "https://github.com/mstan/segagenesisrecomp"
-updated: "2026-08-25"
+updated: "2026-08-31"
 ---
 
 Every license below was read from the license file itself, not from a README
@@ -48,8 +48,6 @@ copyright holder.
 
 | Repository | License | Source file | Notes |
 |---|---|---|---|
-| [TechnicallyComputers/recomp-net](https://github.com/TechnicallyComputers/recomp-net) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/recomp-net/blob/main/LICENSE) | |
-| [TechnicallyComputers/recomp-net-server](https://github.com/TechnicallyComputers/recomp-net-server) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/recomp-net-server/blob/main/LICENSE) | |
 | [TechnicallyComputers/retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | MIT | [`LICENSE`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/LICENSE) | |
 | [TechnicallyComputers/retcomm-catalog](https://github.com/TechnicallyComputers/retcomm-catalog) | **None** | no license file | No README license section either |
 | [mstan/m68k-recomp-core](https://github.com/mstan/m68k-recomp-core) | PolyForm Noncommercial 1.0.0 | [`LICENSE`](https://github.com/mstan/m68k-recomp-core/blob/main/LICENSE) | Holder `Copyright (c) 2026 Matthew Stan`. Appended paragraph |
@@ -311,7 +309,6 @@ The largest attribution file in the fleet, at 252 lines.
 | clowncommon | Integer types and C helpers | ISC |
 | SDL2 | Windowing, input, rendering, audio | zlib |
 | tomlc99 | TOML parsing | MIT |
-| recomp-net | Optional netplay transport | MIT |
 | ShadowVerifier and colour science | Opt-in audio and video enhancements | MIT OR Apache-2.0 |
 | Dear ImGui | Launcher UI, added at build time by game repos | MIT |
 | stb_image, stb_truetype, stb_image_write | Image and font helpers | "Public domain or MIT" |

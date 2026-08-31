@@ -164,19 +164,19 @@ describe("the shipped index", () => {
   });
 
   it("finds a second table-only term, in a different section", () => {
-    // Same assertion as above, on a page outside Platforms: "SIO_MULTI_XFER"
-    // appears once in the documentation, in a table cell on the "recomp-net-api" page.
+    // Same assertion as above, on a page outside Platforms: "rom_identity.track_counts"
+    // appears once in the documentation, in a table cell on the catalog schema page.
     // If this term moves, repoint the test at another one that lives only inside a
     // table cell; do not delete the case.
-    const term = "SIO_MULTI_XFER";
-    const page = DOCS.find((d) => d.slug === "reference/recomp-net-api")!;
+    const term = "rom_identity.track_counts";
+    const page = DOCS.find((d) => d.slug === "reference/catalog-schema")!;
     const rows = page.body.split("\n").filter((line) => line.includes(term));
     expect(rows.length).toBe(1);
     expect(rows[0].startsWith("|")).toBe(true);
 
     const results = searchDocs(index, term);
     expect(results.length).toBeGreaterThan(0);
-    expect(results.map((r) => r.slug)).toContain("reference/recomp-net-api");
+    expect(results.map((r) => r.slug)).toContain("reference/catalog-schema");
   });
 });
 

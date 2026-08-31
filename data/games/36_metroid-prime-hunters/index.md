@@ -1,9 +1,9 @@
 ---
 title: "Metroid Prime Hunters"
 kicker: "Nintendo DS"
-tags: ["Adaptive 21:9", "Wiimmfi"]
+tags: ["Adaptive 21:9", "Mouse aiming"]
 featured: true
-desc: "The DS goes native: campaign play, adaptive 21:9 widescreen, mouse aiming, and experimental Wiimmfi online, in public alpha for Windows and Linux."
+desc: "The DS goes native: campaign play, adaptive 21:9 widescreen, and mouse aiming, in public alpha for Windows and Linux."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -18,11 +18,11 @@ links:
 cover: "/covers/mph-2119.jpg"
 videoUrl: "https://www.youtube.com/watch?v=FFUglxqa_eI"
 verified: "2026-08-18"
-updated: "2026-08-20"
+updated: "2026-08-31"
 added: "2026-08-01"
 ---
 
-Metroid Prime Hunters is the one public game built on [ndsrecomp](/hardware/nintendo-ds), the core team's very early Nintendo DS recompiler. The framework itself is pre-alpha research, but this title runs ahead of it as a public alpha: a DS shooter with mouse aiming, a genuinely wider field of view, and experimental online play.
+Metroid Prime Hunters is the one public game built on [ndsrecomp](/hardware/nintendo-ds), the core team's very early Nintendo DS recompiler. The framework itself is pre-alpha research, but this title runs ahead of it as a public alpha: a DS shooter with mouse aiming and a genuinely wider field of view.
 
 ![The recompiled game running as a native program](/previews/metroid-prime-hunters.mp4)
 
@@ -42,19 +42,15 @@ Adaptive 21:9 widescreen on the upper screen: a wider view rendered by the 3D en
 
 Prime-style controls are on by default, WASD movement and mouse aiming in place of the original stylus scheme, with mouse-driven touchscreen input and fully remappable keyboard, mouse, and gamepad bindings in the launcher.
 
-![Scan visor up, in the recompiled build](/covers/mph-online.jpg)
+![Scan visor up, in the recompiled build](/covers/mph-scan-visor.jpg)
 
 The v0.4.0 line adds an opt-in HD Rendering mod that raises the 3D engine's internal resolution up to 4x and filters decoded textures, while the 2D layers stay exactly as the hardware draws them.
-
-Online play through Wiimmfi is experimental. The game can authenticate and reach a Friends and Rivals lobby in validated flows, but in-game online play is untested and may fail to connect or desync.
 
 Known issues: the widescreen is still being audited, so some scenes, HUD placement, and fades can be wrong; the campaign is not validated start to finish; and save behavior is still in early testing, so keep backups.
 
 ## Technical details
 
 The DS is a two-CPU machine, and the recomp treats it that way: the game's ARM9 and ARM7 code is lifted to C ahead of time and runs natively, with a bounded interpreter tier handling code the game copies into RAM.
-
-The Wi-Fi path is built on melonDS's Wi-Fi work, which the project credits in full: its DS Wi-Fi controller model, emulated access point, and network backend are what let the recompiled game reach Wiimmfi as a real client. The launcher persists a console firmware profile per install, so Wi-Fi settings and console pairing survive restarts.
 
 ## Sources
 

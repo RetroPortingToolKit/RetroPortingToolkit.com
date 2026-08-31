@@ -12,7 +12,7 @@ repos:
   - "https://github.com/mstan/smsggrecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/cdirecomp"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 These are the words this site uses often.
@@ -85,7 +85,7 @@ The part of a recompiler that reads machine instructions and translates them int
 
 ### Determinism
 
-The same starting state and same inputs produce the same result. Save states, rewind, recordings, and rollback netplay depend on it. See [Why does determinism matter?](/docs/concepts/determinism).
+The same starting state and same inputs produce the same result. Save states, rewind, and recordings depend on it. See [Why does determinism matter?](/docs/concepts/determinism).
 
 ### Disc image
 

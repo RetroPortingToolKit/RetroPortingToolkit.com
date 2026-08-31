@@ -11,7 +11,7 @@ provenance: "community"
 platform: "playstation"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-08-31"
 added: "2026-08-08"
 cover: "./boxart.png"
 ---
@@ -29,8 +29,6 @@ Release v0.1.7 (2026-08-10) is on GitHub with zips for Windows, macOS Intel, mac
 ## What the recomp adds
 
 Nothing yet beyond running natively. Output is 4:3 on the OpenGL renderer, with the controller in digital mode. A widescreen scan under `analysis/` turned up 15 candidate sites, and the scan file flags that its own height guess does not match any real console display mode, so it should be treated as a guess. None of it is wired into the build.
-
-The original game's four-player Multitap support is a property of the disc, not something this project claims to have brought over.
 
 ## Technical details
 

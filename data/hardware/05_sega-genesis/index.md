@@ -1,7 +1,7 @@
 ---
 title: "Sega Genesis"
 kicker: "68000"
-tags: ["Widescreen", "Netplay", "Split-screen"]
+tags: ["Widescreen", "Clean-room runtime"]
 featured: false
 desc: "Sonic the Hedgehog 1, 2, and 3 & Knuckles rebuilt as native apps from your own cartridge, with opt-in widescreen that shows more of the stage."
 year: "2026"
@@ -16,6 +16,7 @@ links:
   - { label: "segagenesisrecomp + Sonic the Hedgehog tech demo (1379.tech)", href: "https://1379.tech/segagenesisrecomp-sonic-the-hedgehog-tech-demo/" }
   - { label: "SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2 (1379.tech)", href: "https://1379.tech/segagenesisrecomp-gets-game-2-sonic-the-hedgehog-2/" }
 verified: "2026-08-18"
+updated: "2026-08-31"
 cover: "/consoles/sega-genesis.jpg"
 ---
 
@@ -27,8 +28,7 @@ The three Sonic repos are released, and per-game configuration directories in th
 
 ## What the recomp adds
 
-- Opt-in 16:9 widescreen that draws extra columns of real stage on both sides. It is gameplay-gated, so menus, title cards, and 2-player split-screen stay at the authentic 4:3, and with the toggle off the output is byte-identical to the faithful path.
-- Netplay integration in the runner, built on a shared netplay submodule.
+- Opt-in 16:9 widescreen that draws extra columns of real stage on both sides. With the toggle off the output is byte-identical to the faithful path.
 - An opt-in "verified-enhancement shadow" layer for audio and video: cleaner FM sound and CRT-style color profiles that are continuously checked against the authentic output and revert loudly the moment they stop matching. Everything is off by default.
 
 ## Technical details

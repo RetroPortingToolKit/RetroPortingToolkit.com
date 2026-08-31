@@ -5,7 +5,7 @@ pageType: "reference"
 tags: ["Configuration", "PlayStation", "TOML"]
 repos:
   - "https://github.com/mstan/psxrecomp"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 Configuration is how a port records decisions.
@@ -143,7 +143,6 @@ Examples:
 - include debug tools;
 - choose SDL backend;
 - enable Vulkan support;
-- enable netplay support;
 - build a setup wizard;
 - choose which generated BIOS backends are linked.
 

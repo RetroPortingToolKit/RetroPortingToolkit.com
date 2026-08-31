@@ -6,7 +6,7 @@ tags: ["Porting", "Pipeline", "Recompiler"]
 repos:
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 A port starts with one exact game file. It ends as a normal program for a modern computer.
@@ -76,7 +76,7 @@ The comparison target matters. A port agreeing with its own fallback interpreter
 
 Enhancements come after the base game behaves correctly.
 
-Widescreen, mods, translation hooks, save states, rewind, and netplay are easier to trust when the unmodified port already has a solid baseline.
+Widescreen, mods, translation hooks, save states, and rewind are easier to trust when the unmodified port already has a solid baseline.
 
 The default should stay faithful to the original game. Extra features belong behind switches. With those switches off, the port should behave like the game it was built from.
 

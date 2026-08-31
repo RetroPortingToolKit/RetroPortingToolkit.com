@@ -7,7 +7,7 @@
     "Open the view. Widescreen can show more of the game world instead of stretching the old picture.",
     "Keep the original safe. Mods, translations, save states, and rewind layer on top of the game file you provide.",
     "Use modern hardware. A phone gyro can stand in for a tilt cartridge. Local weather can stand in for a sunlight sensor.",
-    "Make work reusable. Better debug tools, netplay, and release systems should help the next port, not only one game."
+    "Make work reusable. Better debug tools and release systems should help the next port, not only one game."
   ],
   "constraintsIntro": "The best ports keep a faithful path underneath the enhancements. Turn the extra feature off and the original behavior should still be there.",
   "stories": [

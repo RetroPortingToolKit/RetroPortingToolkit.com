@@ -11,7 +11,7 @@ repos:
   - "https://github.com/mstan/nesrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/FaxanaduRecomp"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 A mod changes how a port behaves.
@@ -163,4 +163,4 @@ A title screen check is not enough. A mod can work at boot and still break a lat
 
 - [Mod manifest](/docs/reference/mod-manifest), for field-level details.
 - [Add widescreen](/docs/guides/add-widescreen), for a common enhancement that often ships as a feature.
-- [Determinism](/docs/concepts/determinism), for why netplay and rollback constrain mods.
+- [Determinism](/docs/concepts/determinism), for why save states and rewind constrain mods.

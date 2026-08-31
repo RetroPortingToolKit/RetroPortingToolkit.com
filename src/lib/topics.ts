@@ -10,11 +10,6 @@ export const TOPICS: Topic[] = [
     keywords: ["widescreen", "aspect ratio", "21:9", "16:9"],
   },
   {
-    id: "netplay",
-    label: "netplay",
-    keywords: ["netplay", "rollback", "netcode", "online"],
-  },
-  {
     id: "translation",
     label: "translations & mods",
     keywords: ["translation", "text override", "mod loader", "mods"],

@@ -12,7 +12,7 @@ repos:
   - "https://github.com/Shy/BoktaiRecomp"
   - "https://github.com/mstan/TombaRecomp"
   - "https://github.com/TechnicallyComputers/retcomm-catalog"
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
 A release is what another person downloads.
@@ -111,8 +111,6 @@ Check at least:
 - basic audio and video;
 - no debug files appearing in the archive.
 
-For ports with online features, also check that the released version matches the catalogue or lobby version.
-
 ## What should release notes say?
 
 Release notes should be plain.
@@ -135,7 +133,6 @@ Do not overclaim compatibility. If only part of a game is tested, say that.
 | The game launches only on the developer machine. | A required DLL, asset, or support file was missed. |
 | The launcher cannot find fonts or assets. | The package layout is wrong. |
 | The wrong file is accepted. | Identity checks are too loose. |
-| Players cannot see each other online. | Version or catalogue data does not match the binary. |
 | A crash report names a dev build. | The release was not stamped or packaged from the right commit. |
 
 ## Next

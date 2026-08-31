@@ -1,9 +1,9 @@
 ---
 title: "Star Wars: Masters of Teras Kasi"
 kicker: "PlayStation"
-tags: ["Netplay"]
+tags: []
 featured: false
-desc: "Netplay is compiled into the published builds, and a whole optimization step exists for nothing but the intro FMV."
+desc: "A partial native build with a profile-guided optimization step devoted to the intro video."
 year: "2026"
 status: "Partial"
 availability: "Public build"
@@ -12,12 +12,12 @@ platform: "playstation"
 repo: "https://github.com/TechnicallyComputers/MastersOfTerasKasiRecomp"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-08-31"
 added: "2026-07-21"
 cover: "./boxart.png"
 ---
 
-MastersOfTerasKasiRecomp is a community project by TechnicallyComputers that rebuilds Star Wars: Masters of Teras Kasi, the 1997 PlayStation fighting game, as a native program on [PSXRecomp](/hardware/playstation). What stands out is where the effort has gone: two-player netplay that the published builds ship with switched on, and a profile-guided optimization pass whose entire job is the game's intro video.
+MastersOfTerasKasiRecomp is a community project by TechnicallyComputers that rebuilds Star Wars: Masters of Teras Kasi, the 1997 PlayStation fighting game, as a native program on [PSXRecomp](/hardware/playstation). What stands out is a profile-guided optimization pass whose entire job is the game's intro video.
 
 ## Can I play it?
 
@@ -29,9 +29,7 @@ The disc it wants is the USA Redump dump, SLUS-00562, a 17-track cue with the au
 
 ## What the recomp adds
 
-Netplay is the substantial one. Release CI builds with netplay and ICE enabled, so the packages on the releases page are netplay packages. The issue log shows how far that has been taken: the host owns saving and loading, memory cards are hashed and only sent to the guest when they differ, and both sides rendezvous before resuming from a load. Gameplay holds around 60 FPS in a match. Matches are gated on the disc, so peers must present the same 17-track cue and the same disc fingerprint before they can play at all.
-
-The other addition is stranger. Profile-guided optimization is usually a build-system detail; here it is a menu item. Settings, then SYSTEM, then Optimize FMV Playback trains the compiler on a real run of the game's intro and rebuilds with those profiles, because faithful load-delay timing makes that video the most expensive thing the runtime does. The issue log puts numbers on it: roughly 39 FPS without, roughly 48 to 50 with. The training stays on your machine and is deliberately kept out of CI builds.
+Profile-guided optimization is usually a build-system detail; here it is a menu item. Settings, then SYSTEM, then Optimize FMV Playback trains the compiler on a real run of the game's intro and rebuilds with those profiles, because faithful load-delay timing makes that video the most expensive thing the runtime does. The issue log puts numbers on it: roughly 39 FPS without, roughly 48 to 50 with. The training stays on your machine and is deliberately kept out of CI builds.
 
 The title is also carried in the RetComM Launcher catalogue, which installs, updates, and rebuilds it alongside other recomps instead of making you repeat each game's wizard by hand.
 

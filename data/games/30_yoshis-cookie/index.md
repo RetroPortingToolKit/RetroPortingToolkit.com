@@ -3,7 +3,7 @@ title: "Yoshi's Cookie"
 kicker: "NES"
 tags: []
 featured: false
-desc: "The cookie-matching puzzler as a native PC build, tested through solo and versus play with no divergence from the original."
+desc: "The cookie-matching puzzler as a native PC build, tested through solo play with no divergence from the original."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -14,7 +14,7 @@ group: "NES"
 links:
   - { label: "nesrecomp Achieves 10 Commercial Titles (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-07-23"
+updated: "2026-08-31"
 added: "2026-03-29"
 cover: "/data/blog/20_nesrecomp-10-titles/YoshisCookieRecomp_L6PeM5RcYX.png"
 ---
@@ -25,17 +25,17 @@ A core project: Yoshi's Cookie is one of the [ten commercial titles](/blog/nesre
 
 Yes. A v1.0.0 Windows x64 build (2026-07-01) is on [GitHub Releases](https://github.com/mstan/YoshisCookieRecomp/releases). It is built from a dump you provide, the USA version, verified by checksum.
 
-![The title screen picks the mode: 1P, or VS.](/data/blog/20_nesrecomp-10-titles/YoshisCookieRecomp_ax49jcT0Mx.png)
+![The Yoshi's Cookie title screen.](/data/blog/20_nesrecomp-10-titles/YoshisCookieRecomp_ax49jcT0Mx.png)
 
-Single-player mode works across all rounds, speeds, and music types, the versus mode plays two on one keyboard, and the options screen covers round, speed, handicap, and music selection. Audio is still basic while full sound mixing lands in the framework.
+Single-player mode works across all rounds, speeds, and music types. The options screen covers round, speed, handicap, and music selection. Audio is still basic while full sound mixing lands in the framework.
 
 ## What the recomp adds
 
-Two players on one keyboard for versus matches, plus the runner's conveniences: F6 saves a state, F7 restores it, and F5 toggles fast-forward.
+The runner adds conveniences: F6 saves a state, F7 restores it, and F5 toggles fast-forward.
 
 ## Technical details
 
-An MMC3 (Mapper 4) cartridge with 128 KB of program ROM and 64 KB of graphics ROM in switchable banks, one of the two games that brought that mapper family into the framework. Both single-player and versus modes were tested with zero oracle divergence against Nestopia: the recompiled game and the emulator, fed the same inputs, stayed in perfect agreement through full gameplay.
+An MMC3 (Mapper 4) cartridge with 128 KB of program ROM and 64 KB of graphics ROM in switchable banks, one of the two games that brought that mapper family into the framework. Single-player mode was tested with zero oracle divergence against Nestopia: the recompiled game and the emulator, fed the same inputs, stayed in perfect agreement through full gameplay.
 
 ## Sources
 

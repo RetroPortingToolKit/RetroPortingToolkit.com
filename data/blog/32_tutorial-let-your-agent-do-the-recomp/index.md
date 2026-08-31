@@ -63,7 +63,7 @@ One paragraph in the framework's setup document decides this:
 > Non-interactive / CI (`--yes` / `-Yes` or `PSXRECOMP_SETUP_YES=1`): requires
 > `--name` + `--disc`; Y/N options default **off** unless you pass enable flags.
 
-An agent cannot answer prompts, so it has to pass `--yes`. The script then stops asking and takes its defaults, and every yes or no default is off: the launcher interface, the setup wizard, netplay, the CI workflow, box art fetching, generate, build and GitHub repository creation.
+An agent cannot answer prompts, so it has to pass `--yes`. The script then stops asking and takes its defaults, and every yes or no default is off: the launcher interface, the setup wizard, the CI workflow, box art fetching, generate, build and GitHub repository creation.
 
 Generate and build being off is the one that bites. Without `--generate`, the script writes a complete, correct repository that does nothing, and exits successfully. The agent sees exit status zero, reports success, and hands you a tree with no `generated/` directory and no binary. Nothing failed. Nothing ran either.
 
@@ -101,7 +101,6 @@ The flags, in the order they matter:
 | `--name` | The project name. It sets the window title, the binary name and the release archive prefix. |
 | `--disc` | Required with or without `--yes`. Staged, then probed for identity, seeds and a TOC fingerprint. |
 | `--dir` | Parent directory for the new repository. Defaults to the current directory, which is rarely what you want. |
-| `--players` | Default 2, maximum 8. Pass `1` for a single player title and netplay turns itself off. |
 | `--generate` | Build the emitters, then translate the game to C. Off by default under `--yes`. |
 | `--enable-build` | Configure and build afterwards. Off by default under `--yes`. |
 | `--no-github` | Create no remote repository. Redundant under `--yes`, and worth passing so the intent is on the command line. |
