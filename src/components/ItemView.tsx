@@ -8,8 +8,8 @@ import { pathFor } from "@/lib/contentCore";
 import { ItemDetail, ArticleByline, blogIsSplit } from "./ItemDetail";
 import { Markdown } from "./Markdown";
 import { LazyProjectCarousel, type Slide } from "./LazyProjectCarousel";
-import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
-import { trapFocus } from "@/lib/focusTrap";
+import { lockBody, scrollFocusTarget, unlockBody } from "@/lib/bodyLock";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 import { Tabs, type TabId } from "./Tabs";
 import { NAV_TABS, TAB_PATH } from "./navTabs";
 
@@ -249,6 +249,7 @@ function DesktopModal({ item, onClose, covered }: Props) {
   const barRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const slideDir = useSlideDirection(item);
+  useDialogFocus(modalRef, { active: open && !covered, initialFocus: scrollFocusTarget });
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setOpen(true));
@@ -272,8 +273,7 @@ function DesktopModal({ item, onClose, covered }: Props) {
     // Covered layers keep their hands off. Wait for the opening render:
     // focusing the closed shell during the route transition lets the browser
     // return focus to the body when that transition settles.
-    if (open && !covered) focusScroller(modalRef.current);
-  }, [item.slug, covered, open]);
+  }, [item.slug]);
 
   const requestClose = () => {
     if (closing) return;
@@ -311,7 +311,6 @@ function DesktopModal({ item, onClose, covered }: Props) {
         aria-hidden={covered || undefined}
         inert={covered ? "" : undefined}
         aria-label={item.title}
-        onKeyDown={trapFocus}
       >
         {/* The site's own bar, the same component every other section renders.
             An item URL opened directly (a shared link, a search result) used to
@@ -366,17 +365,15 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
   const [open, setOpen] = useState(false);
   const [snap, setSnap] = useState<number | string | null>(0.5);
   const sheetScrollRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const isFull = snap === 1;
+  useDialogFocus(sheetRef, { active: open && !covered, initialFocus: scrollFocusTarget });
 
   useEffect(() => {
     if (!isFull) {
       sheetScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
     }
   }, [isFull]);
-
-  useEffect(() => {
-    if (open && !covered) focusScroller(sheetScrollRef.current);
-  }, [open, covered]);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setOpen(true));
@@ -471,15 +468,14 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
       >
         <Drawer.Portal>
           <Drawer.Content
+            ref={sheetRef}
             className="proj-sheet"
             aria-describedby={undefined}
             aria-hidden={covered || undefined}
             inert={covered ? "" : undefined}
             onOpenAutoFocus={(event) => {
               event.preventDefault();
-              if (!covered) focusScroller(sheetScrollRef.current);
             }}
-            onKeyDown={trapFocus}
           >
             <Drawer.Title className="sr-only">{item.title}</Drawer.Title>
             <div className="proj-sheet-handle" aria-hidden="true" />
@@ -549,7 +545,9 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
 function MobileSheet({ item, onClose, covered }: Props) {
   const [open, setOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
   const slideDir = useSlideDirection(item);
+  useDialogFocus(sheetRef, { active: open && !covered, initialFocus: scrollFocusTarget });
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setOpen(true));
@@ -563,10 +561,6 @@ function MobileSheet({ item, onClose, covered }: Props) {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [item.slug]);
-
-  useEffect(() => {
-    if (open && !covered) focusScroller(scrollRef.current);
-  }, [open, covered]);
 
   const requestClose = () => {
     if (!open) return;
@@ -586,15 +580,14 @@ function MobileSheet({ item, onClose, covered }: Props) {
       <Drawer.Portal>
         <Drawer.Overlay className="sheet-overlay" />
         <Drawer.Content
+          ref={sheetRef}
           className="sheet-content"
           aria-describedby={undefined}
           aria-hidden={covered || undefined}
           inert={covered ? "" : undefined}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
-            if (!covered) focusScroller(scrollRef.current);
           }}
-          onKeyDown={trapFocus}
         >
           <Drawer.Title className="sr-only">{item.title}</Drawer.Title>
           <NavControls

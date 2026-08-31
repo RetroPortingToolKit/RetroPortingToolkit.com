@@ -19,12 +19,19 @@ export function unlockBody() {
 // tabindex and focus it. Usually that is the modal; the split layout used by
 // hardware and project pages keeps the modal at viewport height and scrolls
 // its left column instead.
-export function focusScroller(modal: HTMLElement | null) {
-  if (!modal) return;
+export function scrollFocusTarget(modal: HTMLElement): HTMLElement {
   const scrolls = (el: HTMLElement) => el.scrollHeight > el.clientHeight + 1;
   const target = scrolls(modal)
     ? modal
-    : modal.querySelector<HTMLElement>(".project-split-left") ?? modal;
+    : modal.querySelector<HTMLElement>(
+        ".project-split-left, .sheet-scroll, .proj-sheet-scroll",
+      ) ?? modal;
   target.tabIndex = -1;
+  return target;
+}
+
+export function focusScroller(modal: HTMLElement | null) {
+  if (!modal) return;
+  const target = scrollFocusTarget(modal);
   target.focus({ preventScroll: true });
 }

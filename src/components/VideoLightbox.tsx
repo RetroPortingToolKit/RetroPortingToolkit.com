@@ -1,6 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { youtubeEmbedUrl } from "@/lib/contentCore";
+import { useBackgroundIsolation } from "@/lib/useBackgroundIsolation";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 
 // In-site video lightbox for YouTube links: the visitor never leaves the page.
 // Esc/backdrop close it; the capture-phase listener stops the event before the
@@ -12,9 +14,14 @@ export function VideoLightbox({
   url: string;
   onClose: () => void;
 }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useBackgroundIsolation();
+  useDialogFocus(dialogRef);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopImmediatePropagation();
         e.stopPropagation();
         onClose();
       }
@@ -28,7 +35,9 @@ export function VideoLightbox({
   if (!embed) return null;
   return createPortal(
     <div
+      ref={dialogRef}
       className="video-lightbox"
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Video"

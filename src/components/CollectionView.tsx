@@ -6,8 +6,8 @@ import { useMobile } from "@/lib/useMobile";
 import { pathFor } from "@/lib/contentCore";
 import { labAll, type LabMedia } from "@/lab/labContent";
 import { SpatialCard } from "./SpatialCard";
-import { focusScroller, lockBody, unlockBody } from "@/lib/bodyLock";
-import { trapFocus } from "@/lib/focusTrap";
+import { lockBody, scrollFocusTarget, unlockBody } from "@/lib/bodyLock";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 import { Tabs, type NavActive } from "./Tabs";
 import { NAV_TABS, TAB_PATH } from "./navTabs";
 
@@ -162,6 +162,7 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active =
   const modalRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  useDialogFocus(modalRef, { active: open && !covered, initialFocus: scrollFocusTarget });
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setOpen(true));
@@ -178,8 +179,7 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active =
     // effect in ItemView. Wait for the opening render: focusing the closed
     // shell during the route transition lets the browser return focus to the
     // body when that transition settles.
-    if (open && !covered) focusScroller(modalRef.current);
-  }, [title, covered, open]);
+  }, [title]);
 
   const requestClose = () => {
     if (closing) return;
@@ -213,7 +213,6 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active =
         aria-hidden={covered || undefined}
         inert={covered ? "" : undefined}
         aria-label={title}
-        onKeyDown={trapFocus}
       >
         {/* The site's bar, for the same reason the item overlay carries one:
             this is the whole viewport, and without it nothing here says which
@@ -254,6 +253,8 @@ function DesktopModal({ title, eyebrow, intro, items, onClose, covered, active =
 function MobileSheet({ title, eyebrow, intro, items, onClose, covered }: Props) {
   const [open, setOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(sheetRef, { active: open && !covered, initialFocus: scrollFocusTarget });
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setOpen(true));
@@ -267,10 +268,6 @@ function MobileSheet({ title, eyebrow, intro, items, onClose, covered }: Props) 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
   }, [title]);
-
-  useEffect(() => {
-    if (open && !covered) focusScroller(scrollRef.current);
-  }, [open, covered]);
 
   const requestClose = () => {
     if (!open) return;
@@ -290,15 +287,14 @@ function MobileSheet({ title, eyebrow, intro, items, onClose, covered }: Props) 
       <Drawer.Portal>
         <Drawer.Overlay className="sheet-overlay" />
         <Drawer.Content
+          ref={sheetRef}
           className="sheet-content"
           aria-describedby={undefined}
           aria-hidden={covered || undefined}
           inert={covered ? "" : undefined}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
-            if (!covered) focusScroller(scrollRef.current);
           }}
-          onKeyDown={trapFocus}
         >
           <Drawer.Title className="sr-only">{title}</Drawer.Title>
           <CloseButton onClose={requestClose} />

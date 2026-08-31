@@ -9,6 +9,8 @@ import { createPortal } from "react-dom";
 import useEmblaCarousel from "embla-carousel-react";
 import { isVideoSrc, isYouTubeSrc, youtubeThumb } from "@/lib/contentCore";
 import { useAutoplayVideo } from "@/lib/useAutoplayVideo";
+import { useBackgroundIsolation } from "@/lib/useBackgroundIsolation";
+import { useDialogFocus } from "@/lib/useDialogFocus";
 import { VideoSources } from "./mediaLoad";
 
 function PlayIcon() {
@@ -291,6 +293,9 @@ export function ProjectCarousel({
   const [canNext, setCanNext] = useState(false);
   const [loadedSlides, setLoadedSlides] = useState<Set<number>>(new Set());
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
+  useBackgroundIsolation(Boolean(lightboxSrc));
+  useDialogFocus(lightboxRef, { active: Boolean(lightboxSrc) });
 
   useEffect(() => {
     if (!lightboxSrc) return;
@@ -299,6 +304,7 @@ export function ProjectCarousel({
     // sees the event, so the project page underneath stays open
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        e.preventDefault();
         e.stopImmediatePropagation();
         e.stopPropagation();
         setLightboxSrc(null);
@@ -665,7 +671,9 @@ export function ProjectCarousel({
       {lightboxSrc &&
         createPortal(
           <div
+            ref={lightboxRef}
             className="media-lightbox"
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label="Expanded media"
