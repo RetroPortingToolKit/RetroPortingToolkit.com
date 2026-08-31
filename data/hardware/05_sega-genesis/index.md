@@ -3,10 +3,10 @@ title: "Sega Genesis"
 kicker: "68000"
 tags: ["Widescreen", "Clean-room runtime"]
 featured: false
-desc: "Sonic the Hedgehog 1, 2, and 3 & Knuckles rebuilt as native apps from your own cartridge, with opt-in widescreen that shows more of the stage."
+desc: "An alpha ecosystem for native Genesis ports, with public Sonic projects and opt-in widescreen work."
 year: "2026"
 status: "Playable alpha"
-maturity: "Beta"
+maturity: "Alpha"
 availability: "Source only"
 provenance: "core"
 arch: "Motorola 68000"
@@ -20,22 +20,30 @@ updated: "2026-08-31"
 cover: "/consoles/sega-genesis.jpg"
 ---
 
-Three Sonic games run as native apps, each with its own released source repo: [Sonic the Hedgehog](/games/sonic-the-hedgehog), [Sonic the Hedgehog 2](/games/sonic-the-hedgehog-2), and [Sonic 3 & Knuckles](/games/sonic-3-and-knuckles). SegaGenesisRecomp translates a Genesis game's original program into C and runs it against a clean-room runtime, built from a cartridge dump you provide.
+SegaGenesisRecomp turns Genesis games into native apps.
+
+The public work today is centered on Sonic games. That makes it a useful ecosystem, but it is still younger than the PlayStation and SNES work.
+
+You provide your own cartridge dump.
 
 ## What runs today
 
-The three Sonic repos are released, and per-game configuration directories in the framework cover further bring-up work across the Sonic family and beyond. Playable does not mean exhaustively validated: the project's own Sonic 2 announcement notes that less traveled code paths can still hit issues, and its status table lists the frontend and runtime as "Active" with the Z80 sound recompiler as "Experimental".
+Public projects include [Sonic the Hedgehog](/games/sonic-the-hedgehog), [Sonic the Hedgehog 2](/games/sonic-the-hedgehog-2), and [Sonic 3 & Knuckles](/games/sonic-3-and-knuckles).
 
-## What the recomp adds
+Treat them as playable alpha projects. They are real ports, but each one still owns its own testing, bugs, and enhancement work.
 
-- Opt-in 16:9 widescreen that draws extra columns of real stage on both sides. With the toggle off the output is byte-identical to the faithful path.
-- An opt-in "verified-enhancement shadow" layer for audio and video: cleaner FM sound and CRT-style color profiles that are continuously checked against the authentic output and revert loudly the moment they stop matching. Everything is off by default.
+The exact state still belongs on each game page. The platform page is here to explain the ecosystem.
 
-## Technical details
+## What Genesis ports can add
 
-SegaGenesisRecomp turns Motorola 68000 machine code into C through a shared 68K recompiler core, and brings an experimental static recompiler for the Z80 sound processor along for the ride. When static dispatch misses, execution falls back to a clean-room Tier-3 interpreter, and per-instruction cycle costs come from the project's own clean-room MC68000 timing model rather than an emulator dependency. Generated C is deliberately kept out of git. The runner builds natively on Windows, macOS, and Linux. The optional widescreen builds are produced from the Sonic Retro community disassemblies as build-time sources only; the 4:3 path reassembles byte-identically to the canonical ROMs, and the original ROM is never patched.
+- Widescreen that opens the view instead of stretching the image.
+- Gamepad-friendly native runners.
+- Netplay experiments where the project chooses to support them.
+- Display and audio options around the original game.
+- Game-specific quality-of-life features.
 
-## Sources
+## What to expect
 
-- [segagenesisrecomp + Sonic the Hedgehog tech demo (1379.tech)](https://1379.tech/segagenesisrecomp-sonic-the-hedgehog-tech-demo/)
-- [SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2 (1379.tech)](https://1379.tech/segagenesisrecomp-gets-game-2-sonic-the-hedgehog-2/)
+SegaGenesisRecomp has useful public results, but it is not a finished whole-console solution.
+
+The Genesis also has a sound CPU, timing behavior, mappers, and game-specific tricks that still need care. A Sonic port working well does not automatically mean every Genesis game is ready.

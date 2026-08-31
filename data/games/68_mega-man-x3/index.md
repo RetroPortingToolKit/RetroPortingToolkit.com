@@ -3,9 +3,9 @@ title: "Mega Man X3"
 kicker: "Super Nintendo"
 tags: ["Cx4", "Widescreen"]
 featured: false
-desc: "An early SNESRecomp preview for Mega Man X3. It boots and runs gameplay, with Cx4 support and opt-in widescreen."
+desc: "A SNESRecomp project for Mega Man X3. The stock game can be played end to end, with Cx4 support and enhancements still being verified."
 year: "2026"
-status: "Partial"
+status: "Playable alpha"
 availability: "Source only"
 provenance: "core"
 platform: "super-nintendo"
@@ -16,13 +16,13 @@ links:
 verified: "2026-08-31"
 ---
 
-Mega Man X3 is an early SNESRecomp project.
+Mega Man X3 is a SNESRecomp project.
 
-It is farther along than X2 today: it boots and reaches live gameplay. It is still not a finished port.
+The stock game can be played from start to finish. The enhancement layer is still being checked.
 
 ## Can I play it?
 
-As a development preview. The opening story scenes and a gameplay save path have been checked, but broad stage-by-stage coverage and audio verification are still open.
+Yes, for the stock game. Mega Man X3 can be played from start to finish without enhancements.
 
 You provide your own Mega Man X3 ROM.
 
@@ -32,4 +32,4 @@ You provide your own Mega Man X3 ROM.
 - Opt-in 16:9 widescreen work.
 - Cx4 support without asking the player for a separate firmware file.
 
-The project is useful to follow, but it still needs validation before it should be described as fully playable.
+Enhancements are a separate question. Widescreen and other changes still need their own verification.
