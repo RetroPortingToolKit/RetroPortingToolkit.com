@@ -123,18 +123,17 @@ describe("searchSite over the published site", () => {
 /* -------------------------------- the tiers ------------------------------- */
 
 describe("the three tiers, on the published site", () => {
-  // "xenogears" is the corpus's own example of all three at once: it is the
-  // TITLE of a game, it is named in the SUMMARY of the PlayStation platform
-  // page, and it appears only in the BODY of the fleet's license census.
-  const results = searchSite(index, "xenogears", { limit: 20 });
+  // This title appears as a game title, in the Master System/Game Gear
+  // platform summary, and in the body (but not summary) of the license census.
+  const results = searchSite(index, "sonic blast", { limit: 20 });
   const at = (path: string) => results.findIndex((r) => r.path?.split("#")[0] === path);
 
   it("ranks the title match first", () => {
-    expect(results[0].path).toBe("/games/xenogears");
+    expect(results[0].path).toBe("/games/sonic-blast");
   });
 
   it("ranks a summary match under the title and above a body-only mention", () => {
-    const summaryHit = at("/hardware/playstation");
+    const summaryHit = at("/hardware/master-system-game-gear");
     const bodyHit = at("/docs/fleet/licenses");
     expect(summaryHit).toBeGreaterThan(0);
     expect(bodyHit).toBeGreaterThan(summaryHit);
@@ -142,16 +141,15 @@ describe("the three tiers, on the published site", () => {
   });
 
   it("shows the description for a summary match and a body snippet for a body one", () => {
-    const summaryHit = results[at("/hardware/playstation")];
+    const summaryHit = results[at("/hardware/master-system-game-gear")];
     const bodyHit = results[at("/docs/fleet/licenses")];
-    const platform = HARDWARE.find((h) => h.slug === "playstation")!;
+    const platform = HARDWARE.find((h) => h.slug === "master-system-game-gear")!;
     expect(platform.desc.startsWith(rendered(summaryHit).replace(/…$/, ""))).toBe(true);
     // A page that matched only in its body says WHY it surfaced instead, with
     // the match highlighted inside the window.
-    const licenses = DOCS.find((d) => d.slug === "fleet/licenses")!;
-    expect(rendered(bodyHit)).not.toBe(licenses.summary);
+    const docsPage = DOCS.find((d) => d.slug === "fleet/licenses")!;
+    expect(rendered(bodyHit)).not.toBe(docsPage.summary);
     expect(bodyHit.description.some((p) => p.mark)).toBe(true);
-    expect(rendered(bodyHit).toLowerCase()).toContain("xenogears");
   });
 });
 

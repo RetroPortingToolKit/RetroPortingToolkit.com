@@ -500,3 +500,24 @@ both pages already link their source article under `links:`.
 - Verification: typecheck green, production build green (894 modules, 192
   prerendered routes, 36 feed posts), and all 780 tests green. The six existing
   documentation-date warnings remain unchanged.
+
+## Game Master PR integration (2026-08-31)
+
+- PR #2's 16-commit documentation rewrite and PR #4's stacked site/content
+  rewrite are merged, along with PR #3's deliberately unlinked, noindex About
+  team draft. The About page remains a draft surface at `/about`; it is not in
+  navigation or the sitemap.
+- The non-doc pass removes the misleading/legacy platform and game listings,
+  removes the Minish Cap showcase preview, adds Mega Man X2, Mega Man X3 and
+  ActRaiser, and lets individual games opt out of platform-page showcases with
+  `showOnPlatform: false`.
+- The existing split catalog/docs loader remains intact. The new
+  `showOnPlatform` field is parsed in `contentCore`, so the PR behavior reaches
+  both static content and CMS previews without restoring the old monolithic
+  loader.
+- Thirty-nine media files and diagrams made unreachable by the rewritten
+  ecosystem article/docs were removed after the asset audit identified them;
+  they remain recoverable from git history.
+- Verification: typecheck green, production build green (837 modules, 184
+  prerendered routes, 36 feed posts), asset audit green, and all 761 tests
+  green. Four existing fleet documentation-date warnings remain.

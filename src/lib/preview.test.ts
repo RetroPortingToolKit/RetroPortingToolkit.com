@@ -19,6 +19,6 @@ describe("documentation link previews", () => {
 
   it("keeps the full nested slug when resolving a page", () => {
     const preview = previewForHref("/docs/concepts/recompiler-and-runtime");
-    expect(preview?.title).toBe("The recompiler and the runtime");
+    expect(preview?.title).toBe("What are the recompiler and runtime?");
   });
 });

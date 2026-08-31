@@ -162,7 +162,7 @@ describe("list_platforms", () => {
       expect(p.maturity, p.title).toBeTruthy();
     }
     const psx = r.platforms.find((p) => p.title === "PlayStation")!;
-    expect(psx.status).toBe("Playable alpha");
+    expect(psx.status).toBe("Gold standard");
     expect(psx.maturity).toBe("Beta");
   });
 });
@@ -350,7 +350,7 @@ describe("plan_my_port", () => {
     expect(r.console.title).toBe("PlayStation");
     expect(r.framework).toBe("psxrecomp");
     expect(r.maturity.tier).toBe("The strongest paths");
-    expect(r.maturity.note).toContain("gold standard");
+    expect(r.maturity.note).toContain("gold-standard");
     expect(r.scaffolding).toBe("Yes");
     const commands = r.steps.map((s) => s.command).filter(Boolean);
     expect(commands).toContain(SCAFFOLD_COMMAND);

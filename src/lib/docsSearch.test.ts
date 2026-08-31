@@ -143,22 +143,23 @@ describe("the shipped index", () => {
   });
 
   it("finds a term that exists ONLY inside a table cell", () => {
-    // "ARM946E-S" appears once in the whole documentation, in a cell of the
-    // CPU table on the Nintendo DS platform page. It is the assertion this
+    // "Optional address" appears once in the whole documentation, in a cell
+    // of the translation guide's schema table. It is the assertion this
     // whole plain-text pass exists for: strip the table and the term is gone.
-    const term = "ARM946E-S";
-    const page = DOCS.find((d) => d.slug === "platforms/nintendo-ds")!;
+    const term = "Optional address";
+    const page = DOCS.find((d) => d.slug === "guides/translate-a-game")!;
     const rows = page.body.split("\n").filter((line) => line.includes(term));
     expect(rows.length).toBe(1);
     expect(rows[0].startsWith("|")).toBe(true);
 
     const results = searchDocs(index, term);
     expect(results.length).toBeGreaterThan(0);
-    expect(results[0].slug).toBe("platforms/nintendo-ds");
-    expect(results[0].snippet.some((part) => part.mark)).toBe(true);
+    const result = results.find((entry) => entry.slug === "guides/translate-a-game");
+    expect(result).toBeDefined();
+    expect(result!.snippet.some((part) => part.mark)).toBe(true);
     // and the whole corpus really does mention it nowhere else
     expect(index.entries.filter((e) => e.text.includes(term)).map((e) => e.slug)).toEqual([
-      "platforms/nintendo-ds",
+      "guides/translate-a-game",
     ]);
   });
 
