@@ -3,9 +3,9 @@ title: "Donkey Kong Country 2"
 kicker: "Super Nintendo"
 tags: ["Widescreen"]
 featured: false
-desc: "A community-led early build, with experimental widescreen plus rewind and save states built in."
+desc: "An early SNESRecomp build with experimental widescreen, rewind, and save states."
 year: "2026"
-status: "Playable alpha"
+status: "Early alpha"
 availability: "Public build"
 provenance: "community"
 platform: "super-nintendo"
@@ -17,22 +17,24 @@ added: "2026-07-18"
 cover: "/data/blog/10_building-enhancing-recomps/dkc2-wide.webp"
 ---
 
-Donkey Kong Country 2 is the newest [SNESRecomp](/hardware/super-nintendo) title, and the first that is community work hosted by the core team: contributor Nicktendonick does the game work in a core-hosted repository.
+Donkey Kong Country 2 is an early [SNESRecomp](/hardware/super-nintendo) project led by contributor Nicktendonick.
+
+It is still early, but the direction is clear: keep the stock game faithful, then add modern comfort features around it.
 
 ## Playable status
 
-Very early alpha. A Windows build is public, and the bring-up is underway. Expectations should match that early state.
+Very early alpha. A Windows build is public, and the bring-up is still underway.
 
-An SDL2 host in the source tree is the foundation for future Linux and macOS support, but Windows is the only accepted release platform today. It is built from a dump you provide: the launcher asks for your North American v1.0 ROM and verifies it by checksum.
+It is built from a dump you provide: the launcher asks for your North American v1.0 ROM and verifies it by checksum.
 
 ## What the recomp adds
 
-Even this early, the build ships the comforts the cartridge could not:
+Even this early, the build has a few clear additions:
 
-- Rewind, fast-forward, and five save-state slots, behind an Assist Tools setting that defaults off.
-- Experimental 16:9 widescreen. The internal picture grows from 256x224 to 342x224, adding 43 real pixels of level on each side. The original 4:3 view stays the default.
-- Screen models: a byte-exact Raw default, plus opt-in CRT, Composite, and Trinitron color responses.
-- An in-game overlay for settings, control rebinding, and assist tools, plus independent Player 1 and Player 2 input sources for two gamepads.
+- Experimental 16:9 widescreen, showing more level on each side instead of stretching the picture.
+- Rewind, fast-forward, and five save-state slots.
+- Screen models for raw, CRT, composite, and Trinitron-style presentation.
+- An in-game overlay for settings, controls, and assist tools.
 
 
 ## Sources
