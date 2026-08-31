@@ -77,9 +77,9 @@
       "headline": "A DS game with modern aim."
     },
     {
-      "page": "/blog/retcomm-rbengine",
+      "page": "/blog/video-tomba-save-states-rewind",
       "videoTitle": "Save states and rewind, shown off in Tomba!",
-      "project": "retcomm-rbengine",
+      "project": "PSXRecomp",
       "poster": "/covers/tomba-rewind.jpg",
       "alt": "Tomba! with the rewind timeline open",
       "blurb": "The engine work matters beyond one game: save states and rewind become features future hosts can reuse.",

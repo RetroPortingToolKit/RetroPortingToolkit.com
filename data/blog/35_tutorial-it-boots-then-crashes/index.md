@@ -6,6 +6,7 @@ date: "2026-08-24"
 author: "Matthew Stanley"
 tags: ["Tutorial", "Debugging", "Dispatch misses"]
 layout: "article"
+draft: true
 ---
 
 Your port built. It opened a window, ran the title screen, took input, and then died twenty minutes in. Nothing went wrong earlier. This is normal on every console here: the first build is where the work starts, not where it ends. What follows is the loop. What happened, how to turn one crash into one configuration change, and how to tell when the change belongs somewhere else.
