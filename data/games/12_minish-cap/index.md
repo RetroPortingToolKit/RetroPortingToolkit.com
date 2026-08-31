@@ -3,7 +3,7 @@ title: "The Legend of Zelda: The Minish Cap"
 kicker: "Game Boy Advance"
 tags: ["Adaptive widescreen"]
 featured: false
-desc: "Hyrule, wider: the game GBARecomp was built around, with adaptive widescreen demonstrated up to 21:9."
+desc: "A GBARecomp preview for The Minish Cap, focused on native play, save states, and adaptive widescreen."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -12,48 +12,39 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/MinishCapRecomp"
 group: "Game Boy Advance"
 links:
-  - { label: "Expanding the *recomp ecosystem with GBARecomp (1379.tech)", href: "https://1379.tech/expanding-the-recomp-ecosystem-with-gbarecomp/" }
-  - { label: "Building & Enhancing Recomps: Ecosystem Updates (1379.tech)", href: "https://1379.tech/building-enhancing-recomps-ecosystem-updates/" }
+  - { label: "Read: GBARecomp launch on 1379.tech", href: "https://1379.tech/expanding-the-recomp-ecosystem-with-gbarecomp/" }
 verified: "2026-08-18"
 updated: "2026-08-10"
 added: "2026-05-25"
 cover: "/covers/minish-cap.jpg"
 ---
 
-The Minish Cap is the game [GBARecomp](/hardware/game-boy-advance) was built around, and it is the most mature title in the GBA lineup. When the framework was announced in June 2026 with six games booting, Minish Cap was already into gameplay. It is also the clearest demonstration of what the approach can do that an original cartridge cannot: widen the view until you see almost twice as much of Hyrule.
+The Minish Cap is one of the clearest GBARecomp examples.
 
-![The recompiled Minish Cap running on a PC.](/previews/minish-cap.mp4)
+It runs as a native app from a cartridge dump you provide. The port keeps the original game behavior, then adds host features around it.
 
 ## Can I play it?
 
-Yes, as an in-development preview. Windows builds are on the GitHub Releases page, currently v0.0.4 (July 2026), and you can also build from source.
+Yes, as an in-development preview. Windows builds are on the GitHub Releases page, and you can also build it from source.
 
-Either way the game runs from a dump you provide: the runtime checks the USA ROM's fingerprint and refuses to launch anything else. Overworld, dialogue, and save states all work, but not every corner of the game has been tested, so expect rough edges.
+The project expects the USA ROM and checks the file before it runs. Overworld, dialogue, and save states work, but not every corner of the game has been tested.
 
-## What the recomp adds
+## What this port adds
 
-The faithful default is the original 240x160 image, exactly as the cartridge drew it.
+The faithful default is the original 240x160 image.
 
 ![Native resolution: 240 pixels across, the view a GBA gives you.](./minish-cap-native.webp)
 
-Enable Adaptive Widescreen from the launcher's Mods page and the logical view widens as the window does, from 240 up to 480 pixels across while staying 160 tall. A 21:9 display shows roughly 373x160, and the feature has been demonstrated at 21:9 in the ecosystem write-ups.
+Adaptive widescreen opens the view as the window gets wider. It shows more of the room instead of stretching the old image.
 
 ![Adaptive widescreen: the same moment, now with the gardens on one side and the house on the other.](./minish-cap-adaptive.webp)
 
-The extra width is not a stretch. The side margins read the game's own rendered room layers, so authored scenery continues to the real room edge without repeating. The HUD follows the corners of the wider view while dialogue stays centered over the play area. Entities and scripted effects keep their original behavior, so sprites can still pop in at the edges of the extended view.
+The extra width still needs game-specific care. HUD placement, dialogue boxes, room edges, and sprite behavior all have to be checked.
 
-Save states work from the keyboard: Shift+F1 through F9 to save a slot, F1 through F9 to load it.
+Save states work from the keyboard: Shift+F1 through F9 saves a slot, and F1 through F9 loads it.
 
-The port also improves itself as you play. Any code path the static recompiler has not covered runs through a built-in interpreter the first time it is hit, is then compiled to native code in-process, and is remembered on disk, so the next launch runs it natively from the start.
+## Technical note
 
-## Technical details
+The game runs on the GBA's ARM7TDMI CPU. GBARecomp rebuilds that code as native code, then runs it against a runtime for the rest of the handheld.
 
-The ROM's ARM7TDMI machine code is statically translated to native C: every function the game runs becomes a generated C function. Unlike most recomp projects, the GBA BIOS is recompiled and executed too rather than replaced with high-level stubs, so the boot sequence and interrupt handlers run as recompiled code. The gbarecomp runtime models the rest of the console: the PPU, the APU and M4A sound engine, DMA, timers, the cartridge EEPROM save chip, and hardware I/O.
-
-Only symbol metadata (function names, addresses, sizes) from the zeldaret/tmc decompilation enters the repo, never its C source. The self-improvement path uses a toolchain-less JIT backend (sljit), with healed code persisted per ROM under `recomp_cache/`; it is on by default and can be disabled for a pure-interpreter run.
-
-## Sources
-
-- [MinishCapRecomp README (GitHub)](https://github.com/mstan/MinishCapRecomp)
-- [Expanding the *recomp ecosystem with GBARecomp (1379.tech)](https://1379.tech/expanding-the-recomp-ecosystem-with-gbarecomp/)
-- [Building & Enhancing Recomps: Ecosystem Updates (1379.tech)](https://1379.tech/building-enhancing-recomps-ecosystem-updates/)
+Only symbol metadata from the public decompilation is used here. The decompilation helps with names and discovery. It is not copied in as game source code.

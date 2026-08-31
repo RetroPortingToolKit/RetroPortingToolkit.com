@@ -12,7 +12,6 @@ export const PREVIEW_SLUGS: ReadonlySet<string> = new Set([
   "mega-man-x4",
   "mega-man-x6",
   "metroid-prime-hunters",
-  "minish-cap",
   "nes",
   "nintendo-ds",
   "playstation",

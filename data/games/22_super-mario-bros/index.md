@@ -16,7 +16,7 @@ links:
 verified: "2026-08-18"
 updated: "2026-08-14"
 added: "2026-03-15"
-cover: "/covers/smb-voxel.jpg"
+cover: "./char-pikachu.png"
 ---
 
 Super Mario Bros. runs here as a native PC program, rebuilt from the original game by [NESRecomp](/hardware/nes) and maintained by the core team. It was the first of the framework's [ten commercial titles](/blog/nesrecomp-10-titles) to reach a full release, and it is where the ecosystem tries its boldest ideas: you can finish the game as Mario, or hand his job to Pikachu, Samus, Link, Captain Falcon, or Sonic.
@@ -25,11 +25,11 @@ Super Mario Bros. runs here as a native PC program, rebuilt from the original ga
 
 ## Can I play it?
 
-Yes. v1.8.0 shipped on 2026-08-14 as a Windows x64 download on [GitHub Releases](https://github.com/mstan/SuperMarioBrosNESRecomp/releases), with an experimental Linux AppImage alongside; macOS support in the framework is newer and experimental, by building from source. The download contains no game data: it is built from a dump you provide, selected on first launch.
+Yes. Windows builds are available on [GitHub Releases](https://github.com/mstan/SuperMarioBrosNESRecomp/releases), with an experimental Linux AppImage alongside. macOS support in the framework is newer and experimental, by building from source. The download contains no game data: it is built from a dump you provide, selected on first launch.
 
 All worlds and levels are believed completable, though not every path has been exhaustively tested. One known quirk: the title-screen demo can play out slightly differently between launches. Gameplay is unaffected.
 
-## What the recomp adds
+## What this port adds
 
 Character replacements are the headline: five experimental swaps, off by default and enabled one at a time from the launcher's Mods screen. Each swap pulls its character from a separate dump you supply, and the launcher verifies it and derives the sprites, animations, and sounds into a local cache, so nothing from those games ships in the download.
 
