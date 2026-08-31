@@ -52,5 +52,14 @@ EOF
 
 plutil -lint "$plist"
 launchctl bootout "gui/$(id -u)/com.retroportingtoolkit.discord-agent" >/dev/null 2>&1 || true
-launchctl bootstrap "gui/$(id -u)" "$plist"
+for attempt in 1 2 3; do
+  if launchctl bootstrap "gui/$(id -u)" "$plist"; then
+    break
+  fi
+  if [[ "$attempt" -eq 3 ]]; then
+    echo "Could not start com.retroportingtoolkit.discord-agent after 3 attempts." >&2
+    exit 1
+  fi
+  sleep 1
+done
 echo "Installed and started com.retroportingtoolkit.discord-agent"

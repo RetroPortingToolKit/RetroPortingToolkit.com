@@ -564,3 +564,5 @@ both pages already link their source article under `links:`.
 - `stop`, `cancel`, and `abort`, either by mention or reply, terminate the
   active Codex process group. The bot acknowledges the command immediately and
   reports the stopped state on the original request. Queued work remains queued.
+- The installer retries `launchctl bootstrap` because macOS can briefly return
+  an input/output error immediately after removing the previous job.
