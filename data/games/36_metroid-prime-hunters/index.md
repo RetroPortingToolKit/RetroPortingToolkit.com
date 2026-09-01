@@ -3,7 +3,7 @@ title: "Metroid Prime Hunters"
 kicker: "Nintendo DS"
 tags: ["Adaptive 21:9", "Wiimmfi"]
 featured: true
-desc: "The DS goes native: campaign play, adaptive 21:9 widescreen, mouse aiming, and experimental Wiimmfi online, in public alpha for Windows and Linux."
+desc: "The first public ndsrecomp game: mouse aiming, adaptive widescreen, and working Wiimmfi online play."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -22,33 +22,37 @@ updated: "2026-08-20"
 added: "2026-08-01"
 ---
 
-Metroid Prime Hunters is the one public game built on [ndsrecomp](/hardware/nintendo-ds), the core team's very early Nintendo DS recompiler. The framework itself is pre-alpha research, but this title runs ahead of it as a public alpha: a DS shooter with mouse aiming, a genuinely wider field of view, and experimental online play.
+Metroid Prime Hunters is the first public game built on [ndsrecomp](/hardware/nintendo-ds).
+
+The framework is still early, but this project is further along than a tech demo. It is a public alpha for a DS shooter with mouse aiming, adaptive widescreen, and working online play through Wiimmfi.
 
 ![The recompiled game running as a native program](/previews/metroid-prime-hunters.mp4)
 
 ## Playable status
 
-Public alpha, and the project is blunt that bugs, crashes, and rough edges are expected. Windows and Linux AppImage builds are on the releases page.
+Public alpha. Bugs, crashes, and rough edges are still expected. Windows and Linux AppImage builds are on the releases page.
 
 ![Video Game Esoterica on the public alpha](https://www.youtube.com/watch?v=FFUglxqa_eI)
 
-The game is built from a ROM dump you provide, and only the USA revision 0 ROM is supported: the launcher hash-checks it and rejects anything else. DS BIOS and firmware dumps are no longer required for the default startup path, which uses a built-in free BIOS replacement and generated firmware. Your own dumps remain optional, and are hash-verified if you use them.
+The game is built from a ROM dump you provide. Only the USA revision 0 ROM is supported. DS BIOS and firmware dumps are no longer required for the default startup path; your own dumps remain optional.
 
 ## What the recomp adds
 
-Adaptive 21:9 widescreen on the upper screen: a wider view rendered by the 3D engine, not a stretched image.
+Adaptive widescreen on the upper screen: a wider view rendered by the 3D engine, not a stretched image.
 
 ![The upper screen widened, with the touch screen running in a second window](/data/blog/10_building-enhancing-recomps/mph-wide.webp)
 
-Prime-style controls are on by default, WASD movement and mouse aiming in place of the original stylus scheme, with mouse-driven touchscreen input and fully remappable keyboard, mouse, and gamepad bindings in the launcher.
+Prime-style controls are the main usability feature: WASD movement and mouse aiming in place of the original stylus scheme.
 
 ![Scan visor up, in the recompiled build](/covers/mph-online.jpg)
 
-HD Rendering raises the 3D engine's internal resolution and filters decoded textures, while the 2D layers stay exactly as the hardware draws them.
+Higher-resolution 3D rendering is available. The 2D layers still follow the DS hardware path.
 
-Online play through Wiimmfi is experimental. The game can authenticate and reach a Friends and Rivals lobby in validated flows, but in-game online play is untested and may fail to connect or desync.
+Online play through Wiimmfi works. The game can authenticate, reach Friends and Rivals, and play online matches.
 
-Known issues: the widescreen is still being audited, so some scenes, HUD placement, and fades can be wrong; the campaign is not validated start to finish; and save behavior is still in early testing, so keep backups.
+Known issues: widescreen is still being audited, so some scenes, HUD placement, and fades can be wrong. Campaign coverage and save behavior are still being verified.
+
+Optimization work is also ongoing. The game can run well on high-end hardware, but medium and lower-end machines may struggle for now.
 
 
 ## Sources

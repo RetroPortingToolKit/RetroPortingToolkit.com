@@ -1,9 +1,9 @@
 ---
-title: "OpenPete (Spyro the Dragon)"
+title: "Spyro the Dragon"
 kicker: "PlayStation"
 tags: ["PC port", "Widescreen", "High framerate"]
 featured: true
-desc: "Spyro the Dragon as a native Windows app: save states, rewind, widescreen, and framerates the PlayStation never allowed."
+desc: "Spyro the Dragon as a native Windows app through the community OpenPete project."
 year: "2026"
 status: "Released"
 availability: "Public build"
@@ -18,19 +18,21 @@ verified: "2026-08-18"
 cover: "./openpete-spyro.jpg"
 ---
 
-OpenPete is a community-built native PC port of Spyro the Dragon, named after Spyro's development codename. It is a hybrid: functions the fan decompilation has worked out by hand run as rewritten code, and [PSXRecomp](/hardware/playstation) covers everything the decompilation has not reached yet. The result plays like Spyro, but behaves like a modern PC game.
+OpenPete is a community-built native PC port of Spyro the Dragon.
+
+It uses a hybrid approach. The fan decompilation covers the parts that have been worked out by hand, and [PSXRecomp](/hardware/playstation) covers the rest.
 
 ## Playable status
 
-Yes, on Windows. Builds are downloadable from [openpete.com](https://openpete.com) and run from a disc dump you provide (Spyro the Dragon, NTSC-U, SCUS-94228).
+Yes, on Windows. Builds are downloadable from [openpete.com](https://openpete.com) and run from a disc dump you provide.
 
-Linux builds from source today, with a packaged release planned, and macOS on Apple silicon is planned. The source tree is not yet public: the project says it still carries copyrighted game data used for validation, which has to be separated out first.
+Linux builds from source today, with packaged releases planned. The source tree is not public yet.
 
 ## What the port adds
 
-Rendering is decoupled from the original 29.913 Hz simulation, so the framerate is whatever your machine can do; press coverage showed it running at 240 FPS.
+Rendering is decoupled from the original PlayStation framerate, so the game can draw much faster on modern hardware.
 
-Beyond that: widescreen at 16:9, 21:9, or 32:9, extended draw distance, save states and rewind, HD texture pack support, music replacement for all 48 tracks, and optional PSX-style visual modes for anyone who wants the original look back. Gameplay is untouched, and the changes are presentation only. The developers have said they hope to extend the work to Spyro 2 and 3.
+It also has widescreen, extended draw distance, save states, rewind, HD texture pack support, music replacement, and optional PSX-style visual modes.
 
 
 ## Sources
