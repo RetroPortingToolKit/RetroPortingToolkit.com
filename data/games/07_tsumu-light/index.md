@@ -3,7 +3,7 @@ title: "Tsumu Light"
 kicker: "PlayStation"
 tags: ["English translation", "Runtime text"]
 featured: true
-desc: "A puzzle game that never left Japan, now speaking English: an original fan translation applied at runtime, without touching the disc."
+desc: "A Japan-only puzzle game with an English fan translation applied at runtime."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -17,26 +17,22 @@ added: "2026-07-07"
 cover: "./boxart.jpg"
 ---
 
-Tsumu Light is a hamster-themed stacking puzzle game that only ever released in Japan. This core [PSXRecomp](/hardware/playstation) project pairs the recompilation with an original English fan translation, so the menus, the stage names, and even the save dialogs finally read in English. It is the smallest game in the lineup and the one that shows the framework can do more than run code: it can localize.
+Tsumu Light is a hamster-themed stacking puzzle game that only released in Japan.
 
-## Can I play it?
+This [PSXRecomp](/hardware/playstation) project pairs the native build with an original English fan translation. Menus, stage names, save dialogs, and other text now read in English.
 
-Yes, as a playable alpha. The current release is v0.0.2 (2026-07-10), with a Windows package on the GitHub releases page. The game is built from a dump you provide: your Tsumu Light (Japan) disc image, plus a standard PlayStation BIOS file.
+## Playable status
 
-English is the default language in the launcher, with the original Japanese one setting away. The puzzle stages play start to finish, and the game boots instantly.
+Yes, as a playable alpha. A Windows package is on the GitHub releases page. The game is built from a dump you provide: your Tsumu Light (Japan) disc image, plus a legally obtained PlayStation BIOS file.
+
+English is available from the launcher, with the original Japanese text still available. The puzzle stages play start to finish.
 
 ## What the recomp adds
 
-The translation is the reason this project exists. It covers the HUD, the menus, the stage-select names and high-score labels, and the memory-card save, format, and quit dialogs. It lives in a plain data file, translations/tsumu.toml, and is applied at runtime, so the game's own assets are never modified and the text can be revised without touching the game image at all.
+The translation is the reason this project exists. It covers the HUD, menus, stage select, high scores, and memory-card dialogs.
 
-Two smaller comforts come with it:
+The translation lives in `translations/tsumu.toml` and is applied at runtime. The game image is not modified, and the translation can be revised without rebuilding the disc.
 
-- Instant boot: the console startup sequence is skipped and the game launches straight in. The authentic slow boot remains available as an option.
-- Keyboard or a DualShock and DualSense style pad both work. Tsumu is a digital game, so the pad presents as a digital controller and the analog options stay out of the way.
-
-## Technical details
-
-The game's MIPS code is translated ahead of time into C and compiled into a native Windows program that runs on a faithful simulation of the PS1 hardware (GPU, SPU, GTE, memory cards). The instant boot is an HLE boot-skip that synthesizes the post-boot kernel state, with the full recompiled BIOS boot kept as the reference path; because the region check never runs under the default boot, the common NTSC-U BIOS works and no Japanese BIOS is needed. Rendering uses the software rasterizer, and saves are standard .mcd memory-card files that emulators can also read.
 
 ## Sources
 

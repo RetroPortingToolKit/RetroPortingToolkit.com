@@ -3,7 +3,7 @@ title: "Sonic 3 & Knuckles"
 kicker: "Sega Genesis"
 tags: ["Widescreen"]
 featured: false
-desc: "One repo, three builds: Sonic 3, Sonic & Knuckles, and the combined lock-on cartridge, all on the shared Genesis engine."
+desc: "Sonic 3, Sonic & Knuckles, and the combined lock-on game through SegaGenesisRecomp."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -19,27 +19,24 @@ added: "2026-05-29"
 cover: "./boxart.png"
 ---
 
-Sonic 3 & Knuckles is really three games in one repository on [SegaGenesisRecomp](/hardware/sega-genesis): Sonic 3 alone, Sonic & Knuckles alone, and the combined 4 MB cartridge, each as its own build. The lock-on trick that let the original cartridges physically stack lives on here as a memory-mapping problem the recomp has to solve.
+Sonic 3 & Knuckles is really three builds in one repository: Sonic 3 alone, Sonic & Knuckles alone, and the combined lock-on game.
 
-## Can I play it?
+All three are supported. The combined Sonic 3 & Knuckles build is the recommended way to play because it matches how most people think of the complete game.
 
-Playable alpha, with the three builds at different depths. Sonic 3 alone is the furthest along: a playable bring-up that reaches Angel Island with working saves. Sonic & Knuckles alone is in bring-up, and the combined Sonic 3 & Knuckles build is early bring-up.
+For [SegaGenesisRecomp](/hardware/sega-genesis), this is useful framework work because the lock-on behavior changes how the cartridge memory is mapped.
 
-The newest release is v0.3.0 (2026-06-17), which added the pre-boot launcher and ships Windows builds of all three variants. An experimental Linux AppImage of the combined build and a macOS build exist from earlier tags. Each variant is built from a ROM dump you provide, one per mode.
+## Playable status
+
+Playable alpha. All three variants build and run: Sonic 3, Sonic & Knuckles, and Sonic 3 & Knuckles.
+
+Windows builds are available for all three variants. An experimental Linux AppImage of the combined build and a macOS build are also available. Each variant is built from a ROM dump you provide, one per mode.
 
 ## What the recomp adds
 
-The pre-boot launcher, and the framework's opt-in 16:9 widescreen for the standalone Sonic 3 and Sonic & Knuckles builds. The combined build's widescreen is still in bring-up, and battery-backed save data works in the Sonic 3 build.
+The launcher supports the separate variants and their input/display settings.
 
-The shared engine's opt-in CRT color modes and verified FM audio shadow are available here too, and for development builds an experimental statically recompiled Z80 sound driver can replace the embedded interpreter.
+Experimental 16:9 widescreen is available.
 
-## Technical details
-
-The combined cartridge is the hard mode of Genesis recompilation. Sonic & Knuckles boots at address $000000 with Sonic 3 mapped in at $200000, and S&K code jumps directly into the Sonic 3 bank, so the runtime must honor the lock-on memory map.
-
-Two more details resist static analysis. The game copies its VBlank and HBlank interrupt handlers into RAM at boot, which a static call-graph walk cannot follow without hooks, and combined save data lives in battery SRAM on odd bytes. The clean-room interpreter tier backstops static-dispatch misses.
-
-The optional widescreen builds draw on the Sonic Retro community's disassemblies as build-time sources; the shipped binaries are recompiled C.
 
 ## Sources
 

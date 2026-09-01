@@ -1,9 +1,9 @@
 ---
 title: "Bomberman Fantasy Race"
 kicker: "PlayStation"
-tags: []
+tags: ["Netplay"]
 featured: false
-desc: "Bomberman on animal mounts: an early native build of the battle racer and its wagering system."
+desc: "A community PSXRecomp tech demo for Bomberman Fantasy Race."
 year: "2026"
 status: "Tech demo"
 availability: "Public build"
@@ -13,27 +13,22 @@ repo: "https://github.com/TechnicallyComputers/Bomberman-Fantasy-Race-Recomp"
 group: "PlayStation"
 cover: "./boxart.png"
 verified: "2026-08-20"
-updated: "2026-08-31"
+updated: "2026-08-18"
 added: "2026-08-07"
 ---
 
-This is the odd one in Bomberman's PlayStation run and the reason it is worth a page of its own: a battle racer where you ride animals. Ten mounts, seven courses, a triangle jump, a bomb dash and a catapult to get past the pack, and more than fifteen power ups thrown with a distance meter. The game also lets you bet on the outcome. TechnicallyComputers has it building as a native app on [PSXRecomp](/hardware/playstation).
+Bomberman Fantasy Race has a community [PSXRecomp](/hardware/playstation) build by TechnicallyComputers.
 
-## Can I play it?
+It is a Bomberman racing game with split-screen multiplayer. The recomp is still early.
 
-One release exists: v0.1.1, published on 2026-08-18, with Windows, Linux, and macOS zips for Apple silicon and Intel. The repository was scaffolded on 2026-08-07 and says nothing about how far the game runs, so treat it as an early build rather than a game you sit down with.
+## Playable status
 
-Getting there works the same way as the group's other titles: run the release zip standalone and use its Generate and Build step, or drive it from the RetComM Launcher. It is built from a dump you provide, the USA disc with serial SLUS-00823, verified against the CRC32, MD5, and SHA-1 in the project config, with OpenBIOS standing in for a retail BIOS unless you supply one.
+Tech demo. Builds are published for Windows, Linux, and macOS. The project does not make a clear playthrough claim, so treat it as an early build.
 
-## What the recomp adds
+The release builds the game locally from a disc dump you provide. OpenBIOS is used unless you supply your own retail BIOS.
 
-The project uses the framework's defaults, with no enhancements written for this game. Controls are digital, which is the setting these PlayStation projects start from.
+The catalog declares two-player netplay through [recomp-net](/blog/recomp-net), matching the original split-screen player count. Treat that as early until the project gives clearer validation notes.
 
-## Technical details
-
-Two numbers in the project config separate this one from its siblings. The disc is small, about 260 MB against Bomberman World's 657 MB, and the game does not load where the others do: its executable sits at 0x8003004C with an entry point at 0x800C0AE4, while Bomberman World and Bomberman Party Edition both load at the usual 0x80010000. A static recompiler has to be told that, because everything it emits is addressed from it.
-
-The rest is the standard [PSXRecomp](/hardware/playstation) shape: MIPS R3000A machine code translated ahead of time to C, function starts seeded from a Ghidra export, strict mode on, and framework submodules pinned by gitlink rather than tracking a branch.
 
 ## Sources
 

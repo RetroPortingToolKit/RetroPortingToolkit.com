@@ -19,17 +19,17 @@ added: "2026-05-25"
 cover: "/covers/minish-cap.jpg"
 ---
 
-The Minish Cap is one of the clearest GBARecomp examples.
+The Minish Cap is one of the clearest [GBARecomp](/hardware/game-boy-advance) examples.
 
 It runs as a native app from a cartridge dump you provide. The port keeps the original game behavior, then adds host features around it.
 
-## Can I play it?
+## Playable status
 
 Yes, as an in-development preview. Windows builds are on the GitHub Releases page, and you can also build it from source.
 
-The project expects the USA ROM and checks the file before it runs. Overworld, dialogue, and save states work, but not every corner of the game has been tested.
+The project expects the USA ROM and checks the file before it runs. Overworld, dialogue, and save states work. Not every corner of the game has been tested.
 
-## What this port adds
+## What the recomp adds
 
 The faithful default is the original 240x160 image.
 
@@ -38,13 +38,3 @@ The faithful default is the original 240x160 image.
 Adaptive widescreen opens the view as the window gets wider. It shows more of the room instead of stretching the old image.
 
 ![Adaptive widescreen: the same moment, now with the gardens on one side and the house on the other.](./minish-cap-adaptive.webp)
-
-The extra width still needs game-specific care. HUD placement, dialogue boxes, room edges, and sprite behavior all have to be checked.
-
-Save states work from the keyboard: Shift+F1 through F9 saves a slot, and F1 through F9 loads it.
-
-## Technical note
-
-The game runs on the GBA's ARM7TDMI CPU. GBARecomp rebuilds that code as native code, then runs it against a runtime for the rest of the handheld.
-
-Only symbol metadata from the public decompilation is used here. The decompilation helps with names and discovery. It is not copied in as game source code.

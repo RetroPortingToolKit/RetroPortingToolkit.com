@@ -3,7 +3,7 @@ title: "Mario Kart: Super Circuit"
 kicker: "Game Boy Advance"
 tags: ["60 FPS", "Adaptive widescreen"]
 featured: false
-desc: "Super Circuit, smoothed out: 60 FPS rendering the original developers left switched off, plus adaptive widescreen."
+desc: "A GBARecomp build with 60 FPS track rendering and adaptive widescreen."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -17,28 +17,27 @@ added: "2026-07-30"
 cover: "./super-circuit-widescreen.jpg"
 ---
 
-Mario Kart: Super Circuit hides a surprise in its own code: a 60 FPS rendering behavior that the original developers never enabled. This core [GBARecomp](/hardware/game-boy-advance) project runs the game natively on Windows and lets you switch that behavior on, along with a widescreen view of the track.
+Mario Kart: Super Circuit has unused 60 FPS track-rendering behavior in its own code. That discovery came from antimattur's decompilation work on the game.
+
+This [GBARecomp](/hardware/game-boy-advance) project runs the game natively on Windows and lets you use that behavior, along with an experimental wider view of the track. antimattur is not a direct contributor to this recomp, but his work on the game is useful context for it.
 
 ![Super Circuit running as a native Windows program.](/previews/mario-kart-super-circuit.mp4)
 
-## Can I play it?
+## Playable status
 
-Yes, as a public preview. Windows builds are on the GitHub Releases page, currently v0.0.2 (August 2026). The game runs from dumps you provide: select your own USA ROM and a retail GBA BIOS in the launcher on first run, and it remembers them afterward.
+Yes, as a public preview. Windows builds are on the GitHub releases page. The game runs from dumps you provide: select your own USA ROM and legally obtained GBA BIOS in the launcher.
 
-Menus, cup selection, races, and results all work. Back up saves you care about, since undiscovered edge cases are expected at this stage.
+Menus, cup selection, races, and results all work. Undiscovered edge cases are still expected at this stage.
 
 ## What the recomp adds
 
-Two mods, both optional and off by default, enabled from the launcher's Mods page:
+The two headline options are:
 
-- 60 FPS Track Rendering updates race presentation at 60 FPS while preserving the game's underlying logic and timing. The behavior was found within the game's own code; it was simply never enabled in the original release.
-- Adaptive Widescreen renders additional race content at the sides of the track view instead of stretching the original 240x160 image.
+- 60 FPS track rendering. Race presentation updates at 60 FPS while the game's underlying logic and timing stay intact.
+- Adaptive widescreen. The track view renders more content at the sides instead of stretching the original 240x160 image.
 
-Around the mods: keyboard and modern controller support, cartridge saves and save states (Shift+F1 through F9 to save, F1 through F9 to load), windowed and fullscreen play with sharp scaling and optional affine filtering, and an in-game settings menu.
+The build also includes cartridge saves, save states, windowed and fullscreen play, and an in-game settings menu.
 
-## Technical details
-
-The game is statically recompiled to a native Windows x64 application on the gbarecomp framework, with ROM and BIOS setup through the shared recomp-ui launcher. The supported ROM revision is documented in the repo, and ROM-derived generated code, saves, and build output stay local; nothing copyrighted ships in releases.
 
 ## Sources
 

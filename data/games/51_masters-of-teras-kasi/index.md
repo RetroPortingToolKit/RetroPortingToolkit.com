@@ -1,9 +1,9 @@
 ---
 title: "Star Wars: Masters of Teras Kasi"
 kicker: "PlayStation"
-tags: []
+tags: ["Netplay"]
 featured: false
-desc: "A partial native build with a profile-guided optimization step devoted to the intro video."
+desc: "A community PSXRecomp build of Star Wars: Masters of Teras Kasi with early netplay work."
 year: "2026"
 status: "Partial"
 availability: "Public build"
@@ -12,34 +12,25 @@ platform: "playstation"
 repo: "https://github.com/TechnicallyComputers/MastersOfTerasKasiRecomp"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-08-31"
+updated: "2026-08-18"
 added: "2026-07-21"
 cover: "./boxart.png"
 ---
 
-MastersOfTerasKasiRecomp is a community project by TechnicallyComputers that rebuilds Star Wars: Masters of Teras Kasi, the 1997 PlayStation fighting game, as a native program on [PSXRecomp](/hardware/playstation). What stands out is a profile-guided optimization pass whose entire job is the game's intro video.
+MastersOfTerasKasiRecomp is a community project by TechnicallyComputers.
 
-## Can I play it?
+It rebuilds the PlayStation fighting game as a native program through [PSXRecomp](/hardware/playstation). The notable work here is early two-player netplay.
 
-Some of it, with a build step in between. Release zips cover Windows, macOS on both Intel and Apple silicon, and Linux, the latest being v0.3.15 on 2026-08-18. They are not finished binaries: each zip is a Generate and rebuild host, carrying the executable, the sources, and the recompiler, so the game is built on your machine from a dump you provide.
+## Playable status
 
-The project's own status line is careful. It boots far enough to present video and audio, and the known cost of that bring-up is heavy dirty-RAM interpretation, which leaves audio stuttery until more seeds and overlays land. An issue log in the repository tracks the rest.
+Partial, with a setup step. Release zips cover Windows, macOS, and Linux. The game is built on your machine from a disc dump you provide.
 
-The disc it wants is the USA Redump dump, SLUS-00562, a 17-track cue with the audio tracks intact. The build instructions ask for a PS1 BIOS image placed under the framework's bios folder, and the launcher has its own Browse BIOS step.
+The project boots far enough to present video and audio. More work is still needed before it should be treated as a polished play experience.
 
-## What the recomp adds
+Use a complete USA disc dump with its audio tracks intact. The build instructions also ask for a legally obtained PS1 BIOS image.
 
-Profile-guided optimization is usually a build-system detail; here it is a menu item. Settings, then SYSTEM, then Optimize FMV Playback trains the compiler on a real run of the game's intro and rebuilds with those profiles, because faithful load-delay timing makes that video the most expensive thing the runtime does. The issue log puts numbers on it: roughly 39 FPS without, roughly 48 to 50 with. The training stays on your machine and is deliberately kept out of CI builds.
+Early netplay is enabled in the public packages. Peers need matching disc data before they can play together.
 
-The title is also carried in the RetComM Launcher catalogue, which installs, updates, and rebuilds it alongside other recomps instead of making you repeat each game's wizard by hand.
-
-## Technical details
-
-PSXRecomp translates the game's MIPS R3000A machine code to C, which compiles into a native binary alongside the PS1 hardware runtime. The renderer is OpenGL, the aspect ratio stays 4:3, and the controller defaults to digital.
-
-Release packaging is deliberately thin: a zip never contains a BIOS dump, a disc image, or prebuilt game C. CI produces four targets, Linux x64, Windows x64 through MSYS2 MinGW, and macOS on arm64 and x64. The project notes that a Linux binary built against a newer glibc will not load on an older one, so Linux test packs are built inside a Fedora container with the libraries bundled.
-
-Debug builds are a separate configuration, much slower, with a TCP debug server on port 4520. Playtesting is done on Release for that reason.
 
 ## Sources
 

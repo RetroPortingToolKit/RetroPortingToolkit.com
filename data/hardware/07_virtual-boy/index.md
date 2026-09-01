@@ -3,10 +3,10 @@ title: "Virtual Boy"
 kicker: "V810"
 tags: ["Cross-platform"]
 featured: false
-desc: "One commercial title, Mario's Tennis, running as a native tech demo on Windows, macOS, and Linux, built from your own cartridge dump."
+desc: "A native recompilation tech demo. Mario's Tennis runs, with no major enhancements and no broader compatibility promise yet."
 year: "2026"
 status: "Tech demo"
-maturity: "Alpha"
+maturity: "Tech demo"
 availability: "Source only"
 provenance: "core"
 arch: "NEC V810"
@@ -18,16 +18,29 @@ verified: "2026-08-18"
 cover: "/consoles/virtual-boy.jpg"
 ---
 
-Tech demo. One commercial title, [Mario's Tennis](/games/mario-tennis), runs as a native app on Windows, macOS, and Linux, built from a cartridge dump you provide. vbrecomp rebuilds Virtual Boy games as code compiled for modern systems, and it exists partly because the console is so obscure: a short library, no public disassemblies, and a simpler design than most of its contemporaries.
+vbrecomp is a Virtual Boy recompilation tech demo.
+
+It proves the idea on one game: [Mario's Tennis](/games/mario-tennis). It is not a broad Virtual Boy ecosystem yet.
+
+You provide your own cartridge dump.
 
 ## What runs today
 
-Mario's Tennis plays through its own per-game repo on all three desktop platforms, with gamepad support and fullscreen. It is a tech demo rather than a polished release, and the author does not plan to bring up the rest of the library alone. There is no enhancement layer yet; the stated ambition to "visually enrich" titles beyond the console's red-and-black display is a goal, not a shipped feature.
+Mario's Tennis runs as a native app on Windows, macOS, and Linux.
 
-## Technical details
+That is the current scope. There are no major enhancements, no full library promise, and no guarantee that another Virtual Boy game will work without its own project work.
 
-vbrecomp translates NEC V810 machine code into C, MIT licensed, with the framework and each game living in separate repos: the framework contains no game ROM and no game-derived generated C. The recompiled code yields cooperatively through a step-budget counter, so no platform-specific fiber or coroutine machinery is needed, which is part of why all three desktop platforms work. The runtime simulates the VIP display, VSU sound, timers, and interrupts, carries an always-on TCP debug server with trace ring buffers, and uses the Beetle VB libretro core as its validation oracle.
+The exact state still belongs on the game page. The platform page is here to explain the ecosystem.
 
-## Sources
+## What Virtual Boy ports can add
 
-- [VirtualBoy Recomp Gets Its First Title: Mario Tennis (1379.tech)](https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/)
+- Native desktop builds.
+- Gamepad support.
+- Fullscreen and modern window handling.
+- Future display options, if a game project chooses to build them.
+
+## What to expect
+
+Treat this as a tech demo.
+
+It is useful because it proves the Virtual Boy path can work. It should not be read as a promise that the platform is ready for many games or heavy enhancements.

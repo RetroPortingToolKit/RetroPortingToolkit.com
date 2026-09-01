@@ -3,9 +3,9 @@ title: "Mega Man X2"
 kicker: "Super Nintendo"
 tags: ["Cx4", "Widescreen"]
 featured: false
-desc: "An early SNESRecomp preview for Mega Man X2. It boots into the intro scenes, with Cx4 support and widescreen work in progress."
+desc: "Mega Man X2 running through SNESRecomp, with Cx4 support and a stock playthrough path."
 year: "2026"
-status: "Partial"
+status: "Playable alpha"
 availability: "Source only"
 provenance: "core"
 platform: "super-nintendo"
@@ -14,22 +14,21 @@ group: "Super Nintendo"
 links:
   - { label: "Project on GitHub", href: "https://github.com/mstan/MegaManX2Recomp" }
 verified: "2026-08-31"
+cover: "./mmx2-wide.png"
 ---
 
-Mega Man X2 is an early SNESRecomp project.
+Mega Man X2 is a [SNESRecomp](/hardware/super-nintendo) project for the second SNES Mega Man X game.
 
-It matters because the game uses Capcom's Cx4 chip. That makes it useful framework work, even before the whole game is validated.
+It matters because Mega Man X2 uses Capcom's Cx4 chip. That chip handles special math and wireframe effects the base SNES could not do alone.
 
-## Can I play it?
+SNESRecomp supports that path without asking the player for a separate firmware file.
 
-Not as a normal player release yet. The project boots to the intro cutscenes, and those scenes have been checked through the debug surface.
+![Mega Man X2 running with experimental widescreen work](./mmx2-wide.png)
 
-Gameplay coverage, audio verification, and stage-specific widescreen work are still open.
+## Playable status
 
-## What this port adds
+Yes, for the stock game. Mega Man X2 can be played from start to finish without enhancements.
 
-- A native SNESRecomp path for Mega Man X2.
-- Early widescreen work as an opt-in mod.
-- Cx4 support without asking the player for a separate firmware file.
+You provide your own Mega Man X2 ROM.
 
-The project still needs broader gameplay testing before it should be treated as playable.
+Enhancements are a separate question. Experimental widescreen work exists, but widescreen and other changes still need their own verification.

@@ -1,9 +1,9 @@
 ---
 title: "ActRaiser"
 kicker: "Super Nintendo"
-tags: ["Widescreen", "QoL", "Save states"]
+tags: ["Widescreen", "QoL"]
 featured: false
-desc: "A community SNES recomp project for ActRaiser, with action stages far along, simulation-mode coverage still in progress, and a large host-side settings overlay."
+desc: "A community SNESRecomp project for ActRaiser, with action-stage widescreen work and simulation-mode coverage still in progress."
 year: "2026"
 status: "Playable alpha"
 availability: "Public build"
@@ -16,21 +16,16 @@ links:
 verified: "2026-08-31"
 ---
 
-ActRaiser is a community SNES recomp project by DerrickGold.
+ActRaiser is a community [SNESRecomp](/hardware/super-nintendo) project by DerrickGold.
 
-It targets the USA cartridge dump and builds into a native desktop app. The game alternates between side-scrolling action stages and top-down town simulation, so it is a good test of more than one kind of SNES scene.
+The game switches between side-scrolling action stages and top-down town simulation. That makes it a useful test for more than one kind of SNES scene.
 
-## Can I play it?
+## Playable status
 
-Yes, as an active development build. The action stages are far along, including Death Heim. Simulation mode still needs broader town coverage.
+Active development build. The action stages are far along, including Death Heim. Simulation mode still needs broader town coverage.
 
 You provide your own ActRaiser ROM. The project checks the file before it builds or runs.
 
-## What this port adds
+Widescreen work exists for action stages. The project also has a host settings overlay drawn with ActRaiser's own dialog art, plus tools for checking graphics, objects, and replacement assets while the game runs.
 
-- Widescreen work for action stages.
-- A host settings overlay drawn with ActRaiser's own dialog art.
-- Rebindable controls, gamepad support, save states, turbo, render scaling, and quality-of-life options.
-- Tools for checking graphics, objects, and replacement assets while the game runs.
-
-Treat it as a serious active project, not a finished compatibility promise.
+Treat it as an active project, not a finished compatibility promise.

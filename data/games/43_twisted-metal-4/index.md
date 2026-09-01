@@ -1,9 +1,9 @@
 ---
 title: "Twisted Metal 4"
 kicker: "PlayStation"
-tags: []
+tags: ["Multiplayer"]
 featured: false
-desc: "An independent car-combat recompilation for Windows, macOS, and Linux, built on PSXRecomp."
+desc: "A community PSXRecomp build of Twisted Metal 4 for Windows, macOS, and Linux."
 year: "2026"
 status: "Released"
 availability: "Public build"
@@ -14,24 +14,23 @@ group: "PlayStation"
 links:
   - { label: "PS1 Twisted Metal 4 comes to PC/Mac/Linux (retro-gamer.jp)", href: "https://retro-gamer.jp/?p=45562" }
 verified: "2026-08-18"
-updated: "2026-08-31"
+updated: "2026-08-18"
 added: "2026-08-07"
 cover: "./boxart.png"
 ---
 
-TwistedMetal4 Recompiled is an independent community project by TechnicallyComputers that brings 989 Studios' 1999 car-combat game to Windows, macOS, and Linux. It is built on [PSXRecomp](/hardware/playstation) and updated at a fast clip, with releases landing days apart.
+TwistedMetal4 Recompiled is a community project by TechnicallyComputers.
 
-## Can I play it?
+It brings Twisted Metal 4 to Windows, macOS, and Linux through [PSXRecomp](/hardware/playstation), with the original local multiplayer still part of the game.
 
-Yes, with one step in between. Releases are published on GitHub (latest v0.3.28, 2026-08-18), but they are not a finished binary: you download a release, point it at a disc dump you provide, and its built-in Generate and Build flow produces the native game on your machine.
+## Playable status
 
-No BIOS dump is needed by default, since the open-source OpenBIOS is used unless you supply your own. The same developer's RetComM Launcher can manage installs, updates, and disc and BIOS wiring across multiple recomp titles if you prefer that over the standalone flow.
+Yes, with one setup step. Releases are published on GitHub. You point the project at a disc dump you provide, and it builds the native game on your machine.
 
-## Technical details
+No BIOS dump is needed by default, since the open-source OpenBIOS is used unless you supply your own.
 
-The pipeline is the toolkit's standard one: PSXRecomp translates the game's MIPS R3000A machine code to C, which compiles to a native binary. Code the game loads dynamically at runtime is handled by an embedded MIPS interpreter.
+The original local multiplayer is still part of the game: up to four players on one screen, matching the multitap setup. Online play is planned, but should not be treated as a current feature yet.
 
-The project pins its framework versions through git submodules and is part of the R.A.I.D. (Retro AI Development) community around AI-assisted reverse engineering and recompilation.
 
 ## Sources
 
