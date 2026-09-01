@@ -8,6 +8,7 @@ desc: "Time Extension reports on OpenPete, the community project bringing Spyro 
 year: "2026"
 venue: "Time Extension"
 layout: "article"
+cover: "/data/games/39_openpete-spyro/openpete-spyro.jpg"
 links:
   - { label: "Read on Time Extension", href: "https://www.timeextension.com/news/2026/08/ps1-classic-spyro-the-dragon-comes-to-pc-with-the-help-of-ai-assisted-tool-psxrecomp" }
 ---
