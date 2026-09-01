@@ -153,11 +153,21 @@ export function Tabs({
     if (!activeEl) return;
     const rowRect = row.getBoundingClientRect();
     const elRect = activeEl.getBoundingClientRect();
+    // The sticky .tabs-actions box is opaque and sits over the row's right
+    // end, so a tab ending inside rowRect can still be hidden behind it. The
+    // usable strip ends where that box begins.
+    const actionsRect = row
+      .querySelector(".tabs-actions")
+      ?.getBoundingClientRect();
+    const rightLimit =
+      actionsRect && actionsRect.left > rowRect.left
+        ? Math.min(actionsRect.left, rowRect.right)
+        : rowRect.right;
     const fullyVisible =
-      elRect.left >= rowRect.left && elRect.right <= rowRect.right;
+      elRect.left >= rowRect.left && elRect.right <= rightLimit;
     if (fullyVisible) return;
     const elCenter = elRect.left + elRect.width / 2;
-    const rowCenter = rowRect.left + rowRect.width / 2;
+    const rowCenter = (rowRect.left + rightLimit) / 2;
     row.scrollBy({ left: elCenter - rowCenter, behavior: "smooth" });
   }, [active]);
 

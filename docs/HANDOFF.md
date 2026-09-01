@@ -656,10 +656,29 @@ both pages already link their source article under `links:`.
   all 165 sitemap pages and 295 discovered first-party routes/assets with zero
   page or link errors.
 
+## Launch-path visual QA (2026-09-01)
+
+- Production was screenshotted headlessly (cached Playwright Chromium) at
+  1440x900 and 390x844 across the launch path: home, /hardware, /games, /blog,
+  /games/tomba, /hardware/playstation, the build-log article and /docs. All
+  routes 200, no console errors, no broken images, no horizontal overflow.
+  Note the catalog routes are /hardware, not /platforms.
+- QA of lazy media needs a scroll-through first: a fullPage screenshot without
+  scrolling shows empty card plates (below-fold covers wait for the viewport),
+  and a fixed item dialog photographs blank in fullPage mode. Neither is a site
+  bug; capture the viewport after scrolling instead.
+- One real bug found and fixed: on phones the active Blog tab hid behind the
+  opaque sticky search/theme box. The tab row's scroll-into-view check in
+  `src/components/Tabs.tsx` compared against the row's right edge, but
+  `.tabs-actions` covers the row's last ~110px, so a tab could count as
+  visible while fully covered. The check now ends the usable strip where the
+  actions box begins; /blog and /docs both center their active entry on a
+  390px viewport. Verified against the local production build.
+- Verification: typecheck green, production build green (174 prerendered
+  routes), all 752 tests green.
+
 Remaining launch-readiness work at this checkpoint:
 
-- Perform focused mobile and desktop visual QA of the launch path: home hero,
-  Platforms, Games, Blog, one game, one platform, one article and Docs.
 - Draft the Hacker News and Product Hunt launch copy only after the audited
   product claims and canonical URLs are stable. Analytics and a contact page
   are explicitly deferred by the owner; the hero reel is the demo and the
