@@ -1589,6 +1589,7 @@ html {
 .news-list .tvcard--blog .tvcard-media,
 .news-list .tvcard--hardware .tvcard-media {
   aspect-ratio: 1 / 1;
+  width: 100%;
   height: auto;
   min-height: 0;
   border-radius: 18px 0 0 18px;
