@@ -19,6 +19,10 @@ export function isMassDestructiveRequest(content) {
   return /\b(delete|remove|wipe|drop|destroy)\s+(everything|all|the whole|entire)|\brm\s+-rf\b|\bdrop\s+(the\s+)?database|\b(rename|name)\s+.*\b(fuck|shit|asshole|cunt|nazi|slur)\b/.test(normalized);
 }
 
+export function isDestructiveRequest(content) {
+  return /\b(delete|remove|erase|drop|destroy|wipe|rename)\b/i.test(String(content));
+}
+
 export function replyContext({ referencedContent = "", originalContent = "" } = {}) {
   const parts = [];
   if (originalContent.trim()) parts.push(`Original request:\n${originalContent.trim()}`);

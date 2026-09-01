@@ -51,6 +51,8 @@ try {
     `DISCORD_ALLOWED_GUILD_IDS="${guild.id}"`,
     `DISCORD_ALLOWED_CHANNEL_IDS="${channel.id}"`,
     'DISCORD_ALLOWED_USER_IDS=""',
+    '# Destructive actions: comma-separated Discord user IDs for Shokunin, Gamemaster, and CobaltCryptid',
+    'DISCORD_DESTRUCTIVE_USER_IDS=""',
     `DISCORD_ALLOWED_ROLE_IDS="${roleIds.join(",")}"`,
     "",
   ].join("\n");
