@@ -35,7 +35,7 @@ const COLLECTION_TITLE = {
   hardware: "Platforms",
   games: "Games",
   blog: "News and coverage",
-  docs: "Documentation",
+  docs: "Docs",
 };
 
 const IMG_EXT = /\.(jpe?g|png|webp|gif|avif)$/i;
@@ -711,7 +711,7 @@ const NAV_HTML = [
   ["/hardware", "Platforms"],
   ["/games", "Games"],
   ["/blog", "News and coverage"],
-  ["/docs", "Documentation"],
+  ["/docs", "Docs"],
 ]
   .map(([href, label]) => `<a href="${href}">${label}</a>`)
   .join(" \u00b7 ");

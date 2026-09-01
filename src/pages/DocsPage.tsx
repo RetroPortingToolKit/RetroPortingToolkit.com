@@ -172,7 +172,7 @@ function Pager({ slug }: { slug: string }) {
     </Link>
   );
   return (
-    <nav className="docs-pager" aria-label="Documentation pages">
+    <nav className="docs-pager" aria-label="Docs pages">
       {prev ? link(prev, "prev") : <span />}
       {next ? link(next, "next") : <span />}
     </nav>

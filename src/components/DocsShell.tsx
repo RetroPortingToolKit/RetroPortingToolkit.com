@@ -71,7 +71,7 @@ export function DocsShell({ currentSlug, rail, children }: Props) {
 
       <main className="page-main docs-main">
         <aside className="docs-alpha-banner" role="note">
-          <strong>Documentation preview</strong>
+          <strong>Docs preview</strong>
           <span>These pages are early and may change. For exact commands and current support, follow the linked project repository.</span>
         </aside>
         <div className={"docs-layout" + (isLanding ? " docs-layout--norail" : "")}> 

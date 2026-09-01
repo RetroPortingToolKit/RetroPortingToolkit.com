@@ -442,7 +442,7 @@ export function renderLlmsFull(snapshot = collectDocs()) {
 export function renderDocsIndexMarkdown(snapshot = collectDocs()) {
   const { sections } = snapshot;
   const out = [
-    "# Documentation",
+    "# Docs",
     "",
     `> The documentation section of ${SITE_URL}. Every page below is linked as raw`,
     "> markdown.",

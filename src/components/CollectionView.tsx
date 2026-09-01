@@ -55,7 +55,7 @@ const KIND_LABEL: Record<Kind, string> = {
   hardware: "Platforms",
   game: "Games",
   blog: "News and coverage",
-  docs: "Documentation",
+  docs: "Docs",
 };
 
 // Item -> the SAME LabMedia the home/tab cards render, so every surface that
