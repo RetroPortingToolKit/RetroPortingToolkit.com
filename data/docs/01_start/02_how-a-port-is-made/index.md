@@ -89,10 +89,3 @@ A missing jump sends you back to discovery. A wrong pixel may point to the runti
 That loop is where maturity comes from. The first game on a console teaches the framework what the console needs. Later games benefit from that work.
 
 The goal is not months of custom work for every game. The goal is a framework that makes each next game easier.
-
-## Next
-
-- [What is static recompilation?](/docs/start/what-is-static-recompilation): the core idea behind the translation step.
-- [What do I need to get started?](/docs/start/what-you-need): the tools you need before building anything.
-- [Developer quickstart](/docs/start/quickstart): the psxrecomp path, using the most mature framework.
-- [Telling code from data](/docs/concepts/code-discovery) and [proving it with co-simulation](/docs/concepts/co-simulation): the two stages that decide whether a port is correct.

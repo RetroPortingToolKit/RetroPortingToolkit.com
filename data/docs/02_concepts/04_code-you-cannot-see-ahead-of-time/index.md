@@ -76,10 +76,3 @@ Nintendo DS has overlays, but they are usually known from the game format. That 
 Game Boy Advance does not stream code from a disc, but a game can still build or move code in memory. A fallback path can still be useful.
 
 The real question is not cartridge versus disc. The real question is: can the bytes the CPU executes change after the build-time recompiler has looked?
-
-## Next
-
-- [How does a project tell code from data?](/docs/concepts/code-discovery)
-- [What are the recompiler and runtime?](/docs/concepts/recompiler-and-runtime)
-- [PlayStation](/docs/platforms/playstation)
-- [What do these terms mean?](/docs/concepts/glossary)

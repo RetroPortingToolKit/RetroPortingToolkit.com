@@ -64,10 +64,3 @@ Keep the result specific to your game. A timing tweak that works for one game, o
 Timing is advanced port-maintenance work, not beginner setup.
 
 For normal users, faithful timing is part of why a recomp port can feel solid. For developers, changing timing is possible, but it needs measurement because the failure mode is often a softlock or desync much later.
-
-## Next
-
-- [How do we compare a port to the original?](/docs/concepts/co-simulation)
-- [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns)
-- [Why does determinism matter?](/docs/concepts/determinism)
-- [Debug a divergence](/docs/guides/debug-a-divergence)

@@ -152,9 +152,3 @@ Mixed games need both passes. A 3D scene, a 2D menu, a world map, and an FMV pla
 | Collision happens from across the screen. | A margin collision box wrapped into the 4:3 area. |
 | Dense scenes drop layers. | The game exceeded its primitive or tile budget. |
 | 4:3 behaves differently now. | The widescreen path is leaking into the faithful path. |
-
-## Next
-
-- [Determinism](/docs/concepts/determinism), for why simulation changes are dangerous.
-- [Write a mod](/docs/guides/write-a-mod), if widescreen is exposed as a feature.
-- [Debug a divergence](/docs/guides/debug-a-divergence), when the widened build disagrees with the reference.

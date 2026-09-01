@@ -131,10 +131,3 @@ When adding a command, keep it small:
 3. mirror it on the oracle if co-simulation needs it;
 4. document the request and response shape;
 5. rebuild and test the debug path.
-
-## Next
-
-- [TCP port registry](/docs/reference/tcp-port-registry)
-- [Debug a divergence](/docs/guides/debug-a-divergence)
-- [Set up co-simulation](/docs/guides/set-up-co-simulation)
-- [Machine-readable surfaces](/docs/agents/machine-surfaces)

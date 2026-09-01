@@ -97,10 +97,3 @@ Do not say a whole console is solved because one game looks good.
 Do not say co-simulation proves real hardware behavior in every case. It proves agreement with the reference used for that test.
 
 Do not hide scope. If a result only covers one game, one path, one region, or one build, say that.
-
-## Next
-
-- [How do we compare a port to the original?](/docs/concepts/co-simulation)
-- [When should timing be changed?](/docs/concepts/timing-models)
-- [Why does determinism matter?](/docs/concepts/determinism)
-- [What do these terms mean?](/docs/concepts/glossary)

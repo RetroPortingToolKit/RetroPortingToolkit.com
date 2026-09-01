@@ -71,10 +71,3 @@ It proves the port matched the reference for the state and time range that were 
 It does not prove the reference emulator is perfect. It does not prove the screen and sound are correct unless those are part of the comparison. It does not prove unplayed parts of the game.
 
 That is still powerful. A clean co-sim run is much stronger than "it seems to play fine," because it gives the project a repeatable way to find the first wrong moment.
-
-## Next
-
-- [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns)
-- [When should timing be changed?](/docs/concepts/timing-models)
-- [How does a project tell code from data?](/docs/concepts/code-discovery)
-- [Set up co-simulation](/docs/guides/set-up-co-simulation)

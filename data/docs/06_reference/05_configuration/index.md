@@ -161,10 +161,3 @@ A good config is:
 - strict when a mismatch would be dangerous.
 
 A loose config may feel easier during bring-up, but it can hide the bug you most need to find.
-
-## Next
-
-- [Port a game](/docs/guides/port-a-game)
-- [Command line reference](/docs/reference/cli)
-- [Mod manifest](/docs/reference/mod-manifest)
-- [The game file you supply](/docs/concepts/the-game-file-you-supply)

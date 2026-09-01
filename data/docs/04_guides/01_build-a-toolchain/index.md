@@ -113,9 +113,3 @@ That last point matters. Framework repositories should not contain games, BIOS d
 | A command works in one shell but not another. | The shells have different tools on PATH. |
 
 For large generated projects, try fewer build jobs before assuming the source is wrong.
-
-## Next
-
-- [Port a game](/docs/guides/port-a-game), once the framework builds.
-- [What do I need to get started?](/docs/start/what-you-need), for the short non-developer version.
-- [Command line reference](/docs/reference/cli), when you need flags instead of a guide.

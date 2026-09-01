@@ -2,6 +2,7 @@
 title: "TCP port registry"
 summary: "How to avoid debug-server port collisions, move ports for a run, and keep restart-heavy TCP debugging reliable."
 pageType: "reference"
+draft: true
 tags: ["Protocol", "Debugging", "Tooling", "Agents"]
 repos:
   - "https://github.com/mstan/psxrecomp"
@@ -89,9 +90,3 @@ Before a co-simulation or scripted debug run:
 - `ping` both;
 - check that the response is from the expected project;
 - record the ports in the run notes.
-
-## Next
-
-- [TCP debug protocol](/docs/reference/tcp-protocol)
-- [Set up co-simulation](/docs/guides/set-up-co-simulation)
-- [Debug a divergence](/docs/guides/debug-a-divergence)

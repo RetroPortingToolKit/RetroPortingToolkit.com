@@ -68,10 +68,3 @@ Stop and check the basics:
 - Does the project also need a BIOS or system file?
 
 Do not look for random downloads. The intended path is to use legally obtained files and follow the project instructions.
-
-## Next
-
-- [What do I need to get started?](/docs/start/what-you-need)
-- [How do I recomp my own game?](/docs/start/recomp-your-own-game)
-- [Licenses](/docs/fleet/licenses)
-- [What do these terms mean?](/docs/concepts/glossary)

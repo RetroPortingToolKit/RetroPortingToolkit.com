@@ -120,13 +120,23 @@ describe("the docs tree", () => {
 describe("docs routes", () => {
   const meta = buildRouteMeta("https://example.test");
 
-  it("prerenders one route per docs page, plus the section index", () => {
+  it("prerenders every listed page and keeps draft pages directly reachable", () => {
     // The assertion that matters: vercel.json rewrites an unmatched path to
     // "/", so a docs page missing from this map serves the HOME page's markup
     // to every crawler while looking correct to a human. buildRouteMeta throws
     // on a mismatch; this restates the count so a failure names it.
     const routes = [...meta.keys()].filter((r) => r.startsWith("/docs/"));
-    expect(routes.sort()).toEqual(DOCS.map((i) => `/docs/${i.slug}`).sort());
+    expect(routes).toEqual(
+      expect.arrayContaining(DOCS.map((i) => `/docs/${i.slug}`)),
+    );
+    for (const slug of [
+      "reference/tcp-port-registry",
+      "reference/mod-manifest",
+      "reference/errors-and-exit-codes",
+    ]) {
+      expect(routes).toContain(`/docs/${slug}`);
+      expect(DOCS.some((item) => item.slug === slug)).toBe(false);
+    }
     expect(meta.has("/docs")).toBe(true);
   });
 

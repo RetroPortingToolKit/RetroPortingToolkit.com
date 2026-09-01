@@ -158,9 +158,3 @@ A title screen check is not enough. A mod can work at boot and still break a lat
 | Expected bytes mismatch. | Wrong address, wrong revision, wrong endian order, or already patched input. |
 | Two features conflict. | They claim different bytes in the same range. |
 | Plugin unavailable. | The port did not compile in that plugin id. |
-
-## Next
-
-- [Mod manifest](/docs/reference/mod-manifest), for field-level details.
-- [Add widescreen](/docs/guides/add-widescreen), for a common enhancement that often ships as a feature.
-- [Determinism](/docs/concepts/determinism), for why save states and rewind constrain mods.

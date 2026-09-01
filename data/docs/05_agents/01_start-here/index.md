@@ -126,12 +126,3 @@ Stop the agent when it:
 - commits dumps, game files, BIOS files, saves, or local junk
 
 These are not style problems. They are correctness problems.
-
-## Next pages
-
-Read these in order:
-
-- [Rules to give an agent](/docs/agents/house-invariants)
-- [How to check AI work](/docs/agents/verification-rituals)
-- [How AI breaks recomp projects](/docs/agents/failure-modes)
-- [Debug surfaces agents can use](/docs/agents/machine-surfaces)

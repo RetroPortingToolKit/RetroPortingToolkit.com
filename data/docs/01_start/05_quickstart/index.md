@@ -181,9 +181,3 @@ export PATH="/c/msys64/mingw64/bin:$PATH"
 Go to [How do I recomp my own game?](/docs/start/recomp-your-own-game).
 
 That page starts from a game file you legally provide. Some systems may also need a BIOS or system file. This site does not provide copyrighted game files or retail BIOS files.
-
-## Next
-
-- [PlayStation](/docs/platforms/playstation) explains what you just built, tier by tier.
-- [How do I recomp my own game?](/docs/start/recomp-your-own-game) is the next real step, and [the game file you supply](/docs/concepts/the-game-file-you-supply) is what it needs from you.
-- [Build a toolchain](/docs/guides/build-a-toolchain) is where the other console toolchains live.

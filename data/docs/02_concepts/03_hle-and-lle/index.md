@@ -88,10 +88,3 @@ Other systems are at different levels of maturity. The useful question is not "d
 For players, HLE and LLE are mostly invisible. A good port should just behave like the original game.
 
 For developers, the distinction matters. HLE can be a practical tool, but it should not be used to fake progress. The port needs a faithful path that can catch mistakes.
-
-## Next
-
-- [How do we compare a port to the original?](/docs/concepts/co-simulation)
-- [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns)
-- [What are the recompiler and runtime?](/docs/concepts/recompiler-and-runtime)
-- [PlayStation](/docs/platforms/playstation)

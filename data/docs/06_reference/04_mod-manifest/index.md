@@ -2,6 +2,7 @@
 title: "Mod manifest"
 summary: "How a mod package describes its features, options, targets, patches, overlays, and built-in hooks without shipping game files or native code."
 pageType: "reference"
+draft: true
 tags: ["Modding", "Schema", "PlayStation", "NES"]
 repos:
   - "https://github.com/mstan/psxrecomp"
@@ -139,10 +140,3 @@ Keep these stable once released:
 - save compatibility rules.
 
 Changing labels is usually fine. Changing ids can break user settings and compatibility.
-
-## Next
-
-- [Write a mod](/docs/guides/write-a-mod)
-- [Add widescreen](/docs/guides/add-widescreen)
-- [The game file you supply](/docs/concepts/the-game-file-you-supply)
-- [Configuration](/docs/reference/configuration)

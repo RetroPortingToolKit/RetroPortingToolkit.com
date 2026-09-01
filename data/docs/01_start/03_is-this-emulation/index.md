@@ -68,10 +68,3 @@ The port is not a traditional emulator running the game instruction by instructi
 Each console is different. PlayStation, SNES, NES, and the smaller projects do not all handle code coverage, hardware, or fallback paths the same way.
 
 Use the [platform pages](/docs/platforms) for the current answer on one console. Use [what is static recompilation?](/docs/start/what-is-static-recompilation) if you want the core idea before the details.
-
-## Next
-
-- [How is a port made?](/docs/start/how-a-port-is-made): the full path from game file to native app.
-- [What is static recompilation?](/docs/start/what-is-static-recompilation): the translation step in plain language.
-- [The platform pages](/docs/platforms): where each console's exact answer lives.
-- [High level and low level](/docs/concepts/hle-and-lle): how projects decide where the old hardware is recreated.

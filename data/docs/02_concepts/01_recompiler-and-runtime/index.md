@@ -57,10 +57,3 @@ The split matters because a runtime fix can improve many games on the same conso
 For players, it mostly means a finished port should feel like a normal application.
 
 For developers, it means the work is not just "turn ROM into C." A real port is translated game code plus a runtime that is faithful enough to make the game behave like it did on original hardware.
-
-## Next
-
-- [How does a project tell code from data?](/docs/concepts/code-discovery)
-- [What about code you cannot see ahead of time?](/docs/concepts/code-you-cannot-see-ahead-of-time)
-- [How do we compare a port to the original?](/docs/concepts/co-simulation)
-- [How do I recomp my own game?](/docs/start/recomp-your-own-game)

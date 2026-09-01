@@ -121,9 +121,3 @@ That is strict, but it catches menu paths, error prompts, and late-game text tha
 | The line is too long. | Add line breaks, shorten it, or use the project's width controls. |
 | The game crashes after replacement. | The original bytes may be part of a larger structure, not a standalone string. |
 | A glyph is missing. | The font or glyph upload path may need work before the language is viable. |
-
-## Next
-
-- [Write a mod](/docs/guides/write-a-mod), if the translation should ship as an installable package.
-- [Configuration reference](/docs/reference/configuration), for language settings.
-- [Port a game](/docs/guides/port-a-game), if the game does not have a port yet.

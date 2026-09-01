@@ -11,15 +11,25 @@ function parse(body: string) {
 }
 
 describe("reader-facing documentation", () => {
-  it("omits a Source appendix and its heading while preserving what follows", () => {
+  it("omits Source and Next appendices", () => {
     const item = parse(
       "Introduction.\n\n## Source\n\n- private working note\n\n## Next\n\nKeep reading.",
     );
 
     expect(item?.body).toContain("Introduction.");
-    expect(item?.body).toContain("## Next\n\nKeep reading.");
+    expect(item?.body).not.toContain("## Next");
+    expect(item?.body).not.toContain("Keep reading.");
     expect(item?.body).not.toContain("## Source");
     expect(item?.body).not.toContain("private working note");
+  });
+
+  it("omits the alternate Next headings used by agent guides", () => {
+    expect(parse("Introduction.\n\n## Next pages\n\nKeep reading.")?.body).toBe(
+      "Introduction.",
+    );
+    expect(parse("Introduction.\n\n## Next question\n\nKeep reading.")?.body).toBe(
+      "Introduction.",
+    );
   });
 
   it("omits a Sources appendix at the end of a page", () => {

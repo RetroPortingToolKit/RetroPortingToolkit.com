@@ -2,6 +2,7 @@
 title: "Errors and exit codes"
 summary: "How to read failed tool runs, build errors, debug protocol errors, and test exits across recomp projects."
 pageType: "reference"
+draft: true
 tags: ["Reference", "Errors", "Exit codes"]
 updated: "2026-08-30"
 ---

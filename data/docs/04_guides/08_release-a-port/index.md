@@ -134,10 +134,3 @@ Do not overclaim compatibility. If only part of a game is tested, say that.
 | The launcher cannot find fonts or assets. | The package layout is wrong. |
 | The wrong file is accepted. | Identity checks are too loose. |
 | A crash report names a dev build. | The release was not stamped or packaged from the right commit. |
-
-## Next
-
-- [The game file you supply](/docs/concepts/the-game-file-you-supply), for the file contract.
-- [Port a game](/docs/guides/port-a-game), for the build you are packaging.
-- [Status vocabulary](/docs/reference/status-vocabulary), before you describe maturity.
-- [Catalog schema](/docs/reference/catalog-schema), if the release goes into a launcher catalogue.

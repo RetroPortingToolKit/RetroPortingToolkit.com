@@ -94,10 +94,3 @@ The game's own logic runs as native code. The console around it is recreated in 
 That is the honest answer. A recompiled port is not a traditional emulator running the game instruction by instruction, but it still needs software that stands in for the old machine.
 
 See [is this emulation?](/docs/start/is-this-emulation) for the longer version.
-
-## Next
-
-- [How is a port made?](/docs/start/how-a-port-is-made): the process from game file to native app.
-- [Is this emulation?](/docs/start/is-this-emulation): where the runtime and fallback interpreter fit.
-- [Getting started](/docs/start/what-you-need): what you need before building anything.
-- [Telling code from data](/docs/concepts/code-discovery): the hardest part in more detail.

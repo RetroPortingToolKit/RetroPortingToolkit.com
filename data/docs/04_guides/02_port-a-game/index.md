@@ -127,9 +127,3 @@ A useful bring-up checklist asks:
 - has the port been compared against a reference where possible?
 
 Faithfulness is the measurement. Enhancements can come later, but the default path should behave like the original game.
-
-## Next
-
-- [Debug a divergence](/docs/guides/debug-a-divergence), when the port disagrees with the reference.
-- [Set up co-simulation](/docs/guides/set-up-co-simulation), when the project supports a reference run.
-- [Release a port](/docs/guides/release-a-port), before distributing anything.

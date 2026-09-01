@@ -241,10 +241,3 @@ How the port tracks the original console's time. See [When should timing be chan
 ### Tier
 
 A level in a runtime's dispatch path. In psxrecomp, for example, code may run as ahead-of-time native code, runtime-compiled code, or interpreter fallback. Do not assume every console uses the same ladder.
-
-## Next
-
-- [What is static recompilation?](/docs/start/what-is-static-recompilation)
-- [How is a port made?](/docs/start/how-a-port-is-made)
-- [What are HLE and LLE?](/docs/concepts/hle-and-lle)
-- [Every repository](/docs/fleet/repositories)

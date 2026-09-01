@@ -57,10 +57,3 @@ A missed function is not automatically a disaster.
 Mature runtimes usually have an interpreter fallback. If the game reaches code that was not translated, the interpreter can run it more slowly while the project records what happened.
 
 That feedback helps the next build. The goal is not to stay in the interpreter forever. The goal is to learn the missing path, translate it, and make the port faster and more complete.
-
-## Next
-
-- [What are the recompiler and runtime?](/docs/concepts/recompiler-and-runtime)
-- [What about code you cannot see ahead of time?](/docs/concepts/code-you-cannot-see-ahead-of-time)
-- [How do we compare a port to the original?](/docs/concepts/co-simulation)
-- [How is a port made?](/docs/start/how-a-port-is-made)

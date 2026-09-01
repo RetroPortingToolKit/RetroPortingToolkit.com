@@ -1,17 +1,17 @@
 ---
 title: "Start here"
-summary: "Six short pages, in order, from never having heard of static recompilation to having a real toolchain running."
+summary: "Six short pages for readers who know the emulator and porting scene, with technical ideas explained as plainly as possible."
 sectionTitle: "Start here"
 pageType: "reference"
 tags: ["Orientation"]
-updated: "2026-08-30"
+updated: "2026-08-31"
 ---
 
-Start here if you are new to static recompilation.
+Start here if you know emulators and fan-made ports, but static recompilation is new to you.
 
-This section assumes very little. You do not need to know how a console works. You do not need to be comfortable in a terminal yet. You only need to be curious about how old games can become native ports.
+This documentation assumes some familiarity with how emulators and recompilation projects work. You do not need to be an expert, but terms such as game binary, runtime, native port, and command line should not be completely new.
 
-Read these pages in order. By the end, you should know what a recomp port is, what files you are expected to provide, and what the first real toolchain looks like.
+The pages explain unfamiliar details as they appear and aim to be as beginner-friendly as the subject allows. Read them in order. By the end, you should understand what a recomp port is, what files you provide, and what the first real toolchain looks like.
 
 - [What is static recompilation?](/docs/start/what-is-static-recompilation). The idea in plain language, what it buys, and what it costs. Start here if you only read one page.
 - [How is a port made?](/docs/start/how-a-port-is-made). The usual path from a game file to a native application.

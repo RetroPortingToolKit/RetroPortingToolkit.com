@@ -125,10 +125,3 @@ Do not zip a build folder by hand. A build folder can contain local files that s
 A good package command copies only allowlisted files and rejects ROMs, disc images, retail BIOS files, generated source, logs, and local config.
 
 See [Release a port](/docs/guides/release-a-port).
-
-## Next
-
-- [Build a toolchain](/docs/guides/build-a-toolchain)
-- [Port a game](/docs/guides/port-a-game)
-- [TCP debug protocol](/docs/reference/tcp-protocol)
-- [Errors and exit codes](/docs/reference/errors-and-exit-codes)

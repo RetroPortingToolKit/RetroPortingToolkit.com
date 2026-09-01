@@ -59,9 +59,3 @@ The strict version is simple: restore the state, run again, and prove the game l
 Save states and rewind are not just nice extras. They require the port to understand the full machine well enough to put it back exactly.
 
 When a project supports those features well, it is usually a sign that the runtime is becoming more mature.
-
-## Next
-
-- [How do we compare a port to the original?](/docs/concepts/co-simulation)
-- [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns)
-- [What do these terms mean?](/docs/concepts/glossary)

@@ -139,10 +139,3 @@ Do not:
 - call a green run meaningful before the comparator is tested.
 
 Missing information is not permission to guess. Add the tool you need, then run the test again.
-
-## Next
-
-- [Set up co-simulation](/docs/guides/set-up-co-simulation), for reference-vs-port runs.
-- [Co-simulation](/docs/concepts/co-simulation), for the concept behind the tooling.
-- [TCP debug protocol](/docs/reference/tcp-protocol), for the debug-server surface.
-- [Errors and exit codes](/docs/reference/errors-and-exit-codes), when a tool refuses to continue.

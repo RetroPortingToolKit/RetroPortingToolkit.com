@@ -52,12 +52,15 @@ function splitFrontmatter(raw) {
   const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
   if (!m) return { fm: {}, body: raw };
   // Keep the Node walk byte-for-byte aligned with contentCore's reader-facing
-  // body. Source appendices remain in the repository as working notes, but
-  // must not leak back through search, llms-full.txt, or a page's .md twin.
-  const body = (m[2] ?? "").replace(
-    /\n## Sources?\n[\s\S]*?(?=\n## Next\n|\s*$)/,
-    "",
-  );
+  // body. Source appendices and editorial "Next" blocks remain in the
+  // repository as working notes, but must not leak back through search,
+  // llms-full.txt, or a page's .md twin.
+  const body = (m[2] ?? "")
+    .replace(
+      /\n## Sources?\r?\n[\s\S]*?(?=\n## Next(?: pages?| questions?)?:?\r?\n|\s*$)/i,
+      "",
+    )
+    .replace(/\n## Next(?: pages?| questions?)?:?\r?\n[\s\S]*$/i, "");
   return { fm: yaml.load(m[1]) ?? {}, body };
 }
 

@@ -106,10 +106,3 @@ python3 --version
 Each command should print a version. If one is missing, install that tool before continuing.
 
 On Windows, run this check inside MSYS2 MinGW64. A tool that works in PowerShell may still be missing from the shell that actually builds the project.
-
-## Next
-
-- [Developer quickstart](/docs/start/quickstart): build and run the psxrecomp pipeline.
-- [How do I recomp my own game?](/docs/start/recomp-your-own-game): the realistic path from a game you own to a port project.
-- [The game file you supply](/docs/concepts/the-game-file-you-supply): what the file check means.
-- [How is a port made?](/docs/start/how-a-port-is-made): where these tools fit in the larger process.

@@ -133,10 +133,3 @@ A headless run may miss feel, presentation, frame pacing, or user-facing problem
 It also depends on the oracle. If the oracle is wrong, incomplete, or wired incorrectly, the comparison inherits that risk.
 
 Use co-simulation as a discipline, not as a magic stamp.
-
-## Next
-
-- [Debug a divergence](/docs/guides/debug-a-divergence), when the run comes back red.
-- [Co-simulation](/docs/concepts/co-simulation), for the concept.
-- [What correct enough means](/docs/concepts/accuracy-and-burndowns), for turning evidence into a claim.
-- [TCP debug protocol](/docs/reference/tcp-protocol), for the tool surface.

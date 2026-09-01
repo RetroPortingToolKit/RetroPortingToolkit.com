@@ -19,7 +19,15 @@ function splitFrontmatter(raw: string): { fm: Record<string, unknown>; body: str
   // markdown files available to maintainers, but omit the whole section from
   // rendered and generated public surfaces, including its otherwise-empty
   // heading.
-  const body = (m[2] ?? "").replace(/\n## Sources?\n[\s\S]*?(?=\n## Next\n|\s*$)/, "");
+  const body = (m[2] ?? "")
+    .replace(
+      /\n## Sources?\r?\n[\s\S]*?(?=\n## Next(?: pages?| questions?)?:?\r?\n|\s*$)/,
+      "",
+    )
+    // "Next" lists duplicated the sidebar and made each page end with an
+    // editorial handoff. Navigation owns that job, so omit every spelling
+    // already present in the docs from all reader and agent surfaces.
+    .replace(/\n## Next(?: pages?| questions?)?:?\r?\n[\s\S]*$/, "");
   return { fm, body };
 }
 

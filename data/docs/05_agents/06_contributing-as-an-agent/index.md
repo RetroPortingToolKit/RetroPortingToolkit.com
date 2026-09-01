@@ -91,32 +91,3 @@ Missing checks, missing files, skipped tests, or routes not run.
 
 ## What is not the problem
 Things already ruled out, with the evidence.
-
-## Next question
-One specific question the next session should answer.
-
-## How to answer it
-Commands, tools, routes, or captures needed.
-
-## Caveats
-Uncertainty that should not be hidden.
-```
-
-Keep the handoff factual. It should help the next person avoid repeating work.
-
-## Reviewing AI work
-
-Read the diff first, then read the evidence.
-
-Look for:
-
-- generated files edited by hand
-- stubs or fake success behavior
-- game-specific hacks in framework code
-- weakened identity checks
-- missing dispatch-miss status
-- missing coverage status
-- skipped tests treated as passes
-- claims that rely on prose instead of a run
-
-If the evidence does not support the claim, ask for a narrower claim or a stronger check.

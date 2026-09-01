@@ -78,10 +78,3 @@ Do not assume a nearly matching game file is good enough.
 Do not copy old commands from a random page if the platform page or project has moved on.
 
 Do not treat one game's result as a promise about the whole console.
-
-## Next
-
-- [Developer quickstart](/docs/start/quickstart): build the psxrecomp pipeline before aiming at a game.
-- [The platform pages](/docs/platforms): choose a realistic console.
-- [The game file you supply](/docs/concepts/the-game-file-you-supply): why exact game files matter.
-- [Code you cannot see ahead of time](/docs/concepts/code-you-cannot-see-ahead-of-time): why some games need more than the first static pass.
