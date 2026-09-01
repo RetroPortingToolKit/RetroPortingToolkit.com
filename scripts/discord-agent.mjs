@@ -59,14 +59,17 @@ async function gitSnapshot() {
   return { status: status.trim(), head: head.trim() };
 }
 
-async function waitForCleanCheckout(timeoutMs = 30_000) {
+async function waitForCleanCheckout(timeoutMs = 30_000, onWait) {
   const deadline = Date.now() + timeoutMs;
   while (true) {
     const snapshot = await gitSnapshot();
     if (!snapshot.status || Date.now() >= deadline) return snapshot;
+    onWait?.(snapshot);
     await new Promise((resolve) => setTimeout(resolve, 2_000));
   }
 }
+
+const AGENT_TIMEOUT_MS = 15 * 60 * 1_000;
 
 function safeAgentEnv() {
   const env = { ...process.env };
@@ -96,7 +99,15 @@ async function replyChunks(message, heading, body) {
 }
 
 async function runCodex(job) {
-  const starting = await waitForCleanCheckout();
+  let notified = false;
+  const starting = await waitForCleanCheckout(30_000, () => {
+    if (notified) return;
+    notified = true;
+    void job.message.reply({
+      content: "The shared checkout is busy, so I’m waiting briefly for the other work to finish before I start. I won’t overwrite it.",
+      allowedMentions: { repliedUser: false },
+    }).catch((error) => console.error("[discord-agent] wait update failed", error));
+  });
   if (starting.status) {
     throw new SharedCheckoutConflictError(
       "Blocked: the shared checkout already has uncommitted work. Please finish or clear that work before asking the bot to publish another change.",
@@ -114,6 +125,7 @@ async function runCodex(job) {
   try {
     if (job.stopRequested) throw new TaskStoppedError("Stopped before the agent started.");
     const exitCode = await new Promise((resolve, reject) => {
+      let timeout;
       const child = spawn(
         "codex",
         [
@@ -128,11 +140,18 @@ async function runCodex(job) {
         { cwd: ROOT, env: safeAgentEnv(), stdio: ["pipe", "pipe", "pipe"], detached: true },
       );
       activeChild = child;
+      timeout = setTimeout(() => {
+        job.timeout = true;
+        try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
+        reject(new Error("The agent exceeded the 15-minute execution limit and was stopped."));
+      }, AGENT_TIMEOUT_MS);
+      timeout.unref();
       child.stdin.end(prompt);
       child.stdout.on("data", (data) => process.stdout.write(data));
       child.stderr.on("data", (data) => process.stderr.write(data));
       child.once("error", reject);
       child.once("close", (code) => {
+        clearTimeout(timeout);
         if (activeChild === child) activeChild = null;
         resolve(code);
       });
@@ -185,6 +204,13 @@ async function drainQueue() {
     content: `Starting your request now. ${queue.length ? `${queue.length} request(s) remain queued.` : ""}`.trim(),
     allowedMentions: { repliedUser: true },
   });
+  const progressTimer = setInterval(() => {
+    void job.message.reply({
+      content: "Still working. I’m running the requested checks and will report the commit, deployment, or exact blocker when this finishes.",
+      allowedMentions: { repliedUser: false },
+    }).catch((error) => console.error("[discord-agent] progress update failed", error));
+  }, 60_000);
+  progressTimer.unref();
   try {
     const summary = await runCodex(job);
     await replyChunks(job.message, summaryHeading(summary), summary);
@@ -204,6 +230,7 @@ async function drainQueue() {
     const detail = error instanceof Error ? error.message : String(error);
     await replyChunks(job.message, "❌ The task did not complete.", detail);
   } finally {
+    clearInterval(progressTimer);
     running = null;
     void drainQueue();
   }
