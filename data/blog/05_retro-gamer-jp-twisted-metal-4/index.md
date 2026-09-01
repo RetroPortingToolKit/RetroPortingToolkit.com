@@ -8,6 +8,7 @@ desc: "Japanese outlet retro-gamer.jp covers the independent Twisted Metal 4 rec
 date: "2026-08-15"
 venue: "retro-gamer.jp"
 layout: "article"
+cover: "./cover-mascot.webp"
 links:
   - { label: "Read on retro-gamer.jp", href: "https://retro-gamer.jp/?p=45562" }
 ---

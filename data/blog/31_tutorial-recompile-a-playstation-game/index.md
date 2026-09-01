@@ -6,6 +6,7 @@ date: "2026-08-24"
 author: "Shokunin"
 tags: ["Tutorial", "PlayStation"]
 layout: "article"
+cover: "./cover-mascot.webp"
 ---
 
 This is the whole path. A PlayStation disc image you own goes in. A native program for your own machine comes out.

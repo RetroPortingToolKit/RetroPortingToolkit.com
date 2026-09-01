@@ -112,11 +112,13 @@ export function svgCover(title: string, kicker: string, color: string): string {
 
 // Cards use the item's own cover when one exists (authored in frontmatter and
 // resolved by the content loader, e.g. a real gameplay still), then a dropped-in
-// /lab-media capture, then the generated cover art above.
+// /lab-media capture. News has an evergreen mascot fallback; games keep the
+// generated title treatment when neither authored source exists.
 function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
   const labSrc = `/lab-media/${dir}/${p.slug}.webp`;
   const color = colorFor(p, i);
-  const src = p.cover ?? (LQIP[labSrc] ? labSrc : svgCover(p.title, p.kicker, color));
+  const fallback = kind === "blog" ? "/covers/news-default.webp" : svgCover(p.title, p.kicker, color);
+  const src = p.cover ?? (LQIP[labSrc] ? labSrc : fallback);
   return {
     src,
     srcSet: p.coverSrcSet,

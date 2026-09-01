@@ -6,6 +6,7 @@ date: "2026-08-24"
 author: "Shokunin"
 tags: ["Tutorial", "NES", "nesrecomp"]
 layout: "article"
+cover: "./cover-mascot.webp"
 ---
 
 On PlayStation a scaffold script hands you a repository that configures and builds. NES has nothing like it. A new NES port starts as a copy: reproduce a working port's structure, then replace everything in it that names the old game.

@@ -6,6 +6,7 @@ date: "2026-08-24"
 author: "Shokunin"
 tags: ["Tutorial", "Agents", "PlayStation"]
 layout: "article"
+cover: "./cover-mascot.webp"
 ---
 
 You can hand this job to an AI coding agent. Point it at a page, tell it to recompile a disc image you own, and let it work. This article covers what to say, the one flag that decides whether the agent finishes or hands you an empty tree, and the points where it has to stop and give the screen back to you.
