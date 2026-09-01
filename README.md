@@ -53,6 +53,23 @@ breaks links to the old one; the editor's "Change address" does this properly.
 Media referenced as `./file` resolves inside that page's own folder, so a page's
 images live beside its markdown.
 
+## Launch FAQ
+
+**What is this?** A practical directory of static recompilers, runtimes, and
+community ports that turn original console games into modern applications.
+
+**Does it include game files?** No. You must supply a legally obtained dump you
+are entitled to use. The site and its repositories do not distribute
+copyrighted game data.
+
+**Is this an emulator?** No. A static recompiler translates a game's code ahead
+of time; the runtime supplies the platform services the native port expects.
+
+**How can I contribute?** Add a focused project or correction through a reviewable
+pull request, include its source repository and status, and keep descriptions
+factual and respectful. Draft content stays out of public listings until it is
+ready.
+
 `public/previews/<slug>.mp4` plus `<slug>.webp` give a page an animated card in
 place of a static cover. They are produced locally by `scripts/gen-previews.mjs`
 to an exact encoding spec; see `docs/HANDOFF.md`.
