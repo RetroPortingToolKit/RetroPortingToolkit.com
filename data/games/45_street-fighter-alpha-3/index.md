@@ -3,7 +3,7 @@ title: "Street Fighter Alpha 3"
 kicker: "PlayStation"
 tags: ["Community"]
 featured: true
-desc: "One of PlayStation's great fighters running as a native app, with about five minutes of game-specific work behind it."
+desc: "A community PSXRecomp build of Street Fighter Alpha 3."
 year: "2026"
 status: "Released"
 availability: "Public build"
@@ -20,17 +20,15 @@ added: "2026-08-08"
 updated: "2026-08-18"
 ---
 
-An independent recompilation of Street Fighter Alpha 3 built on [PSXRecomp](/hardware/playstation). It is a community build rather than a core project, and it matters less for what it changes than for what it proves.
+Street Fighter Alpha 3 runs as a native app through [PSXRecomp](/hardware/playstation).
 
 ![Street Fighter Alpha 3 running from a native build](/previews/street-fighter-alpha-3.mp4)
 
-The team cites roughly five minutes of game-specific work from disc to a running native build. That is what a mature recompilation ecosystem looks like, when bringing over a new game stops being a project and starts being an afternoon.
-
-![From a fresh Windows install to first boot](/covers/sfa3-setup.jpg)
+It is a community build by TechnicallyComputers. The useful point is simple: PSXRecomp is mature enough that other people can use it for real games.
 
 ## Playable status
 
-Yes. TechnicallyComputers publishes builds on GitHub, with zips for Windows, macOS on both Intel and Apple silicon, and Linux. You supply your own Street Fighter Alpha 3 (USA) disc image. Titles can be run standalone from the release zip, or managed through the RetComM Launcher, which handles installs, updates and ROM wiring across the community's recomps. Video Game Esoterica's [coverage](/blog/video-sfa3-recomp-out-now) shows it running.
+TechnicallyComputers publishes playable builds on GitHub, with zips for Windows, macOS, and Linux. You supply your own Street Fighter Alpha 3 disc image. Video Game Esoterica's [coverage](/blog/video-sfa3-recomp-out-now) shows it running.
 
 ![Video Game Esoterica on the Street Fighter Alpha 3 recompilation](https://www.youtube.com/watch?v=aITjH0LoEeA)
 
