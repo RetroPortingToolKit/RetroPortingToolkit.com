@@ -1581,9 +1581,9 @@ html {
 .buildlog-card .tvcard-tilt,
 .news-list .tvcard-tilt {
   display: grid;
-  /* The platform and news illustrations are authored square. Keep their full
-     composition instead of cropping them into a short banner. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  /* The platform and news illustrations are authored square. Give the art a
+     one-third column so it keeps that shape without crowding the copy. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   align-items: stretch;
 }
 .news-list .tvcard--blog .tvcard-media,
