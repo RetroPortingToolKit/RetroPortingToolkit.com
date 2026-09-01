@@ -1,60 +1,65 @@
 {
   "proof": [
-    "Retro Porting Toolkit helps old games become native apps. The game logic stays the game logic. The hardware around it becomes a modern runtime, so ports can add things the original console could not."
+    "Retro Porting Toolkit frees game logic from the hardware it was written for. The result is a native app with room for widescreen, modern controls, higher frame rates, bug fixes, translations, modding, and ideas that go far beyond recreating the original console."
   ],
   "philosophy": [
-    "Run native. A port can target Windows, Linux, macOS, Android, or the browser without shipping an emulator core as the main experience.",
-    "Open the view. Widescreen can show more of the game world instead of stretching the old picture.",
-    "Keep the original safe. Mods, translations, save states, and rewind layer on top of the game file you provide.",
-    "Use modern hardware. A phone gyro can stand in for a tilt cartridge. Local weather can stand in for a sunlight sensor.",
-    "Make work reusable. Better debug tools and release systems should help the next port, not only one game."
+    "Go native. Windows, Linux, macOS, Android, even the browser. The translated game code becomes part of a modern application.",
+    "See more of the world. Adaptive widescreen can reveal space the original screen kept out of view instead of stretching the old picture.",
+    "Break the old limits. Ports can add higher frame rates, CD-quality soundtracks, voxel 3D experiments, and mod loaders without rewriting the game file you provide.",
+    "Swap the hardware. Spin WarioWare: Twisted! with a phone or DualSense, and let real local weather drive Boktai’s solar sensor.",
+    "Change the words. Runtime text replacement can power translations, accessibility work, and edits that appear without rebuilding the game.",
+    "Make the next port easier. Shared runtimes, debugging tools, save states, rewind, and release systems should outlive any one game."
   ],
   "constraintsIntro": "A recomp can preserve a game, extend it, or use it as the starting point for something new. What matters is being clear about the project’s intent and building deliberately toward it.",
   "stories": [
     {
-      "title": "The screen was smaller than the world.",
-      "body": "Some games already keep more of the map in memory than the original screen could show. A careful widescreen mode can reveal that extra space while keeping the old 4:3 path intact.",
+      "title": "The map was already loaded. The screen was hiding it.",
+      "body": "Mega Man Zero opens its logical view beyond the original 240-pixel screen instead of stretching the picture. The wider view lets a threat appear before it is on top of you, while the game’s original enemy-spawn rules remain visible as part of the experiment.",
       "image": "/covers/mmz-widescreen.png",
       "alt": "Mega Man Zero running with the view opened past the original Game Boy Advance width",
       "href": "/games/mega-man-zero"
     },
     {
       "title": "Boktai still runs on sunlight. Yours.",
-      "body": "Boktai used a real light sensor in the cartridge. The recomp keeps that idea and maps it to modern inputs. Local weather can drive the sunlight gauge, while the original game file stays untouched.",
+      "body": "The cartridge carried a real light sensor: the solar gun charged from sunlight, and the undead could only be sealed while you had light. The recomp keeps the idea and moves the sensor—local weather now drives the gauge while the original game file stays untouched.",
       "image": "/covers/boktai-sensor.webp",
       "alt": "Boktai running with its solar gauge driven by local weather",
       "href": "/games/boktai"
     },
     {
-      "title": "Change the words while the game runs.",
-      "body": "Runtime text replacement lets a translator edit a line, reload it, and see the result in-game. It is useful for fan translation, accessibility, and quick iteration without patching the original file.",
+      "title": "Change the words. Mid-game.",
+      "body": "Faxanadu showcases NESRecomp’s text overrides: dialogue and glyphs come from a JSON file at runtime, so an edit can appear in the running game without rebuilding or patching the ROM. The same idea scales from a corrected line to a full translation.",
       "image": "/covers/faxanadu-native.png",
       "alt": "Faxanadu running as a native PC application",
       "href": "/games/faxanadu"
     }
   ],
+  "platformNote": {
+    "title": "Each console teaches the next.",
+    "body": "The Nintendo DS recompiler’s second processor grew from the Game Boy Advance work. The CD-i’s 68000 front end grew from the Genesis work. A new platform is not a restart when the tools are built to travel."
+  },
   "featured": [
     {
       "slug": "minish-cap",
-      "capability": "The Minish Cap shows the GBA path clearly: a familiar game with a wider view and a growing native port.",
+      "capability": "The Minish Cap runs natively from the cartridge dump you provide, then opens rooms and overworld scenes into adaptive widescreen instead of stretching them.",
       "cover": "/covers/minish-cap.jpg",
       "alt": "The Minish Cap running through the Game Boy Advance recompiler",
-      "headline": "A small screen, opened up.",
+      "headline": "The screen gets wider. The world stays put.",
       "still": true
     },
     {
       "slug": "mega-man-x6",
-      "capability": "Mega Man X6 layers fixes and options over the port without rewriting the disc image you provide.",
+      "capability": "Mega Man X6 carries an authorized 203-item adaptation of acediez’s Tweaks, layered over the native port without rewriting the disc image you provide.",
       "cover": "/previews/mega-man-x6.webp",
       "alt": "Mega Man X6 running as a native application",
-      "headline": "A port can be moddable."
+      "headline": "203 mods. Every one a switch."
     },
     {
       "slug": "super-mario-bros",
-      "capability": "Super Mario Bros. runs as a native PC game and shows how far an old cartridge can be pushed when the runtime is under your control.",
+      "capability": "Super Mario Bros. runs natively with Pikachu, Captain Falcon, Samus, Link, or Sonic taking the lead—and bringing their own moves with them.",
       "cover": "/previews/super-mario-bros.webp",
       "alt": "Super Mario Bros. running with Pikachu in Mario's place",
-      "headline": "The original, plus room to play."
+      "headline": "Mario’s job is optional."
     }
   ],
   "action": [
@@ -64,8 +69,8 @@
       "project": "Street Fighter Alpha 3",
       "poster": "/previews/street-fighter-alpha-3.webp",
       "alt": "Street Fighter Alpha 3 running as a native build",
-      "blurb": "A PlayStation fighting game running as a native app, built on top of the PSXRecomp ecosystem.",
-      "headline": "A community port shipping today."
+      "blurb": "Street Fighter Alpha 3 became a running native build after roughly five minutes of game-specific setup, then shipped builds for Windows, macOS, and Linux.",
+      "headline": "Five minutes from disc to native."
     },
     {
       "page": "/games/metroid-prime-hunters",
@@ -73,8 +78,8 @@
       "project": "Metroid Prime Hunters",
       "poster": "/previews/metroid-prime-hunters.webp",
       "alt": "Metroid Prime Hunters running with mouse aiming",
-      "blurb": "A public alpha for a DS shooter, with mouse aiming and an early Nintendo DS framework underneath it.",
-      "headline": "A DS game with modern aim."
+      "blurb": "Metroid Prime Hunters is a public native alpha with mouse aiming, running while the Nintendo DS framework beneath it is still active research.",
+      "headline": "Aim a DS shooter with your mouse."
     },
     {
       "page": "/blog/video-tomba-save-states-rewind",
@@ -82,13 +87,22 @@
       "project": "PSXRecomp",
       "poster": "/covers/tomba-rewind.jpg",
       "alt": "Tomba! with the rewind timeline open",
-      "blurb": "The engine work matters beyond one game: save states and rewind become features future hosts can reuse.",
-      "headline": "Rewind, built once."
+      "blurb": "You are watching Tomba!, but the reusable engine is the point: save states and rewind are built once so future hosts can pick them up.",
+      "headline": "Rewind, built once for everyone."
     }
   ],
+  "featuredPost": {
+    "slug": "building-enhancing-recomps",
+    "eyebrow": "From the build log",
+    "title": "Building & Enhancing Recomps: Ecosystem Updates",
+    "blurb": "A tour of shared mod loading, adaptive widescreen, new console support, unusual cartridge sensors, and experiments beyond faithful ports.",
+    "cover": "/covers/build-log-ecosystem.jpg",
+    "alt": "Building and Enhancing Recomps article cover",
+    "headline": "Every ecosystem, and what it taught the next."
+  },
   "sectionTitles": {
-    "proof": "Old games, modern ports.",
-    "constraints": "Keep the game. Replace the limits.",
+    "proof": "Emulation lets old games run. Recompilation lets them evolve.",
+    "constraints": "Preserve it. Extend it. Reinvent it.",
     "featured": "Playable today.",
     "action": "Watch it run."
   }
