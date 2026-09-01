@@ -25,7 +25,7 @@ export const NAV_TABS: { id: TabId; label: string; path: string }[] = [
   { id: "home", label: "Home", path: TAB_PATH.home },
   { id: "hardware", label: "Platforms", path: TAB_PATH.hardware },
   { id: "game", label: "Games", path: TAB_PATH.game },
-  { id: "blog", label: "News", path: TAB_PATH.blog },
+  { id: "blog", label: "Blog", path: TAB_PATH.blog },
 ];
 
 /** Home's pager order. Derived, so a tab can never be in the row but not in
