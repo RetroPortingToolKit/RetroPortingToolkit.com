@@ -3,7 +3,7 @@ title: "Pepsiman"
 kicker: "PlayStation"
 tags: ["WebAssembly", "60 FPS"]
 featured: false
-desc: "The PS1 cult classic that never came West, recompiled to run in a browser tab at 60 FPS."
+desc: "A community PlayStation recomp that ran Pepsiman in a browser tab."
 year: "2026"
 status: "Released"
 availability: "No public release"
@@ -17,17 +17,17 @@ verified: "2026-08-18"
 cover: "./pepsiman-browser.jpg"
 ---
 
-Pepsiman (1999) never released outside Japan, which makes it a fitting pick for a community recompilation with an unusual target: instead of a Windows or Linux binary, this one compiles the game to WebAssembly and runs it in a browser tab.
+Pepsiman Recompiled is a novel community PlayStation recomp: it targets the browser instead of a normal desktop download.
 
 ## Playable status
 
-Not at the covered address right now. The project, started by kem0X as RepsiMan and released publicly as Pepsiman Recompiled, was playable in the browser when Notebookcheck covered it in July 2026, built from BIOS, disc, and memory card data you provide.
+No verified public build right now. The project, started by kem0X as RepsiMan and released publicly as Pepsiman Recompiled, was playable in the browser when Notebookcheck covered it in July 2026.
 
-As of this page's last check, the play URL from that coverage has been taken down ("This content is no longer available"), and no public repository for the project has been identified. There is currently no verified place to play or build it. The press link stays as the record of the release.
+The play URL from that coverage later went down, and no public repository has been identified. The press link stays here as a record of the release.
 
 ## What the recomp added
 
-As covered: 60 FPS instead of the original framerate, widescreen or the original 4:3, texture and geometry corrections, saves kept in the browser, offline play as an installable web app, and a competitive leaderboard. It ran best on Chromium-based browsers, with known bugs on other browsers and on mobile.
+As covered: 60 FPS, widescreen or original 4:3, texture and geometry fixes, browser saves, offline web-app support, and a leaderboard.
 
 
 ## Sources
