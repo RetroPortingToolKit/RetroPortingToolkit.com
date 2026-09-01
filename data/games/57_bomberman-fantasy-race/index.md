@@ -27,7 +27,7 @@ Tech demo. Builds are published for Windows, Linux, and macOS. The project does 
 
 The release builds the game locally from a disc dump you provide. OpenBIOS is used unless you supply your own retail BIOS.
 
-The catalog declares two-player netplay through [recomp-net](/blog/recomp-net), matching the original split-screen player count. Treat that as early until the project gives clearer validation notes.
+The catalog declares two-player netplay through [recomp-net](/docs/reference/recomp-net-api), matching the original split-screen player count. Treat that as early until the project gives clearer validation notes.
 
 
 ## Sources

@@ -27,7 +27,7 @@ Tech demo. Builds are published for Windows, Linux, and macOS, but the project d
 
 The release builds the game locally from a disc dump you provide. OpenBIOS is used unless you point it at your own retail BIOS.
 
-The catalog declares five-player netplay through [recomp-net](/blog/recomp-net), matching the original multitap player count. Treat that as early until the project gives clearer validation notes.
+The catalog declares five-player netplay through [recomp-net](/docs/reference/recomp-net-api), matching the original multitap player count. Treat that as early until the project gives clearer validation notes.
 
 
 ## Sources

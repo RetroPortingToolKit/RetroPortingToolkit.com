@@ -643,6 +643,12 @@ both pages already link their source article under `links:`.
   take precedence. The base `index.html`, prerender metadata regression test
   and asset auditor all know the same default-image convention. Verification:
   typecheck, production build and all 752 tests green.
+- The initial production crawl covered all 165 sitemap pages and 295 discovered
+  first-party routes/assets. It found one 404: the Bomberman World and Bomberman
+  Fantasy Race pages still linked to the removed `/blog/recomp-net` article.
+  Both now link to the maintained `/docs/reference/recomp-net-api` page.
+  Typecheck, production build and all 752 tests are green; repeat the production
+  crawl after this commit deploys to confirm zero remaining first-party errors.
 
 Remaining launch-readiness work at this checkpoint:
 
