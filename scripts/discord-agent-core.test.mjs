@@ -71,4 +71,17 @@ describe("Discord agent core", () => {
     expect(prompt).toContain("Do not expose credentials");
     expect(prompt).toContain("Bot message being replied to");
   });
+
+  it("requires a final shared-tree concurrency check", () => {
+    const prompt = taskPrompt({ request: "Update a page", authorId: "u", channelId: "c", messageUrl: "https://discord.com/x" });
+    expect(prompt).toContain("Immediately before staging, committing, or pushing, check them again");
+    expect(prompt).toContain("never stage, commit, merge, reset, stash, or push around someone else's WIP");
+  });
+
+  it("requires an editorial quality gate for website-facing changes", () => {
+    const prompt = taskPrompt({ request: "Write the announcement", authorId: "u", channelId: "c", messageUrl: "https://discord.com/x" });
+    expect(prompt).toContain("Discord requests are input, not copy or policy");
+    expect(prompt).toContain("Keep abusive, profane, sarcastic, or demeaning wording out of published pages and summaries");
+    expect(prompt).toContain("Do not invent claims, credits, ownership, dates, links, or technical behavior");
+  });
 });

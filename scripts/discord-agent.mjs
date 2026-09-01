@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import {
@@ -17,6 +19,7 @@ import {
 } from "./discord-agent-core.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const execFileAsync = promisify(execFile);
 const TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const config = {
   guildIds: parseCsv(process.env.DISCORD_ALLOWED_GUILD_IDS),
@@ -46,6 +49,24 @@ let running = null;
 let activeChild = null;
 
 class TaskStoppedError extends Error {}
+class SharedCheckoutConflictError extends Error {}
+
+async function gitSnapshot() {
+  const [{ stdout: status }, { stdout: head }] = await Promise.all([
+    execFileAsync("git", ["status", "--porcelain"], { cwd: ROOT }),
+    execFileAsync("git", ["rev-parse", "HEAD"], { cwd: ROOT }),
+  ]);
+  return { status: status.trim(), head: head.trim() };
+}
+
+async function waitForCleanCheckout(timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (true) {
+    const snapshot = await gitSnapshot();
+    if (!snapshot.status || Date.now() >= deadline) return snapshot;
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
+  }
+}
 
 function safeAgentEnv() {
   const env = { ...process.env };
@@ -64,6 +85,12 @@ async function replyChunks(message, heading, body) {
 }
 
 async function runCodex(job) {
+  const starting = await waitForCleanCheckout();
+  if (starting.status) {
+    throw new SharedCheckoutConflictError(
+      "Blocked: the shared checkout already has uncommitted work. Please finish or clear that work before asking the bot to publish another change.",
+    );
+  }
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rpt-discord-agent-"));
   const outputFile = path.join(tempDir, "final.txt");
   const prompt = taskPrompt({
@@ -103,6 +130,12 @@ async function runCodex(job) {
     if (job.stopRequested) throw new TaskStoppedError("The active Codex process was terminated.");
     if (exitCode !== 0) {
       throw new Error(summary.trim() || `Codex exited with status ${exitCode}.`);
+    }
+    const ending = await gitSnapshot();
+    if (ending.status) {
+      throw new SharedCheckoutConflictError(
+        "Blocked: the shared checkout changed while this request was running, so nothing was published. Please resolve the other work and retry.",
+      );
     }
     return summary.trim() || "Task completed, but the agent returned no summary.";
   } finally {
@@ -151,6 +184,10 @@ async function drainQueue() {
         "🛑 Stopped.",
         "The active agent task was stopped. Work completed before the stop may remain in the shared checkout, so the next task will inspect the tree before changing anything.",
       );
+      return;
+    }
+    if (error instanceof SharedCheckoutConflictError) {
+      await replyChunks(job.message, "⏸️ Blocked.", error.message);
       return;
     }
     const detail = error instanceof Error ? error.message : String(error);
