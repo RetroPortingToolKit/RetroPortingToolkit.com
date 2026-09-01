@@ -612,3 +612,40 @@ both pages already link their source article under `links:`.
   in the mod layer. Their patches can guide implementation, but do not become
   recompiler inputs. A true full custom game is the narrow exception and is an
   explicit target of its own.
+
+## Launch preparation and homepage restoration (2026-09-01)
+
+- The primary navigation label is `Blog`; the route remains `/blog` for URL
+  stability. Unknown routes now receive a real HTTP 404 from the prerendered
+  deployment rather than returning the SPA shell with a 200.
+- The repository README has a compact launch FAQ covering what static
+  recompilation is, game-file boundaries and contribution expectations.
+- Discord requests that delete, rename or otherwise destructively alter
+  published content are restricted to Shokunin, Gamemaster and CobaltCryptid.
+  General publishing requests still pass through the existing content-policy
+  and verification prompt boundaries.
+- Homepage commit `11b45ce` replaces the generic post-PR copy with concrete,
+  source-backed examples: adaptive widescreen, Boktai's weather-driven sensor,
+  runtime text replacement, reusable tooling, Mega Man X6's authorized tweak
+  set, character swaps in Super Mario Bros. and the short Street Fighter Alpha
+  3 setup path. It deliberately does not restore the old unverified multiplayer
+  claims or treat fidelity as every project's universal goal.
+- The homepage's wide `From the build log` card is restored and points to the
+  internal `building-enhancing-recomps` article. Its public cover is
+  `public/covers/build-log-ecosystem.jpg`.
+- Verification at this checkpoint: JSON parse, typecheck, production build and
+  all 751 tests green. Production was checked for the restored build-log copy
+  after deployment.
+
+Remaining launch-readiness work at this checkpoint:
+
+- Audit production metadata and social-sharing previews for the home page and
+  representative collection/detail routes.
+- Run a production link and asset crawl, then repair any broken first-party
+  routes or missing media it finds.
+- Perform focused mobile and desktop visual QA of the launch path: home hero,
+  Platforms, Games, Blog, one game, one platform, one article and Docs.
+- Draft the Hacker News and Product Hunt launch copy only after the audited
+  product claims and canonical URLs are stable. Analytics and a contact page
+  are explicitly deferred by the owner; the hero reel is the demo and the
+  existing site imagery supplies screenshots.
