@@ -576,3 +576,11 @@ both pages already link their source article under `links:`.
   writes `video/out/retro-porting-toolkit-showcase.mp4`.
 - Live-page captures used by the composition are checked into `video/public/`.
   Rendered output stays local under the ignored `video/out/` directory.
+
+## Public PR previews (2026-08-31)
+
+- Vercel automatically builds every pull request as a live preview deployment.
+- Vercel Authentication is disabled for this project so reviewers can open the
+  generated preview URL and see the website without a Vercel account or login.
+- Preview responses retain Vercel's automatic `X-Robots-Tag: noindex` header;
+  production remains served from the normal custom domain.
