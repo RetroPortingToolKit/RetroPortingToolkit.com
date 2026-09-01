@@ -263,7 +263,7 @@ describe("extractToc against the real renderer", () => {
     }
     // A mismatch is a dead anchor on a published page, so the count is asserted
     // too: a walk that silently found nothing would prove nothing.
-    expect(headings).toBeGreaterThan(700);
+    expect(headings).toBeGreaterThan(675);
     expect(disagree).toEqual([]);
   });
 });

@@ -14,11 +14,10 @@ group: "Nintendo DS"
 links:
   - { label: "Metroid Prime Hunters recomp brings the Nintendo DS classic to PC (GenerationAmiga)", href: "https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/" }
   - { label: "Watch: Metroid Prime Hunters Recomp is out now", href: "/blog/video-metroid-prime-hunters-out-now" }
-  - { label: "Watch: Metroid Prime Hunters in 21:9", href: "/blog/video-mph-219-first-look" }
 cover: "/covers/mph-2119.jpg"
 videoUrl: "https://www.youtube.com/watch?v=FFUglxqa_eI"
 verified: "2026-08-18"
-updated: "2026-08-31"
+updated: "2026-09-01"
 added: "2026-08-01"
 ---
 
@@ -56,5 +55,4 @@ The DS is a two-CPU machine, and the recomp treats it that way: the game's ARM9 
 
 - [Metroid Prime Hunters recomp brings the Nintendo DS classic to PC (GenerationAmiga)](https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/)
 - [Metroid Prime Hunters Recomp is out now (Video Game Esoterica)](/blog/video-metroid-prime-hunters-out-now)
-- [Metroid Prime Hunters in 21:9 (Gamemaster1379)](/blog/video-mph-219-first-look)
 - [Project README and release notes (GitHub)](https://github.com/mstan/MetroidPrimeHuntersRecomp)
