@@ -566,3 +566,12 @@ both pages already link their source article under `links:`.
   reports the stopped state on the original request. Queued work remains queued.
 - The installer retries `launchctl bootstrap` because macOS can briefly return
   an input/output error immediately after removing the previous job.
+
+## Remotion showcase video (2026-08-31)
+
+- `video/src/` contains a reproducible 24-second, 1920x1080 Remotion showcase
+  of the live home and games pages plus four existing gameplay previews.
+- `npm run video:studio` opens the composition and `npm run video:render`
+  writes `video/out/retro-porting-toolkit-showcase.mp4`.
+- Live-page captures used by the composition are checked into `video/public/`.
+  Rendered output stays local under the ignored `video/out/` directory.

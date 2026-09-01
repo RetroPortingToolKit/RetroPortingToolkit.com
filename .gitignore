@@ -5,6 +5,7 @@ dist
 vite.config.ts.timestamp-*.mjs
 *.tsbuildinfo
 .eslintcache
+video/out/
 
 .env
 .env.local

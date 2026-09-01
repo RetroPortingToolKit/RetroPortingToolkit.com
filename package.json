@@ -12,7 +12,9 @@
     "assets:audit": "node scripts/audit-assets.mjs",
     "images": "node scripts/gen-image-variants.mjs",
     "feeds": "node scripts/gen-feeds.mjs",
-    "discord-agent": "node scripts/discord-agent.mjs"
+    "discord-agent": "node scripts/discord-agent.mjs",
+    "video:studio": "remotion studio video/src/index.ts --public-dir video/public",
+    "video:render": "remotion render video/src/index.ts RetroPortingToolkitShowcase video/out/retro-porting-toolkit-showcase.mp4 --public-dir video/public"
   },
   "dependencies": {
     "discord.js": "^14.27.0",
@@ -29,11 +31,13 @@
     "vaul": "^1.1.1"
   },
   "devDependencies": {
+    "@remotion/cli": "^4.0.519",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^26.0.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
+    "remotion": "^4.0.519",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
     "vitest": "^2.1.8"
