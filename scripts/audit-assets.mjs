@@ -21,6 +21,14 @@ const VIDEO_RE = /\.(?:mov|mp4|webm)$/i;
 // can move without breaking old links. Everything else must be reachable from
 // authored content, application source, or one of the delivery rules below.
 export const INTENTIONAL_UNREACHABLE = Object.freeze([
+  "public/consoles/cd-i.jpg",
+  "public/consoles/game-boy-advance.jpg",
+  "public/consoles/nes.jpg",
+  "public/consoles/nintendo-ds.jpg",
+  "public/consoles/playstation.jpg",
+  "public/consoles/sega-genesis.jpg",
+  "public/consoles/super-nintendo.jpg",
+  "public/consoles/virtual-boy.jpg",
   "public/covers/minish-widescreen.webp",
   "public/covers/smw-extensible.jpg",
   "public/covers/tm4-boxart.png",

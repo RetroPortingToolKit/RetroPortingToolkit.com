@@ -17,7 +17,7 @@ links:
   - { label: "Watch: Tomba save states and rewind", href: "https://www.youtube.com/watch?v=L36ppNkuJG0" }
 verified: "2026-08-18"
 updated: "2026-08-31"
-cover: "/consoles/playstation.jpg"
+cover: "./mascot-room.webp"
 ---
 
 PSXRecomp is the gold-standard ecosystem for this site.

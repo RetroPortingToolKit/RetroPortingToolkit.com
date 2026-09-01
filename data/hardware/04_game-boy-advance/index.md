@@ -15,7 +15,7 @@ group: "Active platform ecosystems"
 links:
   - { label: "Read: GBARecomp launch on 1379.tech", href: "https://1379.tech/expanding-the-recomp-ecosystem-with-gbarecomp/" }
 verified: "2026-08-18"
-cover: "/consoles/game-boy-advance.jpg"
+cover: "./mascot-room.webp"
 ---
 
 GBARecomp is an alpha ecosystem.

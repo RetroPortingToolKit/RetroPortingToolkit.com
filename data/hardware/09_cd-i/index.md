@@ -15,7 +15,7 @@ group: "Early platform work"
 links:
   - { label: "cdirecomp on GitHub", href: "https://github.com/mstan/cdirecomp" }
 verified: "2026-08-18"
-cover: "/consoles/cd-i.jpg"
+cover: "./mascot-room.webp"
 ---
 
 cdirecomp is CD-i research.

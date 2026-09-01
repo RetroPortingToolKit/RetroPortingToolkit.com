@@ -15,7 +15,7 @@ group: "Early platform work"
 links:
   - { label: "VirtualBoy Recomp Gets Its First Title: Mario Tennis (1379.tech)", href: "https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/" }
 verified: "2026-08-18"
-cover: "/consoles/virtual-boy.jpg"
+cover: "./mascot-room.webp"
 ---
 
 vbrecomp is a Virtual Boy recompilation tech demo.

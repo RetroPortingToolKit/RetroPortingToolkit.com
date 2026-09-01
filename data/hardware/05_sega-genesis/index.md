@@ -17,7 +17,7 @@ links:
   - { label: "SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2 (1379.tech)", href: "https://1379.tech/segagenesisrecomp-gets-game-2-sonic-the-hedgehog-2/" }
 verified: "2026-08-18"
 updated: "2026-08-31"
-cover: "/consoles/sega-genesis.jpg"
+cover: "./mascot-room.webp"
 ---
 
 SegaGenesisRecomp turns Genesis games into native apps.

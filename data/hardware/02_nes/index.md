@@ -16,7 +16,7 @@ links:
   - { label: "NESRecomp early progress article (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
   - { label: "NESRecomp ecosystem article (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
-cover: "/consoles/nes.jpg"
+cover: "./mascot-room.webp"
 ---
 
 NESRecomp turns NES cartridge code into native apps. You provide your own cartridge dump.

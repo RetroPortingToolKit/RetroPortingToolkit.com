@@ -136,9 +136,10 @@ function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
   };
 }
 
-// Game and platform cards animate whenever a clip exists for the slug: the
-// card shows the real thing moving instead of a still. News cards stay static
-// on purpose, that section reads as a regular blog.
+// Game cards animate whenever a clip exists for the slug: the card shows the
+// real thing moving instead of a still. News cards stay static on purpose,
+// and platform cards use their authored mascot covers so the platform grid
+// has one coherent visual identity.
 function projectMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
   const clip = previewFor(p.slug);
   if (!clip) return staticMedia(p, i, kind, dir);
@@ -189,7 +190,7 @@ for (const g of GAMES) {
 }
 
 function hardwareMedia(p: Item, i: number): LabMedia {
-  const media = projectMedia(p, i, "hardware", "hardware");
+  const media = staticMedia(p, i, "hardware", "hardware");
   const n = GAME_COUNT[p.slug] ?? 0;
   // Catalogue size takes the platform's own colour; maturity gets a fixed
   // pair so Beta and Alpha read the same way on every card.

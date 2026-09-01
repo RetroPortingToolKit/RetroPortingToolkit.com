@@ -17,7 +17,7 @@ links:
   - { label: "GenerationAmiga on Metroid Prime Hunters", href: "https://www.generationamiga.com/2026/08/16/metroid-prime-hunters-recomp-brings-the-nintendo-ds-classic-to-pc/" }
 verified: "2026-08-18"
 updated: "2026-08-31"
-cover: "/consoles/nintendo-ds.jpg"
+cover: "./mascot-room.webp"
 ---
 
 ndsrecomp turns Nintendo DS games into native apps.

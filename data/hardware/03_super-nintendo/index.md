@@ -16,7 +16,7 @@ links:
   - { label: "Read: snesrecomp's first title on 1379.tech", href: "https://1379.tech/snesrecomps-first-title-super-mario-world/" }
   - { label: "Watch: Mega Man X Recomp is out now", href: "/blog/video-mega-man-x-out-now" }
 verified: "2026-08-18"
-cover: "/consoles/super-nintendo.jpg"
+cover: "./mascot-room.webp"
 ---
 
 SNESRecomp is the silver-standard ecosystem for this site.

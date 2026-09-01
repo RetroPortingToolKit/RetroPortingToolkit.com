@@ -15,7 +15,7 @@ group: "Early platform work"
 links:
   - { label: "Recomp + AI: 5 Months Later (1379.tech)", href: "https://1379.tech/recomp-ai-5-months-later/" }
 verified: "2026-08-20"
-cover: "./sonicblast-gameplay.png"
+cover: "./mascot-room.webp"
 ---
 
 smsggrecomp is a very early tech demo for Sega's 8-bit systems.
@@ -29,6 +29,8 @@ You provide your own cartridge dump.
 [Sonic the Hedgehog](/games/sonic-the-hedgehog-sms) on Master System can play Green Hill Zone.
 
 [Sonic Blast](/games/sonic-blast) on Game Gear reaches its title screen.
+
+![Sonic Blast running through the early Game Gear recompilation work](./sonicblast-gameplay.png)
 
 That is the current scope. These are narrow demos, not end-to-end releases, and they do not include major enhancements yet.
 
