@@ -584,3 +584,12 @@ both pages already link their source article under `links:`.
   generated preview URL and see the website without a Vercel account or login.
 - Preview responses retain Vercel's automatic `X-Robots-Tag: noindex` header;
   production remains served from the normal custom domain.
+
+## Safari homepage media regression (2026-08-31)
+
+- Real Safari verification found both production and PR #5 frozen on homepage
+  media. The August 30 ambient-media preference gate had disabled the hero and
+  every `SpatialCard`, undoing the established WebCodecs Safari fallback.
+- Homepage media again mounts independently of ambient-media preferences. The
+  hero keeps its explicit pause control, reduced motion still stops the loading
+  collage rotation, and noninteractive pager panes still use `still` posters.

@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { playMp4ToCanvas, type CanvasVideoHandle } from "@/lib/canvasVideo";
-import {
-  useAmbientMediaAllowed,
-  webCodecsAvailable,
-} from "@/lib/useAmbientMedia";
+import { webCodecsAvailable } from "@/lib/useAmbientMedia";
 
 // The hero is a living collage of real gameplay captures: frames published by
 // YouTube for the project's verified coverage videos (every frame below was
@@ -61,16 +58,15 @@ function Tile({ src, delay }: { src: string; delay: number }) {
 }
 
 export function HeroReel({ still = false }: { still?: boolean }) {
-  const policyAllowsMotion = useAmbientMediaAllowed();
+  const reduced =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // The montage is the hero: it mounts whenever this pane is interactive.
+  // Reduced-motion quiets the loading collage, but does not disable the video.
+  // Safari may need the WebCodecs path below to play it at all.
   const live = !still;
-  const [intent, setIntent] = useState<"auto" | "play" | "pause">("auto");
-  // Reduced-motion/data-saving preferences suppress ambient media, while the
-  // existing control remains an explicit opt-in for visitors who want it.
-  const active =
-    live &&
-    (intent === "play" || (intent === "auto" && policyAllowsMotion));
   const [playing, setPlaying] = useState(false);
-  const hasPlayed = useRef(false);
+  const [userPaused, setUserPaused] = useState(false);
   // Safari (and some power modes) can freeze a <video> mid-play and never
   // recover. When that happens we hand the reel to the WebCodecs canvas
   // player, which decodes the mp4 frame-by-frame with no <video> element and
@@ -91,12 +87,11 @@ export function HeroReel({ still = false }: { still?: boolean }) {
       : "/previews/hero-montage.mp4";
   });
 
-  // Autoplay can be denied (Low Power Mode, data saver, hidden tab). Retry
-  // while it remains eligible, but honor NotAllowedError by returning to the
-  // static collage. Canvas is reserved for a video that actually played and
-  // then froze; it must not bypass an autoplay refusal.
+  // Autoplay can be denied (Low Power Mode, data saver, hidden tab). Retry on
+  // the first gesture and whenever the tab becomes visible. Safari's denial is
+  // exactly why this component has a WebCodecs canvas fallback.
   useEffect(() => {
-    if (!active || cvFallback) return;
+    if (!live || cvFallback || userPaused) return;
     const tryPlay = () => {
       const v = videoRef.current;
       if (v && v.paused)
@@ -105,32 +100,22 @@ export function HeroReel({ still = false }: { still?: boolean }) {
             err instanceof DOMException &&
             err.name === "NotAllowedError"
           ) {
-            hasPlayed.current = false;
-            setPlaying(false);
-            setIntent("pause");
+            if (webCodecsAvailable()) setCvFallback(true);
           }
         });
     };
-    tryPlay();
     window.addEventListener("pointerdown", tryPlay, { passive: true });
     document.addEventListener("visibilitychange", tryPlay);
     return () => {
       window.removeEventListener("pointerdown", tryPlay);
       document.removeEventListener("visibilitychange", tryPlay);
     };
-  }, [active, cvFallback]);
-
-  useEffect(() => {
-    if (active) return;
-    hasPlayed.current = false;
-    setPlaying(false);
-    setCvFallback(false);
-  }, [active]);
+  }, [live, cvFallback, userPaused]);
 
   // Freeze watchdog: if currentTime stops advancing while the video claims to
   // be playing (Safari's silent mid-play stall), switch to the canvas player.
   useEffect(() => {
-    if (!active || !playing || !hasPlayed.current || cvFallback) return;
+    if (!live || cvFallback || userPaused) return;
     let lastT = -1;
     let strikes = 0;
     const t = window.setInterval(() => {
@@ -152,12 +137,12 @@ export function HeroReel({ still = false }: { still?: boolean }) {
       }
     }, 2000);
     return () => window.clearInterval(t);
-  }, [active, playing, cvFallback]);
+  }, [live, cvFallback, userPaused]);
 
   // The canvas player: decodes the no-B-frame mp4 via WebCodecs and loops
   // internally; no <video>, so no autoplay policy and no Safari stalls.
   useEffect(() => {
-    if (!active || !cvFallback) return;
+    if (!live || !cvFallback || userPaused) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     cvHandle.current = playMp4ToCanvas(canvas, "/previews/hero-montage.mp4");
@@ -166,19 +151,19 @@ export function HeroReel({ still = false }: { still?: boolean }) {
       cvHandle.current?.stop();
       cvHandle.current = null;
     };
-  }, [active, cvFallback]);
+  }, [live, cvFallback, userPaused]);
 
   const [tick, setTick] = useState(0);
   useEffect(() => {
-    // The collage keeps rotating only while an allowed/explicit video is
-    // buffering. Policy-suppressed and manually paused heroes remain still.
-    if (!active || playing) return;
+    // The collage keeps rotating only until the montage takes over, and holds
+    // still for reduced-motion users.
+    if (!live || playing || reduced) return;
     const t = window.setInterval(() => {
       if (document.hidden) return;
       setTick((v) => v + 1);
     }, TICK_MS);
     return () => window.clearInterval(t);
-  }, [active, playing]);
+  }, [live, playing, reduced]);
 
   return (
     <div className="hn-hero-reel">
@@ -193,7 +178,7 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           coverage footage (used with the channel's permission), self-hosted in
           /public/previews. It fades in over the collage once it actually
           plays, so a slow network or blocked autoplay still shows gameplay. */}
-      {active && !cvFallback && (
+      {live && !userPaused && !cvFallback && (
         <video
           ref={videoRef}
           className={"hn-reel-canvas" + (playing ? " is-playing" : "")}
@@ -202,11 +187,8 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           muted
           loop
           playsInline
-          preload="metadata"
-          onPlaying={() => {
-            hasPlayed.current = true;
-            setPlaying(true);
-          }}
+          preload="auto"
+          onPlaying={() => setPlaying(true)}
           onEnded={(e) => {
             // Native loop can fail on some webm/browser combinations; force it.
             const v = e.currentTarget;
@@ -215,7 +197,7 @@ export function HeroReel({ still = false }: { still?: boolean }) {
           }}
         />
       )}
-      {active && cvFallback && (
+      {live && !userPaused && cvFallback && (
         <canvas
           ref={canvasRef}
           className="hn-reel-canvas is-playing"
@@ -226,17 +208,14 @@ export function HeroReel({ still = false }: { still?: boolean }) {
         <button
           type="button"
           className="hn-reel-pause"
-          aria-label={active ? "Pause background video" : "Play background video"}
-          aria-pressed={!active}
+          aria-label={userPaused ? "Play background video" : "Pause background video"}
+          aria-pressed={userPaused}
           onClick={() => {
-            videoRef.current?.pause();
-            hasPlayed.current = false;
+            setUserPaused((paused) => !paused);
             setPlaying(false);
-            setCvFallback(false);
-            setIntent(active ? "pause" : "play");
           }}
         >
-          {!active ? (
+          {userPaused ? (
             <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
               <path d="M4.5 2.8v10.4L13 8z" />
             </svg>

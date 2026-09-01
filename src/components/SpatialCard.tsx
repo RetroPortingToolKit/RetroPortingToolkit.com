@@ -2,10 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { LabMedia } from "@/lab/labContent";
 import { useAutoplayVideo } from "@/lib/useAutoplayVideo";
 import { playMp4ToCanvas } from "@/lib/canvasVideo";
-import {
-  useAmbientMediaAllowed,
-  webCodecsAvailable,
-} from "@/lib/useAmbientMedia";
+import { webCodecsAvailable } from "@/lib/useAmbientMedia";
 
 // The card shows its animated cover everywhere, including visionOS. We tried the
 // <model> element (inline USDZ) for real depth, but on Vision Pro it renders a
@@ -46,7 +43,6 @@ export function SpatialCard({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // the crisp webp poster shows instantly behind the cover
   const [ready, setReady] = useState(false);
-  const policyAllowsMotion = useAmbientMediaAllowed();
 
   // Primary path: decode the preview MP4 into a <canvas> via WebCodecs -- no
   // <video> element, so Safari's autoplay policy never applies and it animates
@@ -55,7 +51,10 @@ export function SpatialCard({
   // a grid of <video> elements, and this path has no video element for its
   // policy to apply to. The <video> fallback below covers browsers without
   // WebCodecs.
-  const animate = !!media.video && !still && policyAllowsMotion;
+  // These covers are the content, not optional decoration. Keep the Safari
+  // WebCodecs path active even when ambient-motion preferences are enabled;
+  // `still` remains the explicit opt-out for dragged/offscreen panes.
+  const animate = !!media.video && !still;
   const useCanvas = animate && webCodecsAvailable();
   const [near, setNear] = useState(false);
 
