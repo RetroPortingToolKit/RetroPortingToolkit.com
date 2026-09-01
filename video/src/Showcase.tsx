@@ -48,37 +48,31 @@ const Intro: React.FC = () => {
   );
 };
 
-const gameplay = [
-  {name: 'Tomba!', platform: 'PlayStation', file: 'tomba.mp4', color: '#f06aa6'},
-  {name: 'Super Mario World', platform: 'Super Nintendo', file: 'super-mario-world.mp4', color: '#9768ff'},
-  {name: 'Sonic the Hedgehog 2', platform: 'Sega Genesis', file: 'sonic-the-hedgehog-2.mp4', color: '#4aa4c2'},
-  {name: 'Metroid Prime Hunters', platform: 'Nintendo DS', file: 'metroid-prime-hunters.mp4', color: '#4caa70'},
-] as const;
-
-const GameplayBeat: React.FC<{name: string; platform: string; file: string; color: string; duration: number}> = ({name, platform, file, color, duration}) => {
+const GameplayReel: React.FC = () => {
   const frame = useCurrentFrame();
+  const duration = 273;
   const opacity = fade(frame, duration, 12);
-  const scale = interpolate(frame, [0, duration], [1.04, 1], {extrapolateRight: 'clamp'});
+  const scale = interpolate(frame, [0, duration], [1.025, 1], {extrapolateRight: 'clamp'});
   return (
     <AbsoluteFill style={{fontFamily: font, color: ink, backgroundColor: '#000', opacity}}>
       <OffthreadVideo
-        src={`https://retroportingtoolkit.com/previews/${file}`}
+        src="https://retroportingtoolkit.com/previews/hero-montage.mp4"
         muted
+        playbackRate={2}
         style={{width: '100%', height: '100%', objectFit: 'cover', transform: `scale(${scale})`}}
       />
       <AbsoluteFill style={{background: 'linear-gradient(180deg, transparent 42%, rgba(0,0,0,.82) 100%)'}} />
       <div style={{position: 'absolute', left: 100, bottom: 80}}>
-        <div style={{display: 'inline-flex', padding: '10px 18px', borderRadius: 999, backgroundColor: color, fontSize: 22, fontWeight: 750}}>{platform}</div>
-        <div style={{fontSize: 66, fontWeight: 780, letterSpacing: -2.5, marginTop: 18}}>{name}</div>
+        <div style={{display: 'inline-flex', padding: '10px 18px', borderRadius: 999, backgroundColor: accent, fontSize: 22, fontWeight: 750}}>Modified native ports</div>
+        <div style={{fontSize: 58, fontWeight: 780, letterSpacing: -2.5, marginTop: 18}}>Classic games, transformed.</div>
       </div>
-      <div style={{position: 'absolute', right: 92, bottom: 92, fontSize: 24, color: 'rgba(255,255,255,.72)'}}>Native community port</div>
     </AbsoluteFill>
   );
 };
 
 const Catalog: React.FC = () => {
   const frame = useCurrentFrame();
-  const opacity = fade(frame, 165, 14);
+  const opacity = fade(frame, 75, 10);
   return (
     <AbsoluteFill style={{fontFamily: font, color: '#171717', opacity}}>
       <BrowserFrame src="site-games.png" />
@@ -112,13 +106,9 @@ const Outro: React.FC = () => {
 
 export const Showcase: React.FC = () => (
   <AbsoluteFill style={{backgroundColor: '#000'}}>
-    <Sequence from={0} durationInFrames={135}><Intro /></Sequence>
-    {gameplay.map((game, index) => (
-      <Sequence key={game.file} from={120 + index * 90} durationInFrames={102}>
-        <GameplayBeat {...game} duration={102} />
-      </Sequence>
-    ))}
-    <Sequence from={474} durationInFrames={165}><Catalog /></Sequence>
-    <Sequence from={615} durationInFrames={105}><Outro /></Sequence>
+    <Sequence from={0} durationInFrames={90}><Intro /></Sequence>
+    <Sequence from={72} durationInFrames={273}><GameplayReel /></Sequence>
+    <Sequence from={330} durationInFrames={75}><Catalog /></Sequence>
+    <Sequence from={390} durationInFrames={60}><Outro /></Sequence>
   </AbsoluteFill>
 );

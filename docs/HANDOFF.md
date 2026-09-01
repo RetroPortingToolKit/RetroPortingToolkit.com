@@ -569,8 +569,9 @@ both pages already link their source article under `links:`.
 
 ## Remotion showcase video (2026-08-31)
 
-- `video/src/` contains a reproducible 24-second, 1920x1080 Remotion showcase
-  of the live home and games pages plus four existing gameplay previews.
+- `video/src/` contains a reproducible 15-second, 1920x1080 Remotion showcase
+  of the live home and games pages plus the homepage's curated modified-game
+  hero montage.
 - `npm run video:studio` opens the composition and `npm run video:render`
   writes `video/out/retro-porting-toolkit-showcase.mp4`.
 - Live-page captures used by the composition are checked into `video/public/`.
