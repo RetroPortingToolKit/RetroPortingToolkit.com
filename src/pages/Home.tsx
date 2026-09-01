@@ -585,10 +585,6 @@ function TabContent({
                 ·{" "}
                 <SmartLink href="/hardware" className="hn-rec-link">
                   all {HARDWARE.length} platforms
-                </SmartLink>{" "}
-                ·{" "}
-                <SmartLink href="https://github.com/mstan" className="hn-rec-link">
-                  the source on GitHub
                 </SmartLink>
               </p>
               <p className="hn-note">
