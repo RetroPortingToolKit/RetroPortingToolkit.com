@@ -1,7 +1,7 @@
 ---
 title: "Bomberman World"
 kicker: "PlayStation"
-tags: ["Netplay", "Five players"]
+tags: []
 featured: false
 desc: "A community PSXRecomp tech demo for Bomberman World."
 year: "2026"
@@ -13,7 +13,7 @@ repo: "https://github.com/TechnicallyComputers/Bomberman-World-Recomp"
 group: "PlayStation"
 cover: "./boxart.png"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-09-01"
 added: "2026-08-08"
 ---
 
@@ -26,9 +26,6 @@ It is the adventure-style Bomberman game in this group, with stages, crystals, b
 Tech demo. Builds are published for Windows, Linux, and macOS, but the project does not make a clear playthrough claim.
 
 The release builds the game locally from a disc dump you provide. OpenBIOS is used unless you point it at your own retail BIOS.
-
-The catalog declares five-player netplay through [recomp-net](/docs/reference/recomp-net-api), matching the original multitap player count. Treat that as early until the project gives clearer validation notes.
-
 
 ## Sources
 

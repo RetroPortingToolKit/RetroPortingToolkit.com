@@ -1,7 +1,7 @@
 ---
 title: "Bomberman Fantasy Race"
 kicker: "PlayStation"
-tags: ["Netplay"]
+tags: []
 featured: false
 desc: "A community PSXRecomp tech demo for Bomberman Fantasy Race."
 year: "2026"
@@ -13,7 +13,7 @@ repo: "https://github.com/TechnicallyComputers/Bomberman-Fantasy-Race-Recomp"
 group: "PlayStation"
 cover: "./boxart.png"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-09-01"
 added: "2026-08-07"
 ---
 
@@ -26,9 +26,6 @@ It is a Bomberman racing game with split-screen multiplayer. The recomp is still
 Tech demo. Builds are published for Windows, Linux, and macOS. The project does not make a clear playthrough claim, so treat it as an early build.
 
 The release builds the game locally from a disc dump you provide. OpenBIOS is used unless you supply your own retail BIOS.
-
-The catalog declares two-player netplay through [recomp-net](/docs/reference/recomp-net-api), matching the original split-screen player count. Treat that as early until the project gives clearer validation notes.
-
 
 ## Sources
 

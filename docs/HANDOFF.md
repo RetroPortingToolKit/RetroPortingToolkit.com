@@ -646,9 +646,13 @@ both pages already link their source article under `links:`.
 - The initial production crawl covered all 165 sitemap pages and 295 discovered
   first-party routes/assets. It found one 404: the Bomberman World and Bomberman
   Fantasy Race pages still linked to the removed `/blog/recomp-net` article.
-  Both now link to the maintained `/docs/reference/recomp-net-api` page.
-  Typecheck, production build and all 752 tests are green; repeat the production
-  crawl after this commit deploys to confirm zero remaining first-party errors.
+  A first repair pointed them at `/docs/reference/recomp-net-api`, but the
+  post-deployment crawl correctly caught that route as another 404. Git history
+  showed both recomp-net pages and the site's multiplayer claims were
+  deliberately removed together in `045fa35`; Game Master's later rewrite had
+  reintroduced the two Bomberman claims and their tags. The claims and tags are
+  removed again. Typecheck, production build and all 752 tests are green.
+  Repeat the production crawl after this correction deploys.
 
 Remaining launch-readiness work at this checkpoint:
 
