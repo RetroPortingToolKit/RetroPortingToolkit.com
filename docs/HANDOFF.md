@@ -652,12 +652,12 @@ both pages already link their source article under `links:`.
   deliberately removed together in `045fa35`; Game Master's later rewrite had
   reintroduced the two Bomberman claims and their tags. The claims and tags are
   removed again. Typecheck, production build and all 752 tests are green.
-  Repeat the production crawl after this correction deploys.
+  After correction commit `aed525b` deployed, a second production crawl checked
+  all 165 sitemap pages and 295 discovered first-party routes/assets with zero
+  page or link errors.
 
 Remaining launch-readiness work at this checkpoint:
 
-- Run a production link and asset crawl, then repair any broken first-party
-  routes or missing media it finds.
 - Perform focused mobile and desktop visual QA of the launch path: home hero,
   Platforms, Games, Blog, one game, one platform, one article and Docs.
 - Draft the Hacker News and Product Hunt launch copy only after the audited
