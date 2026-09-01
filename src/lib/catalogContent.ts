@@ -34,8 +34,6 @@ export const catalogAssetUrls = import.meta.glob(
     // These source-format originals stay beside their generated WebP delivery
     // files for provenance and rollback. contentCore prefers the same-stem
     // WebP, so importing the originals would only duplicate bytes in dist/.
-    "!/data/blog/12_recomp-ai-5-months/mmx6-169.png",
-    "!/data/blog/12_recomp-ai-5-months/tomba-169.png",
     "!/data/blog/19_journey-with-ai-and-recompilation/a6893449-0849-4595-b593-07d71016d856.png",
     "!/data/blog/20_nesrecomp-10-titles/d769b12d-1234-49a2-b285-cb1674ab31fd.png",
     "!/data/blog/21_psxrecomp-bios-tomba/f50d04fb-2bc2-4854-8649-4f593853ea8f.png",
