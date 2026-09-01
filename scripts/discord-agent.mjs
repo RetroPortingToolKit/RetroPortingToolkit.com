@@ -201,12 +201,12 @@ async function drainQueue() {
   running = queue.shift();
   const job = running;
   await job.message.reply({
-    content: `Starting your request now. ${queue.length ? `${queue.length} request(s) remain queued.` : ""}`.trim(),
+    content: `On it.${queue.length ? ` ${queue.length} queued.` : ""}`.trim(),
     allowedMentions: { repliedUser: true },
   });
   const progressTimer = setInterval(() => {
     void job.message.reply({
-      content: "Still working. I’m running the requested checks and will report the commit, deployment, or exact blocker when this finishes.",
+      content: "Still working — running checks now.",
       allowedMentions: { repliedUser: false },
     }).catch((error) => console.error("[discord-agent] progress update failed", error));
   }, 60_000);
