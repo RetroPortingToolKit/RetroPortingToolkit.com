@@ -9,7 +9,7 @@
     "Use modern hardware. A phone gyro can stand in for a tilt cartridge. Local weather can stand in for a sunlight sensor.",
     "Make work reusable. Better debug tools and release systems should help the next port, not only one game."
   ],
-  "constraintsIntro": "The best ports keep a faithful path underneath the enhancements. Turn the extra feature off and the original behavior should still be there.",
+  "constraintsIntro": "A recomp can preserve a game, extend it, or use it as the starting point for something new. What matters is being clear about the project’s intent and building deliberately toward it.",
   "stories": [
     {
       "title": "The screen was smaller than the world.",
