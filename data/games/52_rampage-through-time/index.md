@@ -1,9 +1,9 @@
 ---
 title: "Rampage Through Time"
 kicker: "PlayStation"
-tags: []
+tags: ["Netplay", "Multiplayer"]
 featured: false
-desc: "A native PlayStation recompilation with a public build, progressive symbol mapping, and frequent releases."
+desc: "A community PSXRecomp build of Rampage Through Time with early three-player netplay support."
 year: "2026"
 status: "Tech demo"
 availability: "Public build"
@@ -12,24 +12,22 @@ platform: "playstation"
 repo: "https://github.com/TechnicallyComputers/Rampage---Through-Time-Recomp"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-08-31"
+updated: "2026-08-18"
 added: "2026-08-10"
 cover: "./boxart.png"
 ---
 
-Rampage Through Time Recompiled is a community project by TechnicallyComputers that rebuilds Midway's 2000 city-smashing sequel as a native program on [PSXRecomp](/hardware/playstation).
+Rampage Through Time Recompiled is a community project by TechnicallyComputers.
+
+It rebuilds Midway's city-smashing sequel as a native program through [PSXRecomp](/hardware/playstation). The notable feature is early netplay support for the game's three-player setup.
 
 ## Playable status
 
-Builds are published, but nobody has said yet how far the game gets. Zips for Windows, macOS on Intel and Apple silicon, and Linux land often, and the repository carries no status section and no issue log to read alongside them.
+Tech demo. Builds are published for Windows, macOS, and Linux, but the project does not yet make a clear playthrough claim.
 
-Each zip is a setup host rather than a finished binary: it builds the game locally from a dump you provide, through the same Generate and Build flow the other TechnicallyComputers titles use. The disc it wants is the USA release, SLUS-01065, as a cue plus bin.
+Each zip builds the game locally from a disc dump you provide.
 
-## What the recomp adds
-
-The repository also carries a widescreen site analysis, a list of the places in the game's code that a wider view would have to touch. That is groundwork rather than a feature: the shipped configuration still renders 4:3.
-
-Like the rest of the TechnicallyComputers catalogue, the title can be installed, updated, and rebuilt through the RetComM Launcher instead of running its wizard by hand.
+Early netplay is the main feature: three slots, with LAN and internet paths. Peers need matching disc data before they can play together.
 
 
 ## Sources

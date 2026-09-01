@@ -3,7 +3,7 @@ title: "Crash Bash"
 kicker: "PlayStation"
 tags: []
 featured: false
-desc: "A soft-locking pause menu, and the whole GPU-level bug hunt behind it left in the open where anyone can read it."
+desc: "A community PSXRecomp build of Crash Bash, currently limited by a pause-menu soft lock."
 year: "2026"
 status: "Partial"
 availability: "Public build"
@@ -16,22 +16,17 @@ added: "2026-08-08"
 cover: "./boxart.png"
 ---
 
-A static recompilation of the 2000 Crash Bandicoot party game, built on [PSXRecomp](/hardware/playstation) by TechnicallyComputers. The 28 minigames run. The pause menu does not, and the interesting part is that the developer committed the entire investigation into the repository rather than just the fix.
+Crash Bash is a work-in-progress community [PSXRecomp](/hardware/playstation) build by TechnicallyComputers.
+
+The game can run, but known bugs make it uncomfortable to recommend right now.
 
 ## Playable status
 
-Not comfortably. The README's disclaimer is specific: the in-game pause menu loads no menu items at all, so you cannot exit or change levels from it, and the game soft locks you into a loop. The stated plan is to return it to the catalog and the RetComM Launcher once it is stable.
+Partial. The in-game pause menu loads no menu items, so you cannot exit or change levels from it. That can leave the game stuck in a soft lock.
 
-Builds are on GitHub with zips for Windows, macOS Intel, macOS Apple silicon, and Linux. It builds from a dump you provide, the USA disc SCUS-94570, verified against a recorded size and checksums first. OpenBIOS boots it unless you supply a retail BIOS.
+Builds were published for Windows, macOS, and Linux when the project was public. It builds from a disc dump you provide. OpenBIOS boots it unless you supply a retail BIOS.
 
 ![A frame from the recompiled build, captured by the project's own pause-menu probe](./pause-probe-frame.png)
-
-## What the recomp adds
-
-Nothing yet beyond running natively. Output is 4:3 on the OpenGL renderer, with the controller in digital mode. A widescreen scan under `analysis/` turned up 15 candidate sites, and the scan file flags that its own height guess does not match any real console display mode, so it should be treated as a guess. None of it is wired into the build.
-
-The original game's four-player Multitap support is a property of the disc, not something this project claims to have brought over.
-
 
 ## Sources
 
