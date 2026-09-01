@@ -21,10 +21,6 @@
     {
       "source": "/atom",
       "destination": "/atom.xml"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/"
     }
   ],
   "headers": [
