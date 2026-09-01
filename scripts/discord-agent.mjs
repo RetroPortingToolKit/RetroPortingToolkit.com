@@ -10,6 +10,7 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import {
   chunkDiscordMessage,
   isAuthorized,
+  isMassDestructiveRequest,
   isStopRequest,
   parseCsv,
   replyContext,
@@ -256,6 +257,13 @@ client.on("messageCreate", async (message) => {
       content: stopped
         ? `Stopping the active request now.${queue.length ? ` ${queue.length} queued request(s) remain.` : ""}`
         : "There is no active request to stop.",
+      allowedMentions: { repliedUser: true },
+    });
+    return;
+  }
+  if (isMassDestructiveRequest(request)) {
+    await message.reply({
+      content: "⏸️ Blocked. That request is too broad or destructive. Please name the exact files and a scoped, reviewable change.",
       allowedMentions: { repliedUser: true },
     });
     return;

@@ -14,6 +14,11 @@ export function isStopRequest(content) {
   return /^(?:stop|cancel|abort)(?:\s+(?:it|this(?:\s+(?:task|request))?|the\s+(?:task|request)|task|request|now))?[.!]?$/i.test(String(content).trim());
 }
 
+export function isMassDestructiveRequest(content) {
+  const normalized = String(content).toLowerCase();
+  return /\b(delete|remove|wipe|drop|destroy)\s+(everything|all|the whole|entire)|\brm\s+-rf\b|\bdrop\s+(the\s+)?database|\b(rename|name)\s+.*\b(fuck|shit|asshole|cunt|nazi|slur)\b/.test(normalized);
+}
+
 export function replyContext({ referencedContent = "", originalContent = "" } = {}) {
   const parts = [];
   if (originalContent.trim()) parts.push(`Original request:\n${originalContent.trim()}`);
