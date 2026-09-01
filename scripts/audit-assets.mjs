@@ -218,6 +218,10 @@ export function auditAssets() {
   // placeholders are allowed to name files that do not exist.
   for (const { value, file } of sourcePublicReferences()) markReference(value, file, false);
 
+  // The prerenderer discovers this optional convention through fs.existsSync
+  // rather than a public-path literal, so teach the asset graph the same rule.
+  markExisting("public/og/default.jpg");
+
   const previews = previewSlugs();
   const previewIssues = [];
   for (const slug of previews) {

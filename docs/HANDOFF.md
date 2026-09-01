@@ -636,11 +636,16 @@ both pages already link their source article under `links:`.
 - Verification at this checkpoint: JSON parse, typecheck, production build and
   all 751 tests green. Production was checked for the restored build-log copy
   after deployment.
+- Social-sharing metadata now has a real 1200x674 default image at
+  `public/og/default.jpg`, captured from the current production hero. Home,
+  Platforms, Games, Blog, Docs, topic routes and items without their own cover
+  use it for Open Graph and Twitter large cards; item-specific covers still
+  take precedence. The base `index.html`, prerender metadata regression test
+  and asset auditor all know the same default-image convention. Verification:
+  typecheck, production build and all 752 tests green.
 
 Remaining launch-readiness work at this checkpoint:
 
-- Audit production metadata and social-sharing previews for the home page and
-  representative collection/detail routes.
 - Run a production link and asset crawl, then repair any broken first-party
   routes or missing media it finds.
 - Perform focused mobile and desktop visual QA of the launch path: home hero,

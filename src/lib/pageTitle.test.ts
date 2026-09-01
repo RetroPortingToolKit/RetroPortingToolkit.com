@@ -33,6 +33,16 @@ describe("client titles match the prerendered titles", () => {
     expect(served("/")).toBe(titleForHome());
   });
 
+  it("gives image-less launch routes a real large-card preview", () => {
+    for (const route of ["/", "/hardware", "/games", "/blog", "/docs"]) {
+      expect(meta.get(route)).toMatchObject({
+        image: "https://example.test/og/default.jpg",
+        imageWidth: 1200,
+        imageHeight: 674,
+      });
+    }
+  });
+
   it.each([
     ["/hardware", "hardware"],
     ["/games", "game"],
