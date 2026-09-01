@@ -179,7 +179,7 @@ export function Tabs({
           >
             <img
               className="tabs-avatar"
-              src="/favicon.svg"
+              src="/navbar-icon.png"
               alt=""
               aria-hidden="true"
             />

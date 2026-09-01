@@ -58,12 +58,12 @@ describe("prerender cover resolution", () => {
   });
 
   it("accepts existing public and external covers without copying", () => {
-    expect(itemCoverAlreadyServed({ cover: "/favicon.svg" })).toBe("/favicon.svg");
+    expect(itemCoverAlreadyServed({ cover: "/site-icon.png" })).toBe("/site-icon.png");
     expect(itemCoverAlreadyServed({ cover: "https://example.test/cover.jpg" })).toBe(
       "https://example.test/cover.jpg",
     );
-    expect(absoluteImage("/favicon.svg", "https://example.test")).toBe(
-      "https://example.test/favicon.svg",
+    expect(absoluteImage("/site-icon.png", "https://example.test")).toBe(
+      "https://example.test/site-icon.png",
     );
     expect(absoluteImage("https://cdn.example.test/cover.jpg", "https://example.test")).toBe(
       "https://cdn.example.test/cover.jpg",

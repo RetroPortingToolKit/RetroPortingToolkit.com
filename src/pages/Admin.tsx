@@ -1310,7 +1310,7 @@ export default function Admin() {
             <div style={{ font: "500 12px/1.35 var(--ac-font-text)", color: publishMsg.kind === "ok" ? "var(--ac-accent)" : "var(--ac-red)", padding: "0 12px 6px" }}>{publishMsg.text}</div>
           )}
           <div className="ac-account">
-            <img src="/favicon.svg" alt="" aria-hidden="true" className="ac-avatar" />
+            <img src="/navbar-icon.png" alt="" aria-hidden="true" className="ac-avatar" />
             <span className="ac-account-name">{SITE.title}</span>
             {signedInAs && (
               <span

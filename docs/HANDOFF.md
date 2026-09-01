@@ -593,3 +593,12 @@ both pages already link their source article under `links:`.
 - Homepage media again mounts independently of ambient-media preferences. The
   hero keeps its explicit pause control, reduced motion still stops the loading
   collage rotation, and noninteractive pager panes still use `still` posters.
+
+## Site icon (2026-08-31)
+
+- The owner-provided game-controller character is the site mark. Web-ready
+  variants retain the artwork's rounded-square silhouette with transparent
+  outer corners.
+- The navigation uses the 72px variant at 36px, while browsers receive 16px and
+  32px favicons plus a 180px Apple touch icon. The 512px processed source is
+  retained in `public/site-icon.png` for future platform sizes.
