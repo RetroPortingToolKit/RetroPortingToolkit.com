@@ -29,7 +29,7 @@ You provide your own cartridge dump.
 
 SNESRecomp has core ports and community ports. Some are playable releases. Some are active previews. Some exist to prove a harder part of the hardware.
 
-Examples include [Mega Man X](/games/mega-man-x), [Mega Man X2](/games/mega-man-x2), [Mega Man X3](/games/mega-man-x3), [Super Mario World](/games/super-mario-world), [A Link to the Past](/games/a-link-to-the-past), [Donkey Kong Country 2](/games/dkc2), [ActRaiser](/games/actraiser), [Metal Warriors](/games/metal-warriors), and [Super Metroid](/games/super-metroid).
+Examples include [Mega Man X](/games/mega-man-x), [Mega Man X2](/games/mega-man-x2), [Mega Man X3](/games/mega-man-x3), [Super Mario World](/games/super-mario-world), [A Link to the Past](/games/a-link-to-the-past), [Donkey Kong Country 2](/games/dkc2), [ActRaiser](/games/actraiser), and [Super Metroid](/games/super-metroid).
 
 The exact state still belongs on each game page. The platform page is here to explain the ecosystem.
 
