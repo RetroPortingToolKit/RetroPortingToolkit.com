@@ -4,7 +4,7 @@ summary: "The core ideas behind recomp ports, explained before the docs get cons
 sectionTitle: "Concepts"
 pageType: "reference"
 tags: ["Concepts"]
-updated: "2026-08-31"
+updated: "2026-09-01"
 ---
 
 This section explains the ideas behind recomp ports.
@@ -20,4 +20,5 @@ Start here when a guide uses a word you do not know yet, or when you want to und
 - [When should timing be changed?](/docs/concepts/timing-models). Why timing changes are advanced work and need measurement.
 - [Why does determinism matter?](/docs/concepts/determinism). Why save states and rewind need repeatable behavior.
 - [What is the game file contract?](/docs/concepts/the-game-file-you-supply). What the project expects you to provide, and why the site does not provide it.
+- [Recompile the original game, then let mods do the rest](/docs/concepts/start-with-the-original-game). Why patches belong in the mod layer instead of the recompiler's input.
 - [What do these terms mean?](/docs/concepts/glossary). Short definitions for common recomp words.

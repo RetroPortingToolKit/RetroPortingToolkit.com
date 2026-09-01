@@ -602,3 +602,13 @@ both pages already link their source article under `links:`.
 - The navigation uses the 72px variant at 36px, while browsers receive 16px and
   32px favicons plus a 180px Apple touch icon. The 512px processed source is
   retained in `public/site-icon.png` for future platform sizes.
+
+## Original-game recompilation baseline (2026-09-01)
+
+- The Concepts page at `/docs/concepts/start-with-the-original-game` tells port
+  developers to recompile a clean original release, not a patched ROM or disc
+  image.
+- Bug fixes, quality-of-life changes, translations and other ROM hacks belong
+  in the mod layer. Their patches can guide implementation, but do not become
+  recompiler inputs. A true full custom game is the narrow exception and is an
+  explicit target of its own.
