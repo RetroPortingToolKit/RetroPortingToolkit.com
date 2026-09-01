@@ -799,7 +799,7 @@ a.tvcard--video {
    cover collapses to zero height and the cards render text-only. */
 .tvcard--game .tvcard-media,
 .tvcard--hardware .tvcard-media {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
   border-radius: 18px 18px 0 0;
   transform: translateZ(0);
 }
@@ -1409,8 +1409,7 @@ html {
 }
 .tvcard--hardware img.tvcard-cover {
   object-fit: cover;
-  object-position: center 55%;
-  transform: scale(1.35);
+  object-position: center;
 }
 
 /* From the build log: one wide banner linking the featured article. */
@@ -1582,17 +1581,22 @@ html {
 .buildlog-card .tvcard-tilt,
 .news-list .tvcard-tilt {
   display: grid;
-  /* text gets the larger share: these cards are mostly words. */
+  /* The platform and news illustrations are authored square. Keep their full
+     composition instead of cropping them into a short banner. */
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
   align-items: stretch;
 }
-.buildlog-card .tvcard--blog .tvcard-media,
-.buildlog-card .tvcard--hardware .tvcard-media,
 .news-list .tvcard--blog .tvcard-media,
 .news-list .tvcard--hardware .tvcard-media {
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-height: 0;
+  border-radius: 18px 0 0 18px;
+}
+.buildlog-card .tvcard--blog .tvcard-media,
+.buildlog-card .tvcard--hardware .tvcard-media {
   aspect-ratio: auto;
   height: 100%;
-  /* short enough that a card with two lines of text is not mostly picture */
   min-height: 210px;
   border-radius: 18px 0 0 18px;
 }
@@ -1622,10 +1626,14 @@ html {
   .news-list .tvcard-tilt {
     grid-template-columns: 1fr;
   }
-  .buildlog-card .tvcard--blog .tvcard-media,
-  .buildlog-card .tvcard--hardware .tvcard-media,
   .news-list .tvcard--blog .tvcard-media,
   .news-list .tvcard--hardware .tvcard-media {
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+    border-radius: 18px 18px 0 0;
+  }
+  .buildlog-card .tvcard--blog .tvcard-media,
+  .buildlog-card .tvcard--hardware .tvcard-media {
     aspect-ratio: 16 / 9;
     min-height: 0;
     border-radius: 18px 18px 0 0;
