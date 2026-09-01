@@ -77,10 +77,21 @@ function safeAgentEnv() {
 async function replyChunks(message, heading, body) {
   const chunks = chunkDiscordMessage(body);
   for (let i = 0; i < chunks.length; i++) {
-    await message.reply({
-      content: `${i === 0 ? heading : "Continued:"}\n${chunks[i]}`,
-      allowedMentions: { repliedUser: i === 0 },
-    });
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        await message.reply({
+          content: `${i === 0 ? heading : "Continued:"}\n${chunks[i]}`,
+          allowedMentions: { repliedUser: i === 0 },
+        });
+        lastError = null;
+        break;
+      } catch (error) {
+        lastError = error;
+        await new Promise((resolve) => setTimeout(resolve, 2 ** attempt * 1_000));
+      }
+    }
+    if (lastError) throw lastError;
   }
 }
 
@@ -247,6 +258,9 @@ client.on("messageCreate", async (message) => {
 client.once(Events.ClientReady, () => {
   console.log(`[discord-agent] ready as ${client.user.tag}; repo=${ROOT}`);
 });
+client.on(Events.Error, (error) => console.error("[discord-agent] Discord client error", error));
+client.on(Events.Warn, (warning) => console.warn("[discord-agent] Discord warning", warning));
+client.on(Events.ShardError, (error) => console.error("[discord-agent] Discord shard error", error));
 
 for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, () => {
@@ -255,4 +269,13 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
   });
 }
 
-await client.login(TOKEN);
+for (let attempt = 0; ; attempt += 1) {
+  try {
+    await client.login(TOKEN);
+    break;
+  } catch (error) {
+    const delay = Math.min(60_000, 2 ** Math.min(attempt, 6) * 1_000);
+    console.error(`[discord-agent] login failed; retrying in ${delay}ms`, error);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+}
