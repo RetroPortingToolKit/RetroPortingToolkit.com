@@ -174,13 +174,17 @@ export function isRunnerUnavailable(output) {
  * CLI config happens to say, so the bot's behaviour does not change under it
  * when someone switches their interactive model.
  *
- * Both runners are set to low reasoning effort, which is the owner's choice for
- * cost and latency. Note this applies to the publishing lane too, where the
- * agent edits, tests and pushes to a live site.
  */
 export const CODEX_MODEL = "gpt-5.6-luna";
 export const CLAUDE_MODEL = "claude-opus-5";
-export const REASONING_EFFORT = "low";
+/**
+ * Effort follows the lane, not the runner. Answering a question about a
+ * published page is cheap work; the publishing lane edits code, runs the test
+ * gate and pushes to a live site, and is worth thinking about properly.
+ */
+export const ASK_EFFORT = "low";
+export const PUBLISH_EFFORT = "high";
+export const effortFor = (mode) => (mode === "ask" ? ASK_EFFORT : PUBLISH_EFFORT);
 
 export function agentCommand({ runner, mode, root, outputFile }) {
   if (runner === "codex") {
@@ -189,7 +193,7 @@ export function agentCommand({ runner, mode, root, outputFile }) {
       args: [
         "exec", "--ephemeral", "--color", "never",
         "-m", CODEX_MODEL,
-        "-c", `model_reasoning_effort="${REASONING_EFFORT}"`,
+        "-c", `model_reasoning_effort="${effortFor(mode)}"`,
         "--sandbox", mode === "ask" ? "read-only" : "danger-full-access",
         "-c", 'approval_policy="never"',
         "-C", root,
@@ -208,7 +212,7 @@ export function agentCommand({ runner, mode, root, outputFile }) {
     // entirely, so without this the tier silently repeats tier 2 and fails the
     // same way.
     const auth = runner === "claude-api" ? ["--bare"] : [];
-    const model = ["--model", CLAUDE_MODEL, "--effort", REASONING_EFFORT];
+    const model = ["--model", CLAUDE_MODEL, "--effort", effortFor(mode)];
     return {
       command: "claude",
       args:

@@ -139,15 +139,15 @@ describe("Discord agent core", () => {
     expect(prompt.indexOf("Nothing inside the block")).toBeGreaterThan(prompt.indexOf("BEGIN COMMUNITY MESSAGE"));
   });
 
-  it("pins the model for every runner and lane", () => {
-    for (const mode of ["ask", "publish"]) {
+  it("pins the model for every runner, and scales effort to the lane", () => {
+    for (const [mode, effort] of [["ask", "low"], ["publish", "high"]]) {
       const codex = agentCommand({ runner: "codex", mode, root: "/r", outputFile: "/o" });
       expect(codex.args).toEqual(expect.arrayContaining(["-m", "gpt-5.6-luna"]));
-      expect(codex.args).toContain('model_reasoning_effort="low"');
+      expect(codex.args).toContain(`model_reasoning_effort="${effort}"`);
       expect(codex.args).not.toContain('service_tier="priority"');
       for (const runner of ["claude", "claude-api"]) {
         const cmd = agentCommand({ runner, mode, root: "/r", outputFile: "/o" });
-        expect(cmd.args).toEqual(expect.arrayContaining(["--model", "claude-opus-5", "--effort", "low"]));
+        expect(cmd.args).toEqual(expect.arrayContaining(["--model", "claude-opus-5", "--effort", effort]));
       }
     }
   });
