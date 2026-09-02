@@ -97,6 +97,9 @@ describe("Discord agent core", () => {
     expect(isRunnerUnavailable("ERROR: You've hit your usage limit. Visit ... to purchase more credits")).toBe(true);
     expect(isRunnerUnavailable("API Error: 401 OAuth access token has expired.")).toBe(true);
     expect(isRunnerUnavailable("zsh: command not found: codex")).toBe(true);
+    // An identity-linked key the CLI cannot present a workspace for is an
+    // unusable credential, not a failed task.
+    expect(isRunnerUnavailable("API Error: 400 anthropic-workspace-id is required when authenticating with an identity-linked API key")).toBe(true);
     // A real failure must not be handed to the next runner: it would fail the
     // same way and spend a second budget doing it.
     expect(isRunnerUnavailable("Blocked: the shared checkout has uncommitted work")).toBe(false);
