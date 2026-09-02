@@ -34,7 +34,7 @@ const KIND_SEGMENT = {
 const COLLECTION_TITLE = {
   hardware: "Platforms",
   games: "Games",
-  blog: "News and coverage",
+  blog: "Blog",
   docs: "Docs",
 };
 
@@ -710,7 +710,7 @@ const NAV_HTML = [
   ["/", "Home"],
   ["/hardware", "Platforms"],
   ["/games", "Games"],
-  ["/blog", "News and coverage"],
+  ["/blog", "Blog"],
   ["/docs", "Docs"],
 ]
   .map(([href, label]) => `<a href="${href}">${label}</a>`)

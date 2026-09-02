@@ -80,6 +80,11 @@ const AGENT_TIMEOUT_MS = 15 * 60 * 1_000;
 const ASK_TIMEOUT_MS = 4 * 60 * 1_000;
 const ASK_COOLDOWN_MS = 45_000;
 const ASK_QUEUE_LIMIT = 5;
+// A busy shared checkout is a wait, not a failure. Someone editing the repo by
+// hand is normal and usually brief, so a request parks and retries instead of
+// being thrown away.
+const CHECKOUT_WAIT_MS = 5 * 60 * 1_000;
+const CHECKOUT_REQUEUE_LIMIT = 3;
 
 const client = new Client({
   intents: [
@@ -103,6 +108,8 @@ const lastAskAt = new Map();
 
 class TaskStoppedError extends Error {}
 class SensitiveAnswerError extends Error {}
+/** The tree was dirty before any work began, so the job can simply wait. */
+class CheckoutBusyError extends Error {}
 class SharedCheckoutConflictError extends Error {}
 
 async function readJson(file, fallback) {
@@ -144,16 +151,21 @@ async function persistJobs() {
  * Deliver by ID rather than through a live Message object, so a reply still
  * works after a restart when the original object is long gone.
  */
-async function deliver({ channelId, messageId, content, ping = false, suppressMentions = false }) {
+const SUPPRESS_EMBEDS = 1 << 2;
+
+async function deliver({ channelId, messageId, content, ping = false, suppressMentions = false, suppressEmbeds = false }) {
   const channel = await client.channels.fetch(channelId);
   const allowedMentions = suppressMentions
     ? { parse: [], repliedUser: ping }
     : { repliedUser: ping };
+  // Belt and braces with the prompt's angle brackets: a link the model forgot
+  // to wrap still cannot expand into a preview card.
+  const payload = { content, allowedMentions, ...(suppressEmbeds ? { flags: SUPPRESS_EMBEDS } : {}) };
   const target = messageId
     ? await channel.messages.fetch(messageId).catch(() => null)
     : null;
-  if (target) return target.reply({ content, allowedMentions });
-  return channel.send({ content, allowedMentions });
+  if (target) return target.reply(payload);
+  return channel.send(payload);
 }
 
 async function spool(entry) {
@@ -200,13 +212,15 @@ async function flushOutbox() {
   }
 }
 
-async function replyChunks(ref, heading, body) {
+async function replyChunks(ref, heading, body, options = {}) {
   const chunks = chunkDiscordMessage(body);
   for (let i = 0; i < chunks.length; i++) {
     await safeSend({
       ...ref,
-      content: `${i === 0 ? heading : "Continued:"}\n${chunks[i]}`,
+      // A heading of "" is the answer lane: no blank first line before the text.
+      content: heading || i > 0 ? `${i === 0 ? heading : "Continued:"}\n${chunks[i]}` : chunks[i],
       ping: i === 0,
+      ...options,
     });
   }
 }
@@ -402,19 +416,17 @@ async function pruneTaskLogs() {
 
 async function runPublish(job) {
   let notified = false;
-  const starting = await waitForCleanCheckout(30_000, () => {
+  const starting = await waitForCleanCheckout(CHECKOUT_WAIT_MS, () => {
     if (notified) return;
     notified = true;
     void safeSend({
       ...job.ref,
       content:
-        "The shared checkout is busy, so I’m waiting briefly for the other work to finish before I start. I won’t overwrite it.",
+        "The shared checkout is busy, so I’m waiting for that work to finish before I start. I won’t overwrite it, and I’ll keep your request queued.",
     });
   });
   if (starting.status) {
-    throw new SharedCheckoutConflictError(
-      "Blocked: the shared checkout already has uncommitted work. Please finish or clear that work before asking the bot to publish another change.",
-    );
+    throw new CheckoutBusyError();
   }
   job.startedHead = starting.head;
   await persistJobs();
@@ -502,7 +514,7 @@ async function drainAskQueue() {
   try {
     await persistJobs();
     const answer = await runAsk(job);
-    await replyChunks(job.ref, "", answer);
+    await replyChunks(job.ref, "", answer, { suppressEmbeds: true });
   } catch (error) {
     // Public channel: say something useful without narrating the internals of
     // which runner failed or why.
@@ -619,6 +631,27 @@ async function drainQueue() {
     const summary = await runPublish(job);
     await replyChunks(job.ref, summaryHeading(summary), summary);
   } catch (error) {
+    if (error instanceof CheckoutBusyError) {
+      job.requeues = (job.requeues ?? 0) + 1;
+      if (job.requeues <= CHECKOUT_REQUEUE_LIMIT) {
+        // Back of the queue, so one stuck request cannot starve the others.
+        queue.push(job);
+        console.warn(`[discord-agent] checkout busy; requeued (attempt ${job.requeues})`);
+        if (job.requeues === 1) {
+          await safeSend({
+            ...job.ref,
+            content: "The shared checkout is still busy, so I’ve put your request back in the queue and will start it as soon as the tree is clean.",
+          });
+        }
+        return;
+      }
+      await replyChunks(
+        job.ref,
+        "⏸️ Blocked.",
+        "The shared checkout has had uncommitted work for a while, so this request never started and nothing was published. Someone is editing the repository directly; once the tree is clean, re-send it.",
+      );
+      return;
+    }
     if (error instanceof TaskStoppedError) {
       await replyChunks(
         job.ref,

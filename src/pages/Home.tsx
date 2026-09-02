@@ -144,7 +144,7 @@ function SectionHead({
 const GRID_TITLES: Record<LabKind, string> = {
   hardware: "Platforms",
   game: "Games",
-  blog: "News and coverage",
+  blog: "Blog",
 };
 
 const GRID_SUBS: Record<LabKind, string> = {
@@ -569,7 +569,7 @@ function TabContent({
               </div>
               <p className="hn-index-links" data-reveal>
                 <SmartLink href="/blog" className="hn-rec-link">
-                  See all news and coverage
+                  See all posts
                 </SmartLink>
               </p>
             </div>

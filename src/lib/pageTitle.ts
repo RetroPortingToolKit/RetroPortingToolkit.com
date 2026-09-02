@@ -14,7 +14,7 @@ import type { Item, Kind, Topic } from "./types";
 export const COLLECTION_TITLE: Record<Kind, string> = {
   hardware: "Platforms",
   game: "Games",
-  blog: "News and coverage",
+  blog: "Blog",
   docs: "Docs",
 };
 

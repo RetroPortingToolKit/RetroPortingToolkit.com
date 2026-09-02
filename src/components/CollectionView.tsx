@@ -54,7 +54,7 @@ function CloseButton({ onClose }: { onClose: () => void }) {
 const KIND_LABEL: Record<Kind, string> = {
   hardware: "Platforms",
   game: "Games",
-  blog: "News and coverage",
+  blog: "Blog",
   docs: "Docs",
 };
 
