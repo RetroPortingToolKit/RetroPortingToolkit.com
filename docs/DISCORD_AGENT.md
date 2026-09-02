@@ -56,9 +56,14 @@ a publish, and a publish never makes the community channel look dead.
 A person editing this checkout by hand is normal and must not cost anyone their
 request, so exclusivity is required only where it is genuinely needed.
 
-- **Before starting**, the tree must be clean, because the agent needs a known
-  baseline. If it is not, the request waits up to five minutes and then goes to
-  the back of the queue, up to three attempts, rather than failing.
+- **Before starting**, the checkout must be *quiet*, not merely clean: no
+  uncommitted files, no commit in the last 90 seconds, and the same reading
+  twice five seconds apart. A clean tree alone is a poor signal, because someone
+  working in short commit-edit cycles has a clean tree for most of any given
+  second — which is exactly how a request gets waved into a collision that only
+  surfaces minutes later. If the repository is busy the request waits up to five
+  minutes, then goes to the back of the queue, up to three attempts, rather than
+  failing.
 - **While working**, the agent stages by name and never with `git add -A`, so
   another person's uncommitted files are simply not in its commit.
 - **At the end**, success is judged by whether this request's work landed — did

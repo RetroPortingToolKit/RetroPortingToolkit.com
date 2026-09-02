@@ -19,6 +19,7 @@ import {
   droppedMessage,
   interruptedMessage,
   isCancelMineRequest,
+  checkoutBusyReason,
   isAuthorized,
   isDestructiveRequest,
   isMassDestructiveRequest,
@@ -27,6 +28,7 @@ import {
   isStopRequest,
   parseCsv,
   progressMessage,
+  pulseChanged,
   replyContext,
   runnerChain,
   statusMessage,
@@ -85,6 +87,10 @@ const ASK_QUEUE_LIMIT = 5;
 // being thrown away.
 const CHECKOUT_WAIT_MS = 5 * 60 * 1_000;
 const CHECKOUT_REQUEUE_LIMIT = 3;
+// How long the repository must have been untouched before the agent starts, and
+// how long a quiet reading has to hold before it is believed.
+const QUIET_PERIOD_MS = 90 * 1_000;
+const SETTLE_MS = 5_000;
 
 const client = new Client({
   intents: [
@@ -226,20 +232,40 @@ async function replyChunks(ref, heading, body, options = {}) {
 }
 
 async function gitSnapshot() {
-  const [{ stdout: status }, { stdout: head }] = await Promise.all([
+  const [{ stdout: status }, { stdout: head }, { stdout: committedAt }] = await Promise.all([
     execFileAsync("git", ["status", "--porcelain"], { cwd: ROOT }),
     execFileAsync("git", ["rev-parse", "HEAD"], { cwd: ROOT }),
+    execFileAsync("git", ["log", "-1", "--format=%ct"], { cwd: ROOT }),
   ]);
-  return { status: status.trim(), head: head.trim() };
+  return {
+    status: status.trim(),
+    head: head.trim(),
+    lastCommitMs: Number(committedAt.trim()) * 1000,
+  };
 }
 
-async function waitForCleanCheckout(timeoutMs = 30_000, onWait) {
+/**
+ * Wait for the checkout to be quiet, not merely clean, and then for it to stay
+ * that way across a settle window before handing it to the agent. Starting the
+ * moment a tree looks clean is what walked a request into someone else's
+ * session between two of their commits.
+ */
+async function waitForQuietCheckout(timeoutMs, onWait) {
   const deadline = Date.now() + timeoutMs;
+  let previous = null;
   while (true) {
-    const snapshot = await gitSnapshot();
-    if (!snapshot.status || Date.now() >= deadline) return snapshot;
-    onWait?.(snapshot);
-    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    const pulse = await gitSnapshot();
+    const reason = checkoutBusyReason(pulse, Date.now(), QUIET_PERIOD_MS);
+    if (!reason && !pulseChanged(previous, pulse)) return pulse;
+    if (Date.now() >= deadline) return { ...pulse, busyReason: reason ?? "the tree kept changing" };
+    if (reason) {
+      previous = null;
+      onWait?.(reason);
+    } else {
+      // Looked quiet once; confirm it is still identical a moment later.
+      previous = pulse;
+    }
+    await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
   }
 }
 
@@ -416,7 +442,7 @@ async function pruneTaskLogs() {
 
 async function runPublish(job) {
   let notified = false;
-  const starting = await waitForCleanCheckout(CHECKOUT_WAIT_MS, () => {
+  const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => {
     if (notified) return;
     notified = true;
     void safeSend({

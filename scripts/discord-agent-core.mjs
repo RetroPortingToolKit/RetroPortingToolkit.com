@@ -153,6 +153,28 @@ export function channelMode(message, config) {
  * Only the first is worth handing to the next runner: a genuine failure would
  * fail the same way twice and burn a second budget saying so.
  */
+/**
+ * Is the shared checkout quiet enough to start work in?
+ *
+ * A clean tree is not the same as an idle repository. Someone working in short
+ * commit-edit cycles has a clean tree for most of any given second, so checking
+ * only for uncommitted files waves a request straight into a collision that
+ * surfaces minutes later. Recent commit activity is the signal that a person is
+ * mid-session; the tree being dirty is just the most obvious case of it.
+ */
+export function checkoutBusyReason(pulse, now = Date.now(), quietMs = 90_000) {
+  if (pulse.status) return "uncommitted changes in the tree";
+  const sinceCommit = now - pulse.lastCommitMs;
+  if (Number.isFinite(pulse.lastCommitMs) && sinceCommit < quietMs) {
+    return `a commit ${Math.max(1, Math.round(sinceCommit / 1000))}s ago`;
+  }
+  return null;
+}
+
+export function pulseChanged(a, b) {
+  return !a || !b || a.head !== b.head || a.status !== b.status;
+}
+
 export function isRunnerUnavailable(output) {
   const text = String(output).toLowerCase();
   // "anthropic-workspace-id is required" means the configured key is an

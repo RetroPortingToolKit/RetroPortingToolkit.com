@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   agentCommand,
   askPrompt,
+  checkoutBusyReason,
+  pulseChanged,
   canRequestDestructive,
   containsSensitiveContent,
   fenceUntrusted,
@@ -95,6 +97,26 @@ describe("Discord agent core", () => {
     expect(prompt).toContain("Stage by name and never with git add -A");
     expect(prompt).toContain("Stop and report Blocked only if a file YOU changed was also modified by someone else");
     expect(prompt).toContain("Never stage, commit, merge, reset, stash, revert or push another person's work");
+  });
+
+  it("treats a recently active repository as busy even when the tree is clean", () => {
+    const now = 1_000_000;
+    const quiet = 90_000;
+    // The case that bit us: someone committing every couple of minutes has a
+    // clean tree most of the time, and a dirtiness check waves the job through.
+    expect(checkoutBusyReason({ status: "", lastCommitMs: now - 30_000 }, now, quiet))
+      .toBe("a commit 30s ago");
+    expect(checkoutBusyReason({ status: " M src/App.tsx", lastCommitMs: now - 600_000 }, now, quiet))
+      .toBe("uncommitted changes in the tree");
+    expect(checkoutBusyReason({ status: "", lastCommitMs: now - 600_000 }, now, quiet)).toBe(null);
+  });
+
+  it("only believes a quiet reading that holds still", () => {
+    const a = { head: "aaa", status: "" };
+    expect(pulseChanged(a, { head: "aaa", status: "" })).toBe(false);
+    expect(pulseChanged(a, { head: "bbb", status: "" })).toBe(true);
+    expect(pulseChanged(a, { head: "aaa", status: " M x" })).toBe(true);
+    expect(pulseChanged(null, a)).toBe(true);
   });
 
   it("tells an unavailable runner apart from a failed task", () => {
