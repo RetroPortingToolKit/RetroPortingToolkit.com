@@ -8,10 +8,13 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import {
+  askInterruptedMessage,
+  askPrompt,
+  channelMode,
   chunkDiscordMessage,
+  cooldownRemaining,
   droppedMessage,
   interruptedMessage,
-  isAuthorized,
   isCancelMineRequest,
   isDestructiveRequest,
   isMassDestructiveRequest,
@@ -32,6 +35,7 @@ const TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const config = {
   guildIds: parseCsv(process.env.DISCORD_ALLOWED_GUILD_IDS),
   channelIds: parseCsv(process.env.DISCORD_ALLOWED_CHANNEL_IDS),
+  publicChannelIds: parseCsv(process.env.DISCORD_PUBLIC_CHANNEL_IDS),
   userIds: parseCsv(process.env.DISCORD_ALLOWED_USER_IDS),
   roleIds: parseCsv(process.env.DISCORD_ALLOWED_ROLE_IDS),
   destructiveUserIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_USER_IDS),
@@ -64,6 +68,11 @@ const TASK_LOG_MAX_BYTES = 2 * 1024 * 1024;
 const TASK_LOGS_KEPT = 20;
 const PROGRESS_INTERVAL_MS = 60_000;
 const AGENT_TIMEOUT_MS = 15 * 60 * 1_000;
+// Public questions get their own, much shorter budget, and one at a time. A
+// question is not allowed to cost what a publish costs.
+const ASK_TIMEOUT_MS = 4 * 60 * 1_000;
+const ASK_COOLDOWN_MS = 45_000;
+const ASK_QUEUE_LIMIT = 5;
 
 const client = new Client({
   intents: [
@@ -76,6 +85,14 @@ const client = new Client({
 const queue = [];
 let running = null;
 let activeChild = null;
+
+// The answer-only lane. Deliberately separate from the publishing queue: a
+// public question must never delay a maintainer's publish, and a long publish
+// must never make the community channel look dead.
+const askQueue = [];
+let askRunning = null;
+let askChild = null;
+const lastAskAt = new Map();
 
 class TaskStoppedError extends Error {}
 class SharedCheckoutConflictError extends Error {}
@@ -107,6 +124,8 @@ async function persistJobs() {
     await writeJson(JOBS_FILE, {
       active: running ? jobRecord(running) : null,
       queued: queue.map(jobRecord),
+      askActive: askRunning ? jobRecord(askRunning) : null,
+      askQueued: askQueue.map(jobRecord),
     });
   } catch (error) {
     console.error("[discord-agent] could not persist job state", error);
@@ -332,8 +351,121 @@ async function runCodex(job) {
   }
 }
 
-function killActiveChild() {
-  const child = activeChild;
+/**
+ * Answer a public question with a Codex process that physically cannot write:
+ * the read-only sandbox is the boundary, and askPrompt's source rules are what
+ * keep unpublished material out of the answer.
+ */
+async function runAsk(job) {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rpt-discord-ask-"));
+  const outputFile = path.join(tempDir, "answer.txt");
+  const taskLog = await createTaskLog(`ask-${job.ref.messageId}`);
+  const prompt = askPrompt({
+    question: job.request,
+    authorId: job.ref.authorId,
+    channelId: job.ref.channelId,
+  });
+  try {
+    const exitCode = await new Promise((resolve, reject) => {
+      const child = spawn(
+        "codex",
+        [
+          "exec", "--ephemeral", "--color", "never",
+          "--sandbox", "read-only",
+          "-c", 'approval_policy="never"',
+          "-C", ROOT,
+          "--output-last-message", outputFile,
+          "-",
+        ],
+        { cwd: ROOT, env: safeAgentEnv(), stdio: ["pipe", "pipe", "pipe"], detached: true },
+      );
+      askChild = child;
+      const timeout = setTimeout(() => {
+        try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
+        reject(new Error("That took too long to answer."));
+      }, ASK_TIMEOUT_MS);
+      timeout.unref();
+      child.stdin.on("error", (error) => console.error("[discord-agent] ask stdin error", error));
+      child.stdin.end(prompt);
+      child.stdout.on("data", (data) => taskLog.write(data));
+      child.stderr.on("data", (data) => taskLog.write(data));
+      child.once("error", reject);
+      child.once("close", (code) => {
+        clearTimeout(timeout);
+        if (askChild === child) askChild = null;
+        resolve(code);
+      });
+    });
+    const answer = (await fs.readFile(outputFile, "utf8").catch(() => "")).trim();
+    if (exitCode !== 0 || !answer) {
+      throw new Error("I could not put an answer together for that one.");
+    }
+    return answer;
+  } finally {
+    await taskLog.close();
+    await pruneTaskLogs();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+}
+
+async function drainAskQueue() {
+  if (askRunning || !askQueue.length) return;
+  askRunning = askQueue.shift();
+  const job = askRunning;
+  job.startedAt = Date.now();
+  try {
+    await persistJobs();
+    const answer = await runAsk(job);
+    await replyChunks(job.ref, "", answer);
+  } catch (error) {
+    console.error("[discord-agent] ask failed", error);
+    const detail = error instanceof Error ? error.message : String(error);
+    await safeSend({
+      ...job.ref,
+      content: `${detail} You can ask again, or browse the site directly at https://retroportingtoolkit.com.`,
+      ping: true,
+    });
+  } finally {
+    askRunning = null;
+    await persistJobs();
+    void drainAskQueue().catch((error) =>
+      console.error("[discord-agent] ask drain failed", error),
+    );
+  }
+}
+
+async function handleAsk(message, ref, question) {
+  if (!question) {
+    await safeSend({
+      ...ref,
+      content: "Ask me anything about the project and the consoles and games it covers, and I’ll answer from the site.",
+      ping: true,
+    });
+    return;
+  }
+  const waitMs = cooldownRemaining(lastAskAt.get(ref.authorId), Date.now(), ASK_COOLDOWN_MS);
+  if (waitMs > 0) {
+    await message.react("🕒").catch(() => undefined);
+    return;
+  }
+  if (askQueue.length >= ASK_QUEUE_LIMIT) {
+    await safeSend({
+      ...ref,
+      content: "I have a few questions lined up already — try me again in a minute.",
+      ping: true,
+    });
+    return;
+  }
+  lastAskAt.set(ref.authorId, Date.now());
+  askQueue.push({ ref, request: question });
+  await persistJobs();
+  await message.react("💬").catch(() => undefined);
+  void drainAskQueue().catch((error) =>
+    console.error("[discord-agent] ask drain failed", error),
+  );
+}
+
+function killChildProcess(child) {
   if (!child?.pid) return;
   try {
     process.kill(-child.pid, "SIGTERM");
@@ -341,7 +473,7 @@ function killActiveChild() {
     child.kill("SIGTERM");
   }
   const killTimer = setTimeout(() => {
-    if (activeChild !== child || !child.pid) return;
+    if (child.exitCode !== null || child.signalCode !== null) return;
     try {
       process.kill(-child.pid, "SIGKILL");
     } catch {
@@ -351,10 +483,15 @@ function killActiveChild() {
   killTimer.unref();
 }
 
+function killAllChildren() {
+  killChildProcess(activeChild);
+  killChildProcess(askChild);
+}
+
 function stopActiveTask() {
   if (!running) return false;
   running.stopRequested = true;
-  killActiveChild();
+  killChildProcess(activeChild);
   return true;
 }
 
@@ -425,7 +562,7 @@ async function drainQueue() {
 async function recoverInterruptedJobs() {
   const saved = await readJson(JOBS_FILE, null);
   if (!saved) return;
-  await writeJson(JOBS_FILE, { active: null, queued: [] });
+  await writeJson(JOBS_FILE, { active: null, queued: [], askActive: null, askQueued: [] });
   if (saved.active) {
     await safeSend({
       ...saved.active.ref,
@@ -435,6 +572,14 @@ async function recoverInterruptedJobs() {
   }
   for (const job of saved.queued ?? []) {
     await safeSend({ ...job.ref, content: `⚠️ Dropped.\n${droppedMessage(job)}`, ping: true });
+  }
+  // A dropped question needs no talk of commits or a dirty tree; nothing it did
+  // could have changed anything.
+  if (saved.askActive) {
+    await safeSend({ ...saved.askActive.ref, content: askInterruptedMessage(), ping: true });
+  }
+  for (const job of saved.askQueued ?? []) {
+    await safeSend({ ...job.ref, content: askInterruptedMessage(), ping: true });
   }
 }
 
@@ -446,16 +591,27 @@ client.on("messageCreate", async (message) => {
   }
   const addressedByReply = referenced?.author?.id === client.user.id;
   if (!message.mentions.users.has(client.user.id) && !addressedByReply) return;
-  if (!isAuthorized(message, config)) {
-    await message.reply({ content: "This bot is restricted to approved developers and channels.", allowedMentions: { repliedUser: true } });
-    return;
-  }
+
+  const mode = channelMode(message, config);
+  if (mode === "ignore") return;
   const ref = {
     channelId: message.channelId,
     messageId: message.id,
     authorId: message.author.id,
   };
   const request = stripBotMention(message.content, client.user.id);
+  if (mode === "denied") {
+    await safeSend({
+      ...ref,
+      content: "Publishing here is restricted to approved developers. Ask me about the site in the community channels and I’ll answer from what it publishes.",
+      ping: true,
+    });
+    return;
+  }
+  if (mode === "ask") {
+    await handleAsk(message, ref, request);
+    return;
+  }
 
   if (isStatusRequest(request)) {
     await safeSend({
@@ -559,7 +715,7 @@ process.on("unhandledRejection", (reason) =>
 );
 process.on("uncaughtException", (error) => {
   console.error("[discord-agent] uncaught exception; exiting for a clean restart", error);
-  killActiveChild();
+  killAllChildren();
   try { client.destroy(); } catch {}
   process.exit(1);
 });
@@ -568,7 +724,7 @@ for (const signal of ["SIGINT", "SIGTERM"]) {
   process.on(signal, () => {
     // Take the agent down with the bridge: a detached Codex process outliving a
     // restart would edit the shared checkout with nothing left to report it.
-    killActiveChild();
+    killAllChildren();
     client.destroy();
     process.exit(0);
   });

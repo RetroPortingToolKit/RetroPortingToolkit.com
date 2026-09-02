@@ -5,6 +5,36 @@ against this repository. It is intentionally a local bridge: Discord needs a
 Gateway connection, while repository work needs this checkout, the logged-in
 Codex CLI, git credentials, the project test gate, and production verification.
 
+## Channels decide capability
+
+There are two kinds of channel, and the channel a message arrives in is what
+decides what the bot can do. A maintainer in a public channel gets answers, not
+publishing, so there is one place to look to know whether a message could have
+changed the site.
+
+| Channel | Who | What happens |
+| --- | --- | --- |
+| Publishing (`DISCORD_ALLOWED_CHANNEL_IDS`) | Allowlisted users and roles | The full agent: edits, checks, commits, pushes, verifies |
+| Public (`DISCORD_PUBLIC_CHANNEL_IDS`) | Anyone who can post there | Answers questions about the site. Cannot change anything |
+| Anything else | — | Silence |
+
+An unlisted channel gets no reply at all. A bot that announces its own refusal
+everywhere it can see is noise, and each refusal is one more message for someone
+to reply to.
+
+In a public channel the agent runs under Codex's `read-only` sandbox, so a write
+is refused by the sandbox rather than only discouraged by the prompt. Its prompt
+names the sources it may use — published pages under `data/` that are not
+drafts, the media in `public/`, and the site's own public documentation — and
+treats everything else in the checkout as private, including `AGENTS.md`, all of
+`docs/`, `scripts/`, `api/`, and configuration. Deliberately unpublished
+projects have no published page, so the answer is that there is nothing on them.
+Questions are treated as untrusted text, never as instructions.
+
+Public questions run in their own lane: one at a time, a four-minute limit, a
+45-second per-person cooldown, and at most five waiting. A question never delays
+a publish, and a publish never makes the community channel look dead.
+
 ## Safety boundary
 
 - The bot fails closed unless its guild, channel, and requester user or role
@@ -53,9 +83,13 @@ with these shell assignments:
 ```sh
 DISCORD_ALLOWED_GUILD_IDS="guild-id"
 DISCORD_ALLOWED_CHANNEL_IDS="channel-id"
+DISCORD_PUBLIC_CHANNEL_IDS="optional-channel-id,optional-channel-id"
 DISCORD_ALLOWED_USER_IDS="user-id,user-id"
 DISCORD_ALLOWED_ROLE_IDS="optional-role-id"
 ```
+
+`DISCORD_PUBLIC_CHANNEL_IDS` is optional. Leave it empty and the bot behaves
+exactly as before: publishing in its own channel, silent everywhere else.
 
 At least one user or role is required. Guild and channel restrictions are
 always required. IDs can be resolved without copying them through chat. After
@@ -66,12 +100,19 @@ export DISCORD_BOT_TOKEN="$(security find-generic-password -s retroportingtoolki
 DISCORD_TARGET_GUILD="server name" \
 DISCORD_TARGET_CHANNEL="channel name" \
 DISCORD_TARGET_ROLES="role name,role name" \
+DISCORD_TARGET_PUBLIC_CHANNELS="general,help" \
 node scripts/configure-discord-agent.mjs
 unset DISCORD_BOT_TOKEN
 ```
 
 The configurator resolves exact names to IDs, rejects missing or ambiguous
-matches, writes `config.env` with mode 600, and never writes the token.
+matches, refuses to make the publishing channel public, writes `config.env` with
+mode 600, and never writes the token. It carries the hand-entered
+`DISCORD_ALLOWED_USER_IDS` and `DISCORD_DESTRUCTIVE_USER_IDS` across a re-run
+instead of clearing them, so re-running it to add a public channel cannot
+quietly drop the maintainer list.
+
+`DISCORD_TARGET_PUBLIC_CHANNELS` is optional; omit it for publishing only.
 
 After the bot token is stored in Keychain and the config exists, install the
 explicitly owner-approved persistent process:

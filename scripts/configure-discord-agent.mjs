@@ -7,10 +7,14 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 const token = process.env.DISCORD_BOT_TOKEN || "";
 const guildName = process.env.DISCORD_TARGET_GUILD || "";
 const channelName = process.env.DISCORD_TARGET_CHANNEL || "";
-const roleNames = (process.env.DISCORD_TARGET_ROLES || "")
-  .split(",")
-  .map((value) => value.trim())
-  .filter(Boolean);
+const splitNames = (value) =>
+  String(value || "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+const roleNames = splitNames(process.env.DISCORD_TARGET_ROLES);
+// Channels where anyone may ask questions and nothing can be published.
+const publicChannelNames = splitNames(process.env.DISCORD_TARGET_PUBLIC_CHANNELS);
 
 if (!token) throw new Error("DISCORD_BOT_TOKEN is required.");
 if (!guildName || !channelName || !roleNames.length) {
@@ -44,15 +48,36 @@ try {
     return matches.first().id;
   });
 
+  const publicChannelIds = publicChannelNames.map((name) => {
+    const matches = channels.filter((entry) => entry?.name === name && entry.isTextBased());
+    if (matches.size !== 1) {
+      throw new Error(`Expected one text channel named ${JSON.stringify(name)}; found ${matches.size}.`);
+    }
+    const match = matches.first();
+    if (match.id === channelMatches.first().id) {
+      throw new Error(`${JSON.stringify(name)} is already the publishing channel; it cannot also be a public channel.`);
+    }
+    return match.id;
+  });
+
   const configDir = path.join(os.homedir(), "Library", "Application Support", "RetroPortingToolkitDiscordAgent");
   const configFile = path.join(configDir, "config.env");
   const channel = channelMatches.first();
+
+  // These are filled in by hand and are not derivable from names, so carry them
+  // across rather than resetting them every time this runs.
+  const existing = await fs.readFile(configFile, "utf8").catch(() => "");
+  const carriedValue = (key) =>
+    existing.match(new RegExp(`^${key}="([^"]*)"`, "m"))?.[1] ?? "";
+
   const contents = [
     `DISCORD_ALLOWED_GUILD_IDS="${guild.id}"`,
     `DISCORD_ALLOWED_CHANNEL_IDS="${channel.id}"`,
-    'DISCORD_ALLOWED_USER_IDS=""',
+    '# Answer-only channels: anyone may ask, nothing can be published',
+    `DISCORD_PUBLIC_CHANNEL_IDS="${publicChannelIds.join(",")}"`,
+    `DISCORD_ALLOWED_USER_IDS="${carriedValue("DISCORD_ALLOWED_USER_IDS")}"`,
     '# Destructive actions: comma-separated Discord user IDs for Shokunin, Gamemaster, and CobaltCryptid',
-    'DISCORD_DESTRUCTIVE_USER_IDS=""',
+    `DISCORD_DESTRUCTIVE_USER_IDS="${carriedValue("DISCORD_DESTRUCTIVE_USER_IDS")}"`,
     `DISCORD_ALLOWED_ROLE_IDS="${roleIds.join(",")}"`,
     "",
   ].join("\n");
@@ -61,7 +86,10 @@ try {
   await fs.writeFile(configFile, contents, { encoding: "utf8", mode: 0o600 });
   await fs.chmod(configDir, 0o700);
   await fs.chmod(configFile, 0o600);
-  console.log(`[discord-agent] configured guild=${guild.name} channel=#${channel.name} roles=${roleNames.join(", ")}`);
+  const publicSummary = publicChannelNames.length
+    ? publicChannelNames.map((name) => `#${name}`).join(", ")
+    : "none";
+  console.log(`[discord-agent] configured guild=${guild.name} channel=#${channel.name} roles=${roleNames.join(", ")} public=${publicSummary}`);
 } finally {
   client.destroy();
 }
