@@ -135,6 +135,52 @@ export function channelMode(message, config) {
   return "ignore";
 }
 
+/**
+ * Distinguishes "this runner cannot serve right now" from "the work failed".
+ * Only the first is worth handing to the next runner: a genuine failure would
+ * fail the same way twice and burn a second budget saying so.
+ */
+export function isRunnerUnavailable(output) {
+  const text = String(output).toLowerCase();
+  return /usage limit|purchase more credits|out of credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)|access token has expired|failed to authenticate|invalid api key|authentication_error|401 |command not found|enoent/.test(
+    text,
+  );
+}
+
+/**
+ * How each runner is invoked for each lane. Kept here so the sandboxing is
+ * visible in one place and can be asserted in tests: "ask" must never be able
+ * to write, whichever runner serves it.
+ */
+export function agentCommand({ runner, mode, root, outputFile }) {
+  if (runner === "codex") {
+    return {
+      command: "codex",
+      args: [
+        "exec", "--ephemeral", "--color", "never",
+        "--sandbox", mode === "ask" ? "read-only" : "danger-full-access",
+        "-c", 'approval_policy="never"',
+        ...(mode === "ask" ? [] : ["-c", 'model_reasoning_effort="high"']),
+        "-C", root,
+        "--output-last-message", outputFile,
+        "-",
+      ],
+      resultFrom: "file",
+    };
+  }
+  if (runner === "claude") {
+    return {
+      command: "claude",
+      args:
+        mode === "ask"
+          ? ["-p", "--allowed-tools", "Read", "Glob", "Grep"]
+          : ["-p", "--dangerously-skip-permissions"],
+      resultFrom: "stdout",
+    };
+  }
+  throw new Error(`Unknown agent runner: ${runner}`);
+}
+
 export function cooldownRemaining(lastAskAt, now, windowMs) {
   if (!Number.isFinite(lastAskAt)) return 0;
   return Math.max(0, windowMs - (now - lastAskAt));

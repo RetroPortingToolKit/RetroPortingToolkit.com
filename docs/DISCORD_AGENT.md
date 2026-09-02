@@ -35,6 +35,32 @@ Public questions run in their own lane: one at a time, a four-minute limit, a
 45-second per-person cooldown, and at most five waiting. A question never delays
 a publish, and a publish never makes the community channel look dead.
 
+## Runners
+
+The bridge tries Codex first and falls back to Claude Code, per request and per
+lane. It only hands over when a runner cannot serve at all — out of credits,
+expired or missing credentials, not installed. A request that genuinely failed
+is reported as failed rather than retried on the second runner, which would fail
+the same way and spend a second budget saying so.
+
+Each lane keeps its boundary on both runners: publishing gets Codex's
+`danger-full-access` or Claude's `--dangerously-skip-permissions`, and the
+public answer lane gets Codex's `read-only` sandbox or Claude restricted to
+`Read`, `Glob`, and `Grep`. A test asserts the answer lane can never be handed a
+writable runner.
+
+The standby needs a durable credential, because the Claude CLI's interactive
+login expires and an unattended process cannot re-authenticate. Create an API
+key at console.anthropic.com and store it in the login Keychain:
+
+```sh
+security add-generic-password -s retroportingtoolkit-anthropic-key -a "$USER" -w
+```
+
+The installer reads it from there and passes it only to the Claude child
+process; it never reaches Codex, the launchd property list, or the logs. Without
+it the bridge simply runs on Codex alone and says so when it cannot serve.
+
 ## Safety boundary
 
 - The bot fails closed unless its guild, channel, and requester user or role

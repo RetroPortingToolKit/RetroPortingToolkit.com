@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  agentCommand,
   askPrompt,
   channelMode,
   chunkDiscordMessage,
@@ -10,6 +11,7 @@ import {
   isAuthorized,
   isCancelMineRequest,
   isDestructiveRequest,
+  isRunnerUnavailable,
   isStatusRequest,
   isStopRequest,
   progressMessage,
@@ -88,6 +90,33 @@ describe("Discord agent core", () => {
     const prompt = taskPrompt({ request: "Update a page", authorId: "u", channelId: "c", messageUrl: "https://discord.com/x" });
     expect(prompt).toContain("Immediately before staging, committing, or pushing, check them again");
     expect(prompt).toContain("never stage, commit, merge, reset, stash, or push around someone else's WIP");
+  });
+
+  it("tells an unavailable runner apart from a failed task", () => {
+    expect(isRunnerUnavailable("ERROR: You've hit your usage limit. Visit ... to purchase more credits")).toBe(true);
+    expect(isRunnerUnavailable("API Error: 401 OAuth access token has expired.")).toBe(true);
+    expect(isRunnerUnavailable("zsh: command not found: codex")).toBe(true);
+    // A real failure must not be handed to the next runner: it would fail the
+    // same way and spend a second budget doing it.
+    expect(isRunnerUnavailable("Blocked: the shared checkout has uncommitted work")).toBe(false);
+    expect(isRunnerUnavailable("npm test failed: 3 tests failing")).toBe(false);
+  });
+
+  it("never gives the public answer lane a runner that can write", () => {
+    const codexAsk = agentCommand({ runner: "codex", mode: "ask", root: "/repo", outputFile: "/tmp/o" });
+    expect(codexAsk.args).toContain("read-only");
+    expect(codexAsk.args).not.toContain("danger-full-access");
+
+    const claudeAsk = agentCommand({ runner: "claude", mode: "ask", root: "/repo", outputFile: "/tmp/o" });
+    expect(claudeAsk.args).toContain("--allowed-tools");
+    expect(claudeAsk.args).toEqual(expect.arrayContaining(["Read", "Glob", "Grep"]));
+    expect(claudeAsk.args).not.toContain("--dangerously-skip-permissions");
+
+    // The publishing lane is the one allowed to write, on either runner.
+    expect(agentCommand({ runner: "codex", mode: "publish", root: "/repo", outputFile: "/tmp/o" }).args)
+      .toContain("danger-full-access");
+    expect(agentCommand({ runner: "claude", mode: "publish", root: "/repo", outputFile: "/tmp/o" }).args)
+      .toContain("--dangerously-skip-permissions");
   });
 
   it("gives each channel its own capability, and stays silent elsewhere", () => {

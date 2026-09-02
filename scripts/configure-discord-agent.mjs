@@ -48,12 +48,28 @@ try {
     return matches.first().id;
   });
 
+  // Entries may be a channel name or a raw ID. An ID is the only way to name a
+  // channel whose name is not unique in the server, and this server has two
+  // channels called "general".
   const publicChannelIds = publicChannelNames.map((name) => {
-    const matches = channels.filter((entry) => entry?.name === name && entry.isTextBased());
-    if (matches.size !== 1) {
-      throw new Error(`Expected one text channel named ${JSON.stringify(name)}; found ${matches.size}.`);
+    let match;
+    if (/^\d+$/.test(name)) {
+      match = channels.get(name);
+      if (!match?.isTextBased()) {
+        throw new Error(`No text channel in this server has the ID ${name}.`);
+      }
+    } else {
+      const matches = channels.filter((entry) => entry?.name === name && entry.isTextBased());
+      if (matches.size !== 1) {
+        throw new Error(
+          `Expected one text channel named ${JSON.stringify(name)}; found ${matches.size}.` +
+            (matches.size > 1
+              ? ` Use the channel ID instead: ${matches.map((entry) => `${entry.id} (#${entry.parent?.name ?? "no category"})`).join(", ")}`
+              : ""),
+        );
+      }
+      match = matches.first();
     }
-    const match = matches.first();
     if (match.id === channelMatches.first().id) {
       throw new Error(`${JSON.stringify(name)} is already the publishing channel; it cannot also be a public channel.`);
     }

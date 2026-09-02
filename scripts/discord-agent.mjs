@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import {
+  agentCommand,
   askInterruptedMessage,
   askPrompt,
   channelMode,
@@ -18,6 +19,7 @@ import {
   isCancelMineRequest,
   isDestructiveRequest,
   isMassDestructiveRequest,
+  isRunnerUnavailable,
   isStatusRequest,
   isStopRequest,
   parseCsv,
@@ -221,10 +223,114 @@ async function waitForCleanCheckout(timeoutMs = 30_000, onWait) {
   }
 }
 
-function safeAgentEnv() {
+function safeAgentEnv(runner) {
   const env = { ...process.env };
   delete env.DISCORD_BOT_TOKEN;
+  // Only the runner that needs the model credential receives it.
+  if (runner !== "claude") delete env.ANTHROPIC_API_KEY;
   return env;
+}
+
+class RunnerUnavailableError extends Error {}
+
+/**
+ * Run one agent attempt. Resolves with the produced text, or throws
+ * RunnerUnavailableError when this runner cannot serve at all (out of credits,
+ * expired auth, not installed) so the caller can try the next one.
+ */
+function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, onSpawn, onTimeout }) {
+  const { command, args, resultFrom } = agentCommand({ runner, mode, root: ROOT, outputFile });
+  return new Promise((resolve, reject) => {
+    let stdout = "";
+    let diagnostics = "";
+    const note = (text) => {
+      // Bounded: only enough tail to classify the failure.
+      diagnostics = (diagnostics + text).slice(-4_000);
+    };
+    let child;
+    try {
+      child = spawn(command, args, {
+        cwd: ROOT,
+        env: safeAgentEnv(runner),
+        stdio: ["pipe", "pipe", "pipe"],
+        detached: true,
+      });
+    } catch (error) {
+      reject(new RunnerUnavailableError(`${runner} could not start: ${error.message}`));
+      return;
+    }
+    onSpawn?.(child);
+    const timeout = setTimeout(() => {
+      onTimeout?.();
+      try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
+      reject(new Error(`The ${runner} agent exceeded its time limit and was stopped.`));
+    }, timeoutMs);
+    timeout.unref();
+    child.stdin.on("error", (error) => note(String(error.message)));
+    child.stdin.end(prompt);
+    child.stdout.on("data", (data) => {
+      taskLog.write(data);
+      if (resultFrom === "stdout") stdout += data.toString();
+      note(data.toString());
+    });
+    child.stderr.on("data", (data) => {
+      taskLog.write(data);
+      note(data.toString());
+    });
+    child.once("error", (error) => {
+      clearTimeout(timeout);
+      if (error.code === "ENOENT") {
+        reject(new RunnerUnavailableError(`${runner} is not installed`));
+        return;
+      }
+      reject(error);
+    });
+    child.once("close", async (code) => {
+      clearTimeout(timeout);
+      const fromFile =
+        resultFrom === "file"
+          ? (await fs.readFile(outputFile, "utf8").catch(() => "")).trim()
+          : "";
+      const text = (resultFrom === "stdout" ? stdout : fromFile).trim();
+      if (code !== 0 || !text) {
+        if (isRunnerUnavailable(diagnostics)) {
+          reject(new RunnerUnavailableError(`${runner} is unavailable`));
+          return;
+        }
+        reject(new Error(text || `${runner} exited with status ${code}.`));
+        return;
+      }
+      resolve(text);
+    });
+  });
+}
+
+/**
+ * Codex first, Claude as the standby. A runner that cannot serve hands over
+ * rather than failing the request; anything else is a real failure and is
+ * reported as one.
+ */
+async function runAgent(options) {
+  const unavailable = [];
+  for (const runner of ["codex", "claude"]) {
+    try {
+      const text = await runAgentOnce({ ...options, runner });
+      if (runner !== "codex") {
+        console.log(`[discord-agent] served by fallback runner: ${runner}`);
+      }
+      return { text, runner };
+    } catch (error) {
+      if (error instanceof RunnerUnavailableError) {
+        console.warn(`[discord-agent] ${error.message}; trying the next runner`);
+        unavailable.push(runner);
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error(
+    `No agent runner is available right now (tried ${unavailable.join(", ")}). This needs a maintainer to restore Codex credits or the Claude API key.`,
+  );
 }
 
 /**
@@ -267,7 +373,7 @@ async function pruneTaskLogs() {
   }
 }
 
-async function runCodex(job) {
+async function runPublish(job) {
   let notified = false;
   const starting = await waitForCleanCheckout(30_000, () => {
     if (notified) return;
@@ -299,51 +405,23 @@ async function runCodex(job) {
   });
   try {
     if (job.stopRequested) throw new TaskStoppedError("Stopped before the agent started.");
-    const exitCode = await new Promise((resolve, reject) => {
-      let timeout;
-      const child = spawn(
-        "codex",
-        [
-          "exec", "--ephemeral", "--color", "never",
-          "--sandbox", "danger-full-access",
-          "-c", 'approval_policy="never"',
-          "-c", 'model_reasoning_effort="high"',
-          "-C", ROOT,
-          "--output-last-message", outputFile,
-          "-",
-        ],
-        { cwd: ROOT, env: safeAgentEnv(), stdio: ["pipe", "pipe", "pipe"], detached: true },
-      );
-      activeChild = child;
-      timeout = setTimeout(() => {
-        job.timeout = true;
-        try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
-        reject(new Error("The agent exceeded the 15-minute execution limit and was stopped."));
-      }, AGENT_TIMEOUT_MS);
-      timeout.unref();
-      child.stdin.on("error", (error) => console.error("[discord-agent] agent stdin error", error));
-      child.stdin.end(prompt);
-      child.stdout.on("data", (data) => taskLog.write(data));
-      child.stderr.on("data", (data) => taskLog.write(data));
-      child.once("error", reject);
-      child.once("close", (code) => {
-        clearTimeout(timeout);
-        if (activeChild === child) activeChild = null;
-        resolve(code);
-      });
+    const { text: summary } = await runAgent({
+      mode: "publish",
+      prompt,
+      outputFile,
+      taskLog,
+      timeoutMs: AGENT_TIMEOUT_MS,
+      onSpawn: (child) => { activeChild = child; },
+      onTimeout: () => { job.timeout = true; },
     });
-    const summary = await fs.readFile(outputFile, "utf8").catch(() => "");
-    if (job.stopRequested) throw new TaskStoppedError("The active Codex process was terminated.");
-    if (exitCode !== 0) {
-      throw new Error(summary.trim() || `Codex exited with status ${exitCode}.`);
-    }
+    if (job.stopRequested) throw new TaskStoppedError("The active agent process was terminated.");
     const ending = await gitSnapshot();
     if (ending.status) {
       throw new SharedCheckoutConflictError(
         "Blocked: the shared checkout changed while this request was running, so nothing was published. Please resolve the other work and retry.",
       );
     }
-    return summary.trim() || "Task completed, but the agent returned no summary.";
+    return summary || "Task completed, but the agent returned no summary.";
   } finally {
     await taskLog.close();
     await pruneTaskLogs();
@@ -366,40 +444,14 @@ async function runAsk(job) {
     channelId: job.ref.channelId,
   });
   try {
-    const exitCode = await new Promise((resolve, reject) => {
-      const child = spawn(
-        "codex",
-        [
-          "exec", "--ephemeral", "--color", "never",
-          "--sandbox", "read-only",
-          "-c", 'approval_policy="never"',
-          "-C", ROOT,
-          "--output-last-message", outputFile,
-          "-",
-        ],
-        { cwd: ROOT, env: safeAgentEnv(), stdio: ["pipe", "pipe", "pipe"], detached: true },
-      );
-      askChild = child;
-      const timeout = setTimeout(() => {
-        try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
-        reject(new Error("That took too long to answer."));
-      }, ASK_TIMEOUT_MS);
-      timeout.unref();
-      child.stdin.on("error", (error) => console.error("[discord-agent] ask stdin error", error));
-      child.stdin.end(prompt);
-      child.stdout.on("data", (data) => taskLog.write(data));
-      child.stderr.on("data", (data) => taskLog.write(data));
-      child.once("error", reject);
-      child.once("close", (code) => {
-        clearTimeout(timeout);
-        if (askChild === child) askChild = null;
-        resolve(code);
-      });
+    const { text: answer } = await runAgent({
+      mode: "ask",
+      prompt,
+      outputFile,
+      taskLog,
+      timeoutMs: ASK_TIMEOUT_MS,
+      onSpawn: (child) => { askChild = child; },
     });
-    const answer = (await fs.readFile(outputFile, "utf8").catch(() => "")).trim();
-    if (exitCode !== 0 || !answer) {
-      throw new Error("I could not put an answer together for that one.");
-    }
     return answer;
   } finally {
     await taskLog.close();
@@ -418,11 +470,12 @@ async function drainAskQueue() {
     const answer = await runAsk(job);
     await replyChunks(job.ref, "", answer);
   } catch (error) {
+    // Public channel: say something useful without narrating the internals of
+    // which runner failed or why.
     console.error("[discord-agent] ask failed", error);
-    const detail = error instanceof Error ? error.message : String(error);
     await safeSend({
       ...job.ref,
-      content: `${detail} You can ask again, or browse the site directly at https://retroportingtoolkit.com.`,
+      content: "Sorry — I couldn’t answer that just now. Try again in a bit, or browse the site directly at https://retroportingtoolkit.com.",
       ping: true,
     });
   } finally {
@@ -529,7 +582,7 @@ async function drainQueue() {
       ping: true,
     });
     stopProgress = startProgress(job);
-    const summary = await runCodex(job);
+    const summary = await runPublish(job);
     await replyChunks(job.ref, summaryHeading(summary), summary);
   } catch (error) {
     if (error instanceof TaskStoppedError) {

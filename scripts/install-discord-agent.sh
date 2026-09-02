@@ -4,6 +4,8 @@ set -euo pipefail
 repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 node_dir="$(dirname "$(command -v node)")"
 codex_dir="$(dirname "$(command -v codex)")"
+# Optional standby runner. Absent is fine; the bridge just has one runner then.
+claude_dir="$(dirname "$(command -v claude 2>/dev/null || echo /usr/bin/false)")"
 config_dir="$HOME/Library/Application Support/RetroPortingToolkitDiscordAgent"
 config_file="$config_dir/config.env"
 plist="$HOME/Library/LaunchAgents/com.retroportingtoolkit.discord-agent.plist"
@@ -29,8 +31,15 @@ cat > "$launch_script" <<EOF
 set -a
 source "${config_file}"
 set +a
-export PATH="${node_dir}:${codex_dir}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+export PATH="${node_dir}:${codex_dir}:${claude_dir}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export DISCORD_BOT_TOKEN="\$(security find-generic-password -s retroportingtoolkit-discord-bot -w)"
+# Standby runner credential. Optional: without it the bridge runs on Codex
+# alone, and says so rather than pretending a request failed.
+anthropic_key="\$(security find-generic-password -s retroportingtoolkit-anthropic-key -w 2>/dev/null || true)"
+if [[ -n "\$anthropic_key" ]]; then
+  export ANTHROPIC_API_KEY="\$anthropic_key"
+fi
+unset anthropic_key
 exec "$(command -v node)" "${repo_dir}/scripts/discord-agent.mjs"
 EOF
 chmod 700 "$launch_script"
