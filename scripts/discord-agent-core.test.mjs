@@ -16,6 +16,7 @@ import {
   isStopRequest,
   progressMessage,
   replyContext,
+  runnerChain,
   statusMessage,
   stripBotMention,
   summaryHeading,
@@ -117,6 +118,16 @@ describe("Discord agent core", () => {
       .toContain("danger-full-access");
     expect(agentCommand({ runner: "claude", mode: "publish", root: "/repo", outputFile: "/tmp/o" }).args)
       .toContain("--dangerously-skip-permissions");
+  });
+
+  it("tries the paid key only after the subscription, and skips it when absent", () => {
+    expect(runnerChain({ hasApiKey: true })).toEqual(["codex", "claude", "claude-api"]);
+    expect(runnerChain({ hasApiKey: false })).toEqual(["codex", "claude"]);
+    // Both Claude tiers run the same binary; only the credential differs.
+    const sub = agentCommand({ runner: "claude", mode: "ask", root: "/r", outputFile: "/o" });
+    const paid = agentCommand({ runner: "claude-api", mode: "ask", root: "/r", outputFile: "/o" });
+    expect(paid.command).toBe(sub.command);
+    expect(paid.args).toEqual(sub.args);
   });
 
   it("gives each channel its own capability, and stays silent elsewhere", () => {

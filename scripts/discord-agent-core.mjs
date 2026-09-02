@@ -168,7 +168,10 @@ export function agentCommand({ runner, mode, root, outputFile }) {
       resultFrom: "file",
     };
   }
-  if (runner === "claude") {
+  // Same binary for both Claude tiers; they differ only in which credential
+  // reaches the child, which is what decides whether the work is billed to the
+  // subscription or to prepaid API credits.
+  if (runner === "claude" || runner === "claude-api") {
     return {
       command: "claude",
       args:
@@ -179,6 +182,16 @@ export function agentCommand({ runner, mode, root, outputFile }) {
     };
   }
   throw new Error(`Unknown agent runner: ${runner}`);
+}
+
+/**
+ * Cheapest first. Codex, then Claude on the subscription the owner already
+ * pays for, and only then the prepaid API key — which is skipped entirely when
+ * no key is configured, so the chain is two tiers in that case rather than one
+ * that fails on a missing credential.
+ */
+export function runnerChain({ hasApiKey }) {
+  return hasApiKey ? ["codex", "claude", "claude-api"] : ["codex", "claude"];
 }
 
 export function cooldownRemaining(lastAskAt, now, windowMs) {

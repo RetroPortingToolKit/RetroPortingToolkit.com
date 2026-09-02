@@ -25,6 +25,7 @@ import {
   parseCsv,
   progressMessage,
   replyContext,
+  runnerChain,
   statusMessage,
   stripBotMention,
   summaryHeading,
@@ -226,8 +227,10 @@ async function waitForCleanCheckout(timeoutMs = 30_000, onWait) {
 function safeAgentEnv(runner) {
   const env = { ...process.env };
   delete env.DISCORD_BOT_TOKEN;
-  // Only the runner that needs the model credential receives it.
-  if (runner !== "claude") delete env.ANTHROPIC_API_KEY;
+  // Only the paid tier gets the API key. The "claude" tier must NOT see it, or
+  // the CLI would bill prepaid credits for work the subscription already
+  // covers, which is the whole reason that tier is tried first.
+  if (runner !== "claude-api") delete env.ANTHROPIC_API_KEY;
   return env;
 }
 
@@ -312,7 +315,7 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
  */
 async function runAgent(options) {
   const unavailable = [];
-  for (const runner of ["codex", "claude"]) {
+  for (const runner of runnerChain({ hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY) })) {
     try {
       const text = await runAgentOnce({ ...options, runner });
       if (runner !== "codex") {
@@ -328,9 +331,28 @@ async function runAgent(options) {
       throw error;
     }
   }
+  void alertMaintainers(unavailable);
   throw new Error(
-    `No agent runner is available right now (tried ${unavailable.join(", ")}). This needs a maintainer to restore Codex credits or the Claude API key.`,
+    `No agent runner is available right now (tried ${unavailable.join(", ")}). This needs a maintainer to restore Codex credits, re-authenticate the Claude CLI, or set the API key.`,
   );
+}
+
+let lastRunnerAlertAt = 0;
+/**
+ * Subscription auth expires, and an unattended process cannot renew it. Without
+ * this the only symptom is community members being told to try later, which
+ * nobody with the ability to fix it would ever see.
+ */
+async function alertMaintainers(unavailable) {
+  const now = Date.now();
+  if (now - lastRunnerAlertAt < 60 * 60 * 1_000) return;
+  lastRunnerAlertAt = now;
+  for (const channelId of config.channelIds) {
+    await safeSend({
+      channelId,
+      content: `⚠️ No agent runner is available (tried ${unavailable.join(", ")}), so requests are failing. Restore Codex credits, re-run \`claude\` login, or add the API key to the Keychain, then restart the bridge.`,
+    });
+  }
 }
 
 /**
