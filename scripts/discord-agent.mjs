@@ -17,6 +17,7 @@ import {
   chunkDiscordMessage,
   cooldownRemaining,
   droppedMessage,
+  formatElapsed,
   interruptedMessage,
   isCancelMineRequest,
   checkoutBusyReason,
@@ -86,7 +87,12 @@ const ASK_QUEUE_LIMIT = 5;
 // hand is normal and usually brief, so a request parks and retries instead of
 // being thrown away.
 const CHECKOUT_WAIT_MS = 5 * 60 * 1_000;
-const CHECKOUT_REQUEUE_LIMIT = 3;
+// Waiting is the bot's job, not the requester's. A request parks for as long as
+// the repository stays busy and starts itself when it goes quiet; the cap only
+// exists so a tree left dirty overnight eventually reports something instead of
+// sitting silently forever.
+const CHECKOUT_PATIENCE_MS = 6 * 60 * 60 * 1_000;
+const BUSY_NOTICE_MS = 15 * 60 * 1_000;
 // How long the repository must have been untouched before the agent starts, and
 // how long a quiet reading has to hold before it is believed.
 const QUIET_PERIOD_MS = 90 * 1_000;
@@ -441,10 +447,11 @@ async function pruneTaskLogs() {
 }
 
 async function runPublish(job) {
-  let notified = false;
   const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => {
-    if (notified) return;
-    notified = true;
+    // Also per request: the periodic "still waiting" update below is what keeps
+    // a long park visible, not a fresh notice on every retry.
+    if (job.busyNotified) return;
+    job.busyNotified = true;
     void safeSend({
       ...job.ref,
       content:
@@ -653,25 +660,32 @@ async function drainQueue() {
   let stopProgress = () => {};
   try {
     await persistJobs();
-    await safeSend({
-      ...job.ref,
-      content: `On it.${queue.length ? ` ${queue.length} queued.` : ""}`.trim(),
-      ping: true,
-    });
+    // Once per request, not once per attempt: a parked job re-enters this
+    // function every time it retries, and announcing each pass is spam.
+    if (!job.announced) {
+      job.announced = true;
+      await safeSend({
+        ...job.ref,
+        content: `On it.${queue.length ? ` ${queue.length} queued.` : ""}`.trim(),
+        ping: true,
+      });
+    }
     stopProgress = startProgress(job);
     const summary = await runPublish(job);
     await replyChunks(job.ref, summaryHeading(summary), summary);
   } catch (error) {
     if (error instanceof CheckoutBusyError) {
-      job.requeues = (job.requeues ?? 0) + 1;
-      if (job.requeues <= CHECKOUT_REQUEUE_LIMIT) {
-        // Back of the queue, so one stuck request cannot starve the others.
+      job.waitingSince ??= Date.now();
+      const waited = Date.now() - job.waitingSince;
+      if (waited < CHECKOUT_PATIENCE_MS) {
+        // Back of the queue, so one parked request cannot starve the others.
         queue.push(job);
-        console.warn(`[discord-agent] checkout busy; requeued (attempt ${job.requeues})`);
-        if (job.requeues === 1) {
+        console.warn(`[discord-agent] checkout busy; still holding (${formatElapsed(waited)})`);
+        if (!job.lastBusyNotice || Date.now() - job.lastBusyNotice > BUSY_NOTICE_MS) {
+          job.lastBusyNotice = Date.now();
           await safeSend({
             ...job.ref,
-            content: "The shared checkout is still busy, so I’ve put your request back in the queue and will start it as soon as the tree is clean.",
+            content: `Still waiting for the shared checkout to go quiet — ${formatElapsed(waited)} so far. Your request is holding its place and I will start it by myself; there is nothing for you to re-send.`,
           });
         }
         return;
@@ -679,7 +693,7 @@ async function drainQueue() {
       await replyChunks(
         job.ref,
         "⏸️ Blocked.",
-        "The shared checkout has had uncommitted work for a while, so this request never started and nothing was published. Someone is editing the repository directly; once the tree is clean, re-send it.",
+        `The shared checkout has been busy for ${formatElapsed(waited)}, so this request never started and nothing was published. Someone has left work in the tree; once it is committed or cleared, send this again.`,
       );
       return;
     }
