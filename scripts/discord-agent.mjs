@@ -454,10 +454,15 @@ async function runPublish(job) {
       onTimeout: () => { job.timeout = true; },
     });
     if (job.stopRequested) throw new TaskStoppedError("The active agent process was terminated.");
+    // What matters is whether THIS request's work landed, not whether the tree
+    // is pristine. Someone starting an unrelated edit halfway through used to
+    // fail a finished request; their files are simply not ours to care about,
+    // because the agent stages its own paths by name.
     const ending = await gitSnapshot();
-    if (ending.status) {
+    const published = ending.head !== starting.head;
+    if (!published && ending.status) {
       throw new SharedCheckoutConflictError(
-        "Blocked: the shared checkout changed while this request was running, so nothing was published. Please resolve the other work and retry.",
+        "Blocked: the agent left uncommitted changes in the shared checkout and nothing was published. The tree needs a look before anything else runs.",
       );
     }
     return summary || "Task completed, but the agent returned no summary.";

@@ -51,6 +51,28 @@ Public questions run in their own lane: one at a time, a four-minute limit, a
 45-second per-person cooldown, and at most five waiting. A question never delays
 a publish, and a publish never makes the community channel look dead.
 
+## Sharing the checkout with a person
+
+A person editing this checkout by hand is normal and must not cost anyone their
+request, so exclusivity is required only where it is genuinely needed.
+
+- **Before starting**, the tree must be clean, because the agent needs a known
+  baseline. If it is not, the request waits up to five minutes and then goes to
+  the back of the queue, up to three attempts, rather than failing.
+- **While working**, the agent stages by name and never with `git add -A`, so
+  another person's uncommitted files are simply not in its commit.
+- **At the end**, success is judged by whether this request's work landed — did
+  HEAD move — and not by whether the tree is pristine. Files someone else
+  started editing mid-run are not this request's business. Only an agent that
+  published nothing *and* left the tree dirty is reported blocked.
+- The one case that still stops is a real one: the agent and a person changed
+  the **same file**. That cannot be separated by waiting, because both sets of
+  edits are already in the same working tree.
+
+Waiting for the person to finish would not help in that case and would hurt in
+the others: the agent's edits are already interleaved with theirs in one tree,
+and "finished" can be hours away.
+
 ## Runners
 
 The bridge tries Codex first and falls back to Claude Code, per request and per

@@ -92,8 +92,9 @@ describe("Discord agent core", () => {
 
   it("requires a final shared-tree concurrency check", () => {
     const prompt = taskPrompt({ request: "Update a page", authorId: "u", channelId: "c", messageUrl: "https://discord.com/x" });
-    expect(prompt).toContain("Immediately before staging, committing, or pushing, check them again");
-    expect(prompt).toContain("never stage, commit, merge, reset, stash, or push around someone else's WIP");
+    expect(prompt).toContain("Stage by name and never with git add -A");
+    expect(prompt).toContain("Stop and report Blocked only if a file YOU changed was also modified by someone else");
+    expect(prompt).toContain("Never stage, commit, merge, reset, stash, revert or push another person's work");
   });
 
   it("tells an unavailable runner apart from a failed task", () => {
