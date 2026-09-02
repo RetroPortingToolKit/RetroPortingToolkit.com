@@ -683,3 +683,51 @@ Remaining launch-readiness work at this checkpoint:
   product claims and canonical URLs are stable. Analytics and a contact page
   are explicitly deferred by the owner; the hero reel is the demo and the
   existing site imagery supplies screenshots.
+
+## Discord bot: public answers, runner fallback, quiet checkout (2026-09-02)
+
+Three changes to `scripts/discord-agent.mjs` and its core module. Operational
+detail stays in `docs/DISCORD_AGENT.md`.
+
+- **The channel decides capability.** Channels listed in
+  `DISCORD_PUBLIC_CHANNEL_IDS` let anyone who can post there ask questions
+  about the site and nothing else; the publishing channel is unchanged, and
+  every other channel is silent rather than posting its own refusal. The
+  answer lane runs read-only at the sandbox level, not by wording, and its
+  prompt allowlists non-draft `data/` pages, `public/` media and the public
+  docs — the rest of the checkout holds withheld projects and internal notes.
+  Questions are wrapped as untrusted text with the delimiter restated after
+  the message, and hyphen runs are collapsed so a message cannot forge its own
+  closing fence. The control that actually holds is on the way out: every
+  answer is scanned before posting and withheld if it carries a credential
+  shape, an internal path or a reference to operational files. Answers are
+  formatted for a chat window (answer first, under 700 characters, at most two
+  bracketed links with embeds suppressed). The answer lane has its own queue,
+  so a question cannot delay a publish.
+- **Runner fallback, Codex then Claude.** Codex ran out of credits, so both
+  lanes now hand over to Claude Code when a runner cannot serve at all (no
+  credits, missing or expired credentials, not installed); a request that
+  genuinely failed is reported failed rather than retried on the second
+  runner. The chain prefers the subscription the owner already pays for, with
+  `ANTHROPIC_API_KEY` stripped from that tier's environment so the CLI cannot
+  quietly bill credits; a prepaid key is a third tier only when configured,
+  and needs `--bare` because the CLI otherwise ignores the key in favour of
+  its stored login. An unusable key counts as an unavailable runner, not a
+  task failure, so it cannot suppress the maintainer alert. Each lane keeps
+  its boundary on either runner, and a test asserts the answer lane can never
+  be handed a writable one. Exhausting every runner posts an hourly
+  rate-limited warning into the publishing channel, because subscription auth
+  expires and an unattended process cannot renew it.
+- **A busy checkout is a wait, not a failure.** A clean tree is a poor proxy
+  for nobody working, since someone committing every few minutes has a clean
+  tree most of the time. The agent now starts only when there are no
+  uncommitted files and no commit in the last 90 seconds, with the same
+  reading holding across a five-second settle window. A parked request holds
+  its place for up to six hours and starts itself the moment the tree goes
+  quiet, with a progress note every fifteen minutes; the cap only exists so a
+  tree left dirty overnight eventually reports something. Success at the end
+  of a run is now whether HEAD moved, not whether the tree is pristine —
+  requiring an empty `git status --porcelain` is what discarded the 02:15
+  request that had already succeeded. That holds because the agent stages its
+  paths by name. The one case that still stops is the one that cannot be
+  separated: the agent and a person changed the same file.
