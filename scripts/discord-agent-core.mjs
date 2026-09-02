@@ -169,12 +169,28 @@ export function isRunnerUnavailable(output) {
  * visible in one place and can be asserted in tests: "ask" must never be able
  * to write, whichever runner serves it.
  */
+/**
+ * Models are pinned here rather than inherited from whatever the owner's own
+ * CLI config happens to say, so the bot's behaviour does not change under it
+ * when someone switches their interactive model.
+ *
+ * "priority" is Codex's Fast service tier (1.5x speed). Claude's fast mode has
+ * no headless switch — the CLI exposes only DISABLE/SKIP env vars for it and
+ * an interactive per-session opt-in — so the model is pinned and speed is left
+ * to whatever applies by default.
+ */
+export const CODEX_MODEL = "gpt-5.6-luna";
+export const CODEX_SERVICE_TIER = "priority";
+export const CLAUDE_MODEL = "claude-opus-5";
+
 export function agentCommand({ runner, mode, root, outputFile }) {
   if (runner === "codex") {
     return {
       command: "codex",
       args: [
         "exec", "--ephemeral", "--color", "never",
+        "-m", CODEX_MODEL,
+        "-c", `service_tier="${CODEX_SERVICE_TIER}"`,
         "--sandbox", mode === "ask" ? "read-only" : "danger-full-access",
         "-c", 'approval_policy="never"',
         ...(mode === "ask" ? [] : ["-c", 'model_reasoning_effort="high"']),
@@ -194,12 +210,13 @@ export function agentCommand({ runner, mode, root, outputFile }) {
     // entirely, so without this the tier silently repeats tier 2 and fails the
     // same way.
     const auth = runner === "claude-api" ? ["--bare"] : [];
+    const model = ["--model", CLAUDE_MODEL];
     return {
       command: "claude",
       args:
         mode === "ask"
-          ? ["-p", ...auth, "--allowed-tools", "Read", "Glob", "Grep"]
-          : ["-p", ...auth, "--dangerously-skip-permissions"],
+          ? ["-p", ...auth, ...model, "--allowed-tools", "Read", "Glob", "Grep"]
+          : ["-p", ...auth, ...model, "--dangerously-skip-permissions"],
       resultFrom: "stdout",
     };
   }

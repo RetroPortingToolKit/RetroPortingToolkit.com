@@ -107,6 +107,18 @@ describe("Discord agent core", () => {
     expect(isRunnerUnavailable("npm test failed: 3 tests failing")).toBe(false);
   });
 
+  it("pins the model for every runner and lane", () => {
+    for (const mode of ["ask", "publish"]) {
+      const codex = agentCommand({ runner: "codex", mode, root: "/r", outputFile: "/o" });
+      expect(codex.args).toEqual(expect.arrayContaining(["-m", "gpt-5.6-luna"]));
+      expect(codex.args).toContain('service_tier="priority"');
+      for (const runner of ["claude", "claude-api"]) {
+        const cmd = agentCommand({ runner, mode, root: "/r", outputFile: "/o" });
+        expect(cmd.args).toEqual(expect.arrayContaining(["--model", "claude-opus-5"]));
+      }
+    }
+  });
+
   it("never gives the public answer lane a runner that can write", () => {
     const codexAsk = agentCommand({ runner: "codex", mode: "ask", root: "/repo", outputFile: "/tmp/o" });
     expect(codexAsk.args).toContain("read-only");
