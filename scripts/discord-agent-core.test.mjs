@@ -126,11 +126,19 @@ describe("Discord agent core", () => {
   it("tries the paid key only after the subscription, and skips it when absent", () => {
     expect(runnerChain({ hasApiKey: true })).toEqual(["codex", "claude", "claude-api"]);
     expect(runnerChain({ hasApiKey: false })).toEqual(["codex", "claude"]);
-    // Both Claude tiers run the same binary; only the credential differs.
+    // Both Claude tiers run the same binary, but only the paid tier forces
+    // key auth: without --bare the CLI prefers its subscription login and the
+    // tier would silently repeat tier 2.
     const sub = agentCommand({ runner: "claude", mode: "ask", root: "/r", outputFile: "/o" });
     const paid = agentCommand({ runner: "claude-api", mode: "ask", root: "/r", outputFile: "/o" });
     expect(paid.command).toBe(sub.command);
-    expect(paid.args).toEqual(sub.args);
+    expect(sub.args).not.toContain("--bare");
+    expect(paid.args).toContain("--bare");
+    expect(agentCommand({ runner: "claude-api", mode: "publish", root: "/r", outputFile: "/o" }).args)
+      .toContain("--bare");
+    // The read-only boundary survives on the paid tier too.
+    expect(paid.args).not.toContain("--dangerously-skip-permissions");
+    expect(paid.args).toEqual(expect.arrayContaining(["Read", "Glob", "Grep"]));
   });
 
   it("gives each channel its own capability, and stays silent elsewhere", () => {

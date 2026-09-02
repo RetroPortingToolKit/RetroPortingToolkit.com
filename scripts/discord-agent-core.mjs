@@ -176,12 +176,17 @@ export function agentCommand({ runner, mode, root, outputFile }) {
   // reaches the child, which is what decides whether the work is billed to the
   // subscription or to prepaid API credits.
   if (runner === "claude" || runner === "claude-api") {
+    // --bare is what makes the paid tier actually use ANTHROPIC_API_KEY. The
+    // CLI otherwise prefers its stored subscription login and ignores the key
+    // entirely, so without this the tier silently repeats tier 2 and fails the
+    // same way.
+    const auth = runner === "claude-api" ? ["--bare"] : [];
     return {
       command: "claude",
       args:
         mode === "ask"
-          ? ["-p", "--allowed-tools", "Read", "Glob", "Grep"]
-          : ["-p", "--dangerously-skip-permissions"],
+          ? ["-p", ...auth, "--allowed-tools", "Read", "Glob", "Grep"]
+          : ["-p", ...auth, "--dangerously-skip-permissions"],
       resultFrom: "stdout",
     };
   }
