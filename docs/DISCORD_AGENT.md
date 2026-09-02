@@ -12,11 +12,14 @@ Codex CLI, git credentials, the project test gate, and production verification.
 - It responds to direct mentions and to authorized human replies to one of its
   messages. A reply includes the bot message and its original request as task
   context when Discord can resolve both.
-- One task runs at a time. A second request waits in memory and receives its
-  queue position.
+- One task runs at a time. A second request waits and receives its queue
+  position.
 - An authorized developer can mention the bot or reply to it with `stop`,
   `cancel`, or `abort` to terminate the active Codex process. Queued requests
   remain queued. Work performed before termination is not rolled back.
+- `status` or `queue` reports what is running, for how long, and what is
+  waiting. `cancel mine` removes only that requester's queued requests and
+  never touches the running task.
 - The Discord token lives in the macOS login Keychain under
   `retroportingtoolkit-discord-bot`. It is loaded into the bridge process and
   removed from the Codex child process environment.
@@ -81,6 +84,34 @@ The process is `com.retroportingtoolkit.discord-agent`. Logs are under
 `~/Library/Logs/RetroPortingToolkitDiscordAgent/`; neither logs nor the launchd
 property list contain the bot token.
 
+Restart it after changing the bridge, because launchd keeps running the code it
+started with:
+
+```sh
+launchctl kickstart -k "gui/$(id -u)/com.retroportingtoolkit.discord-agent"
+```
+
+## Durability
+
+The bridge keeps a small state directory beside its config, at
+`~/Library/Application Support/RetroPortingToolkitDiscordAgent/state`:
+
+- `jobs.json` records the running and queued requests. On startup the bot
+  replies to each one to say it was interrupted or dropped, because a restart
+  loses the in-memory queue and silence is the one outcome a requester cannot
+  act on.
+- `outbox.json` holds any reply Discord refused. Sends retry three times, then
+  spool here and are delivered on the next startup, so a finished task's
+  summary survives a Discord outage. If the original message is gone the
+  summary is posted to the channel instead.
+- `task-logs/` holds the Codex transcript for each task, capped at 2 MB each
+  with the newest 20 kept. These used to go to the launchd log, which grew
+  unbounded (6.7 MB in a day) and was never rotated.
+
+A failed Discord send can no longer take the process down. Every reply path is
+non-throwing, and a last-resort handler logs unhandled rejections rather than
+letting Node exit on them.
+
 ## Operation
 
 An approved developer writes a concrete request and tags the bot, or replies
@@ -90,6 +121,10 @@ session. The agent pulls and checks the shared checkout, performs the request,
 runs the repository's required verification before a push, and verifies the
 production deployment. Its final summary is posted as `✅ Done.`; failures use
 `❌ The task did not complete.` and preserve the underlying explanation.
+
+While a task runs, one progress message is edited in place each minute with the
+elapsed time. It reports only elapsed time and queue depth, because the bridge
+cannot see which phase the agent is in.
 
 To stop the active task, tag the bot or reply to any of its messages with
 `stop`, `cancel`, or `abort`. The bot acknowledges immediately, terminates the

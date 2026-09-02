@@ -14,13 +14,93 @@ export function isStopRequest(content) {
   return /^(?:stop|cancel|abort)(?:\s+(?:it|this(?:\s+(?:task|request))?|the\s+(?:task|request)|task|request|now))?[.!]?$/i.test(String(content).trim());
 }
 
+export function isStatusRequest(content) {
+  return /^(?:status|queue)[?.!]*$|^what(?:'s|\s+is|\s+are)?\s+(?:you\s+)?(?:working\s+on|doing)[?.!]*$/i.test(
+    String(content).trim(),
+  );
+}
+
+export function isCancelMineRequest(content) {
+  return /^(?:cancel|drop|forget)\s+(?:my|mine)(?:\s+(?:request|task)s?)?[.!]*$/i.test(
+    String(content).trim(),
+  );
+}
+
 export function isMassDestructiveRequest(content) {
   const normalized = String(content).toLowerCase();
   return /\b(delete|remove|wipe|drop|destroy)\s+(everything|all|the whole|entire)|\brm\s+-rf\b|\bdrop\s+(the\s+)?database|\b(rename|name)\s+.*\b(fuck|shit|asshole|cunt|nazi|slur)\b/.test(normalized);
 }
 
+/**
+ * The gate that restricts destructive publishing to the designated maintainers.
+ * It is deliberately fail-safe: a benign "remove the trailing comma" is caught
+ * too, and the cost of that is one maintainer running it instead. The phrasings
+ * below exist because the plain verb list let the same intent through unblocked
+ * when it was worded as "get rid of the page" or "take that page down".
+ */
 export function isDestructiveRequest(content) {
-  return /\b(delete|remove|erase|drop|destroy|wipe|rename)\b/i.test(String(content));
+  return /\b(delete|remove|erase|drop|destroy|wipe|rename|purge|unpublish|nuke|truncate|revert)\b|\bget\s+rid\s+of\b|\btake\s+(?:\w+\s+){0,3}?(?:down|out)\b|\bclear\s+out\b|\broll\s+back\b/i.test(
+    String(content),
+  );
+}
+
+export function truncateRequest(request, limit = 120) {
+  const oneLine = String(request).replace(/\s+/g, " ").trim();
+  return oneLine.length <= limit ? oneLine : `${oneLine.slice(0, limit - 1).trimEnd()}…`;
+}
+
+export function formatElapsed(ms) {
+  const minutes = Math.floor(Math.max(0, ms) / 60_000);
+  if (minutes < 1) return `${Math.max(1, Math.round(Math.max(0, ms) / 1_000))}s`;
+  if (minutes < 60) return `${minutes}m`;
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+}
+
+/**
+ * Says only what the bridge can actually observe. The previous wording claimed
+ * the agent was "running checks now" on every tick, which was a guess about a
+ * phase this process cannot see.
+ */
+export function progressMessage({ elapsedMs, queued = 0 }) {
+  const waiting = queued ? ` ${queued} queued behind it.` : "";
+  return `Still working — ${formatElapsed(elapsedMs)} elapsed.${waiting}`;
+}
+
+export function statusMessage({ active, queued = [], now = Date.now() }) {
+  if (!active) {
+    return queued.length
+      ? `Nothing is running, but ${queued.length} request(s) are queued.`
+      : "Idle. Nothing is running and the queue is empty.";
+  }
+  const lines = [
+    `Running <@${active.authorId}>'s request for ${formatElapsed(now - active.startedAt)}: ${truncateRequest(active.request)}`,
+  ];
+  if (!queued.length) lines.push("Nothing else is queued.");
+  else {
+    lines.push(`${queued.length} queued:`);
+    queued.forEach((job, index) => {
+      lines.push(`${index + 1}. <@${job.authorId}> — ${truncateRequest(job.request)}`);
+    });
+  }
+  return lines.join("\n");
+}
+
+const PLAUSIBLE_ELAPSED_MS = 24 * 60 * 60 * 1_000;
+
+export function interruptedMessage({ request, startedAt, head, now = Date.now() }) {
+  // A stale or corrupt jobs.json would otherwise report something like
+  // "running for 496759h", which reads as a bug to whoever receives it.
+  const elapsed = Number.isFinite(startedAt) ? now - startedAt : null;
+  const ran =
+    elapsed !== null && elapsed >= 0 && elapsed <= PLAUSIBLE_ELAPSED_MS
+      ? ` It had been running for ${formatElapsed(elapsed)}.`
+      : "";
+  const at = head ? ` The checkout was at ${String(head).slice(0, 7)} when it started.` : "";
+  return `The agent restarted while this request was running, so it did not finish and produced no summary.${ran}${at} Anything it had already committed is still in the repository, so check the tree before re-sending.\n\nRequest: ${truncateRequest(request)}`;
+}
+
+export function droppedMessage({ request }) {
+  return `The agent restarted before this queued request started, so it never ran. Re-send it if you still need it.\n\nRequest: ${truncateRequest(request)}`;
 }
 
 export function replyContext({ referencedContent = "", originalContent = "" } = {}) {
