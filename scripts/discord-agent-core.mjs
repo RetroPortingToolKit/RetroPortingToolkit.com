@@ -118,6 +118,19 @@ export function isAuthorized(message, config) {
 }
 
 /**
+ * Who may ask for destructive publishing. Deliberately not settable from chat:
+ * the publishing channel authorizes by role, so a "grant me this" command would
+ * let anyone who can post there promote themselves past the gate. Discord's own
+ * role management is the source of truth, and changing it needs Manage Roles.
+ */
+export function canRequestDestructive(message, config) {
+  if (config.destructiveUserIds?.has(message.author.id)) return true;
+  const roleIds = config.destructiveRoleIds;
+  if (!roleIds?.size) return false;
+  return message.member?.roles?.cache?.some((role) => roleIds.has(role.id)) ?? false;
+}
+
+/**
  * The channel decides what the bot can do, which is why an admin in a public
  * channel still only gets answers: capability follows the room, so there is one
  * place to look to know whether a message could have published something.

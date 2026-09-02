@@ -10,6 +10,7 @@ import { Client, Events, GatewayIntentBits } from "discord.js";
 import {
   agentCommand,
   askInterruptedMessage,
+  canRequestDestructive,
   askPrompt,
   channelMode,
   chunkDiscordMessage,
@@ -42,6 +43,7 @@ const config = {
   userIds: parseCsv(process.env.DISCORD_ALLOWED_USER_IDS),
   roleIds: parseCsv(process.env.DISCORD_ALLOWED_ROLE_IDS),
   destructiveUserIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_USER_IDS),
+  destructiveRoleIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_ROLE_IDS),
 };
 
 if (!TOKEN) throw new Error("DISCORD_BOT_TOKEN is required.");
@@ -726,7 +728,7 @@ client.on("messageCreate", async (message) => {
     });
     return;
   }
-  if (isDestructiveRequest(request) && !config.destructiveUserIds.has(message.author.id)) {
+  if (isDestructiveRequest(request) && !canRequestDestructive(message, config)) {
     await safeSend({
       ...ref,
       content: "⏸️ Blocked. Destructive changes are restricted to the designated maintainers.",

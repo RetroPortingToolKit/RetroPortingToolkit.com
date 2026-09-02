@@ -112,7 +112,19 @@ DISCORD_ALLOWED_CHANNEL_IDS="channel-id"
 DISCORD_PUBLIC_CHANNEL_IDS="optional-channel-id,optional-channel-id"
 DISCORD_ALLOWED_USER_IDS="user-id,user-id"
 DISCORD_ALLOWED_ROLE_IDS="optional-role-id"
+DISCORD_DESTRUCTIVE_USER_IDS="optional-user-id,optional-user-id"
+DISCORD_DESTRUCTIVE_ROLE_IDS="optional-role-id"
 ```
+
+Destructive publishing — deleting, renaming or unpublishing content — is
+allowed only for the users and roles named by the two `DESTRUCTIVE` settings.
+Leaving both empty means nobody can, including the owner; that fails safe but
+is probably not what you want. Prefer the role: Discord's role membership is
+then the source of truth, and changing it needs Manage Roles.
+
+This is deliberately not a chat command. The publishing channel authorizes by
+role, so a "grant me this" command there would let anyone who can post in it
+promote themselves past the gate.
 
 `DISCORD_PUBLIC_CHANNEL_IDS` is optional. Leave it empty and the bot behaves
 exactly as before: publishing in its own channel, silent everywhere else.

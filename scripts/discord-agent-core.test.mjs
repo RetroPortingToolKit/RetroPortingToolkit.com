@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   agentCommand,
   askPrompt,
+  canRequestDestructive,
   channelMode,
   chunkDiscordMessage,
   cooldownRemaining,
@@ -139,6 +140,21 @@ describe("Discord agent core", () => {
     // The read-only boundary survives on the paid tier too.
     expect(paid.args).not.toContain("--dangerously-skip-permissions");
     expect(paid.args).toEqual(expect.arrayContaining(["Read", "Glob", "Grep"]));
+  });
+
+  it("lets a role carry destructive permission, and never grants it by default", () => {
+    const config = {
+      destructiveUserIds: new Set(["named-maintainer"]),
+      destructiveRoleIds: new Set(["founder"]),
+    };
+    const from = (id, roles = []) => ({ author: { id }, member: { roles: { cache: roles.map((r) => ({ id: r })) } } });
+    expect(canRequestDestructive(from("named-maintainer"), config)).toBe(true);
+    expect(canRequestDestructive(from("someone", ["founder"]), config)).toBe(true);
+    expect(canRequestDestructive(from("someone", ["community-advocate"]), config)).toBe(false);
+    // Unconfigured must mean nobody, not everybody.
+    const empty = { destructiveUserIds: new Set(), destructiveRoleIds: new Set() };
+    expect(canRequestDestructive(from("someone", ["founder"]), empty)).toBe(false);
+    expect(canRequestDestructive(from("someone"), {})).toBe(false);
   });
 
   it("gives each channel its own capability, and stays silent elsewhere", () => {
