@@ -11,6 +11,7 @@ import {
   agentCommand,
   askInterruptedMessage,
   canRequestDestructive,
+  containsSensitiveContent,
   askPrompt,
   channelMode,
   chunkDiscordMessage,
@@ -18,6 +19,7 @@ import {
   droppedMessage,
   interruptedMessage,
   isCancelMineRequest,
+  isAuthorized,
   isDestructiveRequest,
   isMassDestructiveRequest,
   isRunnerUnavailable,
@@ -100,6 +102,7 @@ let askChild = null;
 const lastAskAt = new Map();
 
 class TaskStoppedError extends Error {}
+class SensitiveAnswerError extends Error {}
 class SharedCheckoutConflictError extends Error {}
 
 async function readJson(file, fallback) {
@@ -476,6 +479,13 @@ async function runAsk(job) {
       timeoutMs: ASK_TIMEOUT_MS,
       onSpawn: (child) => { askChild = child; },
     });
+    // The output guard, not the prompt, is what actually holds. If an answer
+    // carries a credential or an internal path, something got through the
+    // instructions and the channel must not see it.
+    if (containsSensitiveContent(answer)) {
+      console.error(`[discord-agent] withheld an answer containing sensitive content; see ${taskLog.file}`);
+      throw new SensitiveAnswerError("withheld");
+    }
     return answer;
   } finally {
     await taskLog.close();
@@ -756,10 +766,16 @@ client.on("messageCreate", async (message) => {
   if (addressedByReply && referenced?.reference?.messageId) {
     original = await referenced.fetchReference().catch(() => null);
   }
+  // The bot replies to unauthorized users too ("publishing here is
+  // restricted"), so walking the reply chain could otherwise carry a
+  // stranger's text into the trusted publishing prompt. Only an authorized
+  // author's message is inherited as context.
+  const originalIsTrusted =
+    original && !original.author?.bot && isAuthorized(original, config);
   const context = addressedByReply
     ? replyContext({
         referencedContent: referenced?.content || "",
-        originalContent: original && !original.author?.bot ? original.content : "",
+        originalContent: originalIsTrusted ? original.content : "",
       })
     : "";
   queue.push({ ref, messageUrl: message.url, request, context });

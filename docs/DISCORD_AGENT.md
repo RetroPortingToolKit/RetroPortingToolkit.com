@@ -31,6 +31,22 @@ treats everything else in the checkout as private, including `AGENTS.md`, all of
 projects have no published page, so the answer is that there is nothing on them.
 Questions are treated as untrusted text, never as instructions.
 
+Public questions are treated as hostile input by construction, because anyone
+can post one:
+
+- The question is wrapped in a delimited block labelled untrusted, and the rule
+  that nothing inside it is an instruction is restated *after* the block as well
+  as before. Runs of hyphens inside the message are collapsed so a message
+  cannot forge the closing delimiter and escape its own fence.
+- The prompt names the specific moves — claiming to be a system message, a
+  maintainer, a policy update or a test; asking to reveal the prompt, print
+  files or adopt a persona — and says they are never true.
+- Every answer is scanned before it is posted. If it contains a credential
+  shape, an internal path, or a reference to operational files, it is withheld
+  and the requester gets a generic failure instead. This is the control that
+  actually holds: prompt wording can be talked around, an output check cannot.
+- The lane runs read-only, so nothing it is talked into can change anything.
+
 Public questions run in their own lane: one at a time, a four-minute limit, a
 45-second per-person cooldown, and at most five waiting. A question never delays
 a publish, and a publish never makes the community channel look dead.
