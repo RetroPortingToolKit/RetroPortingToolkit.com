@@ -630,6 +630,12 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
   // The per-frame fraction updates the tab pill imperatively; putting it in
   // state rerendered every card on Home for every frame of every swipe.
   const [pagerTarget, setPagerTarget] = useState<TabId | null>(null);
+  // The incoming pane is retired only after `tab` equals it, so the keyed list
+  // goes [old, target] -> [target] in one step and React keeps that subtree
+  // instead of rebuilding the page it just animated in.
+  useEffect(() => {
+    if (pagerTarget && pagerTarget === tab) setPagerTarget(null);
+  }, [pagerTarget, tab]);
   const swipeProgressRef = useRef<((fraction: number) => void) | null>(null);
   const pager = useRef<PagerState>({
     active: false,
@@ -765,8 +771,15 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         }
         if (commit && target) {
           const promoted = incomingPaneRef.current;
+          // ONLY the navigation here. Clearing pagerTarget in the same
+          // flushSync produced two renders, not one: the first dropped the
+          // incoming pane (pagerTarget null, tab still the old one) and the
+          // second mounted the destination from scratch, so every card on the
+          // page it had just finished animating in was rebuilt. Once tab is
+          // the target, the render guard below (pagerTarget !== tab) already
+          // omits the incoming entry, so the list goes straight from
+          // [old, target] to [target] and React keeps that subtree.
           flushSync(() => {
-            setPagerTarget(null);
             navigate(TAB_PATH[target]);
           });
           // the pane is PROMOTED to current (same key, same DOM): clear the
@@ -786,7 +799,12 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         }, 150);
         const cur = currentPaneRef.current;
         if (cur) cur.style.transform = "";
-        setPagerTarget(null);
+        // Only the spring-back clears it here. On a commit, navigate() does not
+        // update `tab` synchronously, so clearing now renders [old] on its own
+        // and destroys the incoming pane a beat before the route lands, which
+        // is what forced the destination to mount from scratch. The effect
+        // below clears it once `tab` has actually caught up.
+        if (!(commit && target)) setPagerTarget(null);
         swipeProgressRef.current?.(0);
       };
       requestAnimationFrame(step);
@@ -835,7 +853,6 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         }
         const promoted = incomingPaneRef.current;
         flushSync(() => {
-          setPagerTarget(null);
           navigate(TAB_PATH[target]);
         });
         if (promoted) promoted.style.transform = "";
