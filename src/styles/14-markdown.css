@@ -53,9 +53,12 @@ a.md-anchor:hover {
   color: var(--ink);
 }
 @media (hover: none) {
-  /* No hover to reveal it, so it simply stays visible and quiet. */
+  /* Hidden rather than dimmed. With no hover to explain it, a persistent "#"
+     after every heading reads as markdown that failed to render, which is what
+     it was reported as. Focus still reveals it for keyboard users, and the
+     heading keeps its id so the link itself still works. */
   .md-anchor {
-    opacity: 0.45;
+    opacity: 0;
   }
 }
 

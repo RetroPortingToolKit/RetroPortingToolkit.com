@@ -10,24 +10,24 @@
     "Change the words. Runtime text replacement can power translations, accessibility work, and edits that appear without rebuilding the game.",
     "Make the next port easier. Shared runtimes, debugging tools, save states, rewind, and release systems should outlive any one game."
   ],
-  "constraintsIntro": "A recomp can preserve a game, extend it, or use it as the starting point for something new. What matters is being clear about the project’s intent and building deliberately toward it.",
+  "constraintsIntro": "A recomp can preserve a game, expand it, or use it as the starting point for something new. What matters is being clear about the project’s intent and building deliberately toward it.",
   "stories": [
     {
-      "title": "The map was already loaded. The screen was hiding it.",
+      "title": "Widescreen that shows more of the level",
       "body": "Mega Man Zero opens its logical view beyond the original 240-pixel screen instead of stretching the picture. The wider view lets a threat appear before it is on top of you, while the game’s original enemy-spawn rules remain visible as part of the experiment.",
       "image": "/covers/mmz-widescreen.png",
       "alt": "Mega Man Zero running with the view opened past the original Game Boy Advance width",
       "href": "/games/mega-man-zero"
     },
     {
-      "title": "Boktai still runs on sunlight. Yours.",
+      "title": "Boktai’s solar sensor now reads your local weather",
       "body": "The cartridge carried a real light sensor: the solar gun charged from sunlight, and the undead could only be sealed while you had light. The recomp keeps the idea and moves the sensor—local weather now drives the gauge while the original game file stays untouched.",
       "image": "/covers/boktai-sensor.webp",
       "alt": "Boktai running with its solar gauge driven by local weather",
       "href": "/games/boktai"
     },
     {
-      "title": "Change the words. Mid-game.",
+      "title": "Rewrite a game’s text while it is running",
       "body": "Faxanadu showcases NESRecomp’s text overrides: dialogue and glyphs come from a JSON file at runtime, so an edit can appear in the running game without rebuilding or patching the ROM. The same idea scales from a corrected line to a full translation.",
       "image": "/covers/faxanadu-native.png",
       "alt": "Faxanadu running as a native PC application",
@@ -36,7 +36,7 @@
   ],
   "platformNote": {
     "title": "Each console teaches the next.",
-    "body": "The Nintendo DS recompiler’s second processor grew from the Game Boy Advance work. The CD-i’s 68000 front end grew from the Genesis work. A new platform is not a restart when the tools are built to travel."
+    "body": "The Nintendo DS recompiler’s second processor grew from the Game Boy Advance work. The CD-i’s 68000 frontend, the part that reads that processor’s instructions, grew from the Genesis work. A new platform is not a restart when the tools are built to travel."
   },
   "featured": [
     {
@@ -44,7 +44,7 @@
       "capability": "The Minish Cap runs natively from the cartridge dump you provide, then opens rooms and overworld scenes into adaptive widescreen instead of stretching them.",
       "cover": "/covers/minish-cap.jpg",
       "alt": "The Minish Cap running through the Game Boy Advance recompiler",
-      "headline": "The screen gets wider. The world stays put.",
+      "headline": "A wider view of The Minish Cap",
       "still": true
     },
     {
@@ -52,7 +52,7 @@
       "capability": "Mega Man X6 carries an authorized 203-item adaptation of acediez’s Tweaks, layered over the native port without rewriting the disc image you provide.",
       "cover": "/previews/mega-man-x6.webp",
       "alt": "Mega Man X6 running as a native application",
-      "headline": "203 mods. Every one a switch."
+      "headline": "Mega Man X6’s 203 optional tweaks"
     },
     {
       "slug": "super-mario-bros",
@@ -102,7 +102,7 @@
   },
   "sectionTitles": {
     "proof": "Emulation lets old games run. Recompilation lets them evolve.",
-    "constraints": "Preserve it. Extend it. Reinvent it.",
+    "constraints": "Preserve it. Expand it. Reinvent it.",
     "featured": "Playable today.",
     "action": "Watch it run."
   }
