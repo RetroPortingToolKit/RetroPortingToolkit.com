@@ -734,14 +734,21 @@ detail stays in `docs/DISCORD_AGENT.md`.
 
 ## Mascot room images (2026-09-03)
 
-Each platform page carries `mascot-room.webp`, a square 3D toy-style room scene.
-The convention, which the Game Boy Advance image broke: the mascot is shown
-**from behind**, back of head plain, no face and no buttons visible. Face-on,
-the character has a black cross D-pad on the LEFT, two ROUND red buttons on the
-RIGHT, a black open smile and pink blush marks.
+Each platform page carries a square `mascot-room.webp`. The character is a
+rounded off-white console-shaped body with stubby limbs: face-on it has a black
+cross D-pad on the LEFT, two ROUND red buttons on the RIGHT, a wide black smile
+and pink blush marks. Buttons are round, never square.
 
-Outstanding: the GBA image still needs regenerating. Its character is rotated
-so a mirrored face shows, its buttons read as square, and the handheld it holds
-looks like a Switch Lite rather than a clamshell Game Boy Advance SP. There is
-no image generation tooling in this repo or available to a session, so this one
-needs whoever generates the art.
+**Six of the nine were shot from behind** (NES, SNES, Genesis, DS, CD-i, Master
+System), a seventh is a mirrored three-quarter, and only PlayStation and Virtual
+Boy show the face. The compositions repeat too: low camera, rug, CRT, warm lamp,
+nine times. The owner does not want this (2026-09-03) and asked for variety in
+angle, pose and activity, with the face visible far more often. From behind is
+fine occasionally, not as the default.
+
+Outstanding: the whole set is worth reshooting for variety, and the Game Boy
+Advance one needs it most - its character is mirrored, its buttons read square,
+and the handheld looks like a Switch Lite rather than a clamshell Game Boy
+Advance SP. There is no image generation tooling in this repo or available to a
+session, so the art itself has to come from whoever generates it; a per-platform
+prompt set with deliberate variety was handed to the owner.
