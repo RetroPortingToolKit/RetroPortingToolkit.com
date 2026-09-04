@@ -769,4 +769,12 @@ checked on any regeneration:
   the mouth off centre. State that the face is fixed and that the D-pad and the
   two round buttons ARE the eyes.
 
-The first SNES and Genesis attempts failed on the last two and were redone.
+- Console and controller hardware defaults to a generic modern gamepad shape
+  unless the prompt describes the real object and says what it is NOT. The CD-i
+  handset came out as a PlayStation pad and the Master System came out as a
+  Genesis until the prompt spelled out the remote-control silhouette and the
+  flat red-panelled wedge, each with explicit negatives.
+
+The first SNES and Genesis attempts failed on limbs and face, and the first
+Master System and CD-i on hardware. All were redone. Check hardware by cropping
+into the render, not by glancing at the thumbnail.
