@@ -17,7 +17,6 @@ import {
 } from "@/lab/labContent";
 import { GAMES, HARDWARE, findCatalogItem } from "@/lib/catalogContent";
 import { pathFor } from "@/lib/contentCore";
-import { isMac } from "@/lib/platform";
 import { useAbout } from "@/lib/about";
 import {
   titleForCollection,
@@ -607,12 +606,8 @@ interface PagerState {
   offset: number; // px, + = toward the next tab
   vel: number; // px/ms, exponential average
   lastT: number;
-  pre: number; // pre-intent accumulator (wheel)
   raf: number;
   quiet: number | undefined;
-  absorb: boolean; // swallowing leftover momentum after a settle
-  absorbLast: number;
-  absorbT: number | undefined;
   touch: { x: number; y: number; lastDx: number; ok: boolean } | null;
   touchActive: boolean;
 }
@@ -643,12 +638,8 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
     offset: 0,
     vel: 0,
     lastT: 0,
-    pre: 0,
     raf: 0,
     quiet: undefined,
-    absorb: false,
-    absorbLast: 0,
-    absorbT: undefined,
     touch: null,
     touchActive: false,
   });
@@ -788,15 +779,7 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         }
         g.offset = 0;
         g.vel = 0;
-        g.pre = 0;
         g.settling = false;
-        g.absorb = true;
-        g.absorbLast = 999; // first momentum event never reads as a spike
-        window.clearTimeout(g.absorbT);
-        g.absorbT = window.setTimeout(() => {
-          g.absorb = false;
-          g.absorbLast = 0;
-        }, 150);
         const cur = currentPaneRef.current;
         if (cur) cur.style.transform = "";
         // Only the spring-back clears it here. On a commit, navigate() does not
@@ -858,7 +841,6 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         if (promoted) promoted.style.transform = "";
         g.offset = 0;
         g.vel = 0;
-        g.pre = 0;
         g.settling = false;
       };
       requestAnimationFrame(step);
@@ -885,69 +867,11 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
       schedule();
     };
 
-    // ---- trackpad / wheel ----
-    // Horizontal-swipe-to-switch-tabs is a Mac trackpad idiom. Windows/Linux
-    // precision trackpads emit large horizontal deltas on near-vertical scrolls,
-    // so it switched tabs by accident no matter how deliberate the threshold;
-    // disabled on the wheel path off-Mac entirely. Tabs still switch by click
-    // there, and touch-swipe (below) still works on real touchscreens.
-    const SWIPE_RATIO = 1.2; // |deltaX| must exceed |deltaY| * this (Mac)
-    const SWIPE_ARM = 16; // px of horizontal travel before it engages (Mac)
-    const onWheel = (e: WheelEvent) => {
-      if (!isMac) return;
-      if (e.ctrlKey || e.metaKey) return;
-      if (g.settling) {
-        e.preventDefault();
-        return;
-      }
-      const horizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) * SWIPE_RATIO;
-      if (!g.active && !horizontal) return;
-      if (blocked()) return;
-      if (!g.active && insideXScroller(e.target)) return;
-      // leftover momentum from the previous gesture: swallow the decaying
-      // stream, escape on a genuine new spike
-      if (g.absorb) {
-        const mag = Math.abs(e.deltaX);
-        const spike = mag >= 30 && mag > 2.2 * Math.max(1, g.absorbLast);
-        g.absorbLast = mag;
-        if (!spike) {
-          e.preventDefault();
-          window.clearTimeout(g.absorbT);
-          g.absorbT = window.setTimeout(() => {
-            g.absorb = false;
-            g.absorbLast = 0;
-          }, 120);
-          return;
-        }
-        g.absorb = false;
-        g.absorbLast = 0;
-      }
-      e.preventDefault();
-      if (!g.active) {
-        g.pre += e.deltaX;
-        if (Math.abs(g.pre) < SWIPE_ARM) return;
-        if (!neighbor(g.pre > 0 ? 1 : -1)) {
-          g.pre = 0;
-          return;
-        }
-        g.active = true;
-        g.offset = 0;
-        g.vel = 0;
-        g.lastT = 0;
-        const start = g.pre;
-        g.pre = 0;
-        drive(start);
-      } else {
-        drive(e.deltaX);
-      }
-      window.clearTimeout(g.quiet);
-      g.quiet = window.setTimeout(() => {
-        if (g.active) settle();
-      }, 90);
-      // a confident drag past halfway commits immediately, momentum gets
-      // absorbed after the settle
-      if (g.active && Math.abs(g.offset) > vw() * 0.55) settle();
-    };
+    // NOTE: there is deliberately no wheel/trackpad handler. A horizontal
+    // two-finger swipe is the browser's own back/forward gesture, and paging
+    // tabs on it meant calling preventDefault on exactly the gesture people use
+    // to go back, so the site swallowed their history navigation. Tabs switch by
+    // click and by keyboard, and a real touchscreen still swipes below.
 
     // ---- touch ----
     const onTouchStart = (e: TouchEvent) => {
@@ -1000,13 +924,11 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
       g.touchActive = false;
     };
 
-    window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("touchcancel", onTouchEnd, { passive: true });
     return () => {
-      window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
