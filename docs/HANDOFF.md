@@ -731,3 +731,17 @@ detail stays in `docs/DISCORD_AGENT.md`.
   request that had already succeeded. That holds because the agent stages its
   paths by name. The one case that still stops is the one that cannot be
   separated: the agent and a person changed the same file.
+
+## Mascot room images (2026-09-03)
+
+Each platform page carries `mascot-room.webp`, a square 3D toy-style room scene.
+The convention, which the Game Boy Advance image broke: the mascot is shown
+**from behind**, back of head plain, no face and no buttons visible. Face-on,
+the character has a black cross D-pad on the LEFT, two ROUND red buttons on the
+RIGHT, a black open smile and pink blush marks.
+
+Outstanding: the GBA image still needs regenerating. Its character is rotated
+so a mirrored face shows, its buttons read as square, and the handheld it holds
+looks like a Switch Lite rather than a clamshell Game Boy Advance SP. There is
+no image generation tooling in this repo or available to a session, so this one
+needs whoever generates the art.
