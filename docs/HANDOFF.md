@@ -744,7 +744,7 @@ the owner did not want. Seven have now been regenerated with the face visible
 and a different angle, pose and setting each: NES lying on a rug at floor level,
 SNES on tiptoe pushing a cartridge into a shelf, Genesis blowing dust out of a
 cartridge in profile, DS curled on a duvet in the dark, CD-i small and
-unimpressed in a formal room, Master System outdoors on a sunlit step, GBA
+unimpressed in a formal room, Master System with the home console on a living-room carpet, GBA
 playing a clamshell SP in a beanbag. PlayStation and Virtual Boy were already
 face-on and were left alone.
 
@@ -754,8 +754,19 @@ encoded with `cwebp -q 90`. The key lives in the login Keychain under
 project, an unbilled one returns `free_tier ... limit: 0` for every image model
 while text still works.
 
-Two things that image generation gets wrong repeatedly and must be checked on
-any regeneration: a held console's own controls come out MIRRORED (D-pad right,
-buttons left), and the character's buttons drift orange and square. The fix used
-here is to frame the held console with its screen facing the character, so its
-button layout is not visible and cannot be wrong.
+Four things image generation gets wrong repeatedly, all of which have to be
+checked on any regeneration:
+
+- A held console's own controls come out MIRRORED, D-pad right and buttons
+  left. The fix used here is to frame the held console with its screen facing
+  the character, so the layout is not visible and cannot be wrong.
+- The character's buttons drift orange and square.
+- Asking for a reaching or stretching pose grows long thin spidery arms and
+  stilt legs. The prompt must say two SHORT stubby arms and two short legs,
+  close to the body, and never above the head.
+- Asking for an expression the fixed face cannot make, squinting or puffed
+  cheeks, makes it invent extra eyes on top of the D-pad and buttons and shove
+  the mouth off centre. State that the face is fixed and that the D-pad and the
+  two round buttons ARE the eyes.
+
+The first SNES and Genesis attempts failed on the last two and were redone.
