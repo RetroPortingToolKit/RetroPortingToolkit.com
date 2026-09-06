@@ -7,6 +7,10 @@
       "destination": "/api/cms?__sub=$1"
     },
     {
+      "source": "/api/newsletter/(.*)",
+      "destination": "/api/newsletter?__sub=$1"
+    },
+    {
       "source": "/rss",
       "destination": "/rss.xml"
     },

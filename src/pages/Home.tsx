@@ -9,6 +9,7 @@ import { NAV_TABS, TAB_ORDER, TAB_PATH } from "@/components/navTabs";
 import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
 import { FeedButton } from "@/components/FeedLink";
+import { Subscribe } from "@/components/Subscribe";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { HeroReel } from "@/components/HeroReel";
 import {
@@ -246,6 +247,9 @@ function TabGrid({
             ))}
           </div>
         )}
+        {/* Offered after the posts, where someone who has just read the list is
+            deciding whether to come back, rather than interrupting on arrival. */}
+        {kind === "blog" && <Subscribe />}
       </div>
     </section>
   );

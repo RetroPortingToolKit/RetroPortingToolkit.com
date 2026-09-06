@@ -115,3 +115,104 @@
   }
 
 }
+
+/* ------------------------------------------------------------- subscribe --- */
+/* Sits at the end of the blog list. Deliberately quiet: it is an offer, not a
+   demand, so it takes the muted card treatment rather than an accent colour. */
+.subscribe {
+  margin: 56px auto 8px;
+  padding: 28px;
+  max-width: 34rem;
+  border: 1px solid var(--hairline);
+  border-radius: 18px;
+  background: var(--surface, transparent);
+}
+.subscribe-title {
+  margin: 0 0 6px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.subscribe-sub {
+  margin: 0 0 18px;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.subscribe-sub a {
+  color: var(--ink);
+}
+.subscribe-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.subscribe-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.subscribe-input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9375rem;
+}
+.subscribe-input:focus-visible {
+  outline: none;
+  border-color: var(--ink);
+}
+.subscribe-button {
+  padding: 11px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease);
+}
+.subscribe-button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+.subscribe-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.subscribe-done,
+.subscribe-error {
+  margin: 12px 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+.subscribe-done {
+  margin-top: 0;
+  color: var(--ink);
+}
+.subscribe-error {
+  color: #c0392b;
+}
+@media (prefers-color-scheme: dark) {
+  .subscribe-error {
+    color: #ff6b5a;
+  }
+}
+/* The honeypot: out of sight, out of the tab order, still filled in by bots. */
+.subscribe-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
