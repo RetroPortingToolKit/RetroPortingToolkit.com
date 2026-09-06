@@ -1,6 +1,7 @@
 import { useAbout } from "@/lib/about";
 import { SITE_TOOLS_PATH } from "@/lib/siteToolPaths";
 import { SmartLink } from "./SmartLink";
+import { FeedFooterLink } from "./FeedLink";
 
 export function Footer() {
   const about = useAbout();
@@ -30,6 +31,7 @@ export function Footer() {
               needs somewhere to read what those are. */}
           <div className="site-footer-elsewhere">
             <SmartLink href={SITE_TOOLS_PATH}>Site tools for browser agents</SmartLink>
+            <FeedFooterLink />
           </div>
           {mailto && (
             <a href={mailto} className="site-footer-contact">

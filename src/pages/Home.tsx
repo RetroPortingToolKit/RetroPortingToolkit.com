@@ -8,6 +8,7 @@ import { Tabs, type TabId } from "@/components/Tabs";
 import { NAV_TABS, TAB_ORDER, TAB_PATH } from "@/components/navTabs";
 import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
+import { FeedButton } from "@/components/FeedLink";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { HeroReel } from "@/components/HeroReel";
 import {
@@ -204,6 +205,8 @@ function TabGrid({
         <header className="hn-tab-head">
           <h1 className="hn-tab-title">{GRID_TITLES[kind]}</h1>
           <span className="hn-tab-count">{shownCount}</span>
+          {/* Only the blog has a feed, so only the blog offers one. */}
+          {kind === "blog" && <FeedButton />}
         </header>
         <p className="blog-tab-sub">{GRID_SUBS[kind]}</p>
         {kind === "game" && gameFilters.length > 1 && (
