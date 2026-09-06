@@ -10,8 +10,9 @@
  *   npm run newsletter:send                  actually send
  *   npm run newsletter:send -- --since=2026-09-01   override the last-sent mark
  *
- * Env: NEWSLETTER_SECRET, NEWSLETTER_GIST_ID, GITHUB_TOKEN, RESEND_API_KEY,
- * NEWSLETTER_FROM, optionally NEWSLETTER_SITE_URL.
+ * Env: NEWSLETTER_SECRET, NEWSLETTER_GIST_ID, GITHUB_TOKEN, NEWSLETTER_FROM,
+ * the NEWSLETTER_SMTP_* transport (see src/lib/newsletterMail.ts), optionally
+ * NEWSLETTER_SITE_URL.
  *
  * Addresses are never printed, only counted.
  */
@@ -27,12 +28,11 @@ import {
   type FeedPost,
   type Subscriber,
 } from "../src/lib/newsletterCore.ts";
+import { mailConfigured, sendMail } from "../src/lib/newsletterMail.ts";
 
 const SECRET = process.env.NEWSLETTER_SECRET || "";
 const GIST_ID = process.env.NEWSLETTER_GIST_ID || "";
 const TOKEN = process.env.GITHUB_TOKEN || "";
-const RESEND_KEY = process.env.RESEND_API_KEY || "";
-const FROM = process.env.NEWSLETTER_FROM || "";
 const SITE = process.env.NEWSLETTER_SITE_URL || "https://retroportingtoolkit.com";
 const SITE_TITLE = "Retro Porting Toolkit";
 
@@ -116,20 +116,28 @@ async function gistWriteState(lastSent: string): Promise<void> {
 
 /* -------------------------------------------------------------------- send */
 
-async function sendOne(to: string, subject: string, html: string, text: string): Promise<void> {
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { authorization: `Bearer ${RESEND_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({ from: FROM, to: [to], subject, html, text }),
+async function sendOne(
+  to: string,
+  subject: string,
+  html: string,
+  text: string,
+  unsubscribeUrl: string,
+): Promise<void> {
+  // List-Unsubscribe puts a real unsubscribe control in the mail client's own
+  // chrome, which is both kinder than hunting for the footer link and what
+  // large mailbox providers now expect from bulk senders. One-Click means the
+  // provider can honour it without the reader leaving their inbox.
+  await sendMail(to, subject, html, text, {
+    "List-Unsubscribe": `<${unsubscribeUrl}>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   });
-  if (!r.ok) throw new Error(`provider returned ${r.status}`);
 }
 
 /* -------------------------------------------------------------------- main */
 
 if (!GIST_ID || !TOKEN) fail("NEWSLETTER_GIST_ID and GITHUB_TOKEN are required");
 if (!SECRET) fail("NEWSLETTER_SECRET is required to sign unsubscribe links");
-if (!dryRun && (!RESEND_KEY || !FROM)) fail("RESEND_API_KEY and NEWSLETTER_FROM are required to send");
+if (!dryRun && !mailConfigured()) fail("NEWSLETTER_SMTP_* and NEWSLETTER_FROM are required to send");
 
 const { subscribers, lastSent } = await gistRead();
 const recipients = confirmedEmails(subscribers);
@@ -160,13 +168,10 @@ let sent = 0;
 const failed: number[] = [];
 for (const [i, email] of recipients.entries()) {
   const token = await signToken({ email, action: "unsubscribe", issued: Date.now() }, SECRET);
-  const { html, text } = issueBody(
-    fresh,
-    SITE,
-    `${SITE}/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}`,
-  );
+  const unsubscribeUrl = `${SITE}/api/newsletter/unsubscribe?token=${encodeURIComponent(token)}`;
+  const { html, text } = issueBody(fresh, SITE, unsubscribeUrl);
   try {
-    await sendOne(email, subject, html, text);
+    await sendOne(email, subject, html, text, unsubscribeUrl);
     sent++;
   } catch (err) {
     // Index only: an address must not reach the logs.

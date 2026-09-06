@@ -4,25 +4,52 @@ People subscribe on the blog page and get an email when new posts are
 published. Double opt-in, one unsubscribe link in every message, and no
 tracking of any kind.
 
-## The one step still needed
+## Sending
 
-Sending requires a mail provider, and provisioning one means creating an
-account, which is the owner's to do. Everything else is built and configured.
+Mail goes out over SMTP through MXroute, which already hosts the owner's mail.
+Nothing was signed up for and no third-party mail API is involved: the account,
+the sending reputation and the management credentials in
+`~/.config/stack/mxroute.env` already existed, so the newsletter uses them.
 
-1. Create an account at resend.com and verify `retroportingtoolkit.com` as a
-   sending domain (it will ask for DNS records; DNS is at Porkbun).
-2. Store the key and the From address, piping them so they never appear in a
-   command argument or a shell history:
+What was provisioned on 2026-09-07, recorded here because none of it is visible
+from the repository:
 
-   ```sh
-   pbpaste | vercel env add RESEND_API_KEY production
-   printf 'Retro Porting Toolkit <hello@retroportingtoolkit.com>' | vercel env add NEWSLETTER_FROM production
-   ```
+- `retroportingtoolkit.com` added to the MXroute account, after proving
+  ownership with a `_da-verify-*` TXT record at Porkbun.
+- Mailbox `newsletter@retroportingtoolkit.com`, capped at 500 messages a day so
+  a bug cannot empty the account's quota. Its password is in the login Keychain
+  as service `retroportingtoolkit-smtp`.
+- DNS at Porkbun: DKIM at `x._domainkey` (selector `x`, MXroute's key), SPF
+  extended from `include:_spf.porkbun.com` to also carry `include:mxroute.com`,
+  and a `_dmarc` record at `p=none`. **MX was deliberately left pointing at
+  Porkbun forwarding** — this domain sends mail, it does not receive it, and
+  repointing MX would have broken the owner's existing forwarding.
 
-3. Redeploy (any push to `main`, or `vercel --prod`).
+`p=none` is monitoring only. Move it to `quarantine` once a few issues have
+gone out and the DMARC reports look clean.
 
-Until then the form answers "The newsletter is not configured yet" rather than
-accepting an address it cannot keep a promise about.
+### Sending an issue
+
+`npm run newsletter:send` needs the transport in its environment. The password
+comes out of the Keychain so it is never written to a file in the repo:
+
+```sh
+export NEWSLETTER_SMTP_HOST=shadow.mxrouting.net
+export NEWSLETTER_SMTP_PORT=587
+export NEWSLETTER_SMTP_USER=newsletter@retroportingtoolkit.com
+export NEWSLETTER_SMTP_PASS="$(security find-generic-password -s retroportingtoolkit-smtp -w)"
+export NEWSLETTER_FROM="Retro Porting Toolkit <newsletter@retroportingtoolkit.com>"
+export NEWSLETTER_GIST_ID=...   # see the Vercel project's env
+export NEWSLETTER_SECRET=...
+export GITHUB_TOKEN="$(gh auth token)"
+
+npm run newsletter:send -- --dry-run    # counts and subject line, sends nothing
+npm run newsletter:send                 # actually sends
+```
+
+There is no scheduler and there must not be one: this repo's contract forbids
+adding a recurring job, and an unattended mailer that fails silently is the
+exact failure that rule exists to prevent.
 
 ## How it fits together
 

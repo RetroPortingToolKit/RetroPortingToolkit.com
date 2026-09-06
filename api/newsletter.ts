@@ -18,7 +18,7 @@
  *   NEWSLETTER_SECRET    HMAC secret for confirm/unsubscribe links (required)
  *   NEWSLETTER_GIST_ID   private gist holding subscribers.json (required)
  *   GITHUB_TOKEN         gist read/write; shared with the CMS (required)
- *   RESEND_API_KEY       mail provider (required to send anything)
+ *   NEWSLETTER_SMTP_*    SMTP transport, see src/lib/newsletterMail.ts
  *   NEWSLETTER_FROM      From: header, e.g. "Name <hello@example.com>"
  */
 import {
@@ -31,12 +31,11 @@ import {
   verifyToken,
   type Subscriber,
 } from "../src/lib/newsletterCore.js";
+import { mailConfigured, sendMail } from "../src/lib/newsletterMail.js";
 
 const SECRET = process.env.NEWSLETTER_SECRET || "";
 const GIST_ID = process.env.NEWSLETTER_GIST_ID || "";
 const TOKEN = process.env.GITHUB_TOKEN || "";
-const RESEND_KEY = process.env.RESEND_API_KEY || "";
-const FROM = process.env.NEWSLETTER_FROM || "";
 const SITE = process.env.NEWSLETTER_SITE_URL || "https://retroportingtoolkit.com";
 
 const GIST_FILE = "subscribers.json";
@@ -78,18 +77,6 @@ async function writeList(list: Subscriber[]): Promise<void> {
 
 /* --------------------------------------------------------------------- mail */
 
-async function sendMail(to: string, subject: string, html: string, text: string): Promise<void> {
-  if (!RESEND_KEY || !FROM) throw new Error("mail provider is not configured");
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { authorization: `Bearer ${RESEND_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({ from: FROM, to: [to], subject, html, text }),
-  });
-  if (!r.ok) {
-    // The body can echo the address; keep it out of the logs.
-    throw new Error(`mail send failed: ${r.status}`);
-  }
-}
 
 /* ------------------------------------------------------------------ replies */
 
@@ -130,7 +117,13 @@ const configured = () => Boolean(SECRET && GIST_ID && TOKEN);
 
 /* ------------------------------------------------------------------ handler */
 
-export default async function handler(req: Request): Promise<Response> {
+// Exported as named GET/POST rather than a default handler, which is what
+// api/cms.ts does and the reason it works. Vercel routes a default export
+// through the legacy Node launcher, where `req.url` is a bare path like
+// "/api/newsletter/subscribe?__sub=subscribe" and `new URL()` on it throws
+// ERR_INVALID_URL. Named method exports get the Web-standard Request, whose
+// url is absolute.
+async function handle(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const sub = (url.searchParams.get("__sub") || "").replace(/^\/+|\/+$/g, "");
 
@@ -152,7 +145,7 @@ export default async function handler(req: Request): Promise<Response> {
       }
       const email = normalizeEmail(body.email);
       if (!email) return json({ ok: false, error: "That does not look like an email address." }, 400);
-      if (!RESEND_KEY || !FROM) {
+      if (!mailConfigured()) {
         return json({ ok: false, error: "The newsletter is not configured yet." }, 503);
       }
 
@@ -196,4 +189,12 @@ export default async function handler(req: Request): Promise<Response> {
       ? json({ ok: false, error: "Something went wrong. Try again shortly." }, 500)
       : page("Something went wrong", "Try again shortly.", 500);
   }
+}
+
+export async function GET(req: Request): Promise<Response> {
+  return handle(req);
+}
+
+export async function POST(req: Request): Promise<Response> {
+  return handle(req);
 }
