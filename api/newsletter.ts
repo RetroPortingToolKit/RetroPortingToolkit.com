@@ -30,7 +30,7 @@ import {
   signToken,
   verifyToken,
   type Subscriber,
-} from "../src/lib/newsletterCore";
+} from "../src/lib/newsletterCore.js";
 
 const SECRET = process.env.NEWSLETTER_SECRET || "";
 const GIST_ID = process.env.NEWSLETTER_GIST_ID || "";
