@@ -10,14 +10,20 @@
  *    confirmation link, because anyone can type anyone else's address into a
  *    form on a public website.
  * 2. The subscriber list is NEVER written to the repository. This repo is
- *    public, so the list lives in a private GitHub gist reached with the token
- *    the CMS already uses. Swapping that for a database later means replacing
- *    readList/writeList and nothing else.
+ *    public, so the list lives in a GitHub gist reached with the token the CMS
+ *    already uses. A gist made with `public: false` is *secret* rather than
+ *    private — the id alone is enough to read it — so the contents are
+ *    encrypted before they are written; see src/lib/newsletterStore.ts.
+ *    Swapping the gist for a database later means replacing readList and
+ *    writeList and nothing else.
  *
  * Env:
  *   NEWSLETTER_SECRET    HMAC secret for confirm/unsubscribe links (required)
- *   NEWSLETTER_GIST_ID   private gist holding subscribers.json (required)
+ *   NEWSLETTER_GIST_ID   secret gist holding subscribers.json (required)
  *   GITHUB_TOKEN         gist read/write; shared with the CMS (required)
+ *   NEWSLETTER_STORE_KEY encrypts that list at rest; without it the list is
+ *                        stored in plain, which is the pre-encryption
+ *                        behaviour and still works (optional)
  *   NEWSLETTER_SMTP_*    SMTP transport, see src/lib/newsletterMail.ts
  *   NEWSLETTER_FROM      From: header, e.g. "Name <hello@example.com>"
  */
@@ -32,10 +38,12 @@ import {
   type Subscriber,
 } from "../src/lib/newsletterCore.js";
 import { mailConfigured, sendMail } from "../src/lib/newsletterMail.js";
+import { decryptList, encryptList } from "../src/lib/newsletterStore.js";
 
 const SECRET = process.env.NEWSLETTER_SECRET || "";
 const GIST_ID = process.env.NEWSLETTER_GIST_ID || "";
 const TOKEN = process.env.GITHUB_TOKEN || "";
+const STORE_KEY = process.env.NEWSLETTER_STORE_KEY || "";
 const SITE = process.env.NEWSLETTER_SITE_URL || "https://retroportingtoolkit.com";
 
 const GIST_FILE = "subscribers.json";
@@ -53,16 +61,16 @@ async function readList(): Promise<Subscriber[]> {
   const gist = (await r.json()) as { files?: Record<string, { content?: string; truncated?: boolean }> };
   const file = gist.files?.[GIST_FILE];
   if (!file?.content) return [];
-  try {
-    const parsed = JSON.parse(file.content);
-    return Array.isArray(parsed) ? (parsed as Subscriber[]) : [];
-  } catch {
-    // Never destroy a list we failed to parse: refuse instead.
-    throw new Error("gist contents are not valid JSON");
-  }
+  // Reads both forms: an envelope written with the key, and a plain array from
+  // before there was one. Never destroys a list it failed to read — decryptList
+  // throws rather than answering [], which writeList would then make true.
+  return decryptList(file.content, STORE_KEY);
 }
 
 async function writeList(list: Subscriber[]): Promise<void> {
+  // Encrypted whenever the key is set, so the file converts itself from plain
+  // to ciphertext on the first subscribe, confirm or unsubscribe after that.
+  const content = await encryptList(list, STORE_KEY);
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     method: "PATCH",
     headers: {
@@ -70,7 +78,7 @@ async function writeList(list: Subscriber[]): Promise<void> {
       accept: "application/vnd.github+json",
       "content-type": "application/json",
     },
-    body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify(list, null, 2) } } }),
+    body: JSON.stringify({ files: { [GIST_FILE]: { content } } }),
   });
   if (!r.ok) throw new Error(`gist write failed: ${r.status}`);
 }

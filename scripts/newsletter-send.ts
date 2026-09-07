@@ -12,7 +12,8 @@
  *
  * Env: NEWSLETTER_SECRET, NEWSLETTER_GIST_ID, GITHUB_TOKEN, NEWSLETTER_FROM,
  * the NEWSLETTER_SMTP_* transport (see src/lib/newsletterMail.ts), optionally
- * NEWSLETTER_SITE_URL.
+ * NEWSLETTER_SITE_URL, and NEWSLETTER_STORE_KEY to open the stored list (see
+ * src/lib/newsletterStore.ts; without it only a plaintext list can be read).
  *
  * Addresses are never printed, only counted.
  */
@@ -29,10 +30,12 @@ import {
   type Subscriber,
 } from "../src/lib/newsletterCore.ts";
 import { mailConfigured, sendMail } from "../src/lib/newsletterMail.ts";
+import { decryptList, storeKeyConfigured } from "../src/lib/newsletterStore.ts";
 
 const SECRET = process.env.NEWSLETTER_SECRET || "";
 const GIST_ID = process.env.NEWSLETTER_GIST_ID || "";
 const TOKEN = process.env.GITHUB_TOKEN || "";
+const STORE_KEY = process.env.NEWSLETTER_STORE_KEY || "";
 const SITE = process.env.NEWSLETTER_SITE_URL || "https://retroportingtoolkit.com";
 const SITE_TITLE = "Retro Porting Toolkit";
 
@@ -93,10 +96,16 @@ async function gistRead(): Promise<{ subscribers: Subscriber[]; lastSent?: strin
       fail(`${name} in the gist is not valid JSON; refusing to continue`);
     }
   };
-  return {
-    subscribers: parse<Subscriber[]>("subscribers.json", []),
-    lastSent: parse<{ lastSent?: string }>("state.json", {}).lastSent,
-  };
+  // state.json is a timestamp and stays in the clear. subscribers.json is
+  // other people's addresses, so it goes through the store: that reads the
+  // encrypted envelope and a plain array left from before the key alike, and
+  // refuses rather than pretending an unreadable list is an empty one.
+  const subscribers = await decryptList(gist.files?.["subscribers.json"]?.content, STORE_KEY).catch(
+    (err: unknown) =>
+      fail(`${err instanceof Error ? err.message : "subscribers.json is unreadable"}; refusing to continue`),
+  );
+
+  return { subscribers, lastSent: parse<{ lastSent?: string }>("state.json", {}).lastSent };
 }
 
 async function gistWriteState(lastSent: string): Promise<void> {
@@ -138,6 +147,11 @@ async function sendOne(
 if (!GIST_ID || !TOKEN) fail("NEWSLETTER_GIST_ID and GITHUB_TOKEN are required");
 if (!SECRET) fail("NEWSLETTER_SECRET is required to sign unsubscribe links");
 if (!dryRun && !mailConfigured()) fail("NEWSLETTER_SMTP_* and NEWSLETTER_FROM are required to send");
+// Not fatal: the list still reads in plain. Worth saying out loud, because a
+// plaintext list in a secret gist is protected by nothing but the id.
+if (!storeKeyConfigured(STORE_KEY)) {
+  console.warn("newsletter: NEWSLETTER_STORE_KEY is not set; the subscriber list is not encrypted");
+}
 
 const { subscribers, lastSent } = await gistRead();
 const recipients = confirmedEmails(subscribers);

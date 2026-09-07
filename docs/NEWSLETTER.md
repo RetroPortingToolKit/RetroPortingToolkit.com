@@ -41,6 +41,7 @@ export NEWSLETTER_FROM="Retro Porting Toolkit <newsletter@retroportingtoolkit.co
 export NEWSLETTER_SMTP_PASS="$(security find-generic-password -s retroportingtoolkit-smtp -w)"
 export NEWSLETTER_SECRET="$(security find-generic-password -s retroportingtoolkit-newsletter-secret -w)"
 export NEWSLETTER_GIST_ID="$(security find-generic-password -s retroportingtoolkit-newsletter-gist -w)"
+export NEWSLETTER_STORE_KEY="$(security find-generic-password -s retroportingtoolkit-newsletter-store-key -w)"
 export GITHUB_TOKEN="$(gh auth token)"
 ```
 
@@ -50,6 +51,11 @@ empty, so a value that exists only in Vercel is a value nobody can ever read
 again. `NEWSLETTER_SECRET` had to be rotated on 2026-09-07 for exactly that
 reason — the original was piped straight into Vercel and was gone. Anything
 added later goes into the Keychain at the same time it goes into Vercel.
+
+`NEWSLETTER_STORE_KEY` is the one where that rule stops being a convenience.
+`NEWSLETTER_SECRET` can be rotated at the cost of invalidating outstanding
+confirm links, but the store key is the only thing that can read the subscriber
+list: lose it and the subscribers are gone for good.
 
 There is no scheduler and there must not be one: this repo's contract forbids
 adding a recurring job, and an unattended mailer that fails silently is the
@@ -64,16 +70,19 @@ exact failure that rule exists to prevent.
 | Mail | `src/lib/newsletterMail.ts` — SMTP, server-only, never in the browser bundle |
 | Endpoint | `api/newsletter.ts` — subscribe, confirm, unsubscribe |
 | Send | `scripts/newsletter-send.ts`, run by hand |
-| Storage | a **private GitHub gist**, `NEWSLETTER_GIST_ID` |
+| Storage | a **secret GitHub gist**, `NEWSLETTER_GIST_ID` |
+| At rest | `src/lib/newsletterStore.ts` — AES-256-GCM over what that gist holds |
 
 ### Why a gist
 
 This repository is public, so the subscriber list can never live in it. The
-gist is private, is reached with the `GITHUB_TOKEN` the CMS already uses, and
-needed no new account or service. It holds `subscribers.json` and `state.json`
-(the last-sent timestamp). Moving to a database later means replacing
-`readList`/`writeList` in `api/newsletter.ts` and the two gist helpers in the
-send script; nothing else knows where the list lives.
+gist is reached with the `GITHUB_TOKEN` the CMS already uses and needed no new
+account or service. It is *secret* rather than private, which is why its
+contents are encrypted; see below. It holds `subscribers.json` and `state.json`
+(the last-sent timestamp, which is not secret and stays in the clear). Moving
+to a database later means replacing `readList`/`writeList` in
+`api/newsletter.ts` and the two gist helpers in the send script; nothing else
+knows where the list lives.
 
 ### Why double opt-in
 
@@ -117,16 +126,74 @@ The same posts are published as RSS, Atom and JSON Feed. The RSS button beside
 the Blog heading and in the footer points at `/rss.xml`; `/rss`, `/feed`,
 `/feed.xml` and `/atom` are rewrites onto the same files.
 
-## Known weakness: the subscriber list
+## The subscriber list at rest
 
-The list lives in a GitHub gist created with `public: false`. That is GitHub's
-*secret* gist, which is not the same as private: it is hidden from search, but
-anyone who learns the gist id can read it, without authenticating. The id is
-held in Vercel and in the Keychain and appears in no public artefact, so the
-list is protected by that id staying unknown — obscurity, not access control.
+The list is encrypted before it is written. What sits in the gist is an
+envelope, self-describing so a later version can change what is inside it:
 
-For a list of other people's email addresses that is thinner than it should be.
-The fix that does not require signing up for anything is to encrypt
-`subscribers.json` before it is written, with a key alongside the others in the
-Keychain and in Vercel; then the gist id leaking exposes ciphertext. That is not
-done yet, and it should be before the list is more than a handful of people.
+```json
+{ "v": 1, "iv": "<base64url>", "ct": "<base64url>" }
+```
+
+AES-256-GCM through Web Crypto (`src/lib/newsletterStore.ts`), a fresh 96-bit
+nonce for every single write, and an authentication tag checked on every read.
+Web Crypto rather than `node:crypto` because the same file has to run in the
+Vercel function and under `node --experimental-strip-types` for the send
+script. GCM rather than CBC because it authenticates as well as conceals.
+
+The AES key is the SHA-256 of `NEWSLETTER_STORE_KEY`. That is a plain hash and
+not a password KDF, deliberately: the env var is a randomly generated secret,
+not a phrase somebody remembers, so there is no small guess space for PBKDF2 or
+scrypt's work factor to defend, and the hash is only there to turn a string of
+any length into exactly the 32 bytes AES-256 wants. If that value ever becomes
+something a person chose, it has to become a real KDF.
+
+This is what closes the hole the storage started with. The gist was created
+`public: false`, which is GitHub's *secret* gist and not a private one: hidden
+from search, but readable by anyone who learns the id, without authenticating.
+The id was the entire protection — obscurity, not access control. Now the id
+buys ciphertext.
+
+**Reads are backward compatible and writes are not.** A plain JSON array still
+reads, which is what made this safe to put over a list that already had a live
+subscriber in it; every write produces an envelope once the key is set. So the
+gist converts itself on the first subscribe, confirm or unsubscribe after the
+key is in place, not on the deploy. With no key configured at all, both
+directions fall back to plaintext and the newsletter keeps working —
+`npm run newsletter:send` warns on every run while that is the case.
+
+Nothing unreadable is ever reported as an empty list. A wrong key, an altered
+file, an envelope with no key configured: all of them throw. The caller's next
+act is to write the list back, so an empty list would make itself true.
+
+### Setting the key
+
+Generate one, put it in the login Keychain, and give Vercel the same bytes by
+reading them back out of the Keychain, so the two copies cannot drift:
+
+```sh
+openssl rand -base64 32          # generate one and copy it
+
+security add-generic-password -s retroportingtoolkit-newsletter-store-key -a "$USER" -w
+                                 # paste it at the prompt
+
+security find-generic-password -s retroportingtoolkit-newsletter-store-key -w \
+  | tr -d '\n' | vercel env add NEWSLETTER_STORE_KEY production
+```
+
+A Vercel environment variable only reaches the function on the **next**
+deployment, so set it before the push that ships this, or redeploy afterwards.
+Until the function has the key it keeps writing plaintext, which is the
+pre-encryption behaviour and not a failure.
+
+### What this still does not fix
+
+The plaintext that was in the gist before is still in its **revision history**,
+and anyone with the id can read that. Encrypting from here does not retract
+what has already been published. Getting rid of it means deleting the gist,
+creating a new one, and putting the new id in the Keychain and in Vercel; the
+list is small enough that this is worth doing.
+
+And losing `NEWSLETTER_STORE_KEY` loses the list. That is not a flaw in the
+scheme, it is the scheme — which is why it goes in the Keychain, where it can
+still be read, and not only into Vercel, where it cannot.
