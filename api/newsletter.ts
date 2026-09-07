@@ -34,6 +34,7 @@ import {
   normalizeEmail,
   remove as removeSubscriber,
   signToken,
+  subscribeDecision,
   verifyToken,
   type Subscriber,
 } from "../src/lib/newsletterCore.js";
@@ -47,7 +48,13 @@ const STORE_KEY = process.env.NEWSLETTER_STORE_KEY || "";
 const SITE = process.env.NEWSLETTER_SITE_URL || "https://retroportingtoolkit.com";
 
 const GIST_FILE = "subscribers.json";
-const LINK_MAX_AGE_MS = 14 * 24 * 3600_000;
+// A confirmation link should be short-lived: it is an invitation, and a stale
+// one is no loss. An unsubscribe link must outlive the archive it appears in —
+// someone opening a year-old issue and clicking Unsubscribe has to succeed, or
+// their only remaining move is the spam button, and repeated failures on the
+// One-Click endpoint are exactly what gets a sender filtered.
+const CONFIRM_MAX_AGE_MS = 14 * 24 * 3600_000;
+const UNSUB_MAX_AGE_MS = 10 * 365 * 24 * 3600_000;
 const PENDING_MAX_AGE_MS = 14 * 24 * 3600_000;
 
 /* ------------------------------------------------------------------ storage */
@@ -61,6 +68,10 @@ async function readList(): Promise<Subscriber[]> {
   const gist = (await r.json()) as { files?: Record<string, { content?: string; truncated?: boolean }> };
   const file = gist.files?.[GIST_FILE];
   if (!file?.content) return [];
+  // GitHub truncates file content in the gist API response past ~1MB. Parsing
+  // the prefix would look like a corrupt list and, worse, writing it back would
+  // silently drop every subscriber past the cut.
+  if (file.truncated) throw new Error("gist contents were truncated by the API");
   // Reads both forms: an envelope written with the key, and a plain array from
   // before there was one. Never destroys a list it failed to read — decryptList
   // throws rather than answering [], which writeList would then make true.
@@ -95,7 +106,20 @@ const json = (body: unknown, status = 200) =>
   });
 
 /** A small self-contained page, so confirm/unsubscribe need no client route. */
-function page(title: string, message: string, status = 200): Response {
+/**
+ * A one-screen HTML reply. Pass `action` and it renders a button that POSTs
+ * instead of a link: the pages that change something must never do it on a GET,
+ * because mail security products (Defender Safe Links, Proofpoint, Mimecast)
+ * fetch every URL in an inbound message. A GET that confirms would let a
+ * victim's own scanner complete the double opt-in on their behalf, and a GET
+ * that unsubscribes would quietly remove people who never clicked.
+ */
+function page(
+  title: string,
+  message: string,
+  status = 200,
+  action?: { href: string; label: string },
+): Response {
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   return new Response(
     `<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -111,17 +135,42 @@ function page(title: string, message: string, status = 200): Response {
  h1{font-size:1.5rem;margin:0 0 .6rem;letter-spacing:-.01em}
  p{margin:0 0 1.6rem;color:#6e6e73}
  @media(prefers-color-scheme:dark){p{color:#a1a1a6}}
- a{display:inline-block;padding:10px 18px;border-radius:999px;background:#1d1d1f;color:#fff;
-   text-decoration:none;font-weight:600;font-size:.875rem}
- @media(prefers-color-scheme:dark){a{background:#f5f5f7;color:#1d1d1f}}
+ a,button{display:inline-block;padding:10px 18px;border-radius:999px;background:#1d1d1f;color:#fff;
+   text-decoration:none;font-weight:600;font-size:.875rem;border:0;cursor:pointer;font-family:inherit}
+ .after{margin:1.1rem 0 0}
+ a.plain{background:none;color:#6e6e73;padding:0;font-weight:400;text-decoration:underline}
+ @media(prefers-color-scheme:dark){a,button{background:#f5f5f7;color:#1d1d1f}
+   a.plain{background:none;color:#a1a1a6}}
 </style></head><body><main>
-<h1>${esc(title)}</h1><p>${esc(message)}</p><a href="${SITE}/blog">Back to the blog</a>
+<h1>${esc(title)}</h1><p>${esc(message)}</p>${
+      action
+        ? `<form method="post" action="${esc(action.href)}"><button type="submit">${esc(action.label)}</button></form>
+<p class="after"><a class="plain" href="${SITE}/blog">No thanks, back to the blog</a></p>`
+        : `<a href="${SITE}/blog">Back to the blog</a>`
+    }
 </main></body></html>`,
     { status, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } },
   );
 }
 
 const configured = () => Boolean(SECRET && GIST_ID && TOKEN);
+
+/**
+ * Floor on how fast /subscribe may answer.
+ *
+ * The bodies and status codes are already identical whatever happens, but the
+ * clock was not: an address already confirmed did one GitHub read and returned,
+ * while an unknown one did a read, a write and a full SMTP send. That is a
+ * five-to-ten-fold gap, which makes a single request a membership oracle. This
+ * does not make the endpoint constant-time — it collapses the obvious tell into
+ * something that needs real statistical work.
+ */
+const SUBSCRIBE_FLOOR_MS = 1200;
+
+async function settle(startedAt: number, floorMs = SUBSCRIBE_FLOOR_MS): Promise<void> {
+  const remaining = floorMs - (Date.now() - startedAt);
+  if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining));
+}
 
 /* ------------------------------------------------------------------ handler */
 
@@ -132,6 +181,7 @@ const configured = () => Boolean(SECRET && GIST_ID && TOKEN);
 // ERR_INVALID_URL. Named method exports get the Web-standard Request, whose
 // url is absolute.
 async function handle(req: Request): Promise<Response> {
+  const startedAt = Date.now();
   const url = new URL(req.url);
   const sub = (url.searchParams.get("__sub") || "").replace(/^\/+|\/+$/g, "");
 
@@ -149,6 +199,7 @@ async function handle(req: Request): Promise<Response> {
       // Honeypot: a field no person sees and every naive bot fills in. Answer
       // exactly as success so filling it in teaches nothing.
       if (typeof body.company === "string" && body.company.trim() !== "") {
+        await settle(startedAt);
         return json({ ok: true, pending: true });
       }
       const email = normalizeEmail(body.email);
@@ -158,8 +209,11 @@ async function handle(req: Request): Promise<Response> {
       }
 
       const list = dropStalePending(await readList(), PENDING_MAX_AGE_MS);
-      const already = list.find((s) => s.email === email)?.confirmed;
-      if (!already) {
+      // The address here is not necessarily the requester's, so this decides
+      // whether we are willing to put anything in that inbox at all. See
+      // subscribeDecision: one mail per address per cooldown, never a second to
+      // someone already confirmed, and a ceiling on unconfirmed records.
+      if (subscribeDecision(list, email) === "send") {
         await writeList(addPending(list, email));
         const token = await signToken({ email, action: "confirm", issued: Date.now() }, SECRET);
         const link = `${SITE}/api/newsletter/confirm?token=${encodeURIComponent(token)}`;
@@ -171,14 +225,41 @@ async function handle(req: Request): Promise<Response> {
         );
       }
       // Identical answer either way: whether an address is already subscribed
-      // is not something a stranger gets to probe for.
+      // is not something a stranger gets to probe for. Same for how long it
+      // took to say so.
+      await settle(startedAt);
       return json({ ok: true, pending: true });
     }
 
     if (sub === "confirm" || sub === "unsubscribe") {
-      const payload = await verifyToken(url.searchParams.get("token"), SECRET, LINK_MAX_AGE_MS);
+      const payload = await verifyToken(
+        url.searchParams.get("token"),
+        SECRET,
+        sub === "confirm" ? CONFIRM_MAX_AGE_MS : UNSUB_MAX_AGE_MS,
+      );
       if (!payload || payload.action !== sub) {
-        return page("That link did not work", "It may have expired. Subscribe again from the blog page.", 400);
+        return page(
+          "That link did not work",
+          sub === "confirm"
+            ? "It may have expired. Subscribe again from the blog page."
+            : "We could not read that unsubscribe link. Reply to any issue and it will be done by hand.",
+          400,
+        );
+      }
+      // Nothing changes on a GET. A person sees a button; a link scanner that
+      // fetched this URL out of their mail sees the same page and leaves.
+      if (req.method !== "POST") {
+        return sub === "confirm"
+          ? page(
+              "One more tap",
+              "Confirm that you want new posts from Retro Porting Toolkit by email.",
+              200,
+              { href: `${url.pathname}${url.search}`, label: "Confirm subscription" },
+            )
+          : page("Unsubscribe?", "Confirm that you want to stop receiving these emails.", 200, {
+              href: `${url.pathname}${url.search}`,
+              label: "Unsubscribe",
+            });
       }
       const list = await readList();
       if (sub === "confirm") {

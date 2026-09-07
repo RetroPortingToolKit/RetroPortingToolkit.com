@@ -96,10 +96,18 @@ fails to verify, and an unsubscribe link keeps working even if the list moves.
 
 ### Privacy
 
-Addresses are never written to the repository, never logged (failures are
-reported by list index), and the subscribe endpoint answers identically whether
-or not an address is already subscribed, so it cannot be used to test whether
-someone is on the list.
+Addresses are never written to the repository and never logged (failures are
+reported by list index). The subscribe endpoint answers identically whether or
+not an address is already subscribed — same status, same body.
+
+It is worth being precise about what that does and does not buy, because the
+claim here used to be stronger than the code. The *reply* is identical; the
+*time taken* to produce it was not. A confirmed address did one GitHub read and
+returned; anything else did a read, a write and a full SMTP send, which is a
+five-to-ten-fold difference and made a single request into a membership oracle.
+`SUBSCRIBE_FLOOR_MS` in `api/newsletter.ts` now holds every answer for at least
+1.2 seconds, which collapses that tell but does not make the endpoint
+constant-time. Treat it as expensive to probe, not impossible.
 
 ## Sending an issue
 
