@@ -166,6 +166,58 @@ export function dropStalePending(
   return list.filter((s) => s.confirmed || now - Date.parse(s.added) <= maxAgeMs);
 }
 
+/**
+ * Whether a subscribe request should actually put a message in someone's inbox.
+ *
+ * The address in a subscribe request is not the requester's — anyone can type
+ * anyone else's. Without this, every POST to /subscribe mails the address named
+ * in it, so a stranger with a shell loop can bomb a victim's inbox from our
+ * domain, burn the mailbox's daily quota, and stuff the list with addresses
+ * that never asked. The confirmation mail is the payload of that attack.
+ *
+ * All four outcomes must be answered to the caller identically, because the
+ * difference between them is exactly the thing an attacker would like to learn.
+ */
+export type SubscribeDecision =
+  /** Already on the list and confirmed. Sending again tells them nothing new. */
+  | "already-confirmed"
+  /** Asked for recently. One confirmation mail per address per cooldown. */
+  | "cooling-down"
+  /** Too many unconfirmed records; refuse to grow the list further. */
+  | "too-many-pending"
+  /** Genuinely new, or cooled off: send the confirmation. */
+  | "send";
+
+/** One confirmation per address per quarter hour. */
+export const CONFIRM_COOLDOWN_MS = 15 * 60 * 1000;
+
+/**
+ * Ceiling on unconfirmed records. Pending entries are the ones an attacker can
+ * create at will; confirmed subscribers are not counted, so a genuinely popular
+ * newsletter never trips it.
+ */
+export const MAX_PENDING = 500;
+
+export function subscribeDecision(
+  list: Subscriber[],
+  email: string,
+  now = Date.now(),
+  cooldownMs = CONFIRM_COOLDOWN_MS,
+  maxPending = MAX_PENDING,
+): SubscribeDecision {
+  const existing = list.find((s) => s.email === email);
+  if (existing?.confirmed) return "already-confirmed";
+  if (existing) {
+    const added = Date.parse(existing.added);
+    // An unparseable timestamp is treated as "recent" rather than "ancient":
+    // the failure mode of sending too few is kinder than of sending too many.
+    if (!Number.isFinite(added) || now - added < cooldownMs) return "cooling-down";
+    return "send";
+  }
+  if (list.filter((s) => !s.confirmed).length >= maxPending) return "too-many-pending";
+  return "send";
+}
+
 /* -------------------------------------------------------------------- issue */
 
 /** Posts published since the last send, newest first. */

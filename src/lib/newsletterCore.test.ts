@@ -12,6 +12,9 @@ import {
   signToken,
   verifyToken,
   type Subscriber,
+  subscribeDecision,
+  CONFIRM_COOLDOWN_MS,
+  MAX_PENDING,
 } from "./newsletterCore";
 
 const SECRET = "test-secret-not-a-real-one";
@@ -145,5 +148,64 @@ describe("newsletter issue", () => {
     expect(html).toContain("Unsubscribe");
     expect(text).toContain("https://example.com/blog/a");
     expect(text).toContain("Unsubscribe: https://example.com/api/newsletter/unsubscribe?token=t");
+  });
+});
+
+describe("subscribeDecision", () => {
+  const T0 = Date.parse("2026-09-07T12:00:00.000Z");
+  const pending = (email: string, ageMs: number) => ({
+    email,
+    added: new Date(T0 - ageMs).toISOString(),
+  });
+  const confirmed = (email: string) => ({
+    email,
+    added: new Date(T0 - 86_400_000).toISOString(),
+    confirmed: new Date(T0 - 80_000_000).toISOString(),
+  });
+
+  it("sends for an address that has never been seen", () => {
+    expect(subscribeDecision([], "new@example.com", T0)).toBe("send");
+  });
+
+  it("never re-sends to a confirmed subscriber", () => {
+    expect(subscribeDecision([confirmed("a@b.com")], "a@b.com", T0)).toBe("already-confirmed");
+  });
+
+  it("refuses a second confirmation inside the cooldown", () => {
+    // This is the email-bomb case: the same address, hammered.
+    const list = [pending("victim@example.com", 60_000)];
+    expect(subscribeDecision(list, "victim@example.com", T0)).toBe("cooling-down");
+  });
+
+  it("allows a genuine retry once the cooldown has passed", () => {
+    const list = [pending("someone@example.com", CONFIRM_COOLDOWN_MS + 1000)];
+    expect(subscribeDecision(list, "someone@example.com", T0)).toBe("send");
+  });
+
+  it("treats the cooldown boundary as still cooling", () => {
+    const list = [pending("edge@example.com", CONFIRM_COOLDOWN_MS - 1)];
+    expect(subscribeDecision(list, "edge@example.com", T0)).toBe("cooling-down");
+  });
+
+  it("stops the pending list growing without bound", () => {
+    const list = Array.from({ length: MAX_PENDING }, (_, i) => pending(`p${i}@example.com`, 0));
+    expect(subscribeDecision(list, "one-more@example.com", T0)).toBe("too-many-pending");
+  });
+
+  it("counts only unconfirmed records against that ceiling", () => {
+    // A popular newsletter must never lock itself out.
+    const list = Array.from({ length: MAX_PENDING * 2 }, (_, i) => confirmed(`c${i}@example.com`));
+    expect(subscribeDecision(list, "new@example.com", T0)).toBe("send");
+  });
+
+  it("still serves an existing pending address when the list is full", () => {
+    const list = Array.from({ length: MAX_PENDING }, (_, i) => pending(`p${i}@example.com`, 0));
+    list[0] = pending("known@example.com", CONFIRM_COOLDOWN_MS + 1000);
+    expect(subscribeDecision(list, "known@example.com", T0)).toBe("send");
+  });
+
+  it("does not resend when the stored timestamp is unreadable", () => {
+    const list = [{ email: "junk@example.com", added: "not a date" }];
+    expect(subscribeDecision(list, "junk@example.com", T0)).toBe("cooling-down");
   });
 });
