@@ -778,3 +778,90 @@ checked on any regeneration:
 The first SNES and Genesis attempts failed on limbs and face, and the first
 Master System and CD-i on hardware. All were redone. Check hardware by cropping
 into the render, not by glancing at the thumbnail.
+
+## Newsletter and feed discovery (2026-09-07)
+
+Readers can subscribe to the blog by feed or by email. How the newsletter is
+built and how to send an issue live in `docs/NEWSLETTER.md`; what follows is
+what that file cannot tell you from the code.
+
+- **The feeds became visible.** `src/components/FeedLink.tsx` renders an RSS
+  pill at the end of the Blog heading row (`.hn-tab-head`) and a matching quiet
+  link in the footer, both pointing at `/rss.xml`. RSS, Atom and JSON feeds have
+  existed since launch, but the only pointer to them was a `rel="alternate"`
+  tag, which a reader app can find and a person cannot. Only the blog offers
+  one, because only the blog has a feed. Both are plain `<a>` elements rather
+  than `SmartLink`: the feeds are static files written at build time and need a
+  real navigation.
+
+- **The endpoint returned 500 on every route, for two unrelated reasons.** The
+  first was `import ... from "../src/lib/newsletterCore"`, with no extension.
+  The module *was* bundled into the lambda — `vercel build` writes
+  `src/lib/newsletterCore.js` right beside the function — but this package is
+  `"type": "module"`, so Node's ESM resolver will not guess an extension the way
+  TypeScript's bundler-style resolution does, and the emitted import named a
+  path that could never exist. **Any `api/` import of `src/lib` must end in
+  `.js`.** (`api/cms.ts` never hit this because it imports nothing from `src/`.)
+
+- **The second was `export default`.** Vercel routes a default export through
+  the legacy Node launcher, where `req.url` is a bare path like
+  `/api/newsletter/subscribe?__sub=subscribe`, and `new URL(req.url)` on that
+  throws `ERR_INVALID_URL`. `api/cms.ts` had always worked because it exports
+  named `GET`/`POST`, which receive the Web-standard `Request`, whose url is
+  absolute. **`api/` functions export named `GET`/`POST`, never a default.**
+
+- **Mail goes over SMTP to MXroute**, the owner's existing mail host, not a
+  third-party mail API: the account, the sending reputation and the management
+  credentials in `~/.config/stack/mxroute.env` already existed. Provisioned
+  2026-09-07, none of it visible from the repository: `retroportingtoolkit.com`
+  added to the MXroute account after proving ownership with a `_da-verify-*` TXT
+  record at Porkbun; mailbox `newsletter@retroportingtoolkit.com` capped at 500
+  messages a day (its password is in the Keychain, not in that env file); DKIM
+  at `x._domainkey`; SPF extended additively from `include:_spf.porkbun.com` to
+  also carry `include:mxroute.com`; DMARC added at `p=none`. **MX was
+  deliberately not changed** — this domain sends mail, it does not receive it,
+  and repointing MX would have broken the owner's existing Porkbun forwarding.
+  The cost of that choice: bounces and DMARC `rua` reports addressed to
+  `newsletter@` go to Porkbun forwarding, so nobody is watching them yet.
+
+- **Vercel environment variables are write-only, and this is the fact to carry
+  forward.** `vercel env pull` returns every project variable EMPTY; only
+  Vercel's own system variables come back with values. A secret that exists only
+  in Vercel is unrecoverable by anything except the deployed function.
+  `NEWSLETTER_SECRET` had to be rotated on 2026-09-07 for exactly that reason:
+  it was piped straight into Vercel when it was created, which meant `npm run
+  newsletter:send` could not sign an unsubscribe link and could never have sent
+  an issue. Secrets are now mirrored in the login Keychain under the services
+  `retroportingtoolkit-smtp`, `retroportingtoolkit-newsletter-secret` and
+  `retroportingtoolkit-newsletter-gist`. **Anything added later goes into the
+  Keychain at the same time it goes into Vercel.**
+
+- **The subscriber list's last-sent mark was set by hand to
+  `2026-09-07T02:35Z`.** It was unset, and `postsSince` treats an unset mark as
+  "everything qualifies", so the first issue would otherwise have mailed 30
+  posts as one message. (30, not 32: `readPosts()` skips two folders that have
+  no `title`/`date` — `04_time-extension-openpete` and
+  `06_video-sfa3-recomp-out-now`.)
+
+- **A subscriber record turned up confirmed with no obvious explanation.** It
+  was in the end a leftover from earlier testing, but "probably fine" is not a
+  conclusion to reach about a signature check, so
+  `src/lib/newsletterToken.test.ts` now pins the property down: twelve forgeries
+  (garbage, unsigned, truncated, body swapped under a valid signature, signature
+  borrowed from another token, one character changed, case folded), the right
+  signature under the wrong secret and under no secret, expired, future-dated,
+  and confirm/unsubscribe action confusion. All rejected.
+
+- **That commit was pushed with typecheck red.** The new test imported with a
+  `.ts` extension, which vitest resolves happily and `tsc` rejects as TS5097.
+  The tests were run and the pass line was read; the typecheck line above it was
+  not. `AGENTS.md` asks for all three checks before a push, and the reason it
+  asks for all three is that any one of them can be green while another is not.
+
+- **Verify against the deployment URL, not the apex domain.** Heavy automated
+  traffic from this Mac's egress IP trips Vercel's bot mitigation
+  (`x-vercel-mitigated: challenge`), after which retroportingtoolkit.com returns
+  a "Vercel Security Checkpoint" page to this machine while being perfectly fine
+  for everyone else. This has now happened twice, once mid-session while the
+  browser pane was pointed at it. Anyone verifying from here should use the
+  deployment URL.
