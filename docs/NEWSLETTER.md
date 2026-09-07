@@ -37,15 +37,19 @@ comes out of the Keychain so it is never written to a file in the repo:
 export NEWSLETTER_SMTP_HOST=shadow.mxrouting.net
 export NEWSLETTER_SMTP_PORT=587
 export NEWSLETTER_SMTP_USER=newsletter@retroportingtoolkit.com
-export NEWSLETTER_SMTP_PASS="$(security find-generic-password -s retroportingtoolkit-smtp -w)"
 export NEWSLETTER_FROM="Retro Porting Toolkit <newsletter@retroportingtoolkit.com>"
-export NEWSLETTER_GIST_ID=...   # see the Vercel project's env
-export NEWSLETTER_SECRET=...
+export NEWSLETTER_SMTP_PASS="$(security find-generic-password -s retroportingtoolkit-smtp -w)"
+export NEWSLETTER_SECRET="$(security find-generic-password -s retroportingtoolkit-newsletter-secret -w)"
+export NEWSLETTER_GIST_ID="$(security find-generic-password -s retroportingtoolkit-newsletter-gist -w)"
 export GITHUB_TOKEN="$(gh auth token)"
-
-npm run newsletter:send -- --dry-run    # counts and subject line, sends nothing
-npm run newsletter:send                 # actually sends
 ```
+
+**Every secret is in the login Keychain, and that is not a convenience.**
+Vercel environment variables are write-only: `vercel env pull` returns them
+empty, so a value that exists only in Vercel is a value nobody can ever read
+again. `NEWSLETTER_SECRET` had to be rotated on 2026-09-07 for exactly that
+reason — the original was piped straight into Vercel and was gone. Anything
+added later goes into the Keychain at the same time it goes into Vercel.
 
 There is no scheduler and there must not be one: this repo's contract forbids
 adding a recurring job, and an unattended mailer that fails silently is the
@@ -57,6 +61,7 @@ exact failure that rule exists to prevent.
 | --- | --- |
 | Form | `src/components/Subscribe.tsx`, at the end of the blog list |
 | Logic | `src/lib/newsletterCore.ts` — addresses, tokens, list, issue rendering |
+| Mail | `src/lib/newsletterMail.ts` — SMTP, server-only, never in the browser bundle |
 | Endpoint | `api/newsletter.ts` — subscribe, confirm, unsubscribe |
 | Send | `scripts/newsletter-send.ts`, run by hand |
 | Storage | a **private GitHub gist**, `NEWSLETTER_GIST_ID` |
@@ -111,3 +116,17 @@ The script needs the same env vars as the endpoint. Pull them locally with
 The same posts are published as RSS, Atom and JSON Feed. The RSS button beside
 the Blog heading and in the footer points at `/rss.xml`; `/rss`, `/feed`,
 `/feed.xml` and `/atom` are rewrites onto the same files.
+
+## Known weakness: the subscriber list
+
+The list lives in a GitHub gist created with `public: false`. That is GitHub's
+*secret* gist, which is not the same as private: it is hidden from search, but
+anyone who learns the gist id can read it, without authenticating. The id is
+held in Vercel and in the Keychain and appears in no public artefact, so the
+list is protected by that id staying unknown — obscurity, not access control.
+
+For a list of other people's email addresses that is thinner than it should be.
+The fix that does not require signing up for anything is to encrypt
+`subscribers.json` before it is written, with a key alongside the others in the
+Keychain and in Vercel; then the gist id leaking exposes ciphertext. That is not
+done yet, and it should be before the list is more than a handful of people.
