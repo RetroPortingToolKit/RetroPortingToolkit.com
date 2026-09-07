@@ -865,3 +865,51 @@ what that file cannot tell you from the code.
   for everyone else. This has now happened twice, once mid-session while the
   browser pane was pointed at it. Anyone verifying from here should use the
   deployment URL.
+
+### What the adversarial review found (2026-09-07)
+
+The newsletter was reviewed as a stranger would attack it, once it was live.
+Three defects were real and are fixed; the rest are recorded because they are
+still true.
+
+- **/subscribe mailed whatever address it was given, uncapped.** The address in
+  a subscribe request is not the requester's, so this was an email bomb aimed at
+  anyone, sent from this domain, and it drained the 500-a-day mailbox and the
+  `GITHUB_TOKEN` rate limit that `/admin` shares. `subscribeDecision` in
+  `newsletterCore.ts` now gates it. The escalation that made it permanent:
+  `readList` ignored GitHub's `truncated` flag, so about a megabyte of junk
+  addresses would have left every route unable to parse the list until a human
+  edited the gist by hand. That flag is now fatal.
+- **`confirm` and `unsubscribe` changed state on GET.** Mail security products
+  fetch every URL in an inbound message, so a victim's own scanner could
+  complete the double opt-in for them — which is the single guarantee this
+  system makes — and could silently unsubscribe real readers. Both now render a
+  button and act only on POST. RFC 8058 One-Click wants POST anyway.
+- **Unsubscribe links expired after 14 days**, sharing a constant with
+  confirmation links. Confirm and unsubscribe lifetimes are now separate:
+  a confirmation is an invitation and may go stale, an unsubscribe link has to
+  outlive the archive it sits in.
+- **The endpoint leaked membership by timing.** Identical bodies and statuses,
+  but a confirmed address returned in ~200ms and an unknown one took a full
+  SMTP send. `SUBSCRIBE_FLOOR_MS` holds every answer to 1.2s, which is
+  mitigation and not a fix — the docs no longer claim more than that.
+
+Still open, in rough order of how much they matter:
+
+- **The gist read-modify-write has no compare-and-swap.** Two unsubscribes in
+  the same window can resurrect each other, and unsubscribes cluster in the
+  minutes after an issue goes out. A confirmation can also be silently reverted
+  by a concurrent subscribe. The class disappears if the store holds one record
+  per address rather than one blob.
+- **`newsletter-send.ts` is not idempotent.** It records which posts went out,
+  not which recipients were reached, so a re-run after a partial failure mails
+  everyone who already got it.
+- **A post published later on the same day as a send is invisible forever**,
+  because post dates are date-only and the mark is a wall-clock timestamp.
+  Tracking sent posts by slug rather than by time would remove the boundary.
+- **Two posts can never be mailed** — `04_time-extension-openpete` and
+  `06_video-sfa3-recomp-out-now` have `year:` and no `date:`. They are in the
+  feeds (dated 1 January) but `readPosts()` skips them.
+- **The pre-encryption plaintext is still in the gist's revision history.**
+  Encrypting the file did not rewrite what came before it. Fixing that means a
+  new gist and a new id.
