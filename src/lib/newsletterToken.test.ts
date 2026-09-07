@@ -7,7 +7,7 @@
  * property down: only a token this secret actually signed is ever accepted.
  */
 import { describe, expect, it } from "vitest";
-import { signToken, verifyToken } from "./newsletterCore.ts";
+import { signToken, verifyToken } from "./newsletterCore";
 const S = "a-secret-of-reasonable-length-1234567890";
 const AGE = 48 * 3600 * 1000;
 const b64 = (o: unknown) => btoa(JSON.stringify(o)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
