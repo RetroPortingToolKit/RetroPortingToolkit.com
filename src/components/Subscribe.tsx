@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { FEED_PATHS } from "./FeedLink";
+import { useSubscribeForm } from "./useSubscribeForm";
 
 /**
  * Email signup for new posts.
@@ -9,37 +9,8 @@ import { FEED_PATHS } from "./FeedLink";
  * address was already on the list, because whether a given address subscribes
  * here is not a stranger's business.
  */
-type State = { status: "idle" | "busy" | "done" | "error"; message?: string };
-
 export function Subscribe() {
-  const [email, setEmail] = useState("");
-  const [company, setCompany] = useState(""); // honeypot
-  const [state, setState] = useState<State>({ status: "idle" });
-
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (state.status === "busy") return;
-    setState({ status: "busy" });
-    try {
-      const r = await fetch("/api/newsletter/subscribe", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, company }),
-      });
-      const body = (await r.json().catch(() => ({}))) as { ok?: boolean; error?: string };
-      if (r.ok && body.ok) {
-        setState({
-          status: "done",
-          message: "Check your inbox for a confirmation link. Nothing is sent until you click it.",
-        });
-        setEmail("");
-      } else {
-        setState({ status: "error", message: body.error || "Something went wrong. Try again shortly." });
-      }
-    } catch {
-      setState({ status: "error", message: "Could not reach the server. Try again shortly." });
-    }
-  }
+  const { email, setEmail, company, setCompany, state, onSubmit } = useSubscribeForm();
 
   return (
     <section className="subscribe" aria-labelledby="subscribe-heading">

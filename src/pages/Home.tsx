@@ -10,6 +10,7 @@ import { SmartLink } from "@/components/SmartLink";
 import { SpatialCard } from "@/components/SpatialCard";
 import { FeedButton } from "@/components/FeedLink";
 import { Subscribe } from "@/components/Subscribe";
+import { SubscribeCorner } from "@/components/SubscribeCorner";
 import { chipColorFor, CHIP_PALETTE } from "@/lib/chipColor";
 import { HeroReel } from "@/components/HeroReel";
 import {
@@ -1004,6 +1005,10 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
             />
           </div>
         ))}
+        {/* Last child and position:fixed, so it is outside the pager's
+            transformed panes — a transformed ancestor would make it scroll
+            away with the page instead of staying in the corner. */}
+        <SubscribeCorner />
       </div>
   );
 }

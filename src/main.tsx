@@ -36,6 +36,7 @@ import "./styles/11-apple-cms.css";
 // BASE look of that button; 13-docs-search.css only says where the
 // documentation puts it, and stays scoped so it still wins.
 import "./styles/15-search-palette.css";
+import "./styles/16-subscribe-corner.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Missing #root element");

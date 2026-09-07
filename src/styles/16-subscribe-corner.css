@@ -1,0 +1,135 @@
+/* --------------------------------------------------- corner subscribe box --- */
+/* The small dismissible offer, bottom-right. Sits above the page but below the
+   nav (100/101), the search palette (200) and anything modal (400/500): it is
+   an aside, and it must never be the thing covering something the reader was
+   trying to use. */
+.subbox {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 120;
+  width: min(21rem, calc(100vw - 40px));
+  padding: 18px 18px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--surface, var(--bg));
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.06),
+    0 12px 32px rgb(0 0 0 / 0.16);
+  animation: subbox-in 0.28s var(--ease, ease) both;
+}
+@keyframes subbox-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .subbox {
+    animation: none;
+  }
+}
+
+.subbox-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s var(--ease, ease), background 0.15s var(--ease, ease);
+}
+.subbox-close:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.subbox-close:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.subbox-title {
+  margin: 0 28px 4px 0; /* clear of the close button */
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.subbox-sub {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.subbox-form {
+  display: grid;
+  gap: 8px;
+}
+.subbox-label,
+.subbox-hp {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.subbox-input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 13px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.875rem;
+}
+.subbox-input:focus-visible {
+  outline: none;
+  border-color: var(--ink);
+}
+.subbox-button {
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease, ease);
+}
+.subbox-button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+.subbox-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.subbox-error {
+  margin: 2px 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #c0392b;
+}
+
+/* On a phone it spans the width, sitting above the thumb rather than in a
+   corner it cannot comfortably reach. */
+@media (max-width: 640px) {
+  .subbox {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+  }
+}
