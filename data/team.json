@@ -28,7 +28,32 @@
         "Backend web services and data engineer with over ten years of experience.",
         "Applied those skills, together with a background in classic games and decompilation and recompilation, to build out the NES, Super Nintendo, Game Boy Advance, Nintendo DS, Virtual Boy and PlayStation recompilers."
       ],
-      "links": []
+      "links": [
+        {
+          "label": "NESRecomp",
+          "href": "https://github.com/mstan/nesrecomp"
+        },
+        {
+          "label": "SNESRecomp",
+          "href": "https://github.com/mstan/snesrecomp"
+        },
+        {
+          "label": "GBARecomp",
+          "href": "https://github.com/mstan/gbarecomp"
+        },
+        {
+          "label": "NDSRecomp",
+          "href": "https://github.com/mstan/ndsrecomp"
+        },
+        {
+          "label": "PSXRecomp",
+          "href": "https://github.com/mstan/psxrecomp"
+        },
+        {
+          "label": "SegaGenesisRecomp",
+          "href": "https://github.com/mstan/segagenesisrecomp"
+        }
+      ]
     },
     {
       "slug": "jack-rickey",
@@ -55,7 +80,12 @@
         "Quantitative developer and systems programmer: builds the full stack behind trading decisions by day, and writes open source low-level systems tooling by night.",
         "BattleShip is a cross-platform native PC port of Super Smash Bros. for the Nintendo 64, decompiled and ported with AI assistance."
       ],
-      "links": []
+      "links": [
+        {
+          "label": "BattleShip",
+          "href": "https://github.com/JRickey/BattleShip"
+        }
+      ]
     },
     {
       "slug": "alex-vanderveen",
@@ -96,7 +126,7 @@
     {
       "slug": "alexandros-mandravillis",
       "name": "Alexandros Mandravillis",
-      "role": "Contributor, PSXRecomp",
+      "role": "Contributor, QA",
       "photo": "/team/alexbeav.jpg",
       "handles": [
         {
