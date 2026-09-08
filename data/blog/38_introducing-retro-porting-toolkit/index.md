@@ -24,7 +24,7 @@ Retro Porting Toolkit is an open collection of the recompilers, runtimes, tools,
 
 The site is at **retroportingtoolkit.com**.
 
-We currently cover work across PlayStation, Nintendo 64, SNES, Nintendo DS, Game Boy Advance, Genesis, CD-i and NES, with more to come.
+We currently cover work across [PlayStation](/hardware/playstation), Nintendo 64, [SNES](/hardware/super-nintendo), [Nintendo DS](/hardware/nintendo-ds), [Game Boy Advance](/hardware/game-boy-advance), [Genesis](/hardware/sega-genesis), [CD-i](/hardware/cd-i) and [NES](/hardware/nes), with more to come.
 
 Some of these ecosystems are already surprisingly capable. Others are experimental. Some games have polished playable releases, while others are at the fascinating stage where somebody has just managed to make the title screen appear.
 
@@ -32,7 +32,7 @@ We want to represent all of that.
 
 If you already know what static recompilation is, the site should make it easier to see what is happening across the different ecosystems, find the underlying tools, understand how projects relate to each other, and hopefully start building something yourself.
 
-If you **don't** know what static recompilation is, we have an introduction for that too. The short version is that instead of emulating the original console, we translate the original game's machine code into something that can be compiled into a native application. A runtime then provides the hardware behaviour the game expects.
+If you **don't** know what static recompilation is, we have [an introduction](/docs/start/what-is-static-recompilation) for that too. The short version is that instead of emulating the original console, we translate the original game's machine code into something that can be compiled into a native application. A runtime then provides the hardware behaviour the game expects.
 
 That distinction turns out to be pretty powerful.
 
@@ -44,11 +44,13 @@ It's the beginning.
 
 Once the game is a modern application, we can start asking what else it could be.
 
-Metroid Prime Hunters can have mouse aiming, keyboard controls and a wider field of view.
+[Metroid Prime Hunters](/games/metroid-prime-hunters) can have mouse aiming, keyboard controls and a wider field of view.
 
-Boktai originally used a solar sensor built into its Game Boy Advance cartridge to make real sunlight part of the game. In a modern port, that mechanic can instead use local weather data.
+[Boktai](/games/boktai) originally used a solar sensor built into its Game Boy Advance cartridge to make real sunlight part of the game. In a modern port, that mechanic can instead use local weather data.
 
-Super Mario Bros. can have entirely new playable characters with their own mechanics. Samus can have beams, missiles and Morph Ball bombs. Sonic can have a spindash.
+[Super Mario Bros.](/games/super-mario-bros) can have entirely new playable characters with their own mechanics. Samus can have beams, missiles and Morph Ball bombs. Sonic can have a spindash.
+
+[Mega Man Zero](/games/mega-man-zero) can open its view past the original screen instead of stretching the picture, and [Faxanadu](/games/faxanadu) can have its dialogue rewritten from a file while the game is running.
 
 Other projects are experimenting with things like high-resolution rendering, modern controller support, networking and modifications that would have been considerably harder to contemplate while working directly against the original hardware.
 
@@ -65,6 +67,8 @@ There's another reason for putting these projects together.
 A lot of this work is reusable.
 
 A console recompilation project isn't just a way to port one game. It can produce a recompiler, runtime, debugging infrastructure, launcher, libraries and a body of knowledge that makes the *next* game easier.
+
+![Save states and rewind in Tomba!, built once so other ports can pick them up](https://www.youtube.com/watch?v=L36ppNkuJG0)
 
 And some of that work can travel even further.
 

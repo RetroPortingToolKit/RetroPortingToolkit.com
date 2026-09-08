@@ -269,11 +269,9 @@ body.modal-open {
   .modal-body--article .modal-content > p:first-child {
     font-size: 20px;
   }
-  /* Serif section heads: keep the accent bar inside the padded column. */
   .modal-body--article .modal-content h2 {
     font-size: 23px;
     margin-top: 40px;
-    padding-top: 22px;
   }
   .modal-body--article .modal-content h3 {
     font-size: 19px;

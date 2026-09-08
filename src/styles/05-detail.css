@@ -508,8 +508,8 @@
   margin-bottom: 8px;
 }
 
-/* Serif section headings; accent survives as a top rule + short bar (dropped on
-   the first h2 so a post never opens with a floating rule). */
+/* Serif section headings. No rule or accent bar above them: the space and the
+   type change carry the break on their own (owner, 2026-09-08). */
 .modal-body--article .modal-content h2 {
   font-family: var(--article-display);
   font-weight: 600;
@@ -518,27 +518,8 @@
   line-height: 1.15;
   color: var(--ink);
   margin: 52px auto 16px;
-  padding-top: 28px;
-  border-top: 1px solid var(--hairline);
   position: relative;
   scroll-margin-top: 24px;
-}
-.modal-body--article .modal-content h2::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  left: 0;
-  width: 40px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--article-accent, var(--ink));
-}
-.modal-body--article .modal-content > h2:first-of-type {
-  border-top: 0;
-  padding-top: 0;
-}
-.modal-body--article .modal-content > h2:first-of-type::before {
-  display: none;
 }
 .modal-body--article .modal-content h3 {
   font-family: var(--article-display);
