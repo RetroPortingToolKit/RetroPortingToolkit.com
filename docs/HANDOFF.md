@@ -1064,3 +1064,30 @@ in the bridge as a result:
   restores the queue behind it. "⚠️ Interrupted — re-send" is now only for a
   run killed mid-edit, where the tree needs eyes first.
 
+**2026-09-08, a hardening pass over the whole bridge**, read end to end for
+the first time rather than in fragments. What it turned up, in order of how
+much it mattered:
+
+- **Commit churn started the agent on top of an active session.** The quiet
+  wait can time out with a clean tree and a commit under 20s old — someone
+  committing every few seconds — and the caller only checked the status
+  string, so that case was treated as "go". It parks now, and a harness
+  scenario commits every second to prove it.
+- **A stream-json run kept its entire event stream in one string** to find
+  the last `result` line; tool output rides along in those events, so a long
+  run could hold many megabytes. The result is captured per line and the
+  stream is not kept.
+- **`jobs.json` was written in place.** A crash mid-write left half a file,
+  which reads as "nothing to recover" — losing the queue and the notices about
+  it, silently. Write-then-rename now.
+- **A parked request polled three `git` processes every 5s for up to six
+  hours.** Two processes, and 15s between polls once a wait has gone past a
+  minute; a quiet reading still settles at the short interval.
+- **The outbox only flushed at start-up**, so a Discord blip held every
+  spooled reply until the next restart. It retries every five minutes.
+- `activeChild` was never cleared, so "stop" during a wait aimed at a dead
+  process; the ask cooldown map grew by one entry per person forever; and
+  several docblocks described behaviour that no longer exists (asks "on a
+  Codex process", recovery "telling everyone their request died"). Fixed,
+  bounded, rewritten. `droppedMessage` had no caller left and is gone.
+

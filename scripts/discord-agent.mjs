@@ -16,7 +16,6 @@ import {
   channelMode,
   chunkDiscordMessage,
   cooldownRemaining,
-  droppedMessage,
   formatElapsed,
   interruptedMessage,
   isCancelMineRequest,
@@ -118,7 +117,10 @@ const CHECKOUT_WAIT_MS = envMs("DISCORD_AGENT_WAIT_MS", 5 * 60 * 1_000);
 // exists so a tree left dirty overnight eventually reports something instead of
 // sitting silently forever.
 const CHECKOUT_PATIENCE_MS = envMs("DISCORD_AGENT_PATIENCE_MS", 6 * 60 * 60 * 1_000);
-const BUSY_NOTICE_MS = 15 * 60 * 1_000;
+// A reply that could not be delivered is spooled; this is how often the spool
+// is retried while the process lives, so a Discord blip does not hold replies
+// until the next restart.
+const OUTBOX_FLUSH_MS = envMs("DISCORD_AGENT_OUTBOX_MS", 5 * 60 * 1_000);
 // How long the repository must have been untouched before the agent starts, and
 // how long a quiet reading has to hold before it is believed.
 // Was 90s. Every request paid it in full, because the previous request's own
@@ -164,7 +166,12 @@ async function readJson(file, fallback) {
 
 async function writeJson(file, value) {
   await fs.mkdir(path.dirname(file), { recursive: true, mode: 0o700 });
-  await fs.writeFile(file, JSON.stringify(value, null, 2), { mode: 0o600 });
+  // Write-then-rename, so a crash mid-write leaves the previous file rather
+  // than half of the new one. A torn jobs.json reads as "nothing to recover",
+  // which loses the queue and the notices about it, silently.
+  const tmp = `${file}.${process.pid}.tmp`;
+  await fs.writeFile(tmp, JSON.stringify(value, null, 2), { mode: 0o600 });
+  await fs.rename(tmp, file);
 }
 
 function jobRecord(job) {
@@ -273,15 +280,15 @@ async function replyChunks(ref, heading, body, options = {}) {
 }
 
 async function gitSnapshot() {
-  const [{ stdout: status }, { stdout: head }, { stdout: committedAt }] = await Promise.all([
+  const [{ stdout: status }, { stdout: last }] = await Promise.all([
     execFileAsync("git", ["status", "--porcelain"], { cwd: ROOT }),
-    execFileAsync("git", ["rev-parse", "HEAD"], { cwd: ROOT }),
-    execFileAsync("git", ["log", "-1", "--format=%ct"], { cwd: ROOT }),
+    execFileAsync("git", ["log", "-1", "--format=%H %ct"], { cwd: ROOT }),
   ]);
+  const [head = "", committedAt = ""] = last.trim().split(" ");
   return {
     status: status.trim(),
-    head: head.trim(),
-    lastCommitMs: Number(committedAt.trim()) * 1000,
+    head,
+    lastCommitMs: Number(committedAt) * 1000,
   };
 }
 
@@ -292,7 +299,8 @@ async function gitSnapshot() {
  * session between two of their commits.
  */
 async function waitForQuietCheckout(timeoutMs, onWait) {
-  const deadline = Date.now() + timeoutMs;
+  const started = Date.now();
+  const deadline = started + timeoutMs;
   let previous = null;
   while (true) {
     const pulse = await gitSnapshot();
@@ -306,7 +314,11 @@ async function waitForQuietCheckout(timeoutMs, onWait) {
       // Looked quiet once; confirm it is still identical a moment later.
       previous = pulse;
     }
-    await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
+    // A wait that has already gone on for a minute is someone's working
+    // session, not a moment; polling git every few seconds for hours on end
+    // buys nothing. Settling a quiet reading stays quick.
+    const interval = reason && Date.now() - started > 60_000 ? SETTLE_MS * 3 : SETTLE_MS;
+    await new Promise((resolve) => setTimeout(resolve, interval));
   }
 }
 
@@ -335,7 +347,8 @@ class RunnerUnavailableError extends Error {
 function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, onSpawn, onTimeout, onActivity }) {
   const { command, args, resultFrom } = agentCommand({ runner, mode, root: ROOT, outputFile });
   return new Promise((resolve, reject) => {
-    let stdout = "";
+    let stdout = ""; // only for runners that answer on plain stdout
+    let streamResult = null; // the last "result" event of a stream-json run
     let diagnostics = "";
     let pending = ""; // partial stream line between chunks
     let idle = null;
@@ -356,6 +369,11 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
       const lines = pending.split("\n");
       pending = lines.pop() ?? "";
       for (const line of lines) {
+        // The answer is the last result event. Keeping only that, rather than
+        // the whole stream, is what bounds memory: tool output rides along in
+        // these events and a long run can be many megabytes of it.
+        const result = parseStreamResult(line);
+        if (result) streamResult = result;
         const entry = traceStreamLine(line);
         if (!entry) continue;
         taskLog.write(entry + "\n");
@@ -391,7 +409,6 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
       alive();
       const text = data.toString();
       if (resultFrom === "stream") {
-        stdout += text;
         trace(text);
       } else {
         taskLog.write(data);
@@ -423,12 +440,11 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
           : "";
       let text;
       if (resultFrom === "stream") {
-        const result = parseStreamResult(stdout);
-        if (result?.isError) {
-          reject(new Error(result.text || `${runner} reported an error.`));
+        if (streamResult?.isError) {
+          reject(new Error(streamResult.text || `${runner} reported an error.`));
           return;
         }
-        text = result?.text ?? "";
+        text = streamResult?.text ?? "";
       } else {
         text = (resultFrom === "stdout" ? stdout : fromFile).trim();
       }
@@ -569,7 +585,11 @@ async function runPublish(job) {
       void updateStatus(job);
     }
   });
-  if (starting.status) {
+  // Both the dirty tree and the wait that timed out on commit churn (clean
+  // tree, someone committing every few seconds) are "busy": the second used
+  // to slip through because only the status string was checked, and the agent
+  // started on top of an active session.
+  if (starting.status || starting.busyReason) {
     throw new CheckoutBusyError();
   }
   job.phase = "running";
@@ -615,6 +635,7 @@ async function runPublish(job) {
     }
     return summary || "Task completed, but the agent returned no summary.";
   } finally {
+    activeChild = null; // "stop" must not aim at a process that already exited
     await taskLog.close();
     await pruneTaskLogs();
     await fs.rm(tempDir, { recursive: true, force: true });
@@ -622,9 +643,10 @@ async function runPublish(job) {
 }
 
 /**
- * Answer a public question with a Codex process that physically cannot write:
- * the read-only sandbox is the boundary, and askPrompt's source rules are what
- * keep unpublished material out of the answer.
+ * Answer a public question. The runner is fenced to reading the checkout
+ * (see agentCommand), askPrompt's source rules keep unpublished material out
+ * of the answer, and containsSensitiveContent is the last check on the way
+ * out.
  */
 async function runAsk(job) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rpt-discord-ask-"));
@@ -653,6 +675,7 @@ async function runAsk(job) {
     }
     return answer;
   } finally {
+    askChild = null;
     await taskLog.close();
     await pruneTaskLogs();
     await fs.rm(tempDir, { recursive: true, force: true });
@@ -709,6 +732,9 @@ async function handleAsk(message, ref, question) {
     return;
   }
   lastAskAt.set(ref.authorId, Date.now());
+  // One entry per person who ever asked, forever, is a slow leak; anything
+  // past the window is irrelevant and can go.
+  for (const [who, at] of lastAskAt) if (Date.now() - at > ASK_COOLDOWN_MS) lastAskAt.delete(who);
   askQueue.push({ ref, request: question });
   await persistJobs();
   await message.react("💬").catch(() => undefined);
@@ -863,9 +889,10 @@ async function drainQueue() {
 }
 
 /**
- * Tell everyone whose request died with the previous process. Their work is
- * gone from an in-memory queue that did not survive, and silence is the one
- * outcome a requester cannot act on.
+ * Pick up where the previous process left off. Queued requests continue; an
+ * active one resumes if the tree is clean and is reported if it is not; the
+ * old status lines are removed either way. Silence is the one outcome a
+ * requester cannot act on, so a dropped question is at least told so.
  */
 async function recoverInterruptedJobs() {
   const saved = await readJson(JOBS_FILE, null);
@@ -1040,6 +1067,11 @@ client.on("messageCreate", async (message) => {
 client.once(Events.ClientReady, async () => {
   console.log(`[discord-agent] ready as ${client.user.tag}; repo=${ROOT}`);
   await flushOutbox().catch((error) => console.error("[discord-agent] outbox flush failed", error));
+  const outboxTimer = setInterval(
+    () => void flushOutbox().catch((error) => console.error("[discord-agent] outbox flush failed", error)),
+    OUTBOX_FLUSH_MS,
+  );
+  outboxTimer.unref();
   await recoverInterruptedJobs().catch((error) =>
     console.error("[discord-agent] interrupted-job recovery failed", error),
   );

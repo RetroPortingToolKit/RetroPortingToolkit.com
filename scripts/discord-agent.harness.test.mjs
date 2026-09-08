@@ -108,9 +108,12 @@ async function up(opts = {}) {
   await b.ready;
   return { ...b, repo };
 }
-const forMsg = (id, text) => (e) => e.messageId === id && (text instanceof RegExp ? text.test(e.content) : e.content.includes(text));
+// Replies and sends only, never edits: the status line's "Last: …" quotes the
+// agent's trace, which can contain the very text a scenario is waiting for.
+const forMsg = (id, text) => (e) => e.kind !== "edit" && e.messageId === id && (text instanceof RegExp ? text.test(e.content) : e.content.includes(text));
 // First notice and the 15-minute repeat use different words; either means "parked".
 const PARKED = /Waiting for the shared checkout|shared checkout is busy|Still waiting for the shared checkout/;
+const parkedFor = (id) => (e) => e.messageId === id && PARKED.test(e.content);
 
 describe("bridge harness: queueing and the shared checkout", () => {
   it("runs three simultaneous publish requests one at a time, in order, telling each its place", async () => {
@@ -152,7 +155,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const b = await up();
     fs.writeFileSync(path.join(b.repo.dir, "someone-elses-edit.txt"), "wip\n");
     const id = b.send(ADMIN, "U1", "please wait for me [[sleep=1]]");
-    await b.waitFor(forMsg(id, PARKED), 8000, "busy notice");
+    await b.waitFor(parkedFor(id), 8000, "busy notice");
     expect(b.events.some((e) => e.messageId === id && e.content.includes("OK:"))).toBe(false);
     fs.rmSync(path.join(b.repo.dir, "someone-elses-edit.txt"));
     const done = await b.waitFor(forMsg(id, "OK: please wait"), 20000, "started on its own after the tree cleared");
@@ -194,7 +197,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const blocked = await b.waitFor(forMsg(messy, "Blocked"), 12000, "blocked verdict");
     expect(blocked.content).toMatch(/uncommitted changes/);
     const later = b.send(ADMIN, "U2", "after the mess [[sleep=0]]");
-    await b.waitFor(forMsg(later, PARKED), 8000, "parked behind the mess");
+    await b.waitFor(parkedFor(later), 8000, "parked behind the mess");
     fs.rmSync(path.join(b.repo.dir, "left-behind.txt"));
     await b.waitFor(forMsg(later, "OK: after the mess"), 20000, "ran once cleaned");
   });
@@ -264,6 +267,26 @@ describe("bridge harness: queueing and the shared checkout", () => {
     await b.waitFor(forMsg(first, "OK: survive the restart"), 15000, "resumed and finished");
     await b.waitFor(forMsg(second, "OK: queued through it"), 15000, "queue restored");
     expect(b.events.some((e) => /Interrupted|Dropped/.test(e.content))).toBe(false);
+  });
+
+  it("parks on commit churn — a clean tree that keeps committing — instead of starting on top of it", async () => {
+    // Quiet period 3s, but the wait gives up after 1.5s. With a commit landing
+    // every second the wait always times out with a clean tree and a recent
+    // commit, which used to be treated as "go".
+    const b = await up({ env: { DISCORD_AGENT_QUIET_MS: "3000", DISCORD_AGENT_WAIT_MS: "1500" } });
+    let n = 0;
+    const churn = setInterval(() => {
+      fs.writeFileSync(path.join(b.repo.dir, "README.md"), `edit ${++n}\n`);
+      b.repo.git("commit", "-qam", `churn ${n}`);
+    }, 1000);
+    const id = b.send(ADMIN, "U1", "during churn [[sleep=0]]");
+    await b.waitFor(parkedFor(id), 8000, "parked while commits keep landing");
+    expect(b.agentStartedAt(id)).toBeNull();
+    await new Promise((r) => setTimeout(r, 2500));
+    expect(b.agentStartedAt(id)).toBeNull();
+    clearInterval(churn);
+    const done = await b.waitFor(forMsg(id, "OK: during churn"), 20000, "started once the commits stopped");
+    expect(done.t - Date.now()).toBeLessThan(0);
   });
 
   it("says what the agent last did in the progress line", async () => {

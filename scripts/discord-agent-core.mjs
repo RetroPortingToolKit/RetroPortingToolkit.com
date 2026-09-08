@@ -57,11 +57,6 @@ export function formatElapsed(ms) {
 }
 
 /**
- * Says only what the bridge can actually observe. The previous wording claimed
- * the agent was "running checks now" on every tick, which was a guess about a
- * phase this process cannot see.
- */
-/**
  * The one status line a request has while it is alive. It is created as
  * "On it.", edited in place as the request waits and then works, and deleted
  * when the final reply lands. One message, not a trail: a request that was
@@ -116,10 +111,6 @@ export function interruptedMessage({ request, startedAt, head, now = Date.now() 
   return `The agent restarted while this request was running, so it did not finish and produced no summary.${ran}${at} Anything it had already committed is still in the repository, so check the tree before re-sending.\n\nRequest: ${truncateRequest(request)}`;
 }
 
-export function droppedMessage({ request }) {
-  return `The agent restarted before this queued request started, so it never ran. Re-send it if you still need it.\n\nRequest: ${truncateRequest(request)}`;
-}
-
 export function replyContext({ referencedContent = "", originalContent = "" } = {}) {
   const parts = [];
   if (originalContent.trim()) parts.push(`Original request:\n${originalContent.trim()}`);
@@ -166,11 +157,6 @@ export function channelMode(message, config) {
 }
 
 /**
- * Distinguishes "this runner cannot serve right now" from "the work failed".
- * Only the first is worth handing to the next runner: a genuine failure would
- * fail the same way twice and burn a second budget saying so.
- */
-/**
  * Is the shared checkout quiet enough to start work in?
  *
  * A clean tree is not the same as an idle repository. Someone working in short
@@ -192,6 +178,11 @@ export function pulseChanged(a, b) {
   return !a || !b || a.head !== b.head || a.status !== b.status;
 }
 
+/**
+ * Distinguishes "this runner cannot serve right now" from "the work failed".
+ * Only the first is worth handing to the next runner: a genuine failure would
+ * fail the same way twice and burn a second budget saying so.
+ */
 export function isRunnerUnavailable(output) {
   const text = String(output).toLowerCase();
   // "anthropic-workspace-id is required" means the configured key is an
@@ -204,15 +195,9 @@ export function isRunnerUnavailable(output) {
 }
 
 /**
- * How each runner is invoked for each lane. Kept here so the sandboxing is
- * visible in one place and can be asserted in tests: "ask" must never be able
- * to write, whichever runner serves it.
- */
-/**
  * Models are pinned here rather than inherited from whatever the owner's own
  * CLI config happens to say, so the bot's behaviour does not change under it
  * when someone switches their interactive model.
- *
  */
 export const CODEX_MODEL = "gpt-5.6-luna";
 export const CLAUDE_MODEL = "claude-opus-5";
@@ -231,6 +216,11 @@ export const ASK_EFFORT = "low";
 export const PUBLISH_EFFORT = "low";
 export const effortFor = (mode) => (mode === "ask" ? ASK_EFFORT : PUBLISH_EFFORT);
 
+/**
+ * How each runner is invoked for each lane. Kept here so the sandboxing is
+ * visible in one place and can be asserted in tests: "ask" must never be able
+ * to write, whichever runner serves it.
+ */
 export function agentCommand({ runner, mode, root, outputFile }) {
   if (runner === "codex") {
     return {

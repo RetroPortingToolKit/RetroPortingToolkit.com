@@ -10,7 +10,6 @@ import {
   channelMode,
   chunkDiscordMessage,
   cooldownRemaining,
-  droppedMessage,
   formatElapsed,
   interruptedMessage,
   isAuthorized,
@@ -335,18 +334,6 @@ describe("Discord agent core", () => {
     expect(status).toContain("<@u2> — Fix a typo");
   });
 
-  it("tells an interrupted requester their work did not finish", () => {
-    const message = interruptedMessage({
-      request: "Publish the launch post",
-      startedAt: 0,
-      head: "abcdef1234567",
-      now: 5 * 60_000,
-    });
-    expect(message).toContain("did not finish");
-    expect(message).toContain("running for 5m");
-    expect(message).toContain("abcdef1");
-    expect(droppedMessage({ request: "Fix a typo" })).toContain("never ran");
-  });
 
   it("omits an implausible elapsed time from a stale interrupted record", () => {
     const stale = interruptedMessage({
