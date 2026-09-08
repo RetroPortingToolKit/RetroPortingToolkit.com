@@ -32,6 +32,7 @@ import {
   pulseChanged,
   replyContext,
   runnerChain,
+  runnerCooldownUntil,
   statusMessage,
   stripBotMention,
   summaryHeading,
@@ -74,6 +75,9 @@ const STATE_DIR =
 const JOBS_FILE = path.join(STATE_DIR, "jobs.json");
 const OUTBOX_FILE = path.join(STATE_DIR, "outbox.json");
 const TASK_LOG_DIR = path.join(STATE_DIR, "task-logs");
+// When a runner last said it was out of credit, and until when. Survives a
+// restart: a quota does not reset because the bridge did.
+const COOLDOWNS_FILE = path.join(STATE_DIR, "runner-cooldowns.json");
 const TASK_LOG_MAX_BYTES = 2 * 1024 * 1024;
 const TASK_LOGS_KEPT = 20;
 const PROGRESS_INTERVAL_MS = 60_000;
@@ -285,7 +289,12 @@ function safeAgentEnv(runner) {
   return env;
 }
 
-class RunnerUnavailableError extends Error {}
+class RunnerUnavailableError extends Error {
+  constructor(message, output = "") {
+    super(message);
+    this.output = output;
+  }
+}
 
 /**
  * Run one agent attempt. Resolves with the produced text, or throws
@@ -348,7 +357,7 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
       const text = (resultFrom === "stdout" ? stdout : fromFile).trim();
       if (code !== 0 || !text) {
         if (isRunnerUnavailable(diagnostics)) {
-          reject(new RunnerUnavailableError(`${runner} is unavailable`));
+          reject(new RunnerUnavailableError(`${runner} is unavailable`, diagnostics));
           return;
         }
         reject(new Error(text || `${runner} exited with status ${code}.`));
@@ -364,9 +373,32 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
  * rather than failing the request; anything else is a real failure and is
  * reported as one.
  */
+async function readCooldowns() {
+  try {
+    const parsed = JSON.parse(await fs.readFile(COOLDOWNS_FILE, "utf8"));
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+async function noteCooldown(runner, until) {
+  const cooldowns = { ...(await readCooldowns()), [runner]: until };
+  await fs
+    .writeFile(COOLDOWNS_FILE, JSON.stringify(cooldowns, null, 2))
+    .catch((error) => console.warn(`[discord-agent] could not record cooldown: ${error.message}`));
+  console.warn(
+    `[discord-agent] ${runner} is out of credit; not trying it again until ${new Date(until).toISOString()}`,
+  );
+}
+
 async function runAgent(options) {
   const unavailable = [];
-  for (const runner of runnerChain({ hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY) })) {
+  const cooldowns = await readCooldowns();
+  for (const runner of runnerChain({
+    hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY),
+    cooldowns,
+  })) {
     try {
       const text = await runAgentOnce({ ...options, runner });
       if (runner !== "codex") {
@@ -376,6 +408,11 @@ async function runAgent(options) {
     } catch (error) {
       if (error instanceof RunnerUnavailableError) {
         console.warn(`[discord-agent] ${error.message}; trying the next runner`);
+        // A quota is not a transient error: it will say the same thing on every
+        // request until it resets, and each of those attempts is dead time in
+        // front of someone waiting in a chat window.
+        const until = runnerCooldownUntil(error.output ?? "");
+        if (until) await noteCooldown(runner, until);
         unavailable.push(runner);
         continue;
       }

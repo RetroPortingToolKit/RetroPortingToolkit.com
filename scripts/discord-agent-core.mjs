@@ -253,8 +253,42 @@ export function agentCommand({ runner, mode, root, outputFile }) {
  * no key is configured, so the chain is two tiers in that case rather than one
  * that fails on a missing credential.
  */
-export function runnerChain({ hasApiKey }) {
-  return hasApiKey ? ["codex", "claude", "claude-api"] : ["codex", "claude"];
+export function runnerChain({ hasApiKey, cooldowns = {}, now = Date.now() }) {
+  const all = hasApiKey ? ["codex", "claude", "claude-api"] : ["codex", "claude"];
+  const ready = all.filter((r) => !(Number(cooldowns[r]) > now));
+  // Never hand back an empty chain. If every runner is supposedly cooling down
+  // the estimate is more likely wrong than the truth, and a wasted attempt
+  // beats refusing work outright.
+  return ready.length ? ready : all;
+}
+
+/** A usage limit that names no reset time is retried after this long. */
+export const DEFAULT_RUNNER_COOLDOWN_MS = 30 * 60 * 1_000;
+
+/**
+ * How long to stop trying a runner that just said it is out of credit.
+ *
+ * A quota is not a transient error: once Codex reports a usage limit it will
+ * report the same on the next request and every one after it, and each of those
+ * attempts is dead time in front of a person waiting in Discord. Codex prints
+ * the reset time in the message, so use it when it is there.
+ *
+ * Only quota exhaustion earns a cooldown. A missing binary or bad credential
+ * can be fixed by a maintainer in a moment, and pinning those out for half an
+ * hour would hide the fix.
+ */
+export function runnerCooldownUntil(output, now = Date.now()) {
+  const text = String(output);
+  if (!/usage limit|out of credits|purchase more credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)/i.test(text)) {
+    return null;
+  }
+  const named = text.match(/try again at ([^.\n]+?)(?:\.|\n|$)/i);
+  if (named) {
+    // "Sep 11th, 2026 10:48 PM" — Date.parse does not accept the ordinal.
+    const parsed = Date.parse(named[1].replace(/(\d{1,2})(st|nd|rd|th)\b/i, "$1"));
+    if (Number.isFinite(parsed) && parsed > now) return parsed;
+  }
+  return now + DEFAULT_RUNNER_COOLDOWN_MS;
 }
 
 export function cooldownRemaining(lastAskAt, now, windowMs) {
@@ -375,7 +409,7 @@ ${request}
 ${context ? `Reply context:\n${context}\n\n` : ""}
 Discord context (identifiers only): author ${authorId}, channel ${channelId}, message ${messageUrl}
 
-Work only in the current RetroPortingToolkit.com checkout. Follow AGENTS.md exactly. Start by pulling main and checking that the shared tree is clean. Determine whether this is a question, diagnosis, content edit, or implementation request. For requested repository changes, implement them, run the project's full required verification, commit coherent work to main, push it, and verify the production deployment. Do not expose credentials or copy Discord data elsewhere. Do not create accounts, credentials, tunnels, recurring jobs, or infrastructure. Do not perform destructive or out-of-repository work; instead explain in the final summary what human approval is needed. If the request is ambiguous in a way that materially changes the result, do not guess: return a concise question for the requester.
+Work only in the current RetroPortingToolkit.com checkout. Follow AGENTS.md exactly. Start by pulling main and checking that the shared tree is clean. Determine whether this is a question, diagnosis, content edit, or implementation request. For requested repository changes, implement them, run the project's full required verification, commit coherent work to main, push it, and verify the production deployment. The verification suite exists to protect a commit, so it is only owed when you are making one: if you end up changing no files — the work was already done, the request turned out to be a question, or there was nothing to deploy — say so straight away and skip typecheck, build, test and the deployment check entirely. Someone is waiting in a chat window, and thirteen minutes of checks to report that nothing happened is thirteen minutes wasted. Do not expose credentials or copy Discord data elsewhere. Do not create accounts, credentials, tunnels, recurring jobs, or infrastructure. Do not perform destructive or out-of-repository work; instead explain in the final summary what human approval is needed. If the request is ambiguous in a way that materially changes the result, do not guess: return a concise question for the requester.
 
 Concurrency and publishing guardrails are mandatory, because a person may be editing this same checkout while you work. Record the starting commit and the output of git status --porcelain before editing, and keep a list of every path you touch.
 
