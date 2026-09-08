@@ -31,21 +31,39 @@ The other toolchains here have no equivalent. On NES, SNES, Game Boy Advance, Ge
 
 ## Before you start
 
-You need `git`, CMake 3.20 or newer, Ninja, a C and C++ toolchain, and Python 3. The framework's [`BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md) lists the packages per platform:
+Every platform needs `git`, Python 3, CMake 3.20 or newer, Ninja, and a C and C++ toolchain. The recompiler is C++20; the runtime is C99 and C++17. SDL3 is fetched automatically if no system package is found.
 
-```sh
-# Windows, in an MSYS2 MinGW64 shell:
-pacman -S --needed mingw-w64-x86_64-toolchain mingw-w64-x86_64-cmake \
-                   mingw-w64-x86_64-ninja mingw-w64-x86_64-ccache
+On **Windows**, start in PowerShell:
 
-# macOS:
-brew install ninja cmake
-
-# Linux (Debian/Ubuntu):
-sudo apt install build-essential cmake ninja-build
+```powershell
+winget install Git.Git Python.Python.3.12
 ```
 
-On Windows, prefer MSYS2 MinGW over MSVC: that is the configuration release builds use.
+Git for Windows also supplies the `bash` that the setup script runs in. Then pick one of two ways to get the compiler, CMake and Ninja.
+
+The bundled toolchain is the easier one, and the one the project recommends. Download `cmake-clang-v1-windows-x64.zip` from [retcomm-toolchains](https://github.com/TechnicallyComputers/retcomm-toolchains/releases/latest) and unzip it somewhere, say `C:\retcomm-toolchain`. In the same PowerShell window you will run the setup from:
+
+```powershell
+$env:PSXRECOMP_TOOLCHAIN_DIR = "C:\retcomm-toolchain"
+$env:Path = "C:\retcomm-toolchain\bin;$env:Path"
+```
+
+Or use Visual Studio: install [Build Tools for Visual Studio 2022](https://visualstudio.microsoft.com/downloads/) with the "Desktop development with C++" workload, add `winget install Kitware.CMake Ninja-build.Ninja`, and run the setup from a "Developer PowerShell for VS 2022" window.
+
+On **macOS**:
+
+```sh
+xcode-select --install
+brew install git cmake ninja python
+```
+
+On **Linux** (Debian/Ubuntu):
+
+```sh
+sudo apt install git build-essential cmake ninja-build python3
+```
+
+Linux and macOS can use the bundled toolchain pack too, instead of a system compiler: `tools/fetch_toolchain.sh --artifact <linux-x64|macos-arm64|macos-x64>` unpacks it and prints the directory to export. The full dependency table, the MSYS2 notes, and troubleshooting live in the framework's [`BUILDING.md`](https://github.com/mstan/psxrecomp/blob/master/docs/BUILDING.md).
 
 You do not need a BIOS dump. The framework bundles OpenBIOS, which is MIT licensed, and builds against it by default. If a game turns out to need a retail BIOS, pass `--bios` with your own `SCPH1001.BIN` later. You learn that when the game misbehaves, not in advance.
 
@@ -197,7 +215,7 @@ Either way the fix is the same. You play, you find one, you add its address as a
 
 **The compiler exits with no message, or a bare code -1.** That is the machine running out of memory, not an error in the code. A parallel build of this tree can crash the compiler when RAM is tight. Retry with `-j 2` or `-j 1` instead of `-j"$(nproc)"`.
 
-**MinGW reports `Error: too many sections`.** Windows COFF object files have a limit of 32,768 sections, and the generated game C can go past it. Add `-Wa,-mbig-obj` to that file's compile options. Binutils 2.40 and newer usually handle these files without the flag.
+**A MinGW build reports `Error: too many sections`.** Windows COFF object files have a limit of 32,768 sections, and the generated game C can go past it. Add `-Wa,-mbig-obj` to that file's compile options. Binutils 2.40 and newer usually handle these files without the flag.
 
 **`ninja: error: loading 'build.ninja': GetLastError() = 2`, or CMake's `Error: could not load cache`.** Both mean you built a directory that never configured successfully. CMake writes the cache before it writes the build file, so a failed configure leaves one without the other, and the build then fails on the wrong error. Fix the configure failure and run the same `cmake -S ... -B ...` again. If it still fails, delete the build directory.
 
