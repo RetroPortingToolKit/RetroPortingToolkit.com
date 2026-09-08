@@ -1287,18 +1287,6 @@ export function buildRouteMeta(origin) {
   // that resolves to NotFound. Add them back here alongside the React routes if
   // you build them.
 
-  add("/about", {
-    title: `About ${SITE_NAME} - Team Draft`,
-    extraHead: `<meta name="robots" content="noindex" />`,
-    description: "Draft team and ownership notes for Retro Porting Toolkit.",
-    image: defaultImage,
-    url: `${origin}/about`,
-    type: "website",
-    draft: true,
-    static: wrapStatic(
-      `<h1>About Retro Porting Toolkit</h1>\n<p>Draft team and ownership notes for Retro Porting Toolkit.</p>`,
-    ),
-  });
 
   // /admin is the dev-only content editor. It is registered (noindex) only so a
   // cold prod load resolves to a clean shell instead of 404; its save API is a

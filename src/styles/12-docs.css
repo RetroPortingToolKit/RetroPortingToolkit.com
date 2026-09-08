@@ -1025,13 +1025,3 @@ a.docs-card-link:hover {
   color: var(--ink-2);
   font-variant-numeric: tabular-nums;
 }
-
-/* ------------------------------------------------------------ about page --- */
-/* The team page borrows the documentation reading column but none of the docs
-   furniture: no sidebar, no rail, no search. This is the centring the docs get
-   from .docs-layout, without importing the rest of it. */
-.about-layout {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 96px 20px 64px;
-}
