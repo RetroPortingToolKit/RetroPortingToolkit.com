@@ -122,7 +122,7 @@ export function TeamPage() {
   return (
     <div className="home-next-page is-subpage">
       <Tabs
-        active="none"
+        active="team"
         onChange={(id) => navigate(TAB_PATH[id])}
         tabsRef={tabsRef}
         tabs={NAV_TABS}

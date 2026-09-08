@@ -23,7 +23,7 @@ export type TabId = "home" | "hardware" | "game" | "blog";
  * and no capsule: the bar still says which site this is without claiming you
  * are somewhere you are not.
  */
-export type NavActive = TabId | "docs" | "none";
+export type NavActive = TabId | "docs" | "team" | "none";
 
 interface TabDef {
   id: TabId;
@@ -232,6 +232,19 @@ export function Tabs({
             aria-current={active === "docs" ? "page" : undefined}
           >
             {COLLECTION_TITLE.docs}
+          </Link>
+          {/* Team is a page for the same reasons Documentation is, and takes the
+              same treatment: a link rather than a .tab, so the sliding pill
+              (which measures querySelectorAll(".tab") by index) cannot scrub
+              onto it, and so it never becomes one of the home pager's panes.
+              It was reachable only from the footer, which is to say not
+              reachable. */}
+          <Link
+            to="/team"
+            className={"tabs-doclink" + (active === "team" ? " is-current" : "")}
+            aria-current={active === "team" ? "page" : undefined}
+          >
+            Team
           </Link>
           {/* The bar's controls, as one thing: on a phone the tab row is wider
               than the screen and scrolls, and these two are pinned to its right
