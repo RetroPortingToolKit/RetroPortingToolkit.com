@@ -36,8 +36,7 @@ function makeRepo() {
   return { dir, git };
 }
 
-function startBridge({ repo, env = {} }) {
-  const state = fs.mkdtempSync(path.join(os.tmpdir(), "rpt-harness-state-"));
+function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdir(), "rpt-harness-state-")) }) {
   const child = spawn(process.execPath, ["--import", HOOKS, BRIDGE], {
     env: {
       PATH: `${FAKE_BIN}:${path.dirname(process.execPath)}:/usr/bin:/bin:/usr/local/bin`,
@@ -54,6 +53,7 @@ function startBridge({ repo, env = {} }) {
       DISCORD_AGENT_IDLE_MS: "2000",
       DISCORD_AGENT_TIMEOUT_MS: "30000",
       DISCORD_AGENT_ASK_TIMEOUT_MS: "30000",
+      DISCORD_AGENT_PROGRESS_MS: "300",
       ...env,
     },
     stdio: ["pipe", "pipe", "pipe"],
@@ -102,7 +102,7 @@ const bridges = [];
 afterEach(() => { for (const b of bridges.splice(0)) b.stop(); });
 
 async function up(opts = {}) {
-  const repo = makeRepo();
+  const repo = opts.repo ?? makeRepo();
   const b = startBridge({ repo, ...opts });
   bridges.push(b);
   await b.ready;
@@ -110,7 +110,7 @@ async function up(opts = {}) {
 }
 const forMsg = (id, text) => (e) => e.messageId === id && (text instanceof RegExp ? text.test(e.content) : e.content.includes(text));
 // First notice and the 15-minute repeat use different words; either means "parked".
-const PARKED = /shared checkout is busy|Still waiting for the shared checkout/;
+const PARKED = /Waiting for the shared checkout|shared checkout is busy|Still waiting for the shared checkout/;
 
 describe("bridge harness: queueing and the shared checkout", () => {
   it("runs three simultaneous publish requests one at a time, in order, telling each its place", async () => {
@@ -223,6 +223,47 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const reply = await b.waitFor(forMsg(id, "Shokunin does"), 12000, "the answer");
     expect(reply.content).toBe("Shokunin does UI/UX, frontend and marketing.");
     expect(reply.content).not.toMatch(/Done|\[answer\]|checks|nothing (was )?changed/i);
+  });
+
+  it("keeps one status line per request, edits it through waiting and working, and deletes it with the queued notice when done", async () => {
+    const b = await up();
+    fs.writeFileSync(path.join(b.repo.dir, "wip.txt"), "someone editing\n");
+    const first = b.send(ADMIN, "U1", "held [[sleep=1]]");
+    const second = b.send(ADMIN, "U2", "behind it [[sleep=0]]");
+    const onIt = await b.waitFor(forMsg(first, "On it"), 8000, "status created");
+    const queued = await b.waitFor(forMsg(second, "Queued. You are number 1"), 8000, "queued notice");
+    await b.waitFor((e) => e.kind === "edit" && e.id === onIt.id && /Waiting for the shared checkout/.test(e.content), 8000, "edited to waiting");
+    fs.rmSync(path.join(b.repo.dir, "wip.txt"));
+    await b.waitFor((e) => e.kind === "edit" && e.id === onIt.id && /Still working/.test(e.content), 15000, "edited to working");
+    await b.waitFor(forMsg(first, "OK: held"), 15000, "summary");
+    await b.waitFor((e) => e.kind === "delete" && e.id === onIt.id, 5000, "status deleted");
+    await b.waitFor(forMsg(second, "OK: behind it"), 15000, "second summary");
+    await b.waitFor((e) => e.kind === "delete" && e.id === queued.id, 5000, "queued notice deleted");
+    // Exactly one status line ever existed for the first request: no second
+    // "On it." on the retry, no separate "Still waiting" notices.
+    expect(b.events.filter((e) => e.messageId === first && (e.kind === "reply" || e.kind === "send") && /On it|Still working|Waiting for|checkout is busy/.test(e.content))).toHaveLength(1);
+    const summary = b.events.find(forMsg(first, "OK: held"));
+    expect(b.events.some((e) => e.kind === "delete" && e.id === summary.id)).toBe(false);
+  });
+
+  it("resumes a request that a restart interrupted while waiting, and restores the queue behind it", async () => {
+    const repo = makeRepo();
+    fs.writeFileSync(path.join(repo.dir, "wip.txt"), "someone editing\n");
+    const a = await up({ repo });
+    const first = a.send(ADMIN, "U1", "survive the restart [[sleep=0]]");
+    const second = a.send(ADMIN, "U2", "queued through it [[sleep=0]]");
+    const status = await a.waitFor(forMsg(first, "On it"), 8000, "status before restart");
+    await a.waitFor((e) => e.kind === "edit" && e.id === status.id && /Waiting/.test(e.content), 8000, "waiting before restart");
+    await a.waitFor(forMsg(second, "Queued"), 8000, "queued before restart");
+    a.stop();
+    await new Promise((r) => setTimeout(r, 800));
+    fs.rmSync(path.join(repo.dir, "wip.txt"));
+    const b = await up({ repo, state: a.state });
+    await b.waitFor((e) => e.kind === "delete" && e.id === status.id, 8000, "old status line tidied");
+    await b.waitFor(forMsg(first, "I restarted before finishing this"), 8000, "resumed notice");
+    await b.waitFor(forMsg(first, "OK: survive the restart"), 15000, "resumed and finished");
+    await b.waitFor(forMsg(second, "OK: queued through it"), 15000, "queue restored");
+    expect(b.events.some((e) => /Interrupted|Dropped/.test(e.content))).toBe(false);
   });
 
   it("says what the agent last did in the progress line", async () => {

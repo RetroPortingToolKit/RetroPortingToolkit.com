@@ -17,16 +17,23 @@ const emit = (record) => process.stdout.write("@@" + JSON.stringify({ t: Date.no
 let nextId = 1000;
 
 function sent(kind, channelId, messageId, payload) {
-  emit({ kind, channelId, messageId, content: payload?.content ?? "" });
   const id = String(nextId++);
-  return { id, edit: async (p) => { emit({ kind: "edit", channelId, messageId, content: p?.content ?? "" }); return undefined; } };
+  emit({ kind, id, channelId, messageId, content: payload?.content ?? "" });
+  return {
+    id,
+    edit: async (p) => { emit({ kind: "edit", id, channelId, messageId, content: p?.content ?? "" }); },
+    delete: async () => { emit({ kind: "delete", id, channelId, messageId, content: "" }); },
+  };
 }
 
 function channelFor(channelId) {
   return {
     send: async (payload) => sent("send", channelId, null, payload),
     messages: {
-      fetch: async (messageId) => ({ reply: async (payload) => sent("reply", channelId, messageId, payload) }),
+      fetch: async (messageId) => ({
+        reply: async (payload) => sent("reply", channelId, messageId, payload),
+        delete: async () => { emit({ kind: "delete", id: messageId, channelId, messageId, content: "" }); },
+      }),
     },
   };
 }

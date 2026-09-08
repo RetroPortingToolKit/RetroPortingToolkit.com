@@ -38,6 +38,7 @@ import {
   statusMessage,
   stripBotMention,
   presentSummary,
+  resumedMessage,
   taskPrompt,
 } from "./discord-agent-core.mjs";
 
@@ -94,7 +95,7 @@ const TASK_LOG_DIR = path.join(STATE_DIR, "task-logs");
 const COOLDOWNS_FILE = path.join(STATE_DIR, "runner-cooldowns.json");
 const TASK_LOG_MAX_BYTES = 2 * 1024 * 1024;
 const TASK_LOGS_KEPT = 20;
-const PROGRESS_INTERVAL_MS = 60_000;
+const PROGRESS_INTERVAL_MS = envMs("DISCORD_AGENT_PROGRESS_MS", 60_000);
 // The hard cap is a backstop. The watchdog below is what actually catches a
 // dead run: one that finished its work and then sat idle held the queue for
 // the whole of the old fifteen minutes.
@@ -111,7 +112,7 @@ const ASK_QUEUE_LIMIT = 5;
 // A busy shared checkout is a wait, not a failure. Someone editing the repo by
 // hand is normal and usually brief, so a request parks and retries instead of
 // being thrown away.
-const CHECKOUT_WAIT_MS = 5 * 60 * 1_000;
+const CHECKOUT_WAIT_MS = envMs("DISCORD_AGENT_WAIT_MS", 5 * 60 * 1_000);
 // Waiting is the bot's job, not the requester's. A request parks for as long as
 // the repository stays busy and starts itself when it goes quiet; the cap only
 // exists so a tree left dirty overnight eventually reports something instead of
@@ -169,9 +170,14 @@ async function writeJson(file, value) {
 function jobRecord(job) {
   return {
     ref: job.ref,
+    messageUrl: job.messageUrl ?? null,
     request: job.request,
+    context: job.context ?? "",
     startedAt: job.startedAt ?? null,
     startedHead: job.startedHead ?? null,
+    // So a restart can tidy the previous process's status line.
+    statusMessageId: job.status?.id ?? null,
+    queuedNoticeId: job.queuedNotice?.id ?? null,
   };
 }
 
@@ -556,20 +562,19 @@ async function pruneTaskLogs() {
 }
 
 async function runPublish(job) {
-  const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => {
-    // Also per request: the periodic "still waiting" update below is what keeps
-    // a long park visible, not a fresh notice on every retry.
-    if (job.busyNotified) return;
-    job.busyNotified = true;
-    void safeSend({
-      ...job.ref,
-      content:
-        "The shared checkout is busy, so I’m waiting for that work to finish before I start. I won’t overwrite it, and I’ll keep your request queued.",
-    });
+  const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => {
+    if (job.phase !== "waiting") {
+      job.phase = "waiting";
+      job.waitingSince ??= Date.now();
+      void updateStatus(job);
+    }
   });
   if (starting.status) {
     throw new CheckoutBusyError();
   }
+  job.phase = "running";
+  job.agentStartedAt = Date.now();
+  void updateStatus(job);
   job.startedHead = starting.head;
   await persistJobs();
 
@@ -742,50 +747,77 @@ function stopActiveTask() {
   return true;
 }
 
-function startProgress(job) {
-  let posted = null;
-  const timer = setInterval(async () => {
-    // The last trace line, with its timestamp trimmed off: "Still working —
-    // 3m elapsed. Last: Bash: npm run build" tells a reader whether it is
-    // moving, which "3m elapsed" alone never could.
-    const last = job.lastActivity ? job.lastActivity.replace(/^\d\d:\d\d:\d\d /, "") : "";
-    const content =
-      progressMessage({
-        elapsedMs: Date.now() - job.startedAt,
-        queued: queue.length,
-      }) + (last ? ` Last: ${last.slice(0, 140)}` : "");
-    try {
-      // One message that keeps its elapsed time current, rather than a new
-      // reply every minute (up to 14 per long task).
-      if (posted) await posted.edit({ content });
-      else posted = await deliver({ ...job.ref, content });
-    } catch (error) {
-      console.error("[discord-agent] progress update failed", error);
-    }
-  }, PROGRESS_INTERVAL_MS);
-  timer.unref();
-  return () => clearInterval(timer);
+function statusText(job) {
+  if (job.phase === "waiting") {
+    return progressMessage({ elapsedMs: Date.now() - job.waitingSince, phase: "waiting" });
+  }
+  // The last trace line, with its timestamp trimmed off: "Still working —
+  // 3m elapsed. Last: Bash: npm run build" tells a reader whether it is
+  // moving, which "3m elapsed" alone never could.
+  const last = job.lastActivity ? job.lastActivity.replace(/^\d\d:\d\d:\d\d /, "").slice(0, 140) : "";
+  return progressMessage({
+    elapsedMs: Date.now() - (job.agentStartedAt ?? job.startedAt),
+    queued: queue.length,
+    last,
+  });
+}
+
+/** Edit the request's one status line to match its phase; never throws. */
+async function updateStatus(job, content = statusText(job)) {
+  try {
+    if (job.status?.edit) await job.status.edit({ content });
+    else job.status = await deliver({ ...job.ref, content, ping: true });
+  } catch (error) {
+    console.error("[discord-agent] status update failed", error);
+  }
+}
+
+function startStatusTicker(job) {
+  if (job.ticker) return;
+  job.ticker = setInterval(() => void updateStatus(job), PROGRESS_INTERVAL_MS);
+  job.ticker.unref();
+}
+
+/** The request is over, one way or another: its transient messages go. */
+async function clearStatus(job) {
+  if (job.ticker) clearInterval(job.ticker);
+  job.ticker = null;
+  for (const m of [job.status, job.queuedNotice]) {
+    if (m?.delete) await m.delete().catch(() => undefined);
+  }
+  job.status = null;
+  job.queuedNotice = null;
+}
+
+/** Delete a message this process never held, by id; best effort. */
+async function deleteById(channelId, messageId) {
+  if (!messageId) return;
+  try {
+    const channel = await client.channels.fetch(channelId);
+    const m = await channel.messages.fetch(messageId).catch(() => null);
+    if (m?.delete) await m.delete();
+  } catch {}
 }
 
 async function drainQueue() {
   if (running || !queue.length) return;
   running = queue.shift();
   const job = running;
-  job.startedAt = Date.now();
-  let stopProgress = () => {};
+  job.startedAt ??= Date.now();
+  let parked = false;
   try {
     await persistJobs();
-    // Once per request, not once per attempt: a parked job re-enters this
-    // function every time it retries, and announcing each pass is spam.
-    if (!job.announced) {
-      job.announced = true;
-      await safeSend({
-        ...job.ref,
-        content: `On it.${queue.length ? ` ${queue.length} queued.` : ""}`.trim(),
-        ping: true,
-      });
+    // One status line per request, created on its first turn and edited from
+    // then on. A parked request comes back through here on every retry, and
+    // each pass used to post a fresh "On it." and a fresh progress message.
+    if (!job.status) {
+      await updateStatus(job, job.resumed ? resumedMessage() : `On it.${queue.length ? ` ${queue.length} queued.` : ""}`);
+      // Persist again now that the status line exists: a restart during the
+      // wait reads its id from here to tidy it, and the first persist above
+      // happened before it was posted.
+      await persistJobs();
     }
-    stopProgress = startProgress(job);
+    startStatusTicker(job);
     const summary = await runPublish(job);
     const { heading, body } = presentSummary(summary);
     await replyChunks(job.ref, heading, body);
@@ -795,15 +827,10 @@ async function drainQueue() {
       const waited = Date.now() - job.waitingSince;
       if (waited < CHECKOUT_PATIENCE_MS) {
         // Back of the queue, so one parked request cannot starve the others.
+        // Its status line keeps ticking as "waiting" in the meantime.
+        parked = true;
         queue.push(job);
         console.warn(`[discord-agent] checkout busy; still holding (${formatElapsed(waited)})`);
-        if (!job.lastBusyNotice || Date.now() - job.lastBusyNotice > BUSY_NOTICE_MS) {
-          job.lastBusyNotice = Date.now();
-          await safeSend({
-            ...job.ref,
-            content: `Still waiting for the shared checkout to go quiet — ${formatElapsed(waited)} so far. Your request is holding its place and I will start it by myself; there is nothing for you to re-send.`,
-          });
-        }
         return;
       }
       await replyChunks(
@@ -826,7 +853,7 @@ async function drainQueue() {
       await replyChunks(job.ref, "❌ The task did not complete.", detail);
     }
   } finally {
-    stopProgress();
+    if (!parked) await clearStatus(job);
     running = null;
     await persistJobs();
     void drainQueue().catch((error) =>
@@ -844,15 +871,33 @@ async function recoverInterruptedJobs() {
   const saved = await readJson(JOBS_FILE, null);
   if (!saved) return;
   await writeJson(JOBS_FILE, { active: null, queued: [], askActive: null, askQueued: [] });
-  if (saved.active) {
-    await safeSend({
-      ...saved.active.ref,
-      content: `⚠️ Interrupted.\n${interruptedMessage({ ...saved.active, head: saved.active.startedHead })}`,
-      ping: true,
-    });
+  // The previous process's status lines are stale the moment it died.
+  for (const job of [saved.active, ...(saved.queued ?? [])].filter(Boolean)) {
+    await deleteById(job.ref.channelId, job.statusMessageId);
+    await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  for (const job of saved.queued ?? []) {
-    await safeSend({ ...job.ref, content: `⚠️ Dropped.\n${droppedMessage(job)}`, ping: true });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, context: job.context ?? "" });
+  if (saved.active) {
+    // An interrupted run is resumed when the tree is clean: that means it was
+    // killed before it changed anything, usually while waiting for the
+    // checkout, and the request itself is exactly what it was. A dirty tree
+    // means it died mid-edit, and that needs eyes before anything else runs.
+    const pulse = await gitSnapshot().catch(() => null);
+    if (pulse && !pulse.status) {
+      queue.unshift({ ...revive(saved.active), resumed: true });
+    } else {
+      await safeSend({
+        ...saved.active.ref,
+        content: `⚠️ Interrupted.\n${interruptedMessage({ ...saved.active, head: saved.active.startedHead })}`,
+        ping: true,
+      });
+    }
+  }
+  // Queued requests never started; they lose nothing by simply continuing.
+  for (const job of saved.queued ?? []) queue.push(revive(job));
+  if (queue.length) {
+    await persistJobs();
+    void drainQueue().catch((error) => console.error("[discord-agent] queue drain failed", error));
   }
   // A dropped question needs no talk of commits or a dirty tree; nothing it did
   // could have changed anything.
@@ -972,7 +1017,8 @@ client.on("messageCreate", async (message) => {
         originalContent: originalIsTrusted ? original.content : "",
       })
     : "";
-  queue.push({ ref, messageUrl: message.url, request, context });
+  const job = { ref, messageUrl: message.url, request, context };
+  queue.push(job);
   // The place in line is decided here, in the same synchronous step as the
   // push. Everything below awaits, and three requests arriving together used
   // to read the queue after each other's pushes and drains: the first was
@@ -983,7 +1029,8 @@ client.on("messageCreate", async (message) => {
   await persistJobs();
   await message.react("🔍").catch(() => undefined);
   if (ahead > 0) {
-    await safeSend({ ...ref, content: `Queued. You are number ${ahead} waiting.`, ping: true });
+    job.queuedNotice = await safeSend({ ...ref, content: `Queued. You are number ${ahead} waiting.`, ping: true });
+    await persistJobs(); // its id, for a restart to tidy
   }
   void drainQueue().catch((error) =>
     console.error("[discord-agent] queue drain failed", error),

@@ -61,9 +61,26 @@ export function formatElapsed(ms) {
  * the agent was "running checks now" on every tick, which was a guess about a
  * phase this process cannot see.
  */
-export function progressMessage({ elapsedMs, queued = 0 }) {
+/**
+ * The one status line a request has while it is alive. It is created as
+ * "On it.", edited in place as the request waits and then works, and deleted
+ * when the final reply lands. One message, not a trail: a request that was
+ * parked for two hours used to leave a "Still working — 5m elapsed" for every
+ * five-minute retry and a "Still waiting" every fifteen, and none of it was
+ * cleaned up after.
+ */
+export function progressMessage({ elapsedMs, queued = 0, phase = "running", last = "" }) {
+  if (phase === "waiting") {
+    return `Waiting for the shared checkout to go quiet — ${formatElapsed(elapsedMs)} so far. Your request is holding its place and I will start it by myself; there is nothing for you to re-send.`;
+  }
   const waiting = queued ? ` ${queued} queued behind it.` : "";
-  return `Still working — ${formatElapsed(elapsedMs)} elapsed.${waiting}`;
+  const tail = last ? ` Last: ${last}` : "";
+  return `Still working — ${formatElapsed(elapsedMs)} elapsed.${waiting}${tail}`;
+}
+
+/** Said in place of "On it." when a request survives a bridge restart. */
+export function resumedMessage() {
+  return "I restarted before finishing this. The checkout is clean, so I am starting it again by myself — there is nothing for you to re-send.";
 }
 
 export function statusMessage({ active, queued = [], now = Date.now() }) {

@@ -1045,3 +1045,22 @@ the position was read from the shared queue after several awaits. It is now
 decided in the same synchronous step as the push. Small in effect, but it was
 the queueing behaviour that "surely works" until something drives it.
 
+**2026-09-08, later: the two-hour park, and what it taught.** A request sat
+"waiting for the shared checkout — 1h 46m" because a session stalled with
+uncommitted harness files in the tree; then the restart that shipped the fix
+interrupted it, because the idle check looked for an agent process and a
+waiting request has none. Both are now rules in AGENTS.md. Two things changed
+in the bridge as a result:
+
+- **One status line per request.** Created as "On it.", edited in place to
+  "Waiting for the shared checkout — Xm so far" or "Still working — Xm. Last:
+  …", and deleted together with the "Queued" notice when the final reply
+  lands. Before this, every five-minute parking retry posted a fresh "Still
+  working — 5m elapsed", every fifteen minutes a "Still waiting", and none of
+  it was removed: 61 such messages were deleted from #website by hand.
+- **Restart resumes, it does not drop.** On start-up the bridge deletes the
+  previous process's status lines (their ids are in jobs.json), re-queues a
+  request that was interrupted while waiting if the tree is clean, and
+  restores the queue behind it. "⚠️ Interrupted — re-send" is now only for a
+  run killed mid-edit, where the tree needs eyes first.
+

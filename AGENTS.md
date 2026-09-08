@@ -66,17 +66,25 @@ checkout** when someone asks it to in `#website`. It waits for you: it will
 not start while the tree is dirty or a commit is under 20s old, and it parks
 the request until the tree goes quiet. Nothing makes you wait for it.
 
-- **Before editing, check it is idle.** `pgrep -f "claude -p"` shows a run in
-  progress; `~/Library/Application Support/RetroPortingToolkitDiscordAgent/state/jobs.json`
-  shows the active request and the queue. If it is mid-task, wait, or work in
-  files it will not touch (content requests land in `data/`).
+- **Before editing, check it is idle — both ways.** `jobs.json` in
+  `~/Library/Application Support/RetroPortingToolkitDiscordAgent/state/` shows
+  the active request and the queue; `pgrep -f "claude -p"` shows an agent
+  process. A request waiting for the checkout is active with **no** process,
+  so `pgrep` alone says "idle" about a request you are about to interrupt.
+  If it is mid-task, wait, or work in files it will not touch (content
+  requests land in `data/`).
+- **Never leave the tree dirty while you are away.** The bot parks every
+  request until the tree is clean, for up to six hours, and says so in Discord
+  every minute. Two hours of that happened on 2026-09-08 because a session
+  stalled with edits in flight. Commit small, commit before anything long.
 - If you both change the same file, its guardrail reports *Blocked* to Discord
   and stages nothing; its finished work is never lost, so check `git log`
   before assuming anything needs redoing.
 - **Restart it only when idle:** `kill -TERM $(pgrep -f scripts/discord-agent.mjs)`;
   launchd respawns it, and `~/Library/Logs/RetroPortingToolkitDiscordAgent/stdout.log`
-  shows `ready as` when it is back. A restart mid-run interrupts that request
-  and the requester has to send it again.
+  shows `ready as` when it is back. A request interrupted while *waiting* is
+  resumed by the new process on its own (the tree is clean, so nothing was
+  half-done); one interrupted *mid-edit* is reported and needs a look.
 - Its queueing and shared-checkout behaviour is exercised by
   `scripts/discord-agent.harness.test.mjs`: the real bridge as a child process
   against a stubbed Discord, a fake agent and a throwaway repository, with
