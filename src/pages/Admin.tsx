@@ -23,6 +23,8 @@ type DocType = "md" | "json" | "raw" | "home";
 interface ListItem {
   /** set by the backend from the page's frontmatter */
   draft?: boolean;
+  /** ISO date from the frontmatter, set by the backend; "" when the page has none */
+  date?: string;
   id: string;
   title: string;
   sub?: string;
@@ -144,6 +146,21 @@ const recTextToItems = (text: string) =>
 const ITEM_ID_RE = /^data\/(blog|hardware|games|docs)\/(.+)\/index\.md$/;
 const KIND_OF_DIR: Record<string, LabMedia["kind"]> = { blog: "blog", hardware: "hardware", games: "game" };
 
+/**
+ * The editor keeps its place in the address bar. An item id is a repository
+ * path ("data/blog/38_slug/index.md") or a page key ("page:home"); its address
+ * is the part a person would say — /admin/blog/38_slug, /admin/page/home —
+ * and a bare directory, /admin/blog, is that folder.
+ */
+function addressOf(id: string): string {
+  const parts = itemIdParts(id);
+  return parts ? `${parts.dir}/${parts.folders.join("/")}` : id.replace(":", "/");
+}
+/** What the address names, or "" for /admin itself. */
+function targetFromPath(pathname: string): string {
+  return decodeURIComponent(pathname.replace(/^\/admin\/?/, "").replace(/\/+$/, ""));
+}
+
 function itemIdParts(id: string): { dir: CmsKind; folders: string[]; slug: string } | null {
   const m = id.match(ITEM_ID_RE);
   if (!m) return null;
@@ -198,6 +215,16 @@ export default function Admin() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<ListItem | null>(null);
+  useEffect(() => {
+    const root = document.documentElement;
+    const prev = { overflow: root.style.overflow, overscroll: root.style.overscrollBehavior };
+    root.style.overflow = "hidden";
+    root.style.overscrollBehavior = "none";
+    return () => {
+      root.style.overflow = prev.overflow;
+      root.style.overscrollBehavior = prev.overscroll;
+    };
+  }, []);
   // Apple Notes 3-column model: sidebar = FOLDERS, body = the selected folder's
   // list (with search), then the editor. selectedFolder drives the list.
   const [selectedFolder, setSelectedFolder] = useState<string>("");
@@ -315,6 +342,9 @@ export default function Admin() {
 
   const baseline = useRef("");
   const restored = useRef(false);
+  // What the address bar named when the editor opened: a folder or an item.
+  // Read once, here, ahead of anything that would restore a remembered one.
+  const initialTarget = useRef(targetFromPath(window.location.pathname));
   const bootSynced = useRef(false);
   // content-hash of the on-disk file when this doc was loaded; sent with each
   // save so the server can reject a write whose base moved (a live-site edit
@@ -990,7 +1020,9 @@ export default function Admin() {
     // otherwise restore the last-edited page
     let lastId: string | null = null;
     try {
-      lastId = sessionStorage.getItem("cms.lastId");
+      // A link into the editor names what to open; only a bare /admin falls
+      // back to whatever was open last time.
+      lastId = initialTarget.current ? null : sessionStorage.getItem("cms.lastId");
     } catch {
       /* ignore */
     }
@@ -1045,9 +1077,22 @@ export default function Admin() {
   const currentItems = useMemo(() => {
     const g = groups?.find((gr) => gr.group === selectedFolder);
     if (!g) return [];
+    // The backend lists folders in path order. For the blog that is not
+    // recency: the imported posts were numbered in display order and every
+    // post added since took the next number, so the newest sits at the
+    // bottom. Order the blog the way the site does, by date, newest first;
+    // ISO dates compare as strings, and a post without one keeps its place
+    // after the dated ones. Everything else keeps its order — docs follow
+    // their sections, hardware and games their display order.
+    // Keyed on the items' directory, not the group's label: production calls
+    // this folder "Blog" and the dev server "Articles".
+    const items =
+      itemIdParts(g.items[0]?.id ?? "")?.dir === "blog"
+        ? [...g.items].sort((a, b) => (b.date || "").localeCompare(a.date || ""))
+        : g.items;
     const f = filter.trim().toLowerCase();
-    if (!f) return g.items;
-    return g.items.filter((i) => i.title.toLowerCase().includes(f) || i.id.toLowerCase().includes(f));
+    if (!f) return items;
+    return items.filter((i) => i.title.toLowerCase().includes(f) || i.id.toLowerCase().includes(f));
   }, [groups, selectedFolder, filter]);
 
   /** The kind of the open item, which decides which fields it should show. */
@@ -1136,10 +1181,74 @@ export default function Admin() {
 
   // Default the selected folder once the list loads (to the open doc's folder if
   // one is restored, else the first folder).
+  // --- the address bar ---------------------------------------------------
+  // /admin/<dir> selects a folder, /admin/<dir>/<folder> opens an item, so a
+  // link into the editor lands on the thing it names and the back button
+  // works. The address the editor was opened at is read once, here, before
+  // any default is chosen; a pending open keeps the sync below from writing
+  // over it in the meantime.
+  const pendingOpen = useRef<string | null>(null);
+  const resolveTarget = useCallback(
+    (target: string): { item?: ListItem; group?: string } => {
+      if (!groups || !target) return {};
+      const all = groups.flatMap((g) => g.items);
+      const item = all.find((i) => addressOf(i.id) === target);
+      if (item) return { item, group: folderOf(item.id) };
+      const group = groups.find((g) => g.items.some((i) => addressOf(i.id).split("/")[0] === target))?.group;
+      return group ? { group } : {};
+    },
+    [groups, folderOf],
+  );
   useEffect(() => {
     if (!groups || !groups.length || selectedFolder) return;
-    setSelectedFolder((selected && folderOf(selected.id)) || groups[0].group);
-  }, [groups, selected, selectedFolder, folderOf]);
+    const named = resolveTarget(initialTarget.current);
+    setSelectedFolder((selected && folderOf(selected.id)) || named.group || groups[0].group);
+  }, [groups, selected, selectedFolder, folderOf, resolveTarget]);
+  const applyPath = useCallback(
+    (pathname: string) => {
+      const target = targetFromPath(pathname);
+      if (!target) {
+        setSelected(null);
+        return;
+      }
+      const named = resolveTarget(target);
+      if (named.item) {
+        if (selected?.id !== named.item.id) {
+          pendingOpen.current = named.item.id;
+          open(named.item);
+        }
+        return;
+      }
+      if (named.group) {
+        setSelectedFolder(named.group);
+        setSelected(null);
+      }
+    },
+    [resolveTarget, selected, open],
+  );
+  const appliedInitial = useRef(false);
+  useEffect(() => {
+    if (!groups || appliedInitial.current) return;
+    appliedInitial.current = true;
+    applyPath(window.location.pathname);
+  }, [groups, applyPath]);
+  useEffect(() => {
+    const onPop = () => applyPath(window.location.pathname);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [applyPath]);
+  useEffect(() => {
+    if (!groups || !selectedFolder) return;
+    if (pendingOpen.current && selected?.id !== pendingOpen.current) return; // still opening what the address named
+    pendingOpen.current = null;
+    const dir = groups.find((g) => g.group === selectedFolder)?.items[0];
+    const path = selected ? `/admin/${addressOf(selected.id)}` : dir ? `/admin/${addressOf(dir.id).split("/")[0]}` : "/admin";
+    if (window.location.pathname === path) return;
+    // Arriving at plain /admin is not a step worth a history entry; moving
+    // between folders and items is.
+    const method = window.location.pathname.replace(/\/$/, "") === "/admin" ? "replaceState" : "pushState";
+    window.history[method](null, "", path + window.location.search);
+  }, [groups, selected, selectedFolder]);
 
   if (loadError) {
     return (
@@ -1239,8 +1348,18 @@ export default function Admin() {
               </button>
             )}
             {previewUrl && (
-              <a className="ac-btn ac-btn-plain" href={previewUrl} target="_blank" rel="noreferrer" title="Open the live page in a new browser tab">
-                Open live page ↗
+              <a
+                className="ac-btn ac-btn-plain"
+                href={previewUrl}
+                target="_blank"
+                rel="noreferrer"
+                title={
+                  q.draft
+                    ? "This page is unlisted: anyone with the link can read it, but it is on no listing, feed or sitemap, and search engines are told to ignore it. Share the link to get feedback before publishing."
+                    : "Open the live page in a new browser tab"
+                }
+              >
+                {q.draft ? "Open unlisted link ↗" : "Open live page ↗"}
               </a>
             )}
             {!prod && (
@@ -1680,7 +1799,7 @@ export default function Admin() {
                             patchScalar("authorAvatar", me.avatar);
                           }}
                         >
-                          Add me as an author ({myTeamName})
+                          {currentAuthors.includes(myTeamName) ? `Use my avatar (${myTeamName})` : `Add me as an author (${myTeamName})`}
                         </button>
                       )}
                       <Field label="Tags (comma-separated)">
@@ -2306,7 +2425,7 @@ const styles: Record<string, React.CSSProperties> = {
   rowOn: { background: "color-mix(in srgb, var(--accent, #0066cc) 15%, transparent)" },
   rowTitle: { display: "block", font: "500 13px/1.35 system-ui", color: V.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   rowSub: { display: "block", font: "400 12px/1.3 system-ui", color: V.ink3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginTop: 1 },
-  main: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0, background: "var(--ac-bg)" },
+  main: { flex: 1, display: "flex", flexDirection: "column", minWidth: 0, minHeight: 0, background: "var(--ac-bg)" },
   toolbar: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 22px", borderBottom: `1px solid ${V.line}`, flex: "0 0 auto" },
   saveBtn: { padding: "8px 18px", border: 0, borderRadius: "var(--ac-radius-control)", background: "var(--ac-accent)", color: "#fff", font: "600 14px/1 var(--ac-font-text)", cursor: "pointer" },
   publishBar: { flex: "0 0 auto", padding: "10px 12px 12px", borderTop: `1px solid ${V.line}` },
@@ -2314,8 +2433,8 @@ const styles: Record<string, React.CSSProperties> = {
   syncBtn: { width: "100%", padding: "7px 14px", marginTop: 6, border: 0, borderRadius: 8, background: "rgba(128,128,130,0.14)", color: V.ink, font: "600 12px/1 system-ui", cursor: "pointer" },
   ghostBtn: { padding: "6px 12px", border: "1px solid var(--ac-separator)", borderRadius: "var(--ac-radius-control)", background: "transparent", color: "var(--ac-label)", font: "500 13px/1 var(--ac-font-text)", cursor: "pointer" },
   splitRow: { flex: 1, display: "flex", minHeight: 0 },
-  editorScroll: { flex: "1 1 0", minWidth: 320, overflowY: "auto", padding: "24px 24px 80px", background: "var(--ac-bg)" },
-  previewPane: { flex: "1 1 0", minWidth: 320, display: "flex", flexDirection: "column", background: "var(--ac-bg)" },
+  editorScroll: { flex: "1 1 0", minWidth: 320, minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", padding: "24px 24px 80px", background: "var(--ac-bg)" },
+  previewPane: { flex: "1 1 0", minWidth: 320, minHeight: 0, display: "flex", flexDirection: "column", overscrollBehavior: "contain", background: "var(--ac-bg)" },
   previewBar: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "8px 12px", borderBottom: "1px solid var(--ac-separator)", flex: "0 0 auto" },
   previewLink: { font: "500 12px/1 ui-monospace, monospace", color: "var(--ac-accent)", textDecoration: "none", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
   iframeAbs: { position: "absolute", inset: 0, width: "100%", height: "100%", border: 0, background: "#fff", transition: "opacity .18s ease" },

@@ -1894,3 +1894,34 @@ img.article-endcard-avatar {
   object-fit: cover;
   padding: 0;
 }
+
+/* The badge beside the byline of a draft: it is reachable only by its link,
+   and a reader sent that link should be able to tell. Amber, like the
+   editor's own Draft state, so the two agree. */
+.article-draft-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(210, 131, 20, 0.14);
+  color: #8a5300;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+@media (prefers-color-scheme: dark) {
+  .article-draft-badge {
+    background: rgba(240, 170, 60, 0.18);
+    color: #f0c070;
+  }
+}
+
+/* Links in a post read as links: the accent colour and the underline were
+   easy to miss at body weight, so a reader skated past them. Semibold, the
+   same weight the site gives its other actionable text. */
+.modal-content a {
+  font-weight: 600;
+}
+

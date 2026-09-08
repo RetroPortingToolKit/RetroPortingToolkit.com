@@ -1123,3 +1123,21 @@ case becomes the team's spelling and a name on nobody's card is kept as a
 guest. The bot reads `data/team.json` from the checkout on every run, so a
 new card is known the moment it lands.
 
+
+**The editor keeps its place in the address bar (2026-09-08).** `/admin/blog`
+opens that folder, `/admin/blog/38_slug` opens that post, `/admin/page/home`
+the Home doc; `vercel.json` rewrites `/admin/(.*)` to the SPA so a pasted link
+works on a fresh load, and the address wins over the remembered last item.
+A draft's row offers "Open unlisted link": a draft renders at its public URL
+(noindex, out of every listing, feed and the sitemap), which is what to share
+for review. The blog list is ordered by `date`, newest first, because the
+folder number is not recency — `01–28` were numbered in display order at
+import and every post since took the next number, so path order put the
+newest at the bottom. Both CMS servers now emit `date` on each list item for
+this. Two posts (`04`, `06`) have no `date:` at all and sort last.
+`data/blog/09_video-mph-219-first-look/` is an empty untracked directory
+from 2026-09-01 (no `index.md`, invisible to git and skipped by the dev
+server); it was left alone. Editing a post: the preview pane scrolls on its
+own (`min-height: 0` down the flex chain, `overscroll-behavior: contain`,
+document scroll locked while the editor is open), and links inside an
+article are `font-weight: 600` so they read as links.

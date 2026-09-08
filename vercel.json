@@ -11,6 +11,10 @@
       "destination": "/api/newsletter?__sub=$1"
     },
     {
+      "source": "/admin/(.*)",
+      "destination": "/admin"
+    },
+    {
       "source": "/rss",
       "destination": "/rss.xml"
     },

@@ -100,8 +100,11 @@ a path like `./shot.png` or `/covers/name.jpg`.
 
 `featured: true` promotes an item onto the home page. `draft: true` holds it
 back: it leaves every listing, the feeds and the sitemap, but keeps its own URL
-so it can be previewed. Read an existing page in the same kind before inventing
-a field; the ones above are the ones the site reads.
+so it can be previewed. That URL is public but unlisted — `noindex`, reachable
+by nobody who is not handed the link — so it is the address to share when a
+post wants a second pair of eyes before it is announced; the editor offers it
+as "Open unlisted link" on a draft's row. Read an existing page in the same
+kind before inventing a field; the ones above are the ones the site reads.
 
 ## Media
 

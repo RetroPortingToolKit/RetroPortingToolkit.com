@@ -550,6 +550,9 @@ describe("naming a published page", () => {
     const withSite = taskPrompt({ request: "r", authorId: "a", channelId: "c", messageUrl: "u", siteUrl: "https://example.test" });
     expect(withSite).toContain("https://example.test/blog/<slug>");
     expect(withSite).toMatch(/never by a bare path/);
+    // A draft has the same address, just unlisted — and the requester is told so.
+    expect(withSite).toMatch(/draft: true/);
+    expect(withSite).toMatch(/say it is unlisted until/);
     // The domain is the site's, passed in from site.ts; the prompt carries none of its own.
     const without = taskPrompt({ request: "r", authorId: "a", channelId: "c", messageUrl: "u" });
     expect(without).not.toMatch(/https?:\/\/\S+\/blog\/<slug>/);

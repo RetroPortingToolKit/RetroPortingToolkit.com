@@ -262,6 +262,9 @@ export function ArticleByline({ item, delay = 200 }: { item: Item; delay?: numbe
       <span className="article-byline-text">
         <span className="article-author">
           <AuthorNames names={authors} />
+          {/* A draft is reachable by its link and nowhere else. Whoever was
+              sent that link should be able to tell they are reading a draft. */}
+          {item.draft && <span className="article-draft-badge">Unlisted draft</span>}
         </span>
         {meta && <span className="article-byline-meta">{meta}</span>}
       </span>

@@ -980,12 +980,18 @@ async function listEditable() {
   // and mark drafts. If it fails the list still renders, from the slug.
   const itemPaths = paths.filter((p) => !!itemParts(p)).sort();
   const texts = await ghReadMany(itemPaths);
-  const metaOf = (p: string): { title?: string; draft?: boolean } => {
+  const metaOf = (p: string): { title?: string; draft?: boolean; date?: string } => {
     const raw = texts.get(p);
     if (!raw) return {};
     try {
       const fm = (yaml.load(splitRaw(raw).fmText) || {}) as Record<string, unknown>;
-      return { title: typeof fm.title === "string" ? fm.title : undefined, draft: fm.draft === true };
+      return {
+        title: typeof fm.title === "string" ? fm.title : undefined,
+        draft: fm.draft === true,
+        // The editor orders the blog by this; the folder number is display
+        // order for the imported posts and append order for everything since.
+        date: typeof fm.date === "string" ? fm.date : undefined,
+      };
     } catch {
       return {};
     }
@@ -999,7 +1005,7 @@ async function listEditable() {
         // the list shows which section a page is in and stays sorted by it.
         const slug = itemParts(p)!.slug;
         const meta = metaOf(p);
-        return { id: p, title: meta.title || prettify(slug), sub: slug, type: "md", draft: !!meta.draft };
+        return { id: p, title: meta.title || prettify(slug), sub: slug, type: "md", draft: !!meta.draft, date: meta.date || "" };
       });
     if (items.length) groups.push({ group: kind[0].toUpperCase() + kind.slice(1), items });
   }

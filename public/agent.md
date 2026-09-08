@@ -200,6 +200,11 @@ string works when there is no language.
 
 ## Drafts
 
+A draft keeps its public address — `https://retroportingtoolkit.com/blog/<slug>`
+for a post — and anyone with the link can read it, but it is on no listing,
+no feed and not in the sitemap, and search engines are told to ignore it.
+That link is the one to share for feedback before publishing.
+
 `"draft": true` (the default) writes the page but keeps it out of every listing,
 the feeds and the sitemap. Its own URL still works, so you can hand the person a
 link to check. Send `"draft": false` to publish, or flip it later:

@@ -174,10 +174,15 @@ export function listEditable() {
       // list shows which section a page is in and stays sorted by it.
       const slug = folder.split("/").map(folderSlugOf).join("/");
       let draft = false;
+      let date = "";
       try {
-        draft = (yaml.load(fmText) || {}).draft === true;
+        const fm = yaml.load(fmText) || {};
+        draft = fm.draft === true;
+        // The editor orders the blog by this; the folder number is display
+        // order for the imported posts and append order for everything since.
+        date = typeof fm.date === "string" ? fm.date : "";
       } catch {}
-      return { id: `data/${dir}/${folder}/index.md`, title: mdTitle(file, fmText), sub: slug, type: "md", draft };
+      return { id: `data/${dir}/${folder}/index.md`, title: mdTitle(file, fmText), sub: slug, type: "md", draft, date };
     });
     if (items.length) groups.push({ group: label, items });
   }
