@@ -989,3 +989,40 @@ plus one rule in `17-team.css`:
 Unchanged: the page is still `draft: true`, still `noindex`, still absent from
 `NAV_TABS`, and still on this branch rather than `main`. The open list above
 still stands, photos and the `data/about-team.md` conflict included.
+
+### The Discord bot, made fast, and what the public lane could reach (2026-09-08)
+
+Requests were taking seven to thirteen minutes. Measured rather than guessed:
+the verification suite is 83s; a dead Codex attempt was 12s; `--effort high`
+on the publishing lane was most of the rest. What actually stalled a request
+was none of those — a run that finished its work in about a minute then sat
+idle for eleven, and the bridge could not tell, because `claude -p` prints
+nothing until it exits. Zero-byte log, fifteen-minute cap, queue held.
+
+- Claude runs now stream events (`--output-format stream-json --verbose`).
+  The task log is a readable trace, a three-minute silence watchdog stops a
+  dead run, and the Discord progress line says what the agent last did.
+- Codex is skipped until the reset time it prints when it reports a usage
+  limit (`runner-cooldowns.json` in the state dir). Its quota was exhausted
+  from Sep 2 and every request paid to rediscover that.
+- The prompt no longer says "verify the production deployment". From this
+  Mac the apex answers automated requests with a bot challenge; polling it
+  is the likeliest cause of the hang. The agent confirms the push landed on
+  origin and stops. A push to main deploys on its own.
+- Quiet period 90s → 20s (each request was waiting on the previous request's
+  own commit), hard cap 15 → 10 minutes, both lanes at `--effort low`.
+- The agent skips typecheck/build/test when it changed no files.
+
+**The public "ask" lane could read any file on the disk.** Found while
+tracing the above, by probing rather than reading: `--allowed-tools Read Glob
+Grep` only pre-approves, it removes nothing, so `Bash` was still present and
+ran; and Read, Glob and Grep each accept an absolute path, so an unscoped
+approval returned a file from outside the repository into the reply. That is a
+route to `~/.config/stack/*.env` and `~/.codex/auth.json` for anyone who gets
+past the prompt fencing in a public channel. Fixed: `--tools Read Glob Grep`
+(the set that exists) plus approval scoped to `<checkout>/**`, which turns an
+outside path into a permission request that `-p` has nobody to grant. Verified
+denied for all three tools, and allowed inside the repo. Codex's `--sandbox
+read-only` bounds writes, not reads, and has no equivalent fence, so the ask
+lane no longer goes to Codex at all. The publishing lane is unchanged: it is
+`danger-full-access` on purpose, for the admin channel.

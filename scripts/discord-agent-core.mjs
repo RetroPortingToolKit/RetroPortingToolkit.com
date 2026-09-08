@@ -248,11 +248,28 @@ export function agentCommand({ runner, mode, root, outputFile }) {
     // finished its work in a minute and then sat idle held the queue for the
     // full fifteen-minute cap, with a zero-byte log the whole time.
     const stream = ["--output-format", "stream-json", "--verbose"];
+    // The ask lane answers strangers in public channels, so what it can reach
+    // is the whole question. Two things were found by probing it (2026-09-08):
+    //
+    //   --allowed-tools only PRE-APPROVES tools; it removes none. Bash was
+    //   still there, and ran. --tools sets the tools that exist at all.
+    //
+    //   Read, Glob and Grep accept any absolute path, and an unscoped approval
+    //   let each of them pull a file from outside the repository into the
+    //   reply — which is a route to ~/.config/stack/*.env for anyone who gets
+    //   past the prompt fencing. Scoping the approval to the checkout makes
+    //   an outside path a permission request, and -p has nobody to ask, so it
+    //   is refused. Verified for all three tools, both directions.
+    const inside = (tool) => `${tool}(${root}/**)`;
     return {
       command: "claude",
       args:
         mode === "ask"
-          ? ["-p", ...auth, ...model, ...stream, "--allowed-tools", "Read", "Glob", "Grep"]
+          ? [
+              "-p", ...auth, ...model, ...stream,
+              "--tools", "Read", "Glob", "Grep",
+              "--allowed-tools", inside("Read"), inside("Glob"), inside("Grep"),
+            ]
           : ["-p", ...auth, ...model, ...stream, "--dangerously-skip-permissions"],
       resultFrom: "stream",
     };
@@ -329,13 +346,19 @@ export function traceStreamLine(line, at = new Date()) {
  * no key is configured, so the chain is two tiers in that case rather than one
  * that fails on a missing credential.
  */
-export function runnerChain({ hasApiKey, cooldowns = {}, now = Date.now() }) {
+export function runnerChain({ hasApiKey, cooldowns = {}, now = Date.now(), mode = "publish" }) {
   const all = hasApiKey ? ["codex", "claude", "claude-api"] : ["codex", "claude"];
-  const ready = all.filter((r) => !(Number(cooldowns[r]) > now));
+  // The public ask lane never goes to Codex. Its "read-only" sandbox bounds
+  // writes, not reads: model-run shell commands can read the whole disk, and
+  // there is no flag to fence that to the checkout. Claude's read approval can
+  // be scoped to the repository (see agentCommand), so the public lane stays
+  // there — on the subscription tier first, which is also the cheaper one.
+  const eligible = mode === "ask" ? all.filter((r) => r !== "codex") : all;
+  const ready = eligible.filter((r) => !(Number(cooldowns[r]) > now));
   // Never hand back an empty chain. If every runner is supposedly cooling down
   // the estimate is more likely wrong than the truth, and a wasted attempt
   // beats refusing work outright.
-  return ready.length ? ready : all;
+  return ready.length ? ready : eligible;
 }
 
 /** A usage limit that names no reset time is retried after this long. */

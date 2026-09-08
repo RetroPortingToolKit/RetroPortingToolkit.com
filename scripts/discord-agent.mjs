@@ -457,6 +457,7 @@ async function runAgent(options) {
   for (const runner of runnerChain({
     hasApiKey: Boolean(process.env.ANTHROPIC_API_KEY),
     cooldowns,
+    mode: options.mode,
   })) {
     try {
       const text = await runAgentOnce({ ...options, runner });

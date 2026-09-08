@@ -193,9 +193,16 @@ describe("Discord agent core", () => {
     expect(codexAsk.args).not.toContain("danger-full-access");
 
     const claudeAsk = agentCommand({ runner: "claude", mode: "ask", root: "/repo", outputFile: "/tmp/o" });
-    expect(claudeAsk.args).toContain("--allowed-tools");
-    expect(claudeAsk.args).toEqual(expect.arrayContaining(["Read", "Glob", "Grep"]));
+    // --tools is the set that EXISTS; --allowed-tools merely pre-approves. The
+    // lane once had only the latter, and Bash was still there and ran.
+    const tools = claudeAsk.args.slice(claudeAsk.args.indexOf("--tools") + 1, claudeAsk.args.indexOf("--allowed-tools"));
+    expect(tools).toEqual(["Read", "Glob", "Grep"]);
+    expect(claudeAsk.args).not.toContain("Bash");
     expect(claudeAsk.args).not.toContain("--dangerously-skip-permissions");
+    // Approval is fenced to the checkout: an unscoped "Read" let the lane
+    // return the contents of files anywhere on the disk.
+    const approved = claudeAsk.args.slice(claudeAsk.args.indexOf("--allowed-tools") + 1);
+    expect(approved).toEqual(["Read(/repo/**)", "Glob(/repo/**)", "Grep(/repo/**)"]);
 
     // The publishing lane is the one allowed to write, on either runner.
     expect(agentCommand({ runner: "codex", mode: "publish", root: "/repo", outputFile: "/tmp/o" }).args)
@@ -476,5 +483,23 @@ describe("stream-json runs", () => {
       expect(cmd.resultFrom).toBe("stream");
     }
     expect(agentCommand({ runner: "codex", mode: "publish", root: "/r", outputFile: "/o" }).args).not.toContain("stream-json");
+  });
+});
+
+
+describe("the public lane and Codex", () => {
+  it("never sends an ask to Codex, whose read-only sandbox still reads the whole disk", () => {
+    expect(runnerChain({ hasApiKey: true, mode: "ask" })).toEqual(["claude", "claude-api"]);
+    expect(runnerChain({ hasApiKey: false, mode: "ask" })).toEqual(["claude"]);
+  });
+
+  it("leaves the publishing lane's order alone", () => {
+    expect(runnerChain({ hasApiKey: true, mode: "publish" })).toEqual(["codex", "claude", "claude-api"]);
+    expect(runnerChain({ hasApiKey: true })).toEqual(["codex", "claude", "claude-api"]);
+  });
+
+  it("does not fall back to Codex for an ask even when Claude is cooling down", () => {
+    const later = Date.now() + 60_000;
+    expect(runnerChain({ hasApiKey: false, mode: "ask", cooldowns: { claude: later } })).toEqual(["claude"]);
   });
 });
