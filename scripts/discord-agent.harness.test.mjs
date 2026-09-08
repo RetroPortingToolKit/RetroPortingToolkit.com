@@ -186,12 +186,17 @@ describe("bridge harness: queueing and the shared checkout", () => {
 
   it("stops an agent that goes silent, reports it, and moves on to the next request", async () => {
     const b = await up();
-    const dead = b.send(ADMIN, "U1", "hang forever [[silent]]");
+    const dead = b.send(ADMIN, "U1", "hang forever [[dirty]] [[silent]]");
     const next = b.send(ADMIN, "U2", "after the hang [[sleep=0]]");
     const failed = await b.waitFor(forMsg(dead, "went silent"), 12000, "watchdog report");
     expect(failed.content).toMatch(/did not complete/);
     // The watchdog is 2s here; it must not have taken anything like the 30s cap.
     expect(failed.t - b.t0).toBeLessThan(10000);
+    // The file the hung run wrote is named, because it parks every request
+    // after it until someone deals with it.
+    expect(failed.content).toMatch(/left changes in the checkout/);
+    expect(failed.content).toMatch(/- left-behind\.txt/);
+    fs.rmSync(path.join(b.repo.dir, "left-behind.txt"));
     await b.waitFor(forMsg(next, "OK: after the hang"), 15000, "next job ran");
   });
 

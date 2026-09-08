@@ -108,7 +108,10 @@ const AGENT_TIMEOUT_MS = envMs("DISCORD_AGENT_TIMEOUT_MS", 10 * 60 * 1_000);
 // No event from the agent for this long means it is dead, not slow. A working
 // run at low effort emits something every few seconds; the build step, the
 // longest silent stretch, is under a minute.
-const IDLE_TIMEOUT_MS = envMs("DISCORD_AGENT_IDLE_MS", 3 * 60 * 1_000);
+// Five minutes, not three: a stream event arrives only when a tool call
+// ends, so one long call is "silence". The check suite alone is a minute,
+// and a run was killed at three when someone's own checks ran beside it.
+const IDLE_TIMEOUT_MS = envMs("DISCORD_AGENT_IDLE_MS", 5 * 60 * 1_000);
 // Public questions get their own, much shorter budget, and one at a time. A
 // question is not allowed to cost what a publish costs.
 const ASK_TIMEOUT_MS = envMs("DISCORD_AGENT_ASK_TIMEOUT_MS", 4 * 60 * 1_000);
@@ -255,6 +258,24 @@ async function markOutcome(ref, from, to) {
     await message.react(to);
   } catch (error) {
     console.warn(`[discord-agent] could not mark ${ref.messageId} ${to}: ${error?.message ?? error}`);
+  }
+}
+
+/**
+ * What a run that did not finish left in the checkout. A stopped agent's
+ * half-done files park every request after it until someone commits or
+ * discards them, and a bare "did not complete" hid that: on 2026-09-08 a
+ * resized team photo sat unexplained in the tree while the requester was
+ * told only that the agent went silent.
+ */
+async function leftBehindNote() {
+  try {
+    const { status } = await gitSnapshot();
+    if (!status) return "";
+    const paths = status.split("\n").map((l) => l.slice(3)).filter(Boolean);
+    return `\n\nIt left changes in the checkout, which hold every request until they are committed or discarded:\n${paths.map((p) => `- ${p}`).join("\n")}`;
+  } catch {
+    return "";
   }
 }
 
@@ -973,14 +994,14 @@ async function drainQueue() {
       await replyChunks(
         job.ref,
         "🛑 Stopped.",
-        "The active agent task was stopped. Work completed before the stop may remain in the shared checkout, so the next task will inspect the tree before changing anything.",
+        `The active agent task was stopped.${await leftBehindNote()}`,
       );
     } else if (error instanceof SharedCheckoutConflictError) {
       outcome = "⏸️";
       await replyChunks(job.ref, "⏸️ Blocked.", error.message);
     } else {
       const detail = error instanceof Error ? error.message : String(error);
-      await replyChunks(job.ref, "❌ The task did not complete.", detail);
+      await replyChunks(job.ref, "❌ The task did not complete.", `${detail}${await leftBehindNote()}`);
     }
   } finally {
     if (!parked) await clearStatus(job);

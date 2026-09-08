@@ -545,6 +545,13 @@ describe("attachments in the publish prompt", () => {
   });
 });
 
+describe("verification runs as separate commands", () => {
+  it("asks for typecheck, build and test one per tool call, so the idle watchdog sees progress", () => {
+    const prompt = taskPrompt({ request: "r", authorId: "a", channelId: "c", messageUrl: "u" });
+    expect(prompt).toMatch(/typecheck, build and test as three separate commands, one per tool call, never chained into one/);
+  });
+});
+
 describe("blog posts go through a draft first", () => {
   const prompt = taskPrompt({ request: "write a post about the new recomp", authorId: "a", channelId: "c", messageUrl: "u", siteUrl: "https://example.test" });
   it("creates a new post as a draft and invites a reply", () => {

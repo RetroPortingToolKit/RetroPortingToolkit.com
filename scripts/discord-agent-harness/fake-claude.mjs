@@ -3,7 +3,7 @@
  * on stdin and does what markers in the request text say:
  *   [[sleep=N]]  emit an event every 400ms for N seconds, then a result
  *   [[silent]]   emit init, then never speak again (the watchdog's case)
- *   [[dirty]]    leave an uncommitted file in the checkout, then a result
+ *   [[dirty]]    leave an uncommitted file in the checkout first (then a result, or [[silent]])
  *   [[fail]]     a result with is_error: true
  */
 import fs from "node:fs";
@@ -18,6 +18,9 @@ process.stdin.on("end", async () => {
   const request = (prompt.split("\n").find((l) => l.includes("[[")) || prompt.split("\n")[0]).trim();
   const say = (o) => process.stdout.write(JSON.stringify(o) + "\n");
   say({ type: "system", subtype: "init" });
+  // Before anything else, so "[[dirty]] [[silent]]" is a run that wrote a
+  // file and then hung — the case the left-behind note exists for.
+  if (/\[\[dirty\]\]/.test(request)) fs.writeFileSync(path.join(process.cwd(), "left-behind.txt"), "oops\n");
   if (/\[\[silent\]\]/.test(request)) {
     setInterval(() => {}, 1 << 30); // keep the process alive, saying nothing
     return;
@@ -28,7 +31,6 @@ process.stdin.on("end", async () => {
     say({ type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "tick" } }] } });
     await new Promise((r) => setTimeout(r, 400));
   }
-  if (/\[\[dirty\]\]/.test(request)) fs.writeFileSync(path.join(process.cwd(), "left-behind.txt"), "oops\n");
   const isError = /\[\[fail\]\]/.test(request);
   if (/\[\[attachment\]\]/.test(request)) {
     // Prove the file really is where the prompt says: read it back.

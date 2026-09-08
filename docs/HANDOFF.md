@@ -1162,3 +1162,14 @@ queued or running (💬 on the ask lane), then `markOutcome` takes that off
 and adds ✅ done, ❌ failed, 🛑 stopped or ⏸️ blocked. It resolves the
 message by id, so it also works for a request resumed after a restart; the
 stub Discord records `unreact` and `flags`, and the harness pins both.
+
+**The idle watchdog is five minutes and the checks run one per call
+(2026-09-08).** A stream event arrives only when a tool call ends, so one
+long call is silence to the watchdog. Alexbeav's "here's my picture" request
+resized the photo in a minute, then ran typecheck, build and test chained in
+one call while a person's own gate ran beside it, crossed three minutes, and
+was stopped — leaving the finished `public/team/alexbeav.jpg` in the tree
+(landed by hand as `e0fa880`). Alone the suite is a minute. Two changes: the
+prompt asks for the three checks as three tool calls, and `IDLE_TIMEOUT_MS`
+is five minutes. A ❌ or 🛑 reply now ends with the paths a stopped run left
+in the checkout, since they hold every request after it.
