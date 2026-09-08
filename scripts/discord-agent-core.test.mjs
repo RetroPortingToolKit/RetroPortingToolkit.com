@@ -545,6 +545,31 @@ describe("attachments in the publish prompt", () => {
   });
 });
 
+describe("blog posts go through a draft first", () => {
+  const prompt = taskPrompt({ request: "write a post about the new recomp", authorId: "a", channelId: "c", messageUrl: "u", siteUrl: "https://example.test" });
+  it("creates a new post as a draft and invites a reply", () => {
+    expect(prompt).toMatch(/Blog posts go through a draft first/);
+    expect(prompt).toMatch(/creates the page with `draft: true`/);
+    expect(prompt).toMatch(/Do not list a new post on its first pass even when the request says "publish"/);
+    expect(prompt).toMatch(/reply to this message with changes, or with "publish" to list it/);
+  });
+  it("acts on the page named in the reply context, feedback keeps the draft, publish lists it", () => {
+    expect(prompt).toMatch(/resolve that address to its folder under data\//);
+    expect(prompt).toContain("https://example.test/blog/<slug> is data/blog/<nn>_<slug>/index.md");
+    expect(prompt).toMatch(/Feedback edits the draft, keeps `draft: true`/);
+    expect(prompt).toMatch(/"Publish", "ship it", "looks good, go" remove `draft: true`/);
+  });
+  it("can put any post back into draft", () => {
+    expect(prompt).toMatch(/"Unpublish", "back to draft", "make it a preview again", on any post new or old, set `draft: true`/);
+    expect(prompt).toMatch(/address keeps working/);
+  });
+  it("carries no domain of its own when none is passed", () => {
+    const without = taskPrompt({ request: "r", authorId: "a", channelId: "c", messageUrl: "u" });
+    expect(without).toContain("(/blog/<slug> is data/blog/<nn>_<slug>/index.md");
+    expect(without).not.toMatch(/https?:\/\/\S+\/blog\/<slug> is data/);
+  });
+});
+
 describe("naming a published page", () => {
   it("asks for the full address on the site, never a bare path", () => {
     const withSite = taskPrompt({ request: "r", authorId: "a", channelId: "c", messageUrl: "u", siteUrl: "https://example.test" });

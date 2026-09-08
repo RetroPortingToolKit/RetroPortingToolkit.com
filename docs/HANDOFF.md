@@ -1141,3 +1141,15 @@ server); it was left alone. Editing a post: the preview pane scrolls on its
 own (`min-height: 0` down the flex chain, `overscroll-behavior: contain`,
 document scroll locked while the editor is open), and links inside an
 article are `font-weight: 600` so they read as links.
+
+**Blog posts through the bot are drafts first (2026-09-08).** The prompt in
+`scripts/discord-agent-core.mjs` tells the agent that a new post is written
+with `draft: true`, pushed, and reported by its unlisted address, and that
+the reply closes by inviting the next step. The next step is a Discord reply
+to that bot message: the bridge already inherits the replied-to bot message
+(which names the page by address) and the original request as "Reply
+context", so the agent resolves the address to `data/blog/<nn>_<slug>/` and
+acts on that page — feedback edits the draft and keeps it one, "publish"
+removes the flag, and "unpublish" / "back to draft" on any post, old or new,
+sets it. No bridge code changed for this; it is a prompt rule, pinned by
+`discord-agent-core.test.mjs`.
