@@ -1173,3 +1173,9 @@ was stopped — leaving the finished `public/team/alexbeav.jpg` in the tree
 prompt asks for the three checks as three tool calls, and `IDLE_TIMEOUT_MS`
 is five minutes. A ❌ or 🛑 reply now ends with the paths a stopped run left
 in the checkout, since they hold every request after it.
+
+**The bot's avatar is the site icon (2026-09-08).** `scripts/discord-bot-avatar.mjs`
+PATCHes it from `public/site-icon.png` over REST, token from the environment
+as the bridge takes it (the installer's Keychain line, `retroportingtoolkit-discord-bot`).
+Re-run it when the icon changes; Discord permits only a couple of avatar
+changes an hour.
