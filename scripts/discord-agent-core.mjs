@@ -200,12 +200,18 @@ export function isRunnerUnavailable(output) {
 export const CODEX_MODEL = "gpt-5.6-luna";
 export const CLAUDE_MODEL = "claude-opus-5";
 /**
- * Effort follows the lane, not the runner. Answering a question about a
- * published page is cheap work; the publishing lane edits code, runs the test
- * gate and pushes to a live site, and is worth thinking about properly.
+ * Effort follows the lane, not the runner.
+ *
+ * Both lanes run low. The publishing lane was high, on the reasoning that it
+ * edits code and pushes to a live site and is worth thinking about properly.
+ * Measured, that reasoning cost about ten minutes of a thirteen-minute request
+ * while a person sat watching a "Still working" line in Discord, and the owner
+ * would rather have the speed (2026-09-08). The test gate is what actually
+ * protects the site, and it is unchanged: nothing reaches main without
+ * typecheck, build and test passing.
  */
 export const ASK_EFFORT = "low";
-export const PUBLISH_EFFORT = "high";
+export const PUBLISH_EFFORT = "low";
 export const effortFor = (mode) => (mode === "ask" ? ASK_EFFORT : PUBLISH_EFFORT);
 
 export function agentCommand({ runner, mode, root, outputFile }) {
