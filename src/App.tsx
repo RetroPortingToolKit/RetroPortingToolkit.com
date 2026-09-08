@@ -13,6 +13,7 @@ import {
 import { useEffect, useLayoutEffect, useRef } from "react";
 import Home from "./pages/Home";
 import { AboutPage } from "./pages/AboutPage";
+import { TeamPage } from "./pages/TeamPage";
 import { ItemPage } from "./pages/ItemPage";
 // The editor is 2300 lines that only ever run on /admin, so it loads from its
 // own chunk rather than riding in the bundle every visitor downloads. It has to
@@ -243,6 +244,7 @@ function AppRoutes() {
           <Routes location={pageLocation ?? location}>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/team" element={<TeamPage />} />
             <Route path="/hardware" element={<Home tab="hardware" />} />
             <Route path="/games" element={<Home tab="game" />} />
             <Route path="/blog" element={<Home tab="blog" />} />

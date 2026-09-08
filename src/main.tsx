@@ -37,6 +37,9 @@ import "./styles/11-apple-cms.css";
 // documentation puts it, and stays scoped so it still wins.
 import "./styles/15-search-palette.css";
 import "./styles/16-subscribe-corner.css";
+// The /team page. Appended last per the partial ordering; it only adds .team-*
+// classes of its own, so it neither depends on nor disturbs the cascade above.
+import "./styles/17-team.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Missing #root element");

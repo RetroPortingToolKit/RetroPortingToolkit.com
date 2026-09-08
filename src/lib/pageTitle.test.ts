@@ -6,6 +6,7 @@ import {
   titleForCollection,
   titleForHome,
   titleForItem,
+  titleForTeam,
   titleForTopic,
 } from "./pageTitle";
 import { BLOGS, HARDWARE, GAMES, DOCS } from "./content";
@@ -31,6 +32,16 @@ describe("client titles match the prerendered titles", () => {
 
   it("home", () => {
     expect(served("/")).toBe(titleForHome());
+  });
+
+  it("team", () => {
+    expect(served("/team")).toBe(titleForTeam());
+  });
+
+  it("keeps the team page out of search while it is a draft", () => {
+    // Unannounced and unlinked from navigation. writeSitemap() filters on this
+    // flag, so it is what actually keeps /team out of sitemap.xml.
+    expect(meta.get("/team")?.draft).toBe(true);
   });
 
   it("gives image-less launch routes a real large-card preview", () => {

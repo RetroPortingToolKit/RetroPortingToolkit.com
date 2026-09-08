@@ -913,3 +913,53 @@ Still open, in rough order of how much they matter:
 - **The pre-encryption plaintext is still in the gist's revision history.**
   Encrypting the file did not rewrite what came before it. Fixing that means a
   new gist and a new id.
+
+## Meet the Team, first draft (2026-09-08, branch `meet-the-team`)
+
+`/team` exists as a page and is deliberately unfinished. It is built from
+`data/team.json`, not from an item folder: a person is not one of the four
+content kinds, and inventing a fifth would have meant touching `api/cms.ts`,
+`scripts/cms-dev.mjs` and `public/agent.md` together for five records that no
+one edits through the CMS. If people ever do need CMS editing, that is the
+change to make, and it is a bigger one than it looks.
+
+The page borrows the Platforms page's chrome exactly — the shared `<Tabs>` bar
+in its subpage form, then `hn-section hn-subpage-section` — so it reads as part
+of the site rather than as a bolted-on page. The card is NOT a `SpatialCard`:
+that is a button that opens an item modal over a cover image, and a person has
+neither. `src/styles/17-team.css` reproduces the wide `.news-list` proportions
+(square portrait in a one-third column, single column under 820px) as static
+articles.
+
+`/team` is registered `draft: true` in `buildRouteMeta()`, so it is `noindex`
+and absent from `sitemap.xml`, and nothing links to it. That is what makes it
+safe to merge before the copy is settled. To publish: drop `draft` and the
+robots tag in `scripts/vite-prerender.mjs`, and add the link wherever it should
+live. It is deliberately NOT in `NAV_TABS` — that array is also the home pager's
+pane order, so an entry there would promise a swipeable pane that does not
+exist. The bar renders `active="none"`, which is the documented case for it.
+
+Open, and needing the people themselves rather than another session:
+
+- **Every bio is one person's summary of their colleagues**, relayed through a
+  Discord message. Each entry should be confirmed by its subject before this is
+  linked publicly. Roles especially: Matthew's "Project lead" is carried over
+  from `data/about-team.md`, and was sent as "RPT team lead(?)" with the
+  question mark.
+- **`data/about-team.md` at `/about` still exists and disagrees.** It credits
+  Emissary (Jack Rickey) as "Founder of the Retro Porting Toolkit initiative";
+  the draft this page was built from does not repeat that, and credits him as
+  founder of BattleShip instead. Both are plausible and they are not mutually
+  exclusive, so neither was silently dropped or merged. Two team pages should
+  not survive: decide which is authoritative and retire the other.
+- **Photos were taken from public profiles** — GitHub avatars for mstan,
+  TechnicallyComputers and Alexbeav, and `headshot.jpg` from jrickey.dev — on
+  the strength of the request, not of each person's own say-so. Confirm before
+  publishing. shokunin has no photo and renders a monogram placeholder.
+- **Alexandros Mandravillis's role line is his GitHub bio**, which describes his
+  cloud security day job rather than his recompilation work. It was used as an
+  explicit placeholder; he should supply the real line.
+- The request said "recomp-rbengine"; the repository is
+  `TechnicallyComputers/retcomm-rbengine`, which is what
+  `data/docs/07_fleet/01_repositories/index.md` already documents and what the
+  page links.

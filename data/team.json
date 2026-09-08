@@ -1,0 +1,95 @@
+{
+  "title": "Meet the Team",
+  "intro": "Retro Porting Toolkit is a collaborative project. The people below build the recompilers, the runtimes, the tooling around them, and this site. Not every project mentioned across the site is owned or maintained by the same person, so each entry says what that person actually works on.",
+  "members": [
+    {
+      "slug": "matthew-stanley",
+      "name": "Matthew Stanley",
+      "role": "Project lead",
+      "photo": "/team/mstan.jpg",
+      "handles": [
+        { "label": "GitHub", "value": "mstan", "href": "https://github.com/mstan" },
+        { "label": "Discord", "value": "gamemaster" },
+        { "label": "Site", "value": "1379.tech", "href": "https://1379.tech" }
+      ],
+      "bio": [
+        "Backend web services and data engineer with over ten years of experience.",
+        "Reverse engineered Side 7, a live-service hero shooter for PC, to bring the game back from the dead. That work used no AI at any point.",
+        "Applied those skills, together with a background in classic games and decompilation and recompilation, to build out the NES, Super Nintendo, Game Boy Advance, Nintendo DS, Virtual Boy and PlayStation recompilers."
+      ],
+      "links": [{ "label": "Side 7", "href": "https://side7.gg" }]
+    },
+    {
+      "slug": "jack-rickey",
+      "name": "Jack Rickey",
+      "role": "Quantitative Developer and Systems Programmer",
+      "photo": "/team/jrickey.jpg",
+      "handles": [
+        { "label": "GitHub", "value": "JRickey", "href": "https://github.com/JRickey" },
+        { "label": "Discord", "value": ".emissary" },
+        { "label": "Site", "value": "jrickey.dev", "href": "https://jrickey.dev/" }
+      ],
+      "bio": [
+        "Builds the full stack behind trading decisions by day, and writes open source low-level systems tooling by night.",
+        "Founder and primary developer of BattleShip, a cross-platform native PC port of Super Smash Bros. for the Nintendo 64, decompiled and ported with AI assistance."
+      ],
+      "links": []
+    },
+    {
+      "slug": "alex-vanderveen",
+      "name": "Alex Vanderveen",
+      "role": "Launcher, netplay and rollback",
+      "photo": "/team/technicallycomputers.jpg",
+      "handles": [
+        {
+          "label": "GitHub",
+          "value": "TechnicallyComputers",
+          "href": "https://github.com/TechnicallyComputers"
+        },
+        { "label": "Discord", "value": "wretched99, also known as CobaltCryptid" }
+      ],
+      "bio": [
+        "Primary developer of the RetComM Launcher, a single front end for updating, managing and distributing static recompilations.",
+        "Primary developer of recomp-net and retcomm-rbengine, which bring netplay, save states and rewinding to several recompilation platforms.",
+        "A significant contributor to PSXRecomp and SNESRecomp."
+      ],
+      "links": [
+        {
+          "label": "RetComM Launcher",
+          "href": "https://github.com/TechnicallyComputers/RetComM-Launcher"
+        },
+        { "label": "recomp-net", "href": "https://github.com/TechnicallyComputers/recomp-net" },
+        {
+          "label": "retcomm-rbengine",
+          "href": "https://github.com/TechnicallyComputers/retcomm-rbengine"
+        }
+      ]
+    },
+    {
+      "slug": "alexandros-mandravillis",
+      "name": "Alexandros Mandravillis",
+      "role": "Cloud Security Engineer, SRE and Network Security Architect",
+      "photo": "/team/alexbeav.jpg",
+      "handles": [
+        { "label": "GitHub", "value": "Alexbeav", "href": "https://github.com/Alexbeav" },
+        { "label": "Discord", "value": "alexbeav" }
+      ],
+      "bio": [
+        "A significant contributor to PSXRecomp, working in breadth: dozens of recompiled titles, and dozens of pull requests to the PSXRecomp infrastructure itself."
+      ],
+      "links": []
+    },
+    {
+      "slug": "shokunin",
+      "name": "shokunin",
+      "role": "Social media, marketing, and UI and UX",
+      "photo": null,
+      "handles": [
+        { "label": "GitHub", "value": "tetrisgm", "href": "https://github.com/tetrisgm" },
+        { "label": "Discord", "value": "tetrisgm" }
+      ],
+      "bio": ["Website author for RetroPortingToolkit.com."],
+      "links": []
+    }
+  ]
+}
