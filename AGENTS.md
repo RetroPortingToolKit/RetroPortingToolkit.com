@@ -59,6 +59,30 @@ which is how you show someone a page before it is announced.
   cached copy at once and refreshes behind it. `vercel.json` rejects unknown
   keys, so do not try to leave a comment in it.
 
+## Working alongside the Discord bot
+
+The bot (`scripts/discord-agent.mjs`, run by launchd) edits **this same
+checkout** when someone asks it to in `#website`. It waits for you: it will
+not start while the tree is dirty or a commit is under 20s old, and it parks
+the request until the tree goes quiet. Nothing makes you wait for it.
+
+- **Before editing, check it is idle.** `pgrep -f "claude -p"` shows a run in
+  progress; `~/Library/Application Support/RetroPortingToolkitDiscordAgent/state/jobs.json`
+  shows the active request and the queue. If it is mid-task, wait, or work in
+  files it will not touch (content requests land in `data/`).
+- If you both change the same file, its guardrail reports *Blocked* to Discord
+  and stages nothing; its finished work is never lost, so check `git log`
+  before assuming anything needs redoing.
+- **Restart it only when idle:** `kill -TERM $(pgrep -f scripts/discord-agent.mjs)`;
+  launchd respawns it, and `~/Library/Logs/RetroPortingToolkitDiscordAgent/stdout.log`
+  shows `ready as` when it is back. A restart mid-run interrupts that request
+  and the requester has to send it again.
+- Its queueing and shared-checkout behaviour is exercised by
+  `scripts/discord-agent.harness.test.mjs`: the real bridge as a child process
+  against a stubbed Discord, a fake agent and a throwaway repository, with
+  second-long timings via the `DISCORD_AGENT_*` overrides. Change the bridge,
+  run that.
+
 ## Verification
 
 Run before proposing a change as done:

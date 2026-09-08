@@ -1026,3 +1026,22 @@ denied for all three tools, and allowed inside the repo. Codex's `--sandbox
 read-only` bounds writes, not reads, and has no equivalent fence, so the ask
 lane no longer goes to Codex at all. The publishing lane is unchanged: it is
 `danger-full-access` on purpose, for the admin channel.
+
+Later the same day, the bot got a test harness and one bug came out of it.
+`scripts/discord-agent.harness.test.mjs` runs the real bridge as a child
+process against a stubbed `discord.js`, a fake `claude` that obeys markers in
+the request (`[[sleep=N]]`, `[[silent]]`, `[[dirty]]`, `[[fail]]`) and a
+throwaway git repo, with the new `DISCORD_AGENT_*` env overrides shrinking the
+waits to seconds. Nine scenarios: simultaneous requests run one at a time in
+order; an ask is answered while a publish runs; a request parks on a dirty
+tree and starts by itself when it clears; a fresh commit is waited out; a
+silent agent is stopped by the watchdog and the next job runs; a run that
+leaves the tree dirty is reported Blocked; an agent error is a failure, not a
+success; a public asker is rate-limited; the task log carries the trace.
+
+The bug: three requests arriving in the same tick got the wrong queue notices
+— the first was told "Queued. You are number 2", the second nothing — because
+the position was read from the shared queue after several awaits. It is now
+decided in the same synchronous step as the push. Small in effect, but it was
+the queueing behaviour that "surely works" until something drives it.
+

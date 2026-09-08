@@ -41,7 +41,19 @@ import {
   taskPrompt,
 } from "./discord-agent-core.mjs";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// Every timing below, and the checkout itself, can be overridden from the
+// environment. The defaults are the production values; the overrides exist so
+// the bridge can be run against a throwaway repository with second-long
+// waits by scripts/discord-agent.harness.test.mjs, which is the only way the
+// queueing and shared-checkout behaviour gets exercised without a live Discord.
+const envMs = (name, fallback) => {
+  const raw = process.env[name];
+  const value = raw === undefined || raw === "" ? NaN : Number(raw);
+  return Number.isFinite(value) && value >= 0 ? value : fallback;
+};
+const ROOT =
+  process.env.DISCORD_AGENT_REPO ||
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const execFileAsync = promisify(execFile);
 const TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const config = {
@@ -86,15 +98,15 @@ const PROGRESS_INTERVAL_MS = 60_000;
 // The hard cap is a backstop. The watchdog below is what actually catches a
 // dead run: one that finished its work and then sat idle held the queue for
 // the whole of the old fifteen minutes.
-const AGENT_TIMEOUT_MS = 10 * 60 * 1_000;
+const AGENT_TIMEOUT_MS = envMs("DISCORD_AGENT_TIMEOUT_MS", 10 * 60 * 1_000);
 // No event from the agent for this long means it is dead, not slow. A working
 // run at low effort emits something every few seconds; the build step, the
 // longest silent stretch, is under a minute.
-const IDLE_TIMEOUT_MS = 3 * 60 * 1_000;
+const IDLE_TIMEOUT_MS = envMs("DISCORD_AGENT_IDLE_MS", 3 * 60 * 1_000);
 // Public questions get their own, much shorter budget, and one at a time. A
 // question is not allowed to cost what a publish costs.
-const ASK_TIMEOUT_MS = 4 * 60 * 1_000;
-const ASK_COOLDOWN_MS = 45_000;
+const ASK_TIMEOUT_MS = envMs("DISCORD_AGENT_ASK_TIMEOUT_MS", 4 * 60 * 1_000);
+const ASK_COOLDOWN_MS = envMs("DISCORD_AGENT_ASK_COOLDOWN_MS", 45_000);
 const ASK_QUEUE_LIMIT = 5;
 // A busy shared checkout is a wait, not a failure. Someone editing the repo by
 // hand is normal and usually brief, so a request parks and retries instead of
@@ -104,7 +116,7 @@ const CHECKOUT_WAIT_MS = 5 * 60 * 1_000;
 // the repository stays busy and starts itself when it goes quiet; the cap only
 // exists so a tree left dirty overnight eventually reports something instead of
 // sitting silently forever.
-const CHECKOUT_PATIENCE_MS = 6 * 60 * 60 * 1_000;
+const CHECKOUT_PATIENCE_MS = envMs("DISCORD_AGENT_PATIENCE_MS", 6 * 60 * 60 * 1_000);
 const BUSY_NOTICE_MS = 15 * 60 * 1_000;
 // How long the repository must have been untouched before the agent starts, and
 // how long a quiet reading has to hold before it is believed.
@@ -112,8 +124,8 @@ const BUSY_NOTICE_MS = 15 * 60 * 1_000;
 // commit counted as "someone busy" — the bot was waiting for itself. 20s is
 // still long enough that a person mid-edit, who saves every few seconds,
 // keeps the tree busy.
-const QUIET_PERIOD_MS = 20 * 1_000;
-const SETTLE_MS = 5_000;
+const QUIET_PERIOD_MS = envMs("DISCORD_AGENT_QUIET_MS", 20 * 1_000);
+const SETTLE_MS = envMs("DISCORD_AGENT_SETTLE_MS", 5_000);
 
 const client = new Client({
   intents: [
@@ -960,10 +972,17 @@ client.on("messageCreate", async (message) => {
       })
     : "";
   queue.push({ ref, messageUrl: message.url, request, context });
+  // The place in line is decided here, in the same synchronous step as the
+  // push. Everything below awaits, and three requests arriving together used
+  // to read the queue after each other's pushes and drains: the first was
+  // told "Queued. You are number 2", the second was told nothing. A request
+  // that will start at once (nothing running, nothing ahead) gets no notice;
+  // "On it." from the drain is its acknowledgement.
+  const ahead = (running ? 1 : 0) + queue.length - 1;
   await persistJobs();
   await message.react("🔍").catch(() => undefined);
-  if (running) {
-    await safeSend({ ...ref, content: `Queued. You are number ${queue.length} waiting.`, ping: true });
+  if (ahead > 0) {
+    await safeSend({ ...ref, content: `Queued. You are number ${ahead} waiting.`, ping: true });
   }
   void drainQueue().catch((error) =>
     console.error("[discord-agent] queue drain failed", error),
