@@ -29,6 +29,8 @@ import {
   truncateRequest,
   runnerCooldownUntil,
   DEFAULT_RUNNER_COOLDOWN_MS,
+  ASK_EFFORT,
+  PUBLISH_EFFORT,
 } from "./discord-agent-core.mjs";
 
 describe("Discord agent core", () => {
@@ -165,7 +167,13 @@ describe("Discord agent core", () => {
   });
 
   it("pins the model for every runner, and scales effort to the lane", () => {
-    for (const [mode, effort] of [["ask", "low"], ["publish", "high"]]) {
+    // Against the exported constants, not copies of them: this pins that effort
+    // follows the lane, which is the behaviour. Restating the values here only
+    // meant the test failed when the owner changed one on purpose.
+    for (const [mode, effort] of [
+      ["ask", ASK_EFFORT],
+      ["publish", PUBLISH_EFFORT],
+    ]) {
       const codex = agentCommand({ runner: "codex", mode, root: "/r", outputFile: "/o" });
       expect(codex.args).toEqual(expect.arrayContaining(["-m", "gpt-5.6-luna"]));
       expect(codex.args).toContain(`model_reasoning_effort="${effort}"`);
