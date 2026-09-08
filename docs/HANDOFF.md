@@ -1102,3 +1102,24 @@ on a trusted author's message that the request replies to count too. Bounds:
 8 files, 20 MB each. The public lane never fetches a stranger's upload — a
 harness scenario stands up a fake CDN and asserts zero hits.
 
+**Multiple authors (2026-09-08).** A post names its writers as
+`authors: ["Shokunin", "Matthew Stanley"]` — team names exactly as
+`data/team.json` spells them. The older single `author:` on every existing
+post still reads and means the same as a one-name list, so nothing published
+changed. One helper, `scripts/authors.mjs` (with a `.d.mts` beside it, the
+`site-config.mjs` pattern), is what every consumer goes through: the byline
+and end card (each name linked to its card on `/team`, which now has
+per-member anchors), the RSS/Atom/JSON feeds (one creator/author element per
+name), the schema.org `author` (a list when there are several), both CMS
+servers, and the Discord bot.
+
+Identity comes from the roster, not from typing: the CMS bylines a new post
+with the name `team.json` gives the signed-in GitHub login (`tetrisgm` →
+Shokunin), the editor picks authors from the roster as chips, and the bot's
+prompt names the requester by team name (`Discord tetrisgm` → Shokunin), lists
+the roster, and forbids handles in bylines. On save both CMS servers run the
+list through `canonicalAuthors`, so a name typed as a handle or in the wrong
+case becomes the team's spelling and a name on nobody's card is kept as a
+guest. The bot reads `data/team.json` from the checkout on every run, so a
+new card is known the moment it lands.
+

@@ -1,3 +1,4 @@
+import { authorsOf } from "../../scripts/authors.mjs";
 import yaml from "js-yaml";
 import { LQIP } from "@/generated/lqip";
 import type {
@@ -334,6 +335,7 @@ function parseItem(path: string, raw: string, assetUrls: AssetUrlMap): Item | nu
     group: typeof fm.group === "string" ? fm.group : undefined,
     venue: typeof fm.venue === "string" ? fm.venue : undefined,
     author: typeof fm.author === "string" ? fm.author : undefined,
+    authors: authorsOf(fm),
     authorAvatar: typeof fm.authorAvatar === "string" ? fm.authorAvatar : undefined,
     authorBio: typeof fm.authorBio === "string" ? fm.authorBio : undefined,
     year: typeof fm.year === "string" ? fm.year : undefined,

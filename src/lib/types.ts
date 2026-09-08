@@ -64,6 +64,8 @@ export interface Item {
   draft?: boolean;
   /** Byline for this page. Falls back to the site author when absent. */
   author?: string;
+  /** Every author, as team names; `author` is the older single form. */
+  authors?: string[];
   /** Avatar URL for the byline; a monogram is drawn when absent. */
   authorAvatar?: string;
   /** One-line bio under the sign-off. */

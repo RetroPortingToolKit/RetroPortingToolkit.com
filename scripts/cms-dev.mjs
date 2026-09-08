@@ -16,6 +16,7 @@ import crypto from "node:crypto";
 import { execFile } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
+import { authorsOf, canonicalAuthors } from "./authors.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -374,6 +375,7 @@ export function mdFields(fmText) {
       status: typeof fm.status === "string" ? fm.status : "",
       repo: typeof fm.repo === "string" ? fm.repo : "",
       author: typeof fm.author === "string" ? fm.author : "",
+      authors: authorsOf(fm),
       authorAvatar: typeof fm.authorAvatar === "string" ? fm.authorAvatar : "",
       summary: typeof fm.summary === "string" ? fm.summary : "",
       pageType: typeof fm.pageType === "string" ? fm.pageType : "",
@@ -383,7 +385,7 @@ export function mdFields(fmText) {
       tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
     };
   } catch {
-    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, tags: [] };
+    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authors: [], authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, tags: [] };
   }
 }
 
@@ -517,6 +519,15 @@ export function slugify(title) {
 // wrote neither), which meant a page created on dev and a page created on prod
 // were not the same page. `actor` is always absent here, because the dev
 // backend has no sign-in; the branch stays so the two files read alike.
+/** data/team.json from the working tree, for bylines; empty when unreadable. */
+function readTeam() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(DATA_DIR, "team.json"), "utf8"));
+  } catch {
+    return { members: [] };
+  }
+}
+
 function stubFrontmatter(kind, title, actor, section) {
   const today = new Date().toISOString().slice(0, 10);
   const esc = (s) => String(s).replace(/"/g, '\\"');
@@ -537,8 +548,10 @@ function stubFrontmatter(kind, title, actor, section) {
   } else if (kind === "blog") {
     lines.push(`date: "${today}"`);
     // A post is bylined to whoever created it, not to the site's default
-    // author, which is how someone else's name ends up on your writing.
-    if (actor?.name || actor?.login) lines.push(`author: "${esc(actor.name || actor.login)}"`);
+    // author, which is how someone else's name ends up on your writing — and
+    // under the name the team page uses for them, not their GitHub login.
+    const byline = actor?.byline || actor?.name || actor?.login;
+    if (byline) lines.push(`authors: ["${esc(byline)}"]`);
     if (actor?.avatar) lines.push(`authorAvatar: "${esc(actor.avatar)}"`);
   } else {
     lines.push(`year: "${today.slice(0, 4)}"`);
@@ -1076,7 +1089,7 @@ export const PUBLISH_FIELDS = [
 // The publishable keys that are LISTS. They need their own loop: the scalar
 // one above tests `typeof v === "string"`, which drops an array on the floor,
 // so `repos` looked accepted and was silently never written.
-export const PUBLISH_LIST_FIELDS = ["tags", "repos"];
+export const PUBLISH_LIST_FIELDS = ["tags", "repos", "authors"];
 
 // Which of those keys each kind may actually receive. The copy loop used to
 // apply every field to every kind, so an agent posting a docs page could write
@@ -1084,7 +1097,7 @@ export const PUBLISH_LIST_FIELDS = ["tags", "repos"];
 // and public/agent.md both say a docs page does not take. Each list is what
 // that kind's own pages carry plus what those two documents promise it.
 export const PUBLISH_KIND_FIELDS = {
-  blog: ["kicker", "desc", "tags", "date", "year", "repo", "updated", "videoUrl", "author", "authorAvatar", "authorBio", "venue"],
+  blog: ["kicker", "desc", "tags", "date", "year", "repo", "updated", "videoUrl", "author", "authors", "authorAvatar", "authorBio", "venue"],
   hardware: ["kicker", "desc", "tags", "year", "status", "availability", "repo", "updated"],
   games: ["kicker", "desc", "tags", "year", "status", "availability", "platform", "repo", "videoUrl", "updated"],
   docs: ["kicker", "desc", "tags", "summary", "pageType", "sectionTitle", "updated", "repos"],
@@ -1147,6 +1160,9 @@ export function postItem(payload) {
     if (!fm.pageType) fm.pageType = "concept";
   } else if (kind === "blog") {
     if (!fm.date) fm.date = today;
+    // Same spelling rule as the API: a name typed as a handle or in the wrong
+    // case becomes the team's spelling; a guest is kept as written.
+    if (Array.isArray(fm.authors)) fm.authors = canonicalAuthors(readTeam(), fm.authors);
   } else if (!fm.year) {
     fm.year = today.slice(0, 4);
   }

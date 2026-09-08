@@ -11,6 +11,8 @@
 //
 // Chrome comes from src/styles/apple.css (scoped to .applecms), the same Apple
 // HIG token set and component vocabulary this markup was written against.
+import teamRoster from "@data/team.json";
+import { teamMemberByGithub } from "../../scripts/authors.mjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SITE } from "@/lib/site";
 import { FOLDER_KIND, NEW_LABEL, type CmsKind } from "@/lib/cmsKinds";
@@ -43,6 +45,7 @@ interface MdFields {
   repo: string;
   /** blog: who wrote it, and their avatar */
   author: string;
+  authors: string[];
   authorAvatar: string;
   /** docs: the sentence under the H1 */
   summary: string;
@@ -67,6 +70,7 @@ const EMPTY_FIELDS: MdFields = {
   status: "",
   repo: "",
   author: "",
+  authors: [],
   authorAvatar: "",
   summary: "",
   pageType: "",
@@ -275,7 +279,7 @@ export default function Admin() {
 
   const [hasGithub, setHasGithub] = useState(false);
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
-  const [me, setMe] = useState<{ name: string; avatar: string } | null>(null);
+  const [me, setMe] = useState<{ name: string; avatar: string; login: string } | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [creating, setCreating] = useState(false);
@@ -508,7 +512,7 @@ export default function Admin() {
         if (d) {
           setHasGithub(!!d.github);
           setSignedInAs(d.user?.login ?? null);
-          setMe(d.user ? { name: d.user.name || d.user.login || "", avatar: d.user.avatar || "" } : null);
+          setMe(d.user ? { name: d.user.name || d.user.login || "", avatar: d.user.avatar || "", login: d.user.login || "" } : null);
           setAuthRequired(!!d.required);
           if (d.env === "prod") setProd(true);
           setEnvKnown(true);
@@ -1022,6 +1026,14 @@ export default function Admin() {
     setQ((p) => ({ ...p, [key]: value }));
     setFrontmatter((fm) => setBool(fm, key, value));
   };
+  // The authors shown: the list, or the older single byline until it is edited.
+  const currentAuthors = q.authors.length ? q.authors : q.author ? [q.author] : [];
+  const myTeamName = me ? (teamMemberByGithub(teamRoster, me.login)?.name ?? me.name) : "";
+  const patchAuthors = (names: string[]) => {
+    setQ((p) => ({ ...p, authors: names }));
+    setFrontmatter((fm) => setList(fm, "authors", names));
+  };
+
   const patchTags = (value: string) => {
     setTagsInput(value);
     const items = value.split(",").map((s) => s.trim()).filter(Boolean);
@@ -1626,13 +1638,28 @@ export default function Admin() {
 
                       {openKind === "blog" && (
                         <div style={{ display: "flex", gap: 14 }}>
-                          <Field label="Author" grow>
-                            <input
-                              style={styles.input}
-                              value={q.author}
-                              onChange={(e) => patchScalar("author", e.target.value)}
-                              placeholder={me?.name || "Your name"}
-                            />
+                          <Field label="Authors" grow>
+                            {/* Team members by name, as the team page spells
+                                them; a post can carry several. The older
+                                single `author` still reads, and is shown as
+                                selected until the list is changed. */}
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                              {teamRoster.members.map((m) => {
+                                const selected = currentAuthors.includes(m.name);
+                                return (
+                                  <button
+                                    key={m.slug}
+                                    type="button"
+                                    className="cmsx-disc"
+                                    aria-pressed={selected}
+                                    style={{ ...styles.disclosure, opacity: selected ? 1 : 0.55, fontWeight: selected ? 600 : 400 }}
+                                    onClick={() => patchAuthors(selected ? currentAuthors.filter((n) => n !== m.name) : [...currentAuthors, m.name])}
+                                  >
+                                    {selected ? "✓ " : ""}{m.name}
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </Field>
                           <Field label="Author avatar URL" grow>
                             <input
@@ -1644,16 +1671,16 @@ export default function Admin() {
                           </Field>
                         </div>
                       )}
-                      {openKind === "blog" && me && (q.author !== me.name || q.authorAvatar !== me.avatar) && (
+                      {openKind === "blog" && me && myTeamName && (!currentAuthors.includes(myTeamName) || q.authorAvatar !== me.avatar) && (
                         <button
                           className="cmsx-disc"
                           style={{ ...styles.disclosure, marginTop: -6 }}
                           onClick={() => {
-                            patchScalar("author", me.name);
+                            patchAuthors(currentAuthors.includes(myTeamName) ? currentAuthors : [myTeamName, ...currentAuthors]);
                             patchScalar("authorAvatar", me.avatar);
                           }}
                         >
-                          Use my name and avatar ({me.name})
+                          Add me as an author ({myTeamName})
                         </button>
                       )}
                       <Field label="Tags (comma-separated)">

@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import yaml from "js-yaml";
 import GithubSlugger from "github-slugger";
 import { SITE } from "./site-config.mjs";
+import { authorsOf } from "./authors.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -125,6 +126,7 @@ export function collectItems() {
       poster: typeof fm.poster === "string" ? fm.poster : "",
       venue: typeof fm.venue === "string" ? fm.venue : "",
       author: typeof fm.author === "string" ? fm.author : "",
+      authors: authorsOf(fm),
       year: typeof fm.year === "string" ? fm.year : "",
       videoUrl: typeof fm.videoUrl === "string" ? fm.videoUrl : "",
       group: typeof fm.group === "string" ? fm.group : "",
@@ -384,7 +386,9 @@ function itemJsonLd(item, url, image) {
     };
   }
   if (item.kind === "blog") {
-    const author = { "@type": "Person", name: item.author || SITE.author };
+    // schema.org takes one Person or a list of them; a co-authored post lists all.
+    const names = item.authors?.length ? item.authors : [item.author || SITE.author];
+    const author = names.length === 1 ? { "@type": "Person", name: names[0] } : names.map((name) => ({ "@type": "Person", name }));
     return {
       "@type": "Article",
       headline: item.title,

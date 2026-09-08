@@ -106,6 +106,8 @@ async function devBackend() {
   temps.push(root);
   fs.mkdirSync(path.join(root, "scripts"));
   fs.copyFileSync(path.join(ROOT, "scripts", "cms-dev.mjs"), path.join(root, "scripts", "cms-dev.mjs"));
+  // Its one relative import, staged beside it: the copy resolves "./authors.mjs" from where it sits.
+  fs.copyFileSync(path.join(ROOT, "scripts", "authors.mjs"), path.join(root, "scripts", "authors.mjs"));
   // js-yaml is resolved by walking up from the copy, so lend it the repo's.
   fs.symlinkSync(path.join(ROOT, "node_modules"), path.join(root, "node_modules"), "junction");
   const mod = await import(pathToFileURL(path.join(root, "scripts", "cms-dev.mjs")).href);

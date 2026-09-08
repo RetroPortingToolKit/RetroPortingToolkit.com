@@ -114,7 +114,9 @@ Useful anywhere: `tags` (array of strings), `kicker` (small label above the
 title), `cover` (a path, if you are not attaching one), `featured` (boolean,
 promotes it onto the home page), `slug` (defaults to the title).
 
-`blog` also takes: `date` (`YYYY-MM-DD`, defaults to today), `author`,
+`blog` also takes: `date` (`YYYY-MM-DD`, defaults to today), `authors` (a list
+of team names as spelled on /team, e.g. `["Shokunin", "Matthew Stanley"]`;
+defaults to the person posting; the older single `author` is still accepted),
 `authorAvatar`, `venue` (the outlet, for press or video coverage), `videoUrl`.
 
 `games` also takes: `platform` (the hardware slug, e.g. `playstation`),

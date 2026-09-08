@@ -14,6 +14,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import yaml from "js-yaml";
 import { SITE, ROOT } from "./site-config.mjs";
+import { authorsOf } from "./authors.mjs";
 
 const DATA_DIR = path.join(ROOT, "data");
 const PUBLIC_DIR = path.join(ROOT, "public");
@@ -54,7 +55,7 @@ function collectBlog() {
       title: typeof fm.title === "string" ? fm.title : slug,
       desc: typeof fm.desc === "string" ? fm.desc : "",
       date: typeof fm.date === "string" ? fm.date : `${fm.year}-01-01`,
-      author: typeof fm.author === "string" ? fm.author : AUTHOR_NAME,
+      authors: authorsOf(fm, AUTHOR_NAME),
       tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
       body: (body || "").trim(),
       image: blogImage(slug),
@@ -164,7 +165,7 @@ function buildRss(posts) {
       <link>${escXml(p.url)}</link>
       <guid isPermaLink="true">${escXml(p.url)}</guid>
       <pubDate>${rfc822(p.date)}</pubDate>
-      <dc:creator>${escXml(p.author || AUTHOR_NAME)}</dc:creator>
+${authorsOf(p, AUTHOR_NAME).map((a) => `      <dc:creator>${escXml(a)}</dc:creator>`).join("\n")}
       <description>${cdata(p.desc)}</description>
       <content:encoded>${cdata(entryHtml(p))}</content:encoded>
 ${cats ? cats + "\n" : ""}${media}    </item>`;
@@ -195,7 +196,7 @@ function buildAtom(posts) {
     <id>${escXml(p.url)}</id>
     <published>${rfc3339(p.date)}</published>
     <updated>${rfc3339(p.date)}</updated>
-    <author><name>${escXml(p.author || AUTHOR_NAME)}</name></author>
+${authorsOf(p, AUTHOR_NAME).map((a) => `    <author><name>${escXml(a)}</name></author>`).join("\n")}
     <summary>${escXml(p.desc)}</summary>
     <content type="html">${escXml(entryHtml(p))}</content>
 ${cats ? cats + "\n" : ""}  </entry>`;
@@ -234,7 +235,7 @@ function buildJsonFeed(posts) {
           url: p.url,
           title: p.title,
           summary: p.desc,
-          authors: [{ name: p.author || AUTHOR_NAME }],
+          authors: authorsOf(p, AUTHOR_NAME).map((name) => ({ name })),
           content_html: entryHtml(p),
           ...(p.image ? { image: p.image, banner_image: p.image } : {}),
           date_published: rfc3339(p.date),

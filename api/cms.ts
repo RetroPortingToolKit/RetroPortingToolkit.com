@@ -9,6 +9,7 @@
 // built from; in production it commits to main.
 import crypto from "node:crypto";
 import yaml from "js-yaml";
+import { authorsOf, canonicalAuthors, teamMemberByGithub, type Team } from "../scripts/authors.mjs";
 
 // Repo identity comes from Vercel's build env so this function is not pinned
 // to one GitHub repo. Override with CMS_REPO_OWNER / CMS_REPO_NAME if you host
@@ -44,6 +45,8 @@ export interface Actor {
   login: string;
   /** display name, when GitHub has one */
   name?: string;
+  /** the name data/team.json gives them, when they are on it */
+  byline?: string;
   /** avatar URL */
   avatar?: string;
   /** how they authenticated */
@@ -204,7 +207,11 @@ function identityFor(req: Request): Actor | null {
 async function actorFor(req: Request): Promise<Actor | null> {
   const who = identityFor(req);
   if (!who) return null;
-  return (await mayEdit(who.login)) ? who : null;
+  if (!(await mayEdit(who.login))) return null;
+  // The name the team page uses for them, so a post they create is bylined
+  // "Shokunin", not "tetrisgm" and not whatever GitHub has as a display name.
+  who.byline = teamMemberByGithub(await teamRoster(), who.login)?.name;
+  return who;
 }
 
 /** How this actor should be credited in the commit trailer. */
@@ -478,6 +485,16 @@ async function ghPublishMutation(
     contents API that is a call per page, so the list either cost a hundred
     requests or, as it did, showed a slug prettified into a fake title. GraphQL
     aliases fetch them all at once. */
+/** data/team.json as the site has it, for bylines; empty when unreadable. */
+async function teamRoster(): Promise<Team> {
+  try {
+    const file = await ghReadFile("data/team.json");
+    return file ? (JSON.parse(file.content) as Team) : { members: [] };
+  } catch {
+    return { members: [] };
+  }
+}
+
 async function ghReadMany(paths: string[]): Promise<Map<string, string>> {
   const out = new Map<string, string>();
   if (!paths.length) return out;
@@ -589,6 +606,7 @@ export function mdFields(fmText: string) {
       status: str(fm.status),
       repo: str(fm.repo),
       author: str(fm.author),
+      authors: authorsOf(fm),
       authorAvatar: str(fm.authorAvatar),
       summary: str(fm.summary),
       pageType: str(fm.pageType),
@@ -598,7 +616,7 @@ export function mdFields(fmText: string) {
       tags: Array.isArray(fm.tags) ? (fm.tags as unknown[]).filter((t) => typeof t === "string") : [],
     };
   } catch {
-    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, tags: [] as string[] };
+    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authors: [] as string[], authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, tags: [] as string[] };
   }
 }
 
@@ -894,8 +912,10 @@ function stubFrontmatter(
   } else if (kind === "blog") {
     lines.push(`date: "${today}"`);
     // A post is bylined to whoever created it, not to the site's default
-    // author, which is how someone else's name ends up on your writing.
-    if (actor?.name || actor?.login) lines.push(`author: "${esc(actor.name || actor.login)}"`);
+    // author, which is how someone else's name ends up on your writing — and
+    // under the name the team page uses for them, not their GitHub login.
+    const byline = actor?.byline || actor?.name || actor?.login;
+    if (byline) lines.push(`authors: ["${esc(byline)}"]`);
     if (actor?.avatar) lines.push(`authorAvatar: "${esc(actor.avatar)}"`);
   } else {
     lines.push(`year: "${today.slice(0, 4)}"`);
@@ -1368,7 +1388,7 @@ export const PUBLISH_FIELDS = [
 // The publishable keys that are LISTS. They need their own loop: the scalar
 // one above tests `typeof v === "string"`, which drops an array on the floor,
 // so `repos` looked accepted and was silently never written.
-export const PUBLISH_LIST_FIELDS = ["tags", "repos"] as const;
+export const PUBLISH_LIST_FIELDS = ["tags", "repos", "authors"] as const;
 
 // Which of those keys each kind may actually receive. The copy loop used to
 // apply every field to every kind, so an agent posting a docs page could write
@@ -1376,7 +1396,7 @@ export const PUBLISH_LIST_FIELDS = ["tags", "repos"] as const;
 // and public/agent.md both say a docs page does not take. Each list is what
 // that kind's own pages carry plus what those two documents promise it.
 export const PUBLISH_KIND_FIELDS: Record<string, readonly string[]> = {
-  blog: ["kicker", "desc", "tags", "date", "year", "repo", "updated", "videoUrl", "author", "authorAvatar", "authorBio", "venue"],
+  blog: ["kicker", "desc", "tags", "date", "year", "repo", "updated", "videoUrl", "author", "authors", "authorAvatar", "authorBio", "venue"],
   hardware: ["kicker", "desc", "tags", "year", "status", "availability", "repo", "updated"],
   games: ["kicker", "desc", "tags", "year", "status", "availability", "platform", "repo", "videoUrl", "updated"],
   docs: ["kicker", "desc", "tags", "summary", "pageType", "sectionTitle", "updated", "repos"],
@@ -1448,7 +1468,9 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
     if (!fm.pageType) fm.pageType = "concept";
   } else if (kind === "blog") {
     if (!fm.date) fm.date = today;
-    if (!fm.author && (actor?.name || actor?.login)) fm.author = actor.name || actor.login;
+    const byline = actor?.byline || actor?.name || actor?.login;
+    if (!authorsOf(fm).length && byline) fm.authors = [byline];
+    if (Array.isArray(fm.authors)) fm.authors = canonicalAuthors(await teamRoster(), fm.authors as string[]);
     if (!fm.authorAvatar && actor?.avatar) fm.authorAvatar = actor.avatar;
   } else if (!fm.year) {
     fm.year = today.slice(0, 4);

@@ -40,6 +40,7 @@ import {
   resumedMessage,
   taskPrompt,
 } from "./discord-agent-core.mjs";
+import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
 
 // Every timing below, and the checkout itself, can be overridden from the
 // environment. The defaults are the production values; the overrides exist so
@@ -189,6 +190,7 @@ function jobRecord(job) {
     startedAt: job.startedAt ?? null,
     startedHead: job.startedHead ?? null,
     attachments: job.attachments ?? [],
+    requester: job.requester ?? null,
     // So a restart can tidy the previous process's status line.
     statusMessageId: job.status?.id ?? null,
     queuedNoticeId: job.queuedNotice?.id ?? null,
@@ -654,6 +656,11 @@ async function runPublish(job) {
   const taskLog = await createTaskLog(job.ref.messageId);
   console.log(`[discord-agent] task ${job.ref.messageId} log: ${taskLog.file}`);
   const attachments = await fetchAttachments(job, path.join(tempDir, "attachments"));
+  // The roster is read from the checkout on every run, so a new member is
+  // known the moment their card lands on /team.
+  const team = await fs.readFile(path.join(ROOT, "data", "team.json"), "utf8").then(JSON.parse).catch(() => ({ members: [] }));
+  const member = teamMemberByDiscord(team, job.requester?.username);
+  const requester = job.requester ? { ...job.requester, teamName: member?.name ?? "" } : null;
   for (const a of attachments) {
     taskLog.write(`attachment: ${a.name} ${a.path ? `-> ${a.path}` : `(skipped: ${a.skipped})`}\n`);
   }
@@ -664,6 +671,8 @@ async function runPublish(job) {
     messageUrl: job.messageUrl,
     context: job.context,
     attachments,
+    requester,
+    roster: rosterLines(team),
   });
   try {
     if (job.stopRequested) throw new TaskStoppedError("Stopped before the agent started.");
@@ -959,7 +968,7 @@ async function recoverInterruptedJobs() {
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, context: job.context ?? "", attachments: job.attachments ?? [] });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null });
   if (saved.active) {
     // An interrupted run is resumed when the tree is clean: that means it was
     // killed before it changed anything, usually while waiting for the
@@ -1107,7 +1116,15 @@ client.on("messageCreate", async (message) => {
         originalContent: originalIsTrusted ? original.content : "",
       })
     : "";
-  const job = { ref, messageUrl: message.url, request: request || "Use the attached file(s).", context, attachments };
+  const job = {
+    ref,
+    messageUrl: message.url,
+    request: request || "Use the attached file(s).",
+    context,
+    attachments,
+    // The username is what team.json lists; the display name is a courtesy.
+    requester: { username: message.author.username ?? "", display: message.member?.displayName ?? message.author.globalName ?? "" },
+  };
   queue.push(job);
   // The place in line is decided here, in the same synchronous step as the
   // push. Everything below awaits, and three requests arriving together used

@@ -1,3 +1,5 @@
+import team from "@data/team.json";
+import { teamSlugFor } from "../../scripts/authors.mjs";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { Item } from "@/lib/types";
 import { SITE } from "@/lib/site";
@@ -204,12 +206,19 @@ function LinksBlock({
 /** The sign-off belongs to a person who wrote the piece. Press and video
     entries are bylined to an outside outlet, which does not sign off. */
 function showsEndCard(item: Item): boolean {
-  if (item.author) return true;
+  if (item.authors?.length || item.author) return true;
   return articleAuthor(item) === SITE.author;
+}
+
+/** Every author of the piece: the listed team names, or the older single byline. */
+function articleAuthors(item: Item): string[] {
+  if (item.authors?.length) return item.authors;
+  return [articleAuthor(item)];
 }
 
 function articleAuthor(item: Item): string {
   // An explicit byline wins: whoever wrote the page said so on the page.
+  if (item.authors?.length) return item.authors[0];
   if (item.author) return item.author;
   if ((item.kicker === "Press" || item.kicker === "Video") && item.venue) {
     return item.venue;
@@ -217,8 +226,28 @@ function articleAuthor(item: Item): string {
   return SITE.author;
 }
 
+/** A name, linked to its card on /team when it is a team member's. */
+function AuthorName({ name }: { name: string }) {
+  const slug = teamSlugFor(team, name);
+  return slug ? <SmartLink href={`/team#${slug}`} className="article-author-link">{name}</SmartLink> : <>{name}</>;
+}
+
+/** "A", "A and B", "A, B and C", each name linked where it can be. */
+function AuthorNames({ names }: { names: string[] }) {
+  return (
+    <>
+      {names.map((name, i) => (
+        <span key={name}>
+          {i > 0 && (i === names.length - 1 ? " and " : ", ")}
+          <AuthorName name={name} />
+        </span>
+      ))}
+    </>
+  );
+}
+
 export function ArticleByline({ item, delay = 200 }: { item: Item; delay?: number }) {
-  const author = articleAuthor(item);
+  const authors = articleAuthors(item);
   const meta = [
     formatArticleDate(item.date || item.year),
     item.body ? `${readingTimeMin(item.body)} min read` : "",
@@ -228,10 +257,12 @@ export function ArticleByline({ item, delay = 200 }: { item: Item; delay?: numbe
   return (
     <div className="article-byline blur-in" style={delayed(delay)}>
       <span className="article-avatar" aria-hidden="true">
-        {author.charAt(0) || "?"}
+        {authors[0]?.charAt(0) || "?"}
       </span>
       <span className="article-byline-text">
-        <span className="article-author">{author}</span>
+        <span className="article-author">
+          <AuthorNames names={authors} />
+        </span>
         {meta && <span className="article-byline-meta">{meta}</span>}
       </span>
     </div>
@@ -253,7 +284,9 @@ function ArticleEndCard({ item }: { item: Item }) {
         </span>
       )}
       <div className="article-endcard-text">
-        <span className="article-endcard-name">Written by {articleAuthor(item)}</span>
+        <span className="article-endcard-name">
+          Written by <AuthorNames names={articleAuthors(item)} />
+        </span>
         <span className="article-endcard-line">
           {item.authorBio || "Building recompilation ecosystems for legacy games."}
         </span>

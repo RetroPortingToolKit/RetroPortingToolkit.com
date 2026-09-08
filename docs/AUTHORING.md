@@ -61,8 +61,13 @@ Every kind wants `title`, `desc` (the one line under the title on its card) and
 `tags`. `kicker` is the small label above the title. `cover` is the card image,
 a path like `./shot.png` or `/covers/name.jpg`.
 
-- `blog` also takes `date` (`YYYY-MM-DD`), `author`, `authorAvatar`, `venue`
-  (the outlet, for press or video coverage) and `videoUrl`.
+- `blog` also takes `date` (`YYYY-MM-DD`), `authors`, `authorAvatar`, `venue`
+  (the outlet, for press or video coverage) and `videoUrl`. `authors` is a
+  list of team names exactly as `/team` spells them —
+  `authors: ["Shokunin", "Matthew Stanley"]` — and a post may carry several;
+  the byline, the feeds and the structured data list them all. A name that is
+  not on the team is kept as written, for a guest. The older single
+  `author: "Shokunin"` still works and means the same as a one-name list.
 - `games` also takes `platform` (a hardware slug, e.g. `playstation`), `status`
   (e.g. `Playable alpha`), `availability` and `repo`.
 - `hardware` also takes `status` and `repo`.

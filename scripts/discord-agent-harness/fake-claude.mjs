@@ -38,6 +38,12 @@ process.stdin.on("end", async () => {
     say({ type: "result", subtype: "success", is_error: false, result: `OK: attachment says ${seen}` });
     process.exit(0);
   }
+  if (/\[\[whoami\]\]/.test(request)) {
+    const who = (prompt.match(/^Requester: .*$/m) || ["no Requester line"])[0];
+    const roster = (prompt.match(/^- .* — .*$/gm) || []).length;
+    say({ type: "result", subtype: "success", is_error: false, result: `OK: ${who} roster=${roster}` });
+    process.exit(0);
+  }
   if (/\[\[question\]\]/.test(request)) {
     say({ type: "result", subtype: "success", is_error: false, result: "[answer]\nShokunin does UI/UX, frontend and marketing." });
     process.exit(0);

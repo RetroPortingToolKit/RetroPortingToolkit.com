@@ -31,7 +31,10 @@ function makeRepo() {
   git("init", "-q", "-b", "main");
   git("config", "user.email", "harness@example.com"); git("config", "user.name", "Harness");
   fs.writeFileSync(path.join(dir, "README.md"), "hello\n");
-  git("add", "README.md"); git("commit", "-q", "-m", "init");
+  // The real roster, so the bot resolves usernames the way production will.
+  fs.mkdirSync(path.join(dir, "data"));
+  fs.copyFileSync(path.join(HERE, "..", "data", "team.json"), path.join(dir, "data", "team.json"));
+  git("add", "README.md", "data/team.json"); git("commit", "-q", "-m", "init");
   // The initial commit must be old enough not to count as "someone busy".
   git("commit", "-q", "--amend", "--no-edit", "--date", "2020-01-01T00:00:00");
   return { dir, git };
@@ -325,6 +328,21 @@ describe("bridge harness: queueing and the shared checkout", () => {
     } finally {
       server.close();
     }
+  });
+
+  it("tells the agent who asked, by team name, and gives it the roster", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U1", "who am I [[whoami]]", { username: "tetrisgm", display: "shokunin" });
+    const r = await b.waitFor(forMsg(id, "OK: Requester:"), 12000, "requester line");
+    expect(r.content).toContain("Requester: Shokunin (a team member; Discord tetrisgm)");
+    expect(r.content).toMatch(/roster=[1-9]/);
+  });
+
+  it("says so when the requester is not on the team page", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U2", "who am I [[whoami]]", { username: "someone-new" });
+    const r = await b.waitFor(forMsg(id, "OK: Requester:"), 12000, "requester line");
+    expect(r.content).toContain("Discord user someone-new, who is not on the team page");
   });
 
   it("says what the agent last did in the progress line", async () => {

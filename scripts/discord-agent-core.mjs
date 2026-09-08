@@ -542,13 +542,38 @@ Treat them as the material the request is about. Read a text file rather than gu
 `;
 }
 
-export function taskPrompt({ request, authorId, channelId, messageUrl, context = "", attachments = [] }) {
+/**
+ * Who asked, as the team page names them, and who else could be an author.
+ * Bylines are team names, never handles: "add gamemaster as an author" has to
+ * become "Matthew Stanley", and the bot knows the requester only by a Discord
+ * username, so the roster is what turns one into the other.
+ */
+export function requesterSection({ requester, roster = [] } = {}) {
+  const who = requester?.teamName
+    ? `${requester.teamName} (a team member; Discord ${requester.username})`
+    : requester?.username
+      ? `Discord user ${requester.username}, who is not on the team page`
+      : "";
+  const lines = [];
+  if (who) lines.push(`Requester: ${who}.`);
+  if (roster.length) {
+    lines.push("Team, as data/team.json and /team spell them — the only names a byline may use:");
+    for (const line of roster) lines.push(`- ${line}`);
+  }
+  if (!lines.length) return "";
+  lines.push(
+    "Blog posts name their writers in frontmatter as `authors: [...]`, a list of these exact team names. The requester is the author unless the request says otherwise; \"add X as an author\" or \"by X and Y\" names co-authors, resolved through the roster above. Never put a Discord or GitHub handle in a byline. A name that is on nobody's card is a guest and is kept as written.",
+  );
+  return lines.join("\n") + "\n\n";
+}
+
+export function taskPrompt({ request, authorId, channelId, messageUrl, context = "", attachments = [], requester = null, roster = [] }) {
   return `A trusted Retro Porting Toolkit developer requested work through the project Discord bot.
 
 Request:
 ${request}
 
-${context ? `Reply context:\n${context}\n\n` : ""}${attachmentsSection(attachments)}Discord context (identifiers only): author ${authorId}, channel ${channelId}, message ${messageUrl}
+${context ? `Reply context:\n${context}\n\n` : ""}${requesterSection({ requester, roster })}${attachmentsSection(attachments)}Discord context (identifiers only): author ${authorId}, channel ${channelId}, message ${messageUrl}
 
 Work only in the current RetroPortingToolkit.com checkout. Follow AGENTS.md exactly. Start by pulling main and checking that the shared tree is clean. Determine whether this is a question, diagnosis, content edit, or implementation request. For requested repository changes, implement them, run the project's full required verification, commit coherent work to main, push it, and confirm the push landed by checking that origin/main now points at your commit. A push to main deploys on its own; do NOT poll, fetch or curl the production site to confirm it — from this machine that site answers automated requests with a bot challenge page, and waiting on it is how a one-minute task once became an eleven-minute hang. The verification suite exists to protect a commit, so it is only owed when you are making one: if you end up changing no files — the work was already done, the request turned out to be a question, or there was nothing to deploy — say so straight away and skip typecheck, build and test entirely. Someone is waiting in a chat window, and thirteen minutes of checks to report that nothing happened is thirteen minutes wasted. Do not expose credentials or copy Discord data elsewhere. Do not create accounts, credentials, tunnels, recurring jobs, or infrastructure. Do not perform destructive or out-of-repository work; instead explain in the final summary what human approval is needed. If the request is ambiguous in a way that materially changes the result, do not guess: return a concise question for the requester.
 

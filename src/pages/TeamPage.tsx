@@ -71,7 +71,7 @@ function Portrait({ member }: { member: Member }) {
 
 function MemberCard({ member }: { member: Member }) {
   return (
-    <article className="team-card">
+    <article className="team-card" id={member.slug}>
       <Portrait member={member} />
       <div className="team-body">
         <h2 className="team-name">{member.name}</h2>
