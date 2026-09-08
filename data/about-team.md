@@ -18,11 +18,15 @@ Founder of the Retro Porting Toolkit initiative.
 
 Bio to be supplied by Emissary.
 
-### tetrisgm
+### shokunin ([tetrisgm](https://github.com/tetrisgm))
 
-Website author for RetroPortingToolkit.com.
+Product, design and AI development.
 
-Bio to be supplied by tetrisgm.
+Product and R&D builder with two decades of experience in 50+ games and emerging technology.
+
+Explores how AI-assisted development can expand what small teams can build around classic games, and leads the product, design, publishing and editorial work behind Retro Porting Toolkit.
+
+Discord: tetrisgm
 
 ### TechnicallyComputers
 
