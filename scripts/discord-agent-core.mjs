@@ -241,16 +241,86 @@ export function agentCommand({ runner, mode, root, outputFile }) {
     // same way.
     const auth = runner === "claude-api" ? ["--bare"] : [];
     const model = ["--model", CLAUDE_MODEL, "--effort", effortFor(mode)];
+    // stream-json (which -p requires --verbose for) emits one JSON line per
+    // event as the run proceeds and a final "result" event with the answer.
+    // The default text mode prints nothing until the end, which left the
+    // bridge unable to tell a working agent from a hung one: an agent that
+    // finished its work in a minute and then sat idle held the queue for the
+    // full fifteen-minute cap, with a zero-byte log the whole time.
+    const stream = ["--output-format", "stream-json", "--verbose"];
     return {
       command: "claude",
       args:
         mode === "ask"
-          ? ["-p", ...auth, ...model, "--allowed-tools", "Read", "Glob", "Grep"]
-          : ["-p", ...auth, ...model, "--dangerously-skip-permissions"],
-      resultFrom: "stdout",
+          ? ["-p", ...auth, ...model, ...stream, "--allowed-tools", "Read", "Glob", "Grep"]
+          : ["-p", ...auth, ...model, ...stream, "--dangerously-skip-permissions"],
+      resultFrom: "stream",
     };
   }
   throw new Error(`Unknown agent runner: ${runner}`);
+}
+
+/**
+ * The answer out of a stream-json run: the last "result" event. Null when the
+ * run never produced one, which is how a killed or crashed run looks.
+ */
+export function parseStreamResult(stdout) {
+  let found = null;
+  for (const line of String(stdout).split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{")) continue;
+    let event;
+    try {
+      event = JSON.parse(trimmed);
+    } catch {
+      continue;
+    }
+    if (event?.type === "result") {
+      found = {
+        text: typeof event.result === "string" ? event.result.trim() : "",
+        isError: Boolean(event.is_error),
+      };
+    }
+  }
+  return found;
+}
+
+/**
+ * One short line per stream event for the task log, so "what did it do for
+ * eleven minutes" has an answer. Returns null for events not worth a line.
+ */
+export function traceStreamLine(line, at = new Date()) {
+  const trimmed = String(line).trim();
+  if (!trimmed.startsWith("{")) return trimmed ? `      ${trimmed.slice(0, 200)}` : null;
+  let event;
+  try {
+    event = JSON.parse(trimmed);
+  } catch {
+    return null;
+  }
+  const stamp = at.toISOString().slice(11, 19);
+  const clip = (text, n = 160) => String(text).replace(/\s+/g, " ").trim().slice(0, n);
+  if (event.type === "system" && event.subtype === "init") return `${stamp} started`;
+  if (event.type === "assistant") {
+    const parts = event.message?.content;
+    if (!Array.isArray(parts)) return null;
+    return parts
+      .map((part) => {
+        if (part.type === "text" && part.text) return `${stamp} says: ${clip(part.text)}`;
+        if (part.type === "tool_use") {
+          const input = part.input || {};
+          const arg = input.command ?? input.file_path ?? input.pattern ?? input.query ?? "";
+          return `${stamp} ${part.name}: ${clip(arg, 120)}`;
+        }
+        return null;
+      })
+      .filter(Boolean)
+      .join("\n") || null;
+  }
+  if (event.type === "result") {
+    return `${stamp} ${event.is_error ? "FAILED" : "done"}: ${clip(event.result ?? "", 200)}`;
+  }
+  return null;
 }
 
 /**
@@ -415,7 +485,7 @@ ${request}
 ${context ? `Reply context:\n${context}\n\n` : ""}
 Discord context (identifiers only): author ${authorId}, channel ${channelId}, message ${messageUrl}
 
-Work only in the current RetroPortingToolkit.com checkout. Follow AGENTS.md exactly. Start by pulling main and checking that the shared tree is clean. Determine whether this is a question, diagnosis, content edit, or implementation request. For requested repository changes, implement them, run the project's full required verification, commit coherent work to main, push it, and verify the production deployment. The verification suite exists to protect a commit, so it is only owed when you are making one: if you end up changing no files — the work was already done, the request turned out to be a question, or there was nothing to deploy — say so straight away and skip typecheck, build, test and the deployment check entirely. Someone is waiting in a chat window, and thirteen minutes of checks to report that nothing happened is thirteen minutes wasted. Do not expose credentials or copy Discord data elsewhere. Do not create accounts, credentials, tunnels, recurring jobs, or infrastructure. Do not perform destructive or out-of-repository work; instead explain in the final summary what human approval is needed. If the request is ambiguous in a way that materially changes the result, do not guess: return a concise question for the requester.
+Work only in the current RetroPortingToolkit.com checkout. Follow AGENTS.md exactly. Start by pulling main and checking that the shared tree is clean. Determine whether this is a question, diagnosis, content edit, or implementation request. For requested repository changes, implement them, run the project's full required verification, commit coherent work to main, push it, and confirm the push landed by checking that origin/main now points at your commit. A push to main deploys on its own; do NOT poll, fetch or curl the production site to confirm it — from this machine that site answers automated requests with a bot challenge page, and waiting on it is how a one-minute task once became an eleven-minute hang. The verification suite exists to protect a commit, so it is only owed when you are making one: if you end up changing no files — the work was already done, the request turned out to be a question, or there was nothing to deploy — say so straight away and skip typecheck, build and test entirely. Someone is waiting in a chat window, and thirteen minutes of checks to report that nothing happened is thirteen minutes wasted. Do not expose credentials or copy Discord data elsewhere. Do not create accounts, credentials, tunnels, recurring jobs, or infrastructure. Do not perform destructive or out-of-repository work; instead explain in the final summary what human approval is needed. If the request is ambiguous in a way that materially changes the result, do not guess: return a concise question for the requester.
 
 Concurrency and publishing guardrails are mandatory, because a person may be editing this same checkout while you work. Record the starting commit and the output of git status --porcelain before editing, and keep a list of every path you touch.
 

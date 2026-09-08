@@ -33,6 +33,8 @@ import {
   replyContext,
   runnerChain,
   runnerCooldownUntil,
+  parseStreamResult,
+  traceStreamLine,
   statusMessage,
   stripBotMention,
   summaryHeading,
@@ -81,7 +83,14 @@ const COOLDOWNS_FILE = path.join(STATE_DIR, "runner-cooldowns.json");
 const TASK_LOG_MAX_BYTES = 2 * 1024 * 1024;
 const TASK_LOGS_KEPT = 20;
 const PROGRESS_INTERVAL_MS = 60_000;
-const AGENT_TIMEOUT_MS = 15 * 60 * 1_000;
+// The hard cap is a backstop. The watchdog below is what actually catches a
+// dead run: one that finished its work and then sat idle held the queue for
+// the whole of the old fifteen minutes.
+const AGENT_TIMEOUT_MS = 10 * 60 * 1_000;
+// No event from the agent for this long means it is dead, not slow. A working
+// run at low effort emits something every few seconds; the build step, the
+// longest silent stretch, is under a minute.
+const IDLE_TIMEOUT_MS = 3 * 60 * 1_000;
 // Public questions get their own, much shorter budget, and one at a time. A
 // question is not allowed to cost what a publish costs.
 const ASK_TIMEOUT_MS = 4 * 60 * 1_000;
@@ -99,7 +108,11 @@ const CHECKOUT_PATIENCE_MS = 6 * 60 * 60 * 1_000;
 const BUSY_NOTICE_MS = 15 * 60 * 1_000;
 // How long the repository must have been untouched before the agent starts, and
 // how long a quiet reading has to hold before it is believed.
-const QUIET_PERIOD_MS = 90 * 1_000;
+// Was 90s. Every request paid it in full, because the previous request's own
+// commit counted as "someone busy" — the bot was waiting for itself. 20s is
+// still long enough that a person mid-edit, who saves every few seconds,
+// keeps the tree busy.
+const QUIET_PERIOD_MS = 20 * 1_000;
 const SETTLE_MS = 5_000;
 
 const client = new Client({
@@ -301,11 +314,36 @@ class RunnerUnavailableError extends Error {
  * RunnerUnavailableError when this runner cannot serve at all (out of credits,
  * expired auth, not installed) so the caller can try the next one.
  */
-function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, onSpawn, onTimeout }) {
+function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, onSpawn, onTimeout, onActivity }) {
   const { command, args, resultFrom } = agentCommand({ runner, mode, root: ROOT, outputFile });
   return new Promise((resolve, reject) => {
     let stdout = "";
     let diagnostics = "";
+    let pending = ""; // partial stream line between chunks
+    let idle = null;
+    const stop = (why) => {
+      try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
+      reject(new Error(why));
+    };
+    const alive = () => {
+      if (idle) clearTimeout(idle);
+      idle = setTimeout(
+        () => stop(`The ${runner} agent went silent for ${Math.round(IDLE_TIMEOUT_MS / 60_000)} minutes and was stopped.`),
+        IDLE_TIMEOUT_MS,
+      );
+      idle.unref();
+    };
+    const trace = (chunk) => {
+      pending += chunk;
+      const lines = pending.split("\n");
+      pending = lines.pop() ?? "";
+      for (const line of lines) {
+        const entry = traceStreamLine(line);
+        if (!entry) continue;
+        taskLog.write(entry + "\n");
+        onActivity?.(entry);
+      }
+    };
     const note = (text) => {
       // Bounded: only enough tail to classify the failure.
       diagnostics = (diagnostics + text).slice(-4_000);
@@ -325,23 +363,32 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
     onSpawn?.(child);
     const timeout = setTimeout(() => {
       onTimeout?.();
-      try { process.kill(-child.pid, "SIGTERM"); } catch { child.kill("SIGTERM"); }
-      reject(new Error(`The ${runner} agent exceeded its time limit and was stopped.`));
+      stop(`The ${runner} agent exceeded its time limit and was stopped.`);
     }, timeoutMs);
     timeout.unref();
+    alive();
     child.stdin.on("error", (error) => note(String(error.message)));
     child.stdin.end(prompt);
     child.stdout.on("data", (data) => {
-      taskLog.write(data);
-      if (resultFrom === "stdout") stdout += data.toString();
-      note(data.toString());
+      alive();
+      const text = data.toString();
+      if (resultFrom === "stream") {
+        stdout += text;
+        trace(text);
+      } else {
+        taskLog.write(data);
+        if (resultFrom === "stdout") stdout += text;
+      }
+      note(text);
     });
     child.stderr.on("data", (data) => {
+      alive();
       taskLog.write(data);
       note(data.toString());
     });
     child.once("error", (error) => {
       clearTimeout(timeout);
+      if (idle) clearTimeout(idle);
       if (error.code === "ENOENT") {
         reject(new RunnerUnavailableError(`${runner} is not installed`));
         return;
@@ -350,11 +397,23 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
     });
     child.once("close", async (code) => {
       clearTimeout(timeout);
+      if (idle) clearTimeout(idle);
+      if (pending) trace("\n");
       const fromFile =
         resultFrom === "file"
           ? (await fs.readFile(outputFile, "utf8").catch(() => "")).trim()
           : "";
-      const text = (resultFrom === "stdout" ? stdout : fromFile).trim();
+      let text;
+      if (resultFrom === "stream") {
+        const result = parseStreamResult(stdout);
+        if (result?.isError) {
+          reject(new Error(result.text || `${runner} reported an error.`));
+          return;
+        }
+        text = result?.text ?? "";
+      } else {
+        text = (resultFrom === "stdout" ? stdout : fromFile).trim();
+      }
       if (code !== 0 || !text) {
         if (isRunnerUnavailable(diagnostics)) {
           reject(new RunnerUnavailableError(`${runner} is unavailable`, diagnostics));
@@ -522,6 +581,7 @@ async function runPublish(job) {
       timeoutMs: AGENT_TIMEOUT_MS,
       onSpawn: (child) => { activeChild = child; },
       onTimeout: () => { job.timeout = true; },
+      onActivity: (entry) => { job.lastActivity = entry; },
     });
     if (job.stopRequested) throw new TaskStoppedError("The active agent process was terminated.");
     // What matters is whether THIS request's work landed, not whether the tree
@@ -672,10 +732,15 @@ function stopActiveTask() {
 function startProgress(job) {
   let posted = null;
   const timer = setInterval(async () => {
-    const content = progressMessage({
-      elapsedMs: Date.now() - job.startedAt,
-      queued: queue.length,
-    });
+    // The last trace line, with its timestamp trimmed off: "Still working —
+    // 3m elapsed. Last: Bash: npm run build" tells a reader whether it is
+    // moving, which "3m elapsed" alone never could.
+    const last = job.lastActivity ? job.lastActivity.replace(/^\d\d:\d\d:\d\d /, "") : "";
+    const content =
+      progressMessage({
+        elapsedMs: Date.now() - job.startedAt,
+        queued: queue.length,
+      }) + (last ? ` Last: ${last.slice(0, 140)}` : "");
     try {
       // One message that keeps its elapsed time current, rather than a new
       // reply every minute (up to 14 per long task).

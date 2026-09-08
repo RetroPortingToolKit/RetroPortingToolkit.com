@@ -31,6 +31,8 @@ import {
   DEFAULT_RUNNER_COOLDOWN_MS,
   ASK_EFFORT,
   PUBLISH_EFFORT,
+  parseStreamResult,
+  traceStreamLine,
 } from "./discord-agent-core.mjs";
 
 describe("Discord agent core", () => {
@@ -417,5 +419,62 @@ describe("runner cooldowns", () => {
 
   it("is unchanged when nothing is cooling down", () => {
     expect(runnerChain({ hasApiKey: false })).toEqual(["codex", "claude"]);
+  });
+});
+
+describe("stream-json runs", () => {
+  const ev = (o) => JSON.stringify(o);
+  const RUN = [
+    ev({ type: "system", subtype: "init" }),
+    ev({ type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "git status --porcelain" } }] } }),
+    "not json at all",
+    ev({ type: "assistant", message: { content: [{ type: "text", text: "Pulled main, tree clean." }] } }),
+    ev({ type: "result", subtype: "success", is_error: false, result: "  Done. Nothing to deploy.  " }),
+  ].join("\n");
+
+  it("returns the final result event's text, trimmed", () => {
+    expect(parseStreamResult(RUN)).toEqual({ text: "Done. Nothing to deploy.", isError: false });
+  });
+
+  it("takes the last result if there are several", () => {
+    const two = RUN + "\n" + ev({ type: "result", is_error: false, result: "second" });
+    expect(parseStreamResult(two)?.text).toBe("second");
+  });
+
+  it("reports an error result as one", () => {
+    const bad = ev({ type: "result", is_error: true, result: "Something broke" });
+    expect(parseStreamResult(bad)).toEqual({ text: "Something broke", isError: true });
+  });
+
+  it("returns null when the run never finished, which is what a killed run looks like", () => {
+    expect(parseStreamResult(RUN.split("\n").slice(0, -1).join("\n"))).toBeNull();
+    expect(parseStreamResult("")).toBeNull();
+    expect(parseStreamResult("garbage\n{not json")).toBeNull();
+  });
+
+  it("streams the run as one readable line per step", () => {
+    const at = new Date("2026-09-08T01:43:06Z");
+    const lines = RUN.split("\n").map((l) => traceStreamLine(l, at));
+    expect(lines[0]).toBe("01:43:06 started");
+    expect(lines[1]).toBe("01:43:06 Bash: git status --porcelain");
+    expect(lines[2]).toBe("      not json at all");
+    expect(lines[3]).toBe("01:43:06 says: Pulled main, tree clean.");
+    expect(lines[4]).toBe("01:43:06 done: Done. Nothing to deploy.");
+  });
+
+  it("skips events not worth a line, and clips long ones", () => {
+    expect(traceStreamLine(JSON.stringify({ type: "rate_limit_event" }))).toBeNull();
+    expect(traceStreamLine("")).toBeNull();
+    const long = JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "x".repeat(500) }] } });
+    expect(traceStreamLine(long).length).toBeLessThan(200);
+  });
+
+  it("asks Claude for the stream on both lanes, and never Codex", () => {
+    for (const mode of ["ask", "publish"]) {
+      const cmd = agentCommand({ runner: "claude", mode, root: "/r", outputFile: "/o" });
+      expect(cmd.args).toEqual(expect.arrayContaining(["--output-format", "stream-json", "--verbose"]));
+      expect(cmd.resultFrom).toBe("stream");
+    }
+    expect(agentCommand({ runner: "codex", mode: "publish", root: "/r", outputFile: "/o" }).args).not.toContain("stream-json");
   });
 });
