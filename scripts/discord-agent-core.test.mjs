@@ -34,6 +34,7 @@ import {
   traceStreamLine,
   presentSummary,
   attachmentsSection,
+  coarseElapsed,
 } from "./discord-agent-core.mjs";
 
 describe("Discord agent core", () => {
@@ -552,5 +553,27 @@ describe("naming a published page", () => {
     // The domain is the site's, passed in from site.ts; the prompt carries none of its own.
     const without = taskPrompt({ request: "r", authorId: "a", channelId: "c", messageUrl: "u" });
     expect(without).not.toMatch(/https?:\/\/\S+\/blog\/<slug>/);
+  });
+});
+
+describe("the status line's clock", () => {
+  it("says nothing under half a minute, then counts in half-minute steps", () => {
+    expect(coarseElapsed(0)).toBe("");
+    expect(coarseElapsed(29_000)).toBe("");
+    expect(coarseElapsed(30_000)).toBe("30s");
+    expect(coarseElapsed(59_000)).toBe("30s");
+    expect(coarseElapsed(60_000)).toBe("1m");
+    expect(coarseElapsed(95_000)).toBe("1m 30s");
+    expect(coarseElapsed(120_000)).toBe("2m");
+    expect(coarseElapsed(61 * 60_000)).toBe("1h 1m");
+  });
+
+  it("keeps the time out of the line until there is one", () => {
+    expect(progressMessage({ elapsedMs: 1_000 })).toBe("Still working.");
+    expect(progressMessage({ elapsedMs: 1_000, phase: "waiting" })).toMatch(/^Waiting for the shared checkout to go quiet\. /);
+    expect(progressMessage({ elapsedMs: 90_000, queued: 2, last: "Bash: npm run build" })).toBe(
+      "Still working — 1m 30s elapsed. 2 queued behind it. Last: Bash: npm run build",
+    );
+    expect(progressMessage({ elapsedMs: 106 * 60_000, phase: "waiting" })).toMatch(/— 1h 46m so far\./);
   });
 });

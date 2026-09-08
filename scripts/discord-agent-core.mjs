@@ -64,13 +64,28 @@ export function formatElapsed(ms) {
  * five-minute retry and a "Still waiting" every fifteen, and none of it was
  * cleaned up after.
  */
+/**
+ * Elapsed time in half-minute steps, and nothing at all under the first one.
+ * A status line that reads "1s elapsed" is the bot narrating its own start-up;
+ * "30s", "1m", "1m 30s" is a cadence a person can read without being nagged.
+ */
+export function coarseElapsed(ms) {
+  const halves = Math.floor(Math.max(0, ms) / 30_000);
+  if (halves === 0) return "";
+  const minutes = Math.floor(halves / 2);
+  if (minutes === 0) return "30s";
+  if (minutes < 60) return halves % 2 ? `${minutes}m 30s` : `${minutes}m`;
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+}
+
 export function progressMessage({ elapsedMs, queued = 0, phase = "running", last = "" }) {
+  const t = coarseElapsed(elapsedMs);
   if (phase === "waiting") {
-    return `Waiting for the shared checkout to go quiet — ${formatElapsed(elapsedMs)} so far. Your request is holding its place and I will start it by myself; there is nothing for you to re-send.`;
+    return `Waiting for the shared checkout to go quiet${t ? ` — ${t} so far` : ""}. Your request is holding its place and I will start it by myself; there is nothing for you to re-send.`;
   }
   const waiting = queued ? ` ${queued} queued behind it.` : "";
   const tail = last ? ` Last: ${last}` : "";
-  return `Still working — ${formatElapsed(elapsedMs)} elapsed.${waiting}${tail}`;
+  return `Still working${t ? ` — ${t} elapsed` : ""}.${waiting}${tail}`;
 }
 
 /** Said in place of "On it." when a request survives a bridge restart. */

@@ -98,7 +98,9 @@ const TASK_LOG_DIR = path.join(STATE_DIR, "task-logs");
 const COOLDOWNS_FILE = path.join(STATE_DIR, "runner-cooldowns.json");
 const TASK_LOG_MAX_BYTES = 2 * 1024 * 1024;
 const TASK_LOGS_KEPT = 20;
-const PROGRESS_INTERVAL_MS = envMs("DISCORD_AGENT_PROGRESS_MS", 60_000);
+// The status line is edited on this cadence, in place. Half a minute is the
+// step the elapsed time is shown in, so every edit changes what it says.
+const PROGRESS_INTERVAL_MS = envMs("DISCORD_AGENT_PROGRESS_MS", 30_000);
 // The hard cap is a backstop. The watchdog below is what actually catches a
 // dead run: one that finished its work and then sat idle held the queue for
 // the whole of the old fifteen minutes.
@@ -648,9 +650,11 @@ async function runPublish(job) {
   if (starting.status || starting.busyReason) {
     throw new CheckoutBusyError();
   }
+  // No edit here: "On it." stands until the first tick has something to say.
+  // Rewriting it the instant the agent starts produced "Still working — 1s
+  // elapsed", which is the bot narrating its own start-up.
   job.phase = "running";
   job.agentStartedAt = Date.now();
-  void updateStatus(job);
   job.startedHead = starting.head;
   await persistJobs();
 
