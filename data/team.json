@@ -25,8 +25,7 @@
       ],
       "bio": [
         "Without AI, reverse engineered a shutdown live service hero shooter for PC to bring the game back from the dead.",
-        "Backend web services and data engineer with over ten years of experience.",
-        "Applied those skills, together with a background in classic games and decompilation and recompilation, to build out the NES, Super Nintendo, Game Boy Advance, Nintendo DS, Virtual Boy and PlayStation recompilers."
+        "Backend web services and data engineer of over ten years. Built the NES, SNES, Game Boy Advance, Nintendo DS, Virtual Boy and PlayStation recompilers."
       ],
       "links": [
         {
@@ -104,9 +103,8 @@
         }
       ],
       "bio": [
-        "The RetComM Launcher is a single front end for updating, managing and distributing static recompilations.",
-        "recomp-net and retcomm-rbengine bring netplay, save states and rewinding to several recompilation platforms.",
-        "A significant contributor to PSXRecomp and SNESRecomp."
+        "RetComM Launcher: one front end for updating, managing and distributing static recompilations.",
+        "recomp-net and retcomm-rbengine add netplay, save states and rewinding across recompilation platforms. Also contributes to PSXRecomp and SNESRecomp."
       ],
       "links": [
         {
