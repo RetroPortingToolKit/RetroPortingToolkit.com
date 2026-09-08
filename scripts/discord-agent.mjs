@@ -41,6 +41,9 @@ import {
   taskPrompt,
 } from "./discord-agent-core.mjs";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
+// The site's own address, read out of src/lib/site.ts: the one place a brand
+// string lives, so the bot never carries a domain of its own.
+import { SITE } from "./site-config.mjs";
 
 // Every timing below, and the checkout itself, can be overridden from the
 // environment. The defaults are the production values; the overrides exist so
@@ -673,6 +676,7 @@ async function runPublish(job) {
     attachments,
     requester,
     roster: rosterLines(team),
+    siteUrl: SITE.url,
   });
   try {
     if (job.stopRequested) throw new TaskStoppedError("Stopped before the agent started.");

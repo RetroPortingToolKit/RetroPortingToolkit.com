@@ -543,3 +543,14 @@ describe("attachments in the publish prompt", () => {
     expect(at("Attachments the requester sent")).toBeLessThan(at("Discord context (identifiers only)"));
   });
 });
+
+describe("naming a published page", () => {
+  it("asks for the full address on the site, never a bare path", () => {
+    const withSite = taskPrompt({ request: "r", authorId: "a", channelId: "c", messageUrl: "u", siteUrl: "https://example.test" });
+    expect(withSite).toContain("https://example.test/blog/<slug>");
+    expect(withSite).toMatch(/never by a bare path/);
+    // The domain is the site's, passed in from site.ts; the prompt carries none of its own.
+    const without = taskPrompt({ request: "r", authorId: "a", channelId: "c", messageUrl: "u" });
+    expect(without).not.toMatch(/https?:\/\/\S+\/blog\/<slug>/);
+  });
+});
