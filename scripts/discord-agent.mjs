@@ -221,19 +221,41 @@ async function persistJobs() {
  */
 const SUPPRESS_EMBEDS = 1 << 2;
 
-async function deliver({ channelId, messageId, content, ping = false, suppressMentions = false, suppressEmbeds = false }) {
+async function deliver({ channelId, messageId, content, ping = false, suppressMentions = false, suppressEmbeds = true }) {
   const channel = await client.channels.fetch(channelId);
   const allowedMentions = suppressMentions
     ? { parse: [], repliedUser: ping }
     : { repliedUser: ping };
-  // Belt and braces with the prompt's angle brackets: a link the model forgot
-  // to wrap still cannot expand into a preview card.
+  // No preview cards on anything the bot posts. Every published page is named
+  // by its address, and Discord would unfurl each one into a card the size
+  // of the reply itself — three replies in a channel became a wall of them.
+  // The link stays clickable; only the card is gone.
   const payload = { content, allowedMentions, ...(suppressEmbeds ? { flags: SUPPRESS_EMBEDS } : {}) };
   const target = messageId
     ? await channel.messages.fetch(messageId).catch(() => null)
     : null;
   if (target) return target.reply(payload);
   return channel.send(payload);
+}
+
+/**
+ * The requester's own message carries one reaction that says where the
+ * request is: 🔍 while it is queued or running (💬 on the ask lane), then
+ * the outcome — ✅ done, ❌ failed, 🛑 stopped, ⏸️ blocked. The working
+ * reaction is taken off so the message does not end up wearing both.
+ * Resolved by id rather than through the live Message object, so it still
+ * works for a request resumed after a restart. Removing the bot's own
+ * reaction needs no permission beyond adding one.
+ */
+async function markOutcome(ref, from, to) {
+  try {
+    const channel = await client.channels.fetch(ref.channelId);
+    const message = await channel.messages.fetch(ref.messageId);
+    await message.reactions?.cache?.get(from)?.users?.remove(client.user.id).catch(() => undefined);
+    await message.react(to);
+  } catch (error) {
+    console.warn(`[discord-agent] could not mark ${ref.messageId} ${to}: ${error?.message ?? error}`);
+  }
 }
 
 async function spool(entry) {
@@ -763,16 +785,18 @@ async function drainAskQueue() {
   try {
     await persistJobs();
     const answer = await runAsk(job);
-    await replyChunks(job.ref, "", answer, { suppressEmbeds: true });
+    await replyChunks(job.ref, "", answer);
+    await markOutcome(job.ref, "💬", "✅");
   } catch (error) {
     // Public channel: say something useful without narrating the internals of
     // which runner failed or why.
     console.error("[discord-agent] ask failed", error);
     await safeSend({
       ...job.ref,
-      content: "Sorry — I couldn’t answer that just now. Try again in a bit, or browse the site directly at https://retroportingtoolkit.com.",
+      content: `Sorry — I couldn’t answer that just now. Try again in a bit, or browse the site directly at ${SITE.url}.`,
       ping: true,
     });
+    await markOutcome(job.ref, "💬", "❌");
   } finally {
     askRunning = null;
     await persistJobs();
@@ -904,6 +928,7 @@ async function drainQueue() {
   const job = running;
   job.startedAt ??= Date.now();
   let parked = false;
+  let outcome = null;
   try {
     await persistJobs();
     // One status line per request, created on its first turn and edited from
@@ -920,7 +945,9 @@ async function drainQueue() {
     const summary = await runPublish(job);
     const { heading, body } = presentSummary(summary);
     await replyChunks(job.ref, heading, body);
+    outcome = "✅";
   } catch (error) {
+    outcome = "❌";
     if (error instanceof CheckoutBusyError) {
       job.waitingSince ??= Date.now();
       const waited = Date.now() - job.waitingSince;
@@ -928,10 +955,12 @@ async function drainQueue() {
         // Back of the queue, so one parked request cannot starve the others.
         // Its status line keeps ticking as "waiting" in the meantime.
         parked = true;
+        outcome = null;
         queue.push(job);
         console.warn(`[discord-agent] checkout busy; still holding (${formatElapsed(waited)})`);
         return;
       }
+      outcome = "⏸️";
       await replyChunks(
         job.ref,
         "⏸️ Blocked.",
@@ -940,12 +969,14 @@ async function drainQueue() {
       return;
     }
     if (error instanceof TaskStoppedError) {
+      outcome = "🛑";
       await replyChunks(
         job.ref,
         "🛑 Stopped.",
         "The active agent task was stopped. Work completed before the stop may remain in the shared checkout, so the next task will inspect the tree before changing anything.",
       );
     } else if (error instanceof SharedCheckoutConflictError) {
+      outcome = "⏸️";
       await replyChunks(job.ref, "⏸️ Blocked.", error.message);
     } else {
       const detail = error instanceof Error ? error.message : String(error);
@@ -953,6 +984,7 @@ async function drainQueue() {
     }
   } finally {
     if (!parked) await clearStatus(job);
+    if (!parked && outcome) await markOutcome(job.ref, "🔍", outcome);
     running = null;
     await persistJobs();
     void drainQueue().catch((error) =>

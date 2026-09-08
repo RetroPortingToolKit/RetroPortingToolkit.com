@@ -18,7 +18,7 @@ let nextId = 1000;
 
 function sent(kind, channelId, messageId, payload) {
   const id = String(nextId++);
-  emit({ kind, id, channelId, messageId, content: payload?.content ?? "" });
+  emit({ kind, id, channelId, messageId, content: payload?.content ?? "", flags: payload?.flags ?? 0 });
   return {
     id,
     edit: async (p) => { emit({ kind: "edit", id, channelId, messageId, content: p?.content ?? "" }); },
@@ -33,6 +33,10 @@ function channelFor(channelId) {
       fetch: async (messageId) => ({
         reply: async (payload) => sent("reply", channelId, messageId, payload),
         delete: async () => { emit({ kind: "delete", id: messageId, channelId, messageId, content: "" }); },
+        react: async (emoji) => { emit({ kind: "react", channelId, messageId, content: emoji }); },
+        // Only the bot's own reactions are ever removed, so the stub does not
+        // track who reacted: any emoji resolves, and removing it is recorded.
+        reactions: { cache: { get: (emoji) => ({ users: { remove: async () => { emit({ kind: "unreact", channelId, messageId, content: emoji }); } } }) } },
       }),
     },
   };

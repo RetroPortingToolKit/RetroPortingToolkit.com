@@ -232,6 +232,30 @@ describe("bridge harness: queueing and the shared checkout", () => {
     expect(reply.content).not.toMatch(/Done|\[answer\]|checks|nothing (was )?changed/i);
   });
 
+  it("marks the request's message with the outcome, and posts without preview cards", async () => {
+    const b = await up();
+    const ok = b.send(ADMIN, "U1", "fine [[sleep=0]]");
+    const summary = await b.waitFor(forMsg(ok, "OK: fine"), 12000, "summary");
+    // Every message the bot posts carries SUPPRESS_EMBEDS: a published page is
+    // named by its address, and a preview card per address was the spam.
+    expect(summary.flags & 4).toBe(4);
+    expect(b.events.filter((e) => (e.kind === "reply" || e.kind === "send") && !(e.flags & 4))).toHaveLength(0);
+    // 🔍 while it worked, then swapped for ✅ — not both.
+    await b.waitFor((e) => e.messageId === ok && e.kind === "react" && e.content === "✅", 5000, "done reaction");
+    const marks = b.events.filter((e) => e.messageId === ok && (e.kind === "react" || e.kind === "unreact")).map((e) => `${e.kind}:${e.content}`);
+    expect(marks).toEqual(["react:🔍", "unreact:🔍", "react:✅"]);
+    // A failure is marked as one.
+    const bad = b.send(ADMIN, "U1", "break [[fail]]");
+    await b.waitFor(forMsg(bad, "did not complete"), 12000, "failure report");
+    await b.waitFor((e) => e.messageId === bad && e.kind === "react" && e.content === "❌", 5000, "failed reaction");
+    expect(b.events.some((e) => e.messageId === bad && e.kind === "unreact" && e.content === "🔍")).toBe(true);
+    // So is an answered question on the public lane: 💬 becomes ✅.
+    const q = b.send(PUBLIC, "S9", "q [[sleep=0]]");
+    await b.waitFor(forMsg(q, "OK: q"), 10000, "answer");
+    await b.waitFor((e) => e.messageId === q && e.kind === "react" && e.content === "✅", 5000, "answered reaction");
+    expect(b.events.some((e) => e.messageId === q && e.kind === "unreact" && e.content === "💬")).toBe(true);
+  });
+
   it("keeps one status line per request, edits it through waiting and working, and deletes it with the queued notice when done", async () => {
     const b = await up();
     fs.writeFileSync(path.join(b.repo.dir, "wip.txt"), "someone editing\n");

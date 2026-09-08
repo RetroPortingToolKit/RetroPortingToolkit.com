@@ -1153,3 +1153,12 @@ acts on that page — feedback edits the draft and keeps it one, "publish"
 removes the flag, and "unpublish" / "back to draft" on any post, old or new,
 sets it. No bridge code changed for this; it is a prompt rule, pinned by
 `discord-agent-core.test.mjs`.
+
+**No preview cards, and the outcome on the request (2026-09-08).** Every
+message the bridge posts now carries `SUPPRESS_EMBEDS` (the `deliver`
+default), because each published address unfurled into a card the size of
+the reply. The requester's message wears one reaction at a time: 🔍 while
+queued or running (💬 on the ask lane), then `markOutcome` takes that off
+and adds ✅ done, ❌ failed, 🛑 stopped or ⏸️ blocked. It resolves the
+message by id, so it also works for a request resumed after a restart; the
+stub Discord records `unreact` and `flags`, and the harness pins both.
