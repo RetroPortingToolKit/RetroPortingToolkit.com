@@ -108,6 +108,12 @@ const IDLE_TIMEOUT_MS = envMs("DISCORD_AGENT_IDLE_MS", 3 * 60 * 1_000);
 const ASK_TIMEOUT_MS = envMs("DISCORD_AGENT_ASK_TIMEOUT_MS", 4 * 60 * 1_000);
 const ASK_COOLDOWN_MS = envMs("DISCORD_AGENT_ASK_COOLDOWN_MS", 45_000);
 const ASK_QUEUE_LIMIT = 5;
+// Files a trusted author attaches to a request are downloaded into the run's
+// temp dir and handed to the agent by path. Bounded, because a request is one
+// post's worth of material, not a media library.
+const MAX_ATTACHMENTS = 8;
+const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
+const ATTACHMENT_FETCH_MS = 60_000;
 // A busy shared checkout is a wait, not a failure. Someone editing the repo by
 // hand is normal and usually brief, so a request parks and retries instead of
 // being thrown away.
@@ -182,6 +188,7 @@ function jobRecord(job) {
     context: job.context ?? "",
     startedAt: job.startedAt ?? null,
     startedHead: job.startedHead ?? null,
+    attachments: job.attachments ?? [],
     // So a restart can tidy the previous process's status line.
     statusMessageId: job.status?.id ?? null,
     queuedNoticeId: job.queuedNotice?.id ?? null,
@@ -577,6 +584,50 @@ async function pruneTaskLogs() {
   }
 }
 
+/**
+ * What a message carries besides text. Only the metadata is kept on the job;
+ * the bytes are fetched when the run starts, so a request that waits or is
+ * resumed after a restart still gets its files (Discord's links stay valid
+ * for a day).
+ */
+function attachmentsOf(message) {
+  const list = [];
+  for (const a of message.attachments?.values?.() ?? []) {
+    if (!a?.url || !a.name) continue;
+    list.push({ name: String(a.name), url: String(a.url), size: Number(a.size) || 0, contentType: a.contentType || "" });
+  }
+  return list;
+}
+
+/** Fetch a job's attachments into dir; returns what the agent can be told. */
+async function fetchAttachments(job, dir) {
+  const files = [];
+  const wanted = (job.attachments ?? []).slice(0, MAX_ATTACHMENTS);
+  if (!wanted.length) return files;
+  await fs.mkdir(dir, { recursive: true, mode: 0o700 });
+  for (const [i, a] of wanted.entries()) {
+    if (a.size > MAX_ATTACHMENT_BYTES) {
+      files.push({ ...a, path: null, skipped: `larger than ${Math.round(MAX_ATTACHMENT_BYTES / 1024 / 1024)} MB` });
+      continue;
+    }
+    // A name is data from the message, not a path: keep the basename only.
+    const safe = path.basename(a.name).replace(/[^\w.@+-]+/g, "_").slice(0, 120) || `attachment-${i + 1}`;
+    const file = path.join(dir, `${i + 1}-${safe}`);
+    try {
+      const res = await fetch(a.url, { signal: AbortSignal.timeout(ATTACHMENT_FETCH_MS) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const bytes = Buffer.from(await res.arrayBuffer());
+      if (bytes.length > MAX_ATTACHMENT_BYTES) throw new Error("larger than allowed");
+      await fs.writeFile(file, bytes, { mode: 0o600 });
+      files.push({ ...a, size: bytes.length, path: file });
+    } catch (error) {
+      console.warn(`[discord-agent] attachment ${safe} not fetched: ${error.message}`);
+      files.push({ ...a, path: null, skipped: "could not be downloaded" });
+    }
+  }
+  return files;
+}
+
 async function runPublish(job) {
   const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => {
     if (job.phase !== "waiting") {
@@ -602,12 +653,17 @@ async function runPublish(job) {
   const outputFile = path.join(tempDir, "final.txt");
   const taskLog = await createTaskLog(job.ref.messageId);
   console.log(`[discord-agent] task ${job.ref.messageId} log: ${taskLog.file}`);
+  const attachments = await fetchAttachments(job, path.join(tempDir, "attachments"));
+  for (const a of attachments) {
+    taskLog.write(`attachment: ${a.name} ${a.path ? `-> ${a.path}` : `(skipped: ${a.skipped})`}\n`);
+  }
   const prompt = taskPrompt({
     request: job.request,
     authorId: job.ref.authorId,
     channelId: job.ref.channelId,
     messageUrl: job.messageUrl,
     context: job.context,
+    attachments,
   });
   try {
     if (job.stopRequested) throw new TaskStoppedError("Stopped before the agent started.");
@@ -903,7 +959,7 @@ async function recoverInterruptedJobs() {
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, context: job.context ?? "" });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, context: job.context ?? "", attachments: job.attachments ?? [] });
   if (saved.active) {
     // An interrupted run is resumed when the tree is clean: that means it was
     // killed before it changed anything, usually while waiting for the
@@ -1020,7 +1076,14 @@ client.on("messageCreate", async (message) => {
     });
     return;
   }
-  if (!request) {
+  // Files on the message itself, and on a trusted author's message it replies
+  // to ("take this and make a post" under an upload). A stranger's upload is
+  // never fetched: the reply chain can carry an unauthorised message.
+  const attachments = attachmentsOf(message);
+  if (addressedByReply && referenced && !referenced.author?.bot && isAuthorized(referenced, config)) {
+    attachments.push(...attachmentsOf(referenced));
+  }
+  if (!request && !attachments.length) {
     await safeSend({
       ...ref,
       content: "Tag me with a concrete request. I’ll queue it, run the repository checks, publish approved changes, and report the result here.",
@@ -1044,7 +1107,7 @@ client.on("messageCreate", async (message) => {
         originalContent: originalIsTrusted ? original.content : "",
       })
     : "";
-  const job = { ref, messageUrl: message.url, request, context };
+  const job = { ref, messageUrl: message.url, request: request || "Use the attached file(s).", context, attachments };
   queue.push(job);
   // The place in line is decided here, in the same synchronous step as the
   // push. Everything below awaits, and three requests arriving together used

@@ -17,6 +17,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import http from "node:http";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BRIDGE = path.join(HERE, "discord-agent.mjs");
@@ -69,9 +70,9 @@ function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdi
   });
   child.stderr.on("data", (d) => logs.push({ t: Date.now(), line: "[stderr] " + d }));
   const t0 = Date.now();
-  const send = (channelId, authorId, content) => {
+  const send = (channelId, authorId, content, extra = {}) => {
     const id = `m${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    child.stdin.write(JSON.stringify({ channelId, authorId, id, content: `<@BOT> ${content}` }) + "\n");
+    child.stdin.write(JSON.stringify({ channelId, authorId, id, content: `<@BOT> ${content}`, ...extra }) + "\n");
     return id;
   };
   const waitFor = (pred, timeoutMs = 15000, label = "condition") => new Promise((res, rej) => {
@@ -287,6 +288,43 @@ describe("bridge harness: queueing and the shared checkout", () => {
     clearInterval(churn);
     const done = await b.waitFor(forMsg(id, "OK: during churn"), 20000, "started once the commits stopped");
     expect(done.t - Date.now()).toBeLessThan(0);
+  });
+
+  it("downloads a trusted author's attachment and hands the agent its path", async () => {
+    // A tiny server standing in for Discord's CDN.
+    const body = "# Introducing Retro Porting Toolkit\n\nOver the past couple of years…\n";
+    const server = http.createServer((req, res) => { res.writeHead(200, { "content-type": "text/markdown" }); res.end(body); });
+    await new Promise((r) => server.listen(0, "127.0.0.1", r));
+    const url = `http://127.0.0.1:${server.address().port}/Introducing%20Retro%20Porting%20Toolkit.md`;
+    try {
+      const b = await up();
+      const id = b.send(ADMIN, "U1", "take this and make a blog post [[attachment]]", {
+        attachments: [{ name: "Introducing Retro Porting Toolkit.md", url, size: body.length, contentType: "text/markdown" }],
+      });
+      const done = await b.waitFor(forMsg(id, "OK: attachment says"), 15000, "agent read the file");
+      expect(done.content).toContain("# Introducing Retro Porting Toolkit");
+      const logDir = path.join(b.state, "task-logs");
+      const log = fs.readdirSync(logDir).map((f) => fs.readFileSync(path.join(logDir, f), "utf8")).join("\n");
+      expect(log).toMatch(/attachment: Introducing Retro Porting Toolkit\.md -> /);
+    } finally {
+      server.close();
+    }
+  });
+
+  it("does not fetch a stranger's attachment in a public channel", async () => {
+    let hits = 0;
+    const server = http.createServer((req, res) => { hits++; res.end("secret"); });
+    await new Promise((r) => server.listen(0, "127.0.0.1", r));
+    try {
+      const b = await up();
+      const id = b.send(PUBLIC, "STRANGER", "read this [[sleep=0]]", {
+        attachments: [{ name: "x.md", url: `http://127.0.0.1:${server.address().port}/x.md`, size: 6, contentType: "text/markdown" }],
+      });
+      await b.waitFor(forMsg(id, "OK: read this"), 10000, "answered");
+      expect(hits).toBe(0);
+    } finally {
+      server.close();
+    }
   });
 
   it("says what the agent last did in the progress line", async () => {

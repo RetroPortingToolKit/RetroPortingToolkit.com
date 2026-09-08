@@ -62,6 +62,7 @@ export class Client extends EventEmitter {
         author: { id: m.authorId, bot: false },
         member: { roles: { cache: [] } },
         mentions: { users: { has: (uid) => content.includes(`<@${uid}>`) } },
+        attachments: new Map((m.attachments ?? []).map((a, i) => [String(i), a])),
         reference: null,
         fetchReference: async () => null,
         react: async (emoji) => { emit({ kind: "react", channelId: m.channelId, messageId: id, content: emoji }); },

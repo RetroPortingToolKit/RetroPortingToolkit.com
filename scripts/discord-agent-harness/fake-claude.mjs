@@ -30,6 +30,14 @@ process.stdin.on("end", async () => {
   }
   if (/\[\[dirty\]\]/.test(request)) fs.writeFileSync(path.join(process.cwd(), "left-behind.txt"), "oops\n");
   const isError = /\[\[fail\]\]/.test(request);
+  if (/\[\[attachment\]\]/.test(request)) {
+    // Prove the file really is where the prompt says: read it back.
+    const m = prompt.match(/^- (\/\S+)\s/m);
+    let seen = "no attachment path in prompt";
+    if (m) { try { seen = fs.readFileSync(m[1], "utf8").split("\n")[0]; } catch (e) { seen = "unreadable: " + e.message; } }
+    say({ type: "result", subtype: "success", is_error: false, result: `OK: attachment says ${seen}` });
+    process.exit(0);
+  }
   if (/\[\[question\]\]/.test(request)) {
     say({ type: "result", subtype: "success", is_error: false, result: "[answer]\nShokunin does UI/UX, frontend and marketing." });
     process.exit(0);

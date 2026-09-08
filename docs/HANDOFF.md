@@ -1091,3 +1091,14 @@ much it mattered:
   Codex process", recovery "telling everyone their request died"). Fixed,
   bounded, rewritten. `droppedMessage` had no caller left and is gone.
 
+**Attachments (2026-09-08).** "Take this and make a blog post" under an
+uploaded `.md` got "I can't see what this refers to": the intake passed text
+and Discord ids only. In the admin lane the bridge now keeps the attachment
+metadata on the job and downloads the files when the run starts (into the
+run's temp dir, so a request that waited or was resumed after a restart still
+gets them while Discord's links are valid), and the prompt lists them by
+absolute path with the instruction to copy media into the page's folder. Files
+on a trusted author's message that the request replies to count too. Bounds:
+8 files, 20 MB each. The public lane never fetches a stranger's upload — a
+harness scenario stands up a fake CDN and asserts zero hits.
+
