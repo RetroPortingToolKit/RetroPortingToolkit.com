@@ -8,9 +8,20 @@
       "role": "Team lead, ecosystem developer and maintainer",
       "photo": "/team/mstan.jpg",
       "handles": [
-        { "label": "GitHub", "value": "mstan", "href": "https://github.com/mstan" },
-        { "label": "Discord", "value": "gamemaster" },
-        { "label": "Site", "value": "1379.tech", "href": "https://1379.tech" }
+        {
+          "label": "GitHub",
+          "value": "mstan",
+          "href": "https://github.com/mstan"
+        },
+        {
+          "label": "Discord",
+          "value": "gamemaster"
+        },
+        {
+          "label": "Site",
+          "value": "1379.tech",
+          "href": "https://1379.tech"
+        }
       ],
       "bio": [
         "Without AI, reverse engineered a shutdown live service hero shooter for PC to bring the game back from the dead.",
@@ -25,9 +36,20 @@
       "role": "Founder and primary developer, BattleShip",
       "photo": "/team/jrickey.jpg",
       "handles": [
-        { "label": "GitHub", "value": "JRickey", "href": "https://github.com/JRickey" },
-        { "label": "Discord", "value": ".emissary" },
-        { "label": "Site", "value": "jrickey.dev", "href": "https://jrickey.dev/" }
+        {
+          "label": "GitHub",
+          "value": "JRickey",
+          "href": "https://github.com/JRickey"
+        },
+        {
+          "label": "Discord",
+          "value": ".emissary"
+        },
+        {
+          "label": "Site",
+          "value": "jrickey.dev",
+          "href": "https://jrickey.dev/"
+        }
       ],
       "bio": [
         "Quantitative developer and systems programmer: builds the full stack behind trading decisions by day, and writes open source low-level systems tooling by night.",
@@ -46,7 +68,10 @@
           "value": "TechnicallyComputers",
           "href": "https://github.com/TechnicallyComputers"
         },
-        { "label": "Discord", "value": "wretched99, also known as CobaltCryptid" }
+        {
+          "label": "Discord",
+          "value": "wretched99, also known as CobaltCryptid"
+        }
       ],
       "bio": [
         "The RetComM Launcher is a single front end for updating, managing and distributing static recompilations.",
@@ -58,7 +83,10 @@
           "label": "RetComM Launcher",
           "href": "https://github.com/TechnicallyComputers/RetComM-Launcher"
         },
-        { "label": "recomp-net", "href": "https://github.com/TechnicallyComputers/recomp-net" },
+        {
+          "label": "recomp-net",
+          "href": "https://github.com/TechnicallyComputers/recomp-net"
+        },
         {
           "label": "retcomm-rbengine",
           "href": "https://github.com/TechnicallyComputers/retcomm-rbengine"
@@ -71,8 +99,15 @@
       "role": "Contributor, PSXRecomp",
       "photo": "/team/alexbeav.jpg",
       "handles": [
-        { "label": "GitHub", "value": "Alexbeav", "href": "https://github.com/Alexbeav" },
-        { "label": "Discord", "value": "alexbeav" }
+        {
+          "label": "GitHub",
+          "value": "Alexbeav",
+          "href": "https://github.com/Alexbeav"
+        },
+        {
+          "label": "Discord",
+          "value": "alexbeav"
+        }
       ],
       "bio": [
         "Cloud security engineer, SRE and network security architect by day.",
@@ -83,14 +118,22 @@
     {
       "slug": "shokunin",
       "name": "shokunin",
-      "role": "Author and designer, RetroPortingToolkit.com",
-      "photo": null,
+      "role": "UI/UX, frontend and marketing, across the website and the launchers",
+      "photo": "/team/shokunin.jpg",
       "handles": [
-        { "label": "GitHub", "value": "tetrisgm", "href": "https://github.com/tetrisgm" },
-        { "label": "Discord", "value": "tetrisgm" }
+        {
+          "label": "GitHub",
+          "value": "tetrisgm",
+          "href": "https://github.com/tetrisgm"
+        },
+        {
+          "label": "Discord",
+          "value": "tetrisgm"
+        }
       ],
       "bio": [
-        "Writes and designs RetroPortingToolkit.com, and runs the project's social media and marketing."
+        "Product and R&D builder with two decades of experience across 50+ games and emerging technology.",
+        "Explores how AI-assisted development can expand what small teams can build around classic games, and leads the interface, frontend and marketing work behind the Retro Porting Toolkit website and launchers."
       ],
       "links": []
     }
