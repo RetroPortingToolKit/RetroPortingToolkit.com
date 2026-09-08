@@ -17,6 +17,8 @@ export interface RouteMeta {
   extraHead?: string;
   hideStatic?: boolean;
   jsonLd?: unknown;
+  /** Rendered so it can be previewed, but withheld from sitemap.xml. */
+  draft?: boolean;
 }
 
 /** Every route on the site, with `origin` making asset/og URLs absolute. */

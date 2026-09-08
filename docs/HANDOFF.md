@@ -913,3 +913,79 @@ Still open, in rough order of how much they matter:
 - **The pre-encryption plaintext is still in the gist's revision history.**
   Encrypting the file did not rewrite what came before it. Fixing that means a
   new gist and a new id.
+
+## Meet the Team, first draft (2026-09-08, branch `meet-the-team`)
+
+`/team` exists as a page and is deliberately unfinished. It is built from
+`data/team.json`, not from an item folder: a person is not one of the four
+content kinds, and inventing a fifth would have meant touching `api/cms.ts`,
+`scripts/cms-dev.mjs` and `public/agent.md` together for five records that no
+one edits through the CMS. If people ever do need CMS editing, that is the
+change to make, and it is a bigger one than it looks.
+
+The page borrows the Platforms page's chrome exactly — the shared `<Tabs>` bar
+in its subpage form, then `hn-section hn-subpage-section` — so it reads as part
+of the site rather than as a bolted-on page. The card is NOT a `SpatialCard`:
+that is a button that opens an item modal over a cover image, and a person has
+neither. `src/styles/17-team.css` reproduces the wide `.news-list` proportions
+(square portrait in a one-third column, single column under 820px) as static
+articles.
+
+`/team` is registered `draft: true` in `buildRouteMeta()`, so it is `noindex`
+and absent from `sitemap.xml`, and nothing links to it. That is what makes it
+safe to merge before the copy is settled. To publish: drop `draft` and the
+robots tag in `scripts/vite-prerender.mjs`, and add the link wherever it should
+live. It is deliberately NOT in `NAV_TABS` — that array is also the home pager's
+pane order, so an entry there would promise a swipeable pane that does not
+exist. The bar renders `active="none"`, which is the documented case for it.
+
+Open, and needing the people themselves rather than another session:
+
+- **Every bio is one person's summary of their colleagues**, relayed through a
+  Discord message. Each entry should be confirmed by its subject before this is
+  linked publicly. Matthew has now confirmed his own (see the revision below);
+  the other four have not.
+- **`data/about-team.md` at `/about` still exists and disagrees.** It credits
+  Emissary (Jack Rickey) as "Founder of the Retro Porting Toolkit initiative";
+  the draft this page was built from does not repeat that, and credits him as
+  founder of BattleShip instead. Both are plausible and they are not mutually
+  exclusive, so neither was silently dropped or merged. Two team pages should
+  not survive: decide which is authoritative and retire the other.
+- **Photos were taken from public profiles** — GitHub avatars for mstan,
+  TechnicallyComputers and Alexbeav, and `headshot.jpg` from jrickey.dev — on
+  the strength of the request, not of each person's own say-so. Confirm before
+  publishing. shokunin has no photo and renders a monogram placeholder.
+- **Alexandros Mandravillis's role line is still not his own words.** His day
+  job moved to the bio in the revision below and the role line is now
+  "Contributor, PSXRecomp", derived from the sentence already on the card
+  rather than supplied by him. He should still confirm or replace it.
+- The request said "recomp-rbengine"; the repository is
+  `TechnicallyComputers/retcomm-rbengine`, which is what
+  `data/docs/07_fleet/01_repositories/index.md` already documents and what the
+  page links.
+
+### Revision after Matthew's review (2026-09-08, still on `meet-the-team`)
+
+Matthew reviewed the preview and asked for four things, all done in `team.json`
+plus one rule in `17-team.css`:
+
+- **The shutdown live-service game is no longer named and no longer linked.**
+  Its title and the `side7.gg` link were removed at his request; the sentence is
+  generic ("a shutdown live service hero shooter for PC") and now leads with
+  "Without AI", which previously trailed as a separate sentence at the end.
+  Do not restore the name or the link without his explicit ask.
+- **The role line is now always the Retro Porting Toolkit role, never a day
+  job.** It was a mix of the two: Jack and Alexandros carried job titles while
+  Matthew and Alex carried project roles. Every day job moved into the bio
+  below. His own line, in his words, is "Team lead, ecosystem developer and
+  maintainer"; the other four follow the same shape, `<role>, <project>`, and
+  each was derived from the sentence already on that person's card rather than
+  invented. That derivation is exactly what the four unconfirmed subjects above
+  still need to check.
+- **That line is the bolded text at the top of the card.** `.team-role` went
+  from `font-weight: 550` and `--ink-2` to `700` and `--ink`, so it reads as the
+  card's lead rather than as grey subtext under the name.
+
+Unchanged: the page is still `draft: true`, still `noindex`, still absent from
+`NAV_TABS`, and still on this branch rather than `main`. The open list above
+still stands, photos and the `data/about-team.md` conflict included.

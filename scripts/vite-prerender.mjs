@@ -1288,6 +1288,47 @@ export function buildRouteMeta(origin) {
   // you build them.
 
 
+  // The team page. Its copy lives in data/team.json rather than in an item
+  // folder, because a person is not one of the four content kinds. This reads
+  // that same file, so the served markup and the React page cannot drift.
+  // Marked draft (noindex, out of the sitemap) while the page is unannounced
+  // and unlinked from navigation; drop `draft` and the robots tag to publish.
+  {
+    const team = JSON.parse(
+      fs.readFileSync(path.join(DATA_DIR, "team.json"), "utf8"),
+    );
+    add("/team", {
+      title: `Meet the Team · ${SITE_NAME}`,
+      description: `The people behind ${SITE_NAME}: ${team.members
+        .map((m) => m.name)
+        .join(", ")}.`,
+      image: defaultImage,
+      url: `${origin}/team`,
+      type: "website",
+      static: wrapStatic(
+        `<h1>${escapeHtml(team.title)}</h1>\n<p>${escapeHtml(team.intro)}</p>\n` +
+          team.members
+            .map((m) => {
+              const handles = m.handles
+                .map((h) =>
+                  h.href
+                    ? `${escapeHtml(h.label)}: <a href="${escapeAttr(h.href)}">${escapeHtml(h.value)}</a>`
+                    : `${escapeHtml(h.label)}: ${escapeHtml(h.value)}`,
+                )
+                .join(" · ");
+              return (
+                `<section><h2>${escapeHtml(m.name)}</h2>\n` +
+                `<p><strong>${escapeHtml(m.role)}</strong></p>\n` +
+                m.bio.map((p) => `<p>${escapeHtml(p)}</p>`).join("\n") +
+                (handles ? `\n<p>${handles}</p>` : "") +
+                `</section>`
+              );
+            })
+            .join("\n"),
+      ),
+    });
+  }
+
   // /admin is the dev-only content editor. It is registered (noindex) only so a
   // cold prod load resolves to a clean shell instead of 404; its save API is a
   // dev-only Vite middleware, so on prod the page just shows a "local dev" notice.

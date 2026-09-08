@@ -6,6 +6,7 @@ import {
   titleForCollection,
   titleForHome,
   titleForItem,
+  titleForTeam,
   titleForTopic,
 } from "./pageTitle";
 import { BLOGS, HARDWARE, GAMES, DOCS } from "./content";
@@ -31,6 +32,19 @@ describe("client titles match the prerendered titles", () => {
 
   it("home", () => {
     expect(served("/")).toBe(titleForHome());
+  });
+
+  it("team", () => {
+    expect(served("/team")).toBe(titleForTeam());
+  });
+
+  it("publishes the team page rather than hiding it", () => {
+    // It was draft while it was one person's unconfirmed account of their
+    // colleagues. It is announced now, so it is indexable and in the sitemap —
+    // writeSitemap() filters on this flag, so this is what puts it there — and
+    // the footer links it. It stays out of NAV_TABS, which is also the home
+    // pager's pane order and would give it a swipeable pane.
+    expect(meta.get("/team")?.draft).toBeFalsy();
   });
 
   it("gives image-less launch routes a real large-card preview", () => {

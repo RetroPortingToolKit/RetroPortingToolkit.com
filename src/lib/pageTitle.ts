@@ -26,6 +26,11 @@ export function titleForCollection(kind: Kind): string {
   return `${COLLECTION_TITLE[kind]} · ${SITE.title}`;
 }
 
+/** /team. Not a collection: it reads from data/team.json, not from an item kind. */
+export function titleForTeam(): string {
+  return `Meet the Team · ${SITE.title}`;
+}
+
 export function titleForTopic(topic: Topic): string {
   return `${topic.label} · ${SITE.title}`;
 }

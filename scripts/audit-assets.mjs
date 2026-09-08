@@ -206,13 +206,18 @@ export function auditAssets() {
     }
   }
 
-  const homeFile = path.join(ROOT, "data", "home.json");
-  const visitHome = (value) => {
-    if (typeof value === "string") markReference(value, homeFile);
-    else if (Array.isArray(value)) value.forEach(visitHome);
-    else if (value && typeof value === "object") Object.values(value).forEach(visitHome);
-  };
-  visitHome(JSON.parse(fs.readFileSync(homeFile, "utf8")));
+  // The JSON data files outside the item folders: every string in them is a
+  // candidate asset path, so walk the whole tree rather than naming fields that
+  // would then have to be kept in step with the file.
+  for (const name of ["home.json", "team.json"]) {
+    const file = path.join(ROOT, "data", name);
+    const visit = (value) => {
+      if (typeof value === "string") markReference(value, file);
+      else if (Array.isArray(value)) value.forEach(visit);
+      else if (value && typeof value === "object") Object.values(value).forEach(visit);
+    };
+    visit(JSON.parse(fs.readFileSync(file, "utf8")));
+  }
 
   // Source literals establish reachability, but examples and editor
   // placeholders are allowed to name files that do not exist.
