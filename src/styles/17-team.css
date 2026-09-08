@@ -119,37 +119,6 @@
   margin: 0;
 }
 
-/* Named projects get pills so a reader scanning for "what do they build"
-   finds it without reading the paragraphs. */
-.team-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  list-style: none;
-  margin: 4px 0 0;
-  padding: 0;
-}
-
-.team-link {
-  display: inline-flex;
-  align-items: center;
-  padding: 5px 11px;
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--muted);
-  text-decoration: none;
-  transition: color 0.15s var(--ease), border-color 0.15s var(--ease);
-}
-
-.team-link:hover,
-.team-link:focus-visible {
-  color: var(--ink);
-  border-color: var(--ink);
-}
-
 @media (max-width: 820px) {
   .team-card {
     grid-template-columns: 1fr;

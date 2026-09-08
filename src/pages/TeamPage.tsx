@@ -25,6 +25,8 @@ interface Handle {
   href?: string;
 }
 
+// Kept in team.json and typed here, but not rendered: the project pills were
+// removed from the cards on request, and the data outlives the presentation.
 interface ProjectLink {
   label: string;
   href: string;
@@ -93,22 +95,6 @@ function MemberCard({ member }: { member: Member }) {
             {paragraph}
           </p>
         ))}
-        {member.links.length > 0 && (
-          <ul className="team-links">
-            {member.links.map((l) => (
-              <li key={l.href}>
-                <a
-                  className="team-link"
-                  href={l.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
     </article>
   );
