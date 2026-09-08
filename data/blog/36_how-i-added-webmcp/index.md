@@ -1,19 +1,19 @@
 ---
-title: "Browser agents should not have to reverse-engineer websites"
+title: "How I added WebMCP to Retro Porting Toolkit"
 author: "Shokunin"
 kicker: "Site news"
 tags: ["Agents", "WebMCP", "Site tools"]
 featured: false
-desc: "Retro Porting Toolkit now exposes seven typed WebMCP tools. A browser agent can use the site's actual capabilities instead of clicking through the interface and guessing what it means."
+desc: "I added WebMCP to this site. Here is what it does, the seven typed tools every page now registers, how the browser session gates the one write path, and how to test it yourself."
 date: "2026-08-27"
 layout: "article"
 cover: "./reference-page.png"
 draft: false
 ---
 
-Most websites make agents behave like unusually patient users.
+I added WebMCP to Retro Porting Toolkit. This post is what that means, what it now does, and how you can test it yourself.
 
-They read the page, infer what the interface means, click through navigation, and reconstruct structured data from whatever happens to be rendered. It works, but it is a strange way for software to talk to software.
+The problem it solves is that most websites make agents behave like unusually patient users. They read the page, infer what the interface means, click through navigation, and reconstruct structured data from whatever happens to be rendered. It works, but it is a strange way for software to talk to software.
 
 The site already knows what it can do.
 
@@ -21,11 +21,11 @@ It knows how to search its own data. It knows whether a game is in the port cata
 
 The agent should be able to ask the site directly.
 
-Every page on Retro Porting Toolkit now registers [seven typed tools](/docs/reference/site-tools) through WebMCP. WebMCP is a proposed web standard that lets a page expose named functions, input schemas, and handlers to an agent running inside the browser.
+So every page on Retro Porting Toolkit now registers [seven typed tools](/docs/reference/site-tools) through WebMCP. WebMCP is a proposed web standard that lets a page expose named functions, input schemas, and handlers to an agent running inside the browser.
 
 The agent calls those functions instead of reverse-engineering the HTML.
 
-This is not a separate API bolted onto the site. The tools expose the same application logic the site already uses, inside the browser session you already have open.
+I did not build a separate API for this. The tools expose the same application logic the site already uses, inside the browser session you already have open.
 
 ## Two kinds of agent access
 

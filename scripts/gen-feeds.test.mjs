@@ -69,7 +69,7 @@ describe("feed rendering", () => {
 
     const meta = new Map(buildRouteMeta("https://retroportingtoolkit.com"));
     expect(meta.get("/blog/decomp-annotated-recomps").jsonLd.author.name).toBe("Matthew Stanley");
-    expect(meta.get("/blog/site-tools-for-browser-agents").jsonLd.author.name).toBe("Shokunin");
+    expect(meta.get("/blog/how-i-added-webmcp").jsonLd.author.name).toBe("Shokunin");
   });
 
   it("matches every concrete published blog article route", () => {
