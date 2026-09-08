@@ -217,6 +217,14 @@ describe("bridge harness: queueing and the shared checkout", () => {
     expect(b.events.some((e) => e.messageId === second && e.content.includes("OK:"))).toBe(false);
   });
 
+  it("posts a question's answer as an answer, with no status heading or checks talk", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U1", "what is the role of Shokunin [[question]]");
+    const reply = await b.waitFor(forMsg(id, "Shokunin does"), 12000, "the answer");
+    expect(reply.content).toBe("Shokunin does UI/UX, frontend and marketing.");
+    expect(reply.content).not.toMatch(/Done|\[answer\]|checks|nothing (was )?changed/i);
+  });
+
   it("says what the agent last did in the progress line", async () => {
     const b = await up({ env: { DISCORD_AGENT_QUIET_MS: "0" } });
     // Progress posts every 60s in production and is not overridable; the

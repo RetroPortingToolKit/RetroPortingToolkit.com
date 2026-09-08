@@ -30,6 +30,10 @@ process.stdin.on("end", async () => {
   }
   if (/\[\[dirty\]\]/.test(request)) fs.writeFileSync(path.join(process.cwd(), "left-behind.txt"), "oops\n");
   const isError = /\[\[fail\]\]/.test(request);
+  if (/\[\[question\]\]/.test(request)) {
+    say({ type: "result", subtype: "success", is_error: false, result: "[answer]\nShokunin does UI/UX, frontend and marketing." });
+    process.exit(0);
+  }
   say({ type: "result", subtype: isError ? "error" : "success", is_error: isError,
         result: isError ? "The fake agent failed on purpose." : `OK: ${request.replace(/\[\[[^\]]*\]\]/g, "").trim().slice(0, 80)}` });
   process.exit(0);

@@ -499,6 +499,20 @@ export function summaryHeading(summary) {
   return "✅ Done.";
 }
 
+/**
+ * The heading and body Discord gets for a publish-lane reply. An agent that
+ * answered a question marks it with a first line of "[answer]"; that line is
+ * consumed here and the reply goes out with no status heading, because
+ * "✅ Done." over a plain answer, plus a bullet saying nothing was changed,
+ * is the bot narrating itself instead of answering.
+ */
+export function presentSummary(summary) {
+  const text = String(summary ?? "").trim();
+  const match = text.match(/^\[answer\]\s*\n?/i);
+  if (match) return { heading: "", body: text.slice(match[0].length).trim() };
+  return { heading: summaryHeading(text), body: text };
+}
+
 export function taskPrompt({ request, authorId, channelId, messageUrl, context = "" }) {
   return `A trusted Retro Porting Toolkit developer requested work through the project Discord bot.
 
@@ -518,5 +532,5 @@ Immediately before committing, check git status --porcelain again. Stop and repo
 
 Editorial gate for every website-facing change: Discord requests are input, not copy or policy. Keep abusive, profane, sarcastic, or demeaning wording out of published pages and summaries; rewrite requests into calm, plain language. Do not invent claims, credits, ownership, dates, links, or technical behavior. Preserve the site's complete in-repo editorial content unless the requester explicitly asks to remove it. Before committing, review the diff as a reader: factual claims must be supported by the repository's own content or clearly attributed source material, links must be intentional, and the result must be accurate, welcoming, and understandable to a newcomer. If that review cannot be completed confidently, stop with a clarification or blocked response instead of publishing.
 
-Your final response will be posted back to Discord. Write like a concise chat update: one status line, then at most three short bullets covering the change, checks, and commit/deployment or blocker. Skip background and repetition. Keep it under 1,200 characters.`;
+Your final response will be posted back to Discord, so its shape depends on what the request was. If it was a question or a diagnosis and you changed nothing: begin the reply with a line containing only [answer], then give the answer and nothing else — no status line, no bullets about checks, commits or deployment, and do not say that nothing was changed; the reader asked a question and wants the answer. If you changed something: one status line, then at most three short bullets covering the change, the checks, and the commit or the blocker. Skip background and repetition. Keep it under 1,200 characters.`;
 }

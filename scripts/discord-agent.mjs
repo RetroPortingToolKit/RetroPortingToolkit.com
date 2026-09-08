@@ -37,7 +37,7 @@ import {
   traceStreamLine,
   statusMessage,
   stripBotMention,
-  summaryHeading,
+  presentSummary,
   taskPrompt,
 } from "./discord-agent-core.mjs";
 
@@ -787,7 +787,8 @@ async function drainQueue() {
     }
     stopProgress = startProgress(job);
     const summary = await runPublish(job);
-    await replyChunks(job.ref, summaryHeading(summary), summary);
+    const { heading, body } = presentSummary(summary);
+    await replyChunks(job.ref, heading, body);
   } catch (error) {
     if (error instanceof CheckoutBusyError) {
       job.waitingSince ??= Date.now();

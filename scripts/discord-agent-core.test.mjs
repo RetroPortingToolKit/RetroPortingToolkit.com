@@ -33,6 +33,7 @@ import {
   PUBLISH_EFFORT,
   parseStreamResult,
   traceStreamLine,
+  presentSummary,
 } from "./discord-agent-core.mjs";
 
 describe("Discord agent core", () => {
@@ -501,5 +502,27 @@ describe("the public lane and Codex", () => {
   it("does not fall back to Codex for an ask even when Claude is cooling down", () => {
     const later = Date.now() + 60_000;
     expect(runnerChain({ hasApiKey: false, mode: "ask", cooldowns: { claude: later } })).toEqual(["claude"]);
+  });
+});
+
+describe("presenting a publish-lane reply", () => {
+  it("posts an answer with no heading and without the marker", () => {
+    expect(presentSummary("[answer]\nShokunin does UI/UX, frontend and marketing.")).toEqual({
+      heading: "",
+      body: "Shokunin does UI/UX, frontend and marketing.",
+    });
+    expect(presentSummary("  [Answer]  \n\nTwo paragraphs.\n\nHere.")).toEqual({ heading: "", body: "Two paragraphs.\n\nHere." });
+  });
+
+  it("keeps the status heading for work, a block, and a clarification", () => {
+    expect(presentSummary("Done. Updated the card.\n- checks green").heading).toBe("✅ Done.");
+    expect(presentSummary("Blocked: someone else's file").heading).toBe("⏸️ Blocked.");
+    expect(presentSummary("Needs clarification: which card?").heading).toBe("❓ Needs clarification.");
+  });
+
+  it("does not treat the word answer inside a sentence as the marker", () => {
+    const r = presentSummary("Done. The [answer] page now lists five people.");
+    expect(r.heading).toBe("✅ Done.");
+    expect(r.body).toContain("[answer] page");
   });
 });
