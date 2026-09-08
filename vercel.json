@@ -27,6 +27,13 @@
       "destination": "/atom.xml"
     }
   ],
+  "redirects": [
+    {
+      "source": "/about",
+      "destination": "/team",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/assets/(.*)",
