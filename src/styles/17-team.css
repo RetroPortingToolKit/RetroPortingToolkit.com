@@ -63,11 +63,15 @@
   margin: 0;
 }
 
+/* The role line says what the person does for Retro Porting Toolkit, and it is
+   the one thing a reader should get from the card without reading the bio, so
+   it is set bold and in full ink rather than as quiet grey subtext. Day jobs
+   belong in the bio below, not here. */
 .team-role {
   font-size: 15px;
-  font-weight: 550;
+  font-weight: 700;
   line-height: 1.4;
-  color: var(--ink-2);
+  color: var(--ink);
   margin: 0;
 }
 

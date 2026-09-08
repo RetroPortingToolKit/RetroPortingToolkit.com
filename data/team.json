@@ -5,7 +5,7 @@
     {
       "slug": "matthew-stanley",
       "name": "Matthew Stanley",
-      "role": "Project lead",
+      "role": "Team lead, ecosystem developer and maintainer",
       "photo": "/team/mstan.jpg",
       "handles": [
         { "label": "GitHub", "value": "mstan", "href": "https://github.com/mstan" },
@@ -13,16 +13,16 @@
         { "label": "Site", "value": "1379.tech", "href": "https://1379.tech" }
       ],
       "bio": [
+        "Without AI, reverse engineered a shutdown live service hero shooter for PC to bring the game back from the dead.",
         "Backend web services and data engineer with over ten years of experience.",
-        "Reverse engineered Side 7, a live-service hero shooter for PC, to bring the game back from the dead. That work used no AI at any point.",
         "Applied those skills, together with a background in classic games and decompilation and recompilation, to build out the NES, Super Nintendo, Game Boy Advance, Nintendo DS, Virtual Boy and PlayStation recompilers."
       ],
-      "links": [{ "label": "Side 7", "href": "https://side7.gg" }]
+      "links": []
     },
     {
       "slug": "jack-rickey",
       "name": "Jack Rickey",
-      "role": "Quantitative Developer and Systems Programmer",
+      "role": "Founder and primary developer, BattleShip",
       "photo": "/team/jrickey.jpg",
       "handles": [
         { "label": "GitHub", "value": "JRickey", "href": "https://github.com/JRickey" },
@@ -30,15 +30,15 @@
         { "label": "Site", "value": "jrickey.dev", "href": "https://jrickey.dev/" }
       ],
       "bio": [
-        "Builds the full stack behind trading decisions by day, and writes open source low-level systems tooling by night.",
-        "Founder and primary developer of BattleShip, a cross-platform native PC port of Super Smash Bros. for the Nintendo 64, decompiled and ported with AI assistance."
+        "Quantitative developer and systems programmer: builds the full stack behind trading decisions by day, and writes open source low-level systems tooling by night.",
+        "BattleShip is a cross-platform native PC port of Super Smash Bros. for the Nintendo 64, decompiled and ported with AI assistance."
       ],
       "links": []
     },
     {
       "slug": "alex-vanderveen",
       "name": "Alex Vanderveen",
-      "role": "Launcher, netplay and rollback",
+      "role": "Primary developer, RetComM Launcher, recomp-net and retcomm-rbengine",
       "photo": "/team/technicallycomputers.jpg",
       "handles": [
         {
@@ -49,8 +49,8 @@
         { "label": "Discord", "value": "wretched99, also known as CobaltCryptid" }
       ],
       "bio": [
-        "Primary developer of the RetComM Launcher, a single front end for updating, managing and distributing static recompilations.",
-        "Primary developer of recomp-net and retcomm-rbengine, which bring netplay, save states and rewinding to several recompilation platforms.",
+        "The RetComM Launcher is a single front end for updating, managing and distributing static recompilations.",
+        "recomp-net and retcomm-rbengine bring netplay, save states and rewinding to several recompilation platforms.",
         "A significant contributor to PSXRecomp and SNESRecomp."
       ],
       "links": [
@@ -68,13 +68,14 @@
     {
       "slug": "alexandros-mandravillis",
       "name": "Alexandros Mandravillis",
-      "role": "Cloud Security Engineer, SRE and Network Security Architect",
+      "role": "Contributor, PSXRecomp",
       "photo": "/team/alexbeav.jpg",
       "handles": [
         { "label": "GitHub", "value": "Alexbeav", "href": "https://github.com/Alexbeav" },
         { "label": "Discord", "value": "alexbeav" }
       ],
       "bio": [
+        "Cloud security engineer, SRE and network security architect by day.",
         "A significant contributor to PSXRecomp, working in breadth: dozens of recompiled titles, and dozens of pull requests to the PSXRecomp infrastructure itself."
       ],
       "links": []
@@ -82,13 +83,15 @@
     {
       "slug": "shokunin",
       "name": "shokunin",
-      "role": "Social media, marketing, and UI and UX",
+      "role": "Author and designer, RetroPortingToolkit.com",
       "photo": null,
       "handles": [
         { "label": "GitHub", "value": "tetrisgm", "href": "https://github.com/tetrisgm" },
         { "label": "Discord", "value": "tetrisgm" }
       ],
-      "bio": ["Website author for RetroPortingToolkit.com."],
+      "bio": [
+        "Writes and designs RetroPortingToolkit.com, and runs the project's social media and marketing."
+      ],
       "links": []
     }
   ]
