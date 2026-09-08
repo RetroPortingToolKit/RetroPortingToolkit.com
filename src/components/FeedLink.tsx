@@ -46,3 +46,21 @@ export function FeedFooterLink() {
     </a>
   );
 }
+
+/**
+ * The icon in the navigation bar's controls, beside search and the theme
+ * toggle. Icon only — that row is tight on a phone, and the accessible name
+ * carries the meaning instead of a visible label.
+ */
+export function FeedNavLink() {
+  return (
+    <a
+      className="feed-nav-link"
+      href={FEED_PATHS.rss}
+      title="Subscribe with a feed reader"
+      aria-label="Subscribe with a feed reader (RSS)"
+    >
+      <RssGlyph />
+    </a>
+  );
+}

@@ -10,6 +10,7 @@ import { useAbout } from "@/lib/about";
 import { COLLECTION_TITLE } from "@/lib/pageTitle";
 import { SearchPalette } from "./SearchTrigger";
 import { ThemeToggle } from "./ThemeToggle";
+import { FeedNavLink } from "./FeedLink";
 
 export type TabId = "home" | "hardware" | "game" | "blog";
 
@@ -264,6 +265,11 @@ export function Tabs({
             {/* On mobile this sits inline at the end of the tab row so it
                 doesn't crowd the last tab. On desktop CSS pulls it back to
                 the absolute top-right of .tabs-inner. */}
+            {/* The feed, reachable from every page rather than only from the
+                blog's heading row. Not a .tab, for the same reason the search
+                button is not: the sliding pill measures querySelectorAll(".tab")
+                by index and an extra one would scrub the pill onto it. */}
+            <FeedNavLink />
             <ThemeToggle />
           </span>
         </div>

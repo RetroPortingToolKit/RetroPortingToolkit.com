@@ -30,11 +30,6 @@ export function Footer() {
               every page: someone whose browser just offered them "site tools"
               needs somewhere to read what those are. */}
           <div className="site-footer-elsewhere">
-            {/* /team is not in NAV_TABS on purpose: that array is also the home
-                pager's pane order, so an entry there would give the team page a
-                swipeable pane on the home screen. The footer is where it can be
-                linked from every page without becoming one. */}
-            <SmartLink href="/team">Meet the team</SmartLink>
             <SmartLink href={SITE_TOOLS_PATH}>Site tools for browser agents</SmartLink>
             <FeedFooterLink />
           </div>
