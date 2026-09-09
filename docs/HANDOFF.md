@@ -1197,3 +1197,11 @@ tests passed. Full-size studio/launch renders and final visual review are the
 next slice. No live article cover was changed. Blender 4.5.9 LTS was downloaded
 from download.blender.org to `~/.cache/repokun-blender/` and temporarily mounted
 at `/Volumes/Blender`; no persistent job or dependency was added to the site.
+
+**RepoKun launch render checkpoint (2026-09-09).** The first Cycles render is
+`assets/repokun/renders/repokun-launch.png`, verified as 2000 × 1334 and visually
+reviewed. It shows RepoKun waving in a warm studio, with three small star accents
+and open space to the left for editorial type. Its editable lighting, camera and
+posed character are saved in `scenes/repokun-launch.blend`. Front, three-quarter,
+back and transparent views are still rendering at this checkpoint; the model
+and animation validation and site checks above remain green.
