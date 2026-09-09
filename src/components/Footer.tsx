@@ -2,6 +2,7 @@ import { useAbout } from "@/lib/about";
 import { SITE_TOOLS_PATH } from "@/lib/siteToolPaths";
 import { SmartLink } from "./SmartLink";
 import { FeedFooterLink } from "./FeedLink";
+import { DiscordFooterLink } from "./DiscordLink";
 import { SITE } from "@/lib/site";
 
 function GitHubGlyph() {
@@ -55,6 +56,7 @@ export function Footer() {
               <GitHubGlyph />
               <span>GitHub</span>
             </a>
+            <DiscordFooterLink />
             <FeedFooterLink />
           </div>
           {mailto && (

@@ -30,4 +30,6 @@ export const SITE = {
   email: "hello@retroportingtoolkit.com",
   /** The GitHub organisation this site and its projects are published from. */
   github: "https://github.com/RetroPortingToolKit",
+  /** Invite to the community Discord, linked from the nav bar and the footer. */
+  discord: "https://discord.gg/Jn6ZgtC85u",
 } as const;

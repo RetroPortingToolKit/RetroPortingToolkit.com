@@ -320,6 +320,7 @@ a.site-footer-name:hover {
   color: var(--ink);
 }
 .feed-footer-link,
+.discord-footer-link,
 .github-footer-link {
   display: inline-flex;
   align-items: center;

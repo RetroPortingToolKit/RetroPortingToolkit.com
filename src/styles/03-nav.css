@@ -511,7 +511,8 @@
 /* The feed icon in the bar's controls. Sized and coloured like the search and
    theme buttons beside it rather than like the labelled .feed-button pill on
    the blog heading, so the row reads as one set of controls. */
-.feed-nav-link {
+.feed-nav-link,
+.discord-nav-link {
   display: grid;
   place-items: center;
   width: 30px;
@@ -521,11 +522,13 @@
   text-decoration: none;
   transition: color 0.15s var(--ease), background 0.15s var(--ease);
 }
-.feed-nav-link:hover {
+.feed-nav-link:hover,
+.discord-nav-link:hover {
   color: var(--ink);
   background: color-mix(in srgb, var(--ink) 8%, transparent);
 }
-.feed-nav-link:focus-visible {
+.feed-nav-link:focus-visible,
+.discord-nav-link:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }

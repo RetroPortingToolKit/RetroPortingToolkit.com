@@ -11,6 +11,7 @@ import { COLLECTION_TITLE } from "@/lib/pageTitle";
 import { SearchPalette } from "./SearchTrigger";
 import { ThemeToggle } from "./ThemeToggle";
 import { FeedNavLink } from "./FeedLink";
+import { DiscordNavLink } from "./DiscordLink";
 
 export type TabId = "home" | "hardware" | "game" | "blog";
 
@@ -269,6 +270,7 @@ export function Tabs({
                 blog's heading row. Not a .tab, for the same reason the search
                 button is not: the sliding pill measures querySelectorAll(".tab")
                 by index and an extra one would scrub the pill onto it. */}
+            <DiscordNavLink />
             <FeedNavLink />
             <ThemeToggle />
           </span>
