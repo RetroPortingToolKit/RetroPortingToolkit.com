@@ -1179,3 +1179,21 @@ PATCHes it from `public/site-icon.png` over REST, token from the environment
 as the bridge takes it (the installer's Keychain line, `retroportingtoolkit-discord-bot`).
 Re-run it when the icon changes; Discord permits only a couple of avatar
 changes an hour.
+
+**RepoKun reusable 3D library (2026-09-09).** Owner supplied the design sheet
+and portrait in `~/Desktop/RepoKun` and requested an editable model, reusable
+scenes, animations and 2000 × 1334 renders, with the first image for a launch
+blog post. `assets/repokun/` contains the copied references, procedural Blender
+builder, neutral `.blend` library and portable `.glb`. The six-bone rig controls
+one body, two arms and two feet; the GLB contains separate Idle, Wave and Hop
+clips. `append_character()` adds independently animated characters to an
+existing scene. The collection is marked for Blender's Asset Browser. README
+documents axes, posing, reuse and reproduction, including the simple rig's limits.
+
+The model checkpoint passed `verify.py --model-only`: finite geometry and GLB
+accessors, correct anatomy and skin, three moving actions, successful GLB
+re-import, and two independent instances. Site typecheck, build and all 892
+tests passed. Full-size studio/launch renders and final visual review are the
+next slice. No live article cover was changed. Blender 4.5.9 LTS was downloaded
+from download.blender.org to `~/.cache/repokun-blender/` and temporarily mounted
+at `/Volumes/Blender`; no persistent job or dependency was added to the site.
