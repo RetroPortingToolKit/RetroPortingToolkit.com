@@ -1205,3 +1205,15 @@ and open space to the left for editorial type. Its editable lighting, camera and
 posed character are saved in `scenes/repokun-launch.blend`. Front, three-quarter,
 back and transparent views are still rendering at this checkpoint; the model
 and animation validation and site checks above remain green.
+
+**RepoKun render set complete (2026-09-09).** All five images (launch, front,
+three-quarter, back and transparent) are rendered at exactly 2000 × 1334 and
+visually reviewed. Each has an editable scene under `assets/repokun/scenes/`.
+The final verifier passed with Blender's `--python-exit-code 1`: geometry,
+six-bone skin, three moving clips, GLB round-trip, independent scene reuse and
+all five image dimensions/scene files. The transparent image is RGBA. The site
+checks above (including 892 tests) passed for this asset-only work. The temporary
+Blender volume was detached after verification; its official installer remains
+in the local cache. No live article cover was replaced. The queued Discord
+navigation-link request was waiting without an agent process during this final
+asset commit; these assets do not overlap its navbar/footer work.
