@@ -19,11 +19,41 @@ of those illustrations, with editable geometry and materials.
 | `renders/repokun-transparent.png` | RGBA cutout for compositing |
 | `build.py` | Reproducible model builder, renderer and additive scene loader |
 | `verify.py` | Geometry, animation, GLB round-trip and image-dimension checks |
+| `references/repokun-reference-sheet.png` | Model-derived turnaround, poses, palette and AI-use notes (2000 × 1334) |
+| `references/repokun-reference-sheet.svg` | Self-contained editable layout with embedded model renders |
+| `references/model-views/` | Six clean, transparent model-reference renders at the same orthographic scale |
+| `reference_views.py`, `reference_sheet.mjs` | Rebuild reference views in Blender, then compose the sheet with sharp |
 
 Every delivered PNG is **2000 × 1334 pixels**. The launch render has no baked-in
 headline, so it can be reused with different posts or overlays. Scene files embed
 the model and materials; no texture downloads or external add-ons are needed.
 The original references keep their original dimensions.
+
+## Reference sheet for future article scenes
+
+Give an agent `references/repokun-reference-sheet.png` together with the actual
+model. The new sheet is rendered from the current mesh, not extrapolated from
+the original image references. It records front, three-quarter, character-left
+profile and back views, rest/wave/hop poses, material base colors read from the
+GLB, and a model SHA-256 prefix for identifying the revision. The GLB/Blender
+asset is the geometry authority; the sheet is a visual guide, not a substitute.
+
+Suggested prompt: "Use this RepoKun reference sheet and import the supplied
+model unchanged. Pose the existing rig and build the requested environment
+around it. Do not reconstruct his body, face or limbs. Render at 2000 × 1334
+and check the silhouette, limb connections and framing before delivery."
+
+Rebuild after changing the model:
+
+```sh
+blender -b --python-exit-code 1 --python assets/repokun/reference_views.py
+node assets/repokun/reference_sheet.mjs
+```
+
+The composition script needs `sharp` available to Node (a tooling dependency,
+not added to this website). It embeds all six PNGs in the SVG, so the sheet does
+not rely on external image paths. The poses are actual clip frames, not new
+facial expressions or a claim of a full animation rig.
 
 ## Use in Blender
 

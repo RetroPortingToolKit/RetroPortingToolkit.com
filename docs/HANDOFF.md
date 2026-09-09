@@ -1238,3 +1238,23 @@ separate rigid-skinned parts with deeply overlapping full-width roots, not a
 single welded/deforming skin. Both Blender and GLB exports carry the revision.
 Temporary Blender volume detached again. No live blog cover was changed. Bot
 was idle (empty queue and no agent process) before the final render commit.
+
+**RepoKun model-derived reference sheet (2026-09-09).** Added
+`assets/repokun/references/repokun-reference-sheet.png` (2000 × 1334), with a
+self-contained editable SVG. Unlike the original illustration sheets, its four
+turnaround views and rest/wave/hop examples come directly from the unchanged
+rigged model. Six transparent orthographic source renders live in
+`references/model-views/`; all share scale and all are 2000 × 1334. Hop uses
+frame 18 to keep the complete silhouette within the common camera framing.
+Sheet records actual GLB material base colors, anatomy, side conventions,
+coordinate system, model-loading guidance and the model SHA-256 prefix.
+
+`reference_views.py` regenerates the Blender renders; `reference_sheet.mjs`
+composes the layout using sharp. The latter rejects stale model fingerprints,
+wrong image dimensions, missing alpha and silhouette pixels touching an edge.
+Full composition/validation succeeded and the sheet was visually reviewed.
+README contains reproduction commands and a suggested future-scene prompt.
+Sharp came from the existing bundled workspace runtime via NODE_PATH; no site
+dependency was added. Typecheck/build and all 892 tests passed. Model files and
+live site covers are unchanged; temporary Blender volume detached. Bot idle
+before committing this work.
