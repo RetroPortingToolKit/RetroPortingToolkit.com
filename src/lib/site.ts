@@ -28,4 +28,6 @@ export const SITE = {
    * than publishing a placeholder address.
    */
   email: "hello@retroportingtoolkit.com",
+  /** The GitHub organisation this site and its projects are published from. */
+  github: "https://github.com/RetroPortingToolKit",
 } as const;
