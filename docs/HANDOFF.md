@@ -1228,3 +1228,13 @@ GLB/reuse verification pass. Launch/front use level frontal perspective cameras;
 launch keeps headline space through lens shift, not character rotation. Added
 a seamless cyclorama. Preview visually reviewed; all five final renders/scenes
 are regenerating. Site typecheck/build and 892 tests pass for this revision.
+
+**RepoKun limb revision complete (2026-09-09).** Regenerated and visually checked
+all five 2000 × 1334 PNGs and their scene snapshots. Final Blender verification
+passed with exit-code enforcement, including the attachment-ring animation
+checks, fresh geometry in each saved scene, level frontal launch/front cameras,
+GLB round-trip, independent reuse and exact render dimensions. The model remains
+separate rigid-skinned parts with deeply overlapping full-width roots, not a
+single welded/deforming skin. Both Blender and GLB exports carry the revision.
+Temporary Blender volume detached again. No live blog cover was changed. Bot
+was idle (empty queue and no agent process) before the final render commit.
