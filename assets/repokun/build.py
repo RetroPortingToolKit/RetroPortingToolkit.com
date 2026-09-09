@@ -75,6 +75,47 @@ def sphere(name, loc, scale, mat, collection):
     return finish(obj, name, mat, collection)
 
 
+def limb(name, root, tip, width, depth, mat, collection):
+    """Broad cylindrical attachment buried in the shell, with only the end rounded.
+
+    Unlike an ellipsoid, the shoulder/hip does not taper to a point. The full
+    cross-section continues inside the body, including when the bone rotates.
+    """
+    root, tip = Vector(root), Vector(tip)
+    axis = (tip-root).normalized()
+    length = (tip-root).length
+    sideways = Vector((0,1,0)).cross(axis).normalized()
+    forward = axis.cross(sideways).normalized()
+    cap = width
+    sections = [(0,1), (length*.25,1), (length-cap,1)]
+    sections += [(length-cap+cap*math.sin(math.pi*j/32),
+                  math.cos(math.pi*j/32)) for j in range(1,16)]
+    segments=64
+    vertices=[]
+    for distance,radius in sections:
+        for i in range(segments):
+            angle=math.tau*i/segments
+            vertices.append(root+axis*distance+sideways*(width*radius*math.cos(angle))
+                            +forward*(depth*radius*math.sin(angle)))
+    vertices.append(tip)
+    faces=[tuple(range(segments-1,-1,-1))]
+    for j in range(len(sections)-1):
+        for i in range(segments):
+            a=j*segments+i; b=j*segments+(i+1)%segments
+            faces.append((a,b,b+segments,a+segments))
+    start=(len(sections)-1)*segments
+    for i in range(segments):
+        faces.append((start+i,start+(i+1)%segments,len(vertices)-1))
+    mesh=bpy.data.meshes.new(name+' • broad-root rounded limb')
+    mesh.from_pydata(vertices,[],faces); mesh.update()
+    obj=bpy.data.objects.new(name,mesh)
+    collection.objects.link(obj)
+    obj['joint_root']=list(root)
+    obj['joint_width']=width
+    obj['joint_depth']=depth
+    return finish(obj,name,mat,collection)
+
+
 def soft_body(mat, collection):
     # A superellipsoid gives the shell a gentle pillow-like crown rather than
     # the planar face of a beveled cube. RepoKun itself does not sit on a pillow.
@@ -242,10 +283,11 @@ def build():
     bindings.append((extruded_outline('Face.smile',smile_outline(),0,-.64,1.58,.045,mouthmat,collection,.014),'body'))
     bindings.append((sphere('Face.tongue',(0,-.681,1.437),(.12,.018,.035),tongue,collection),'body'))
     for sign,side in [(1,'L'),(-1,'R')]:
-        arm=sphere('Arm.'+side,(sign*1.76,.01,1.25),(.265,.305,.48),cream,collection)
-        arm.rotation_euler.y = math.radians(-sign*13)
+        arm=limb('Arm.'+side,(sign*1.48,.08,1.70),(sign*1.85,.08,.85),
+                 .29,.31,cream,collection)
         bindings.append((arm,'arm.'+side))
-        foot=sphere('Foot.'+side,(sign*.98,-.04,.37),(.31,.395,.37),cream,collection)
+        foot=limb('Foot.'+side,(sign*.98,-.04,.96),(sign*.98,-.04,0),
+                  .30,.37,cream,collection)
         bindings.append((foot,'leg.'+side))
     armature = bpy.data.armatures.new('RepoKun skeleton')
     rig = bpy.data.objects.new('RepoKun.Rig',armature)
@@ -255,8 +297,8 @@ def build():
     bpy.ops.object.mode_set(mode='EDIT')
     bones=[('root',(0,0,0),(0,0,.4),None),
            ('body',(0,0,.7),(0,0,2.0),'root'),
-           ('arm.L',(1.60,0,1.65),(1.85,0,1.0),'body'),
-           ('arm.R',(-1.60,0,1.65),(-1.85,0,1.0),'body'),
+           ('arm.L',(1.48,.08,1.70),(1.85,.08,1.0),'body'),
+           ('arm.R',(-1.48,.08,1.70),(-1.85,.08,1.0),'body'),
            ('leg.L',(.98,0,.65),(.98,0,.12),'root'),
            ('leg.R',(-.98,0,.65),(-.98,0,.12),'root')]
     for name,head,tail,parent in bones:
@@ -324,8 +366,19 @@ def scene_setup(view, preview=False):
     studio=bpy.data.collections.new('Studio')
     scene.collection.children.link(studio)
     floor=material('Studio • sand', 'D5AF89', .63, 0)
-    ground=rounded_box('Studio.floor',(0,0,-.15),(200,200,.3),.1,floor,studio)
-    # A broad, uninterrupted floor gives a seamless backdrop and soft contact shadow.
+    # A curved cyclorama supports a genuinely level frontal camera without a
+    # horizon, exposed floor edge or world-background stripe behind the mascot.
+    profile=[(-100,0),(4,0)]
+    profile += [(4+4*math.sin(math.pi*i/64),4-4*math.cos(math.pi*i/64)) for i in range(1,33)]
+    profile.append((8,80))
+    vertices=[(x,y,z) for y,z in profile for x in (-100,100)]
+    faces=[(2*i,2*i+1,2*i+3,2*i+2) for i in range(len(profile)-1)]
+    mesh=bpy.data.meshes.new('Seamless studio sweep')
+    mesh.from_pydata(vertices,[],faces); mesh.update()
+    ground=bpy.data.objects.new('Studio.floor',mesh)
+    studio.objects.link(ground)
+    finish(ground,'Studio.floor',floor,studio)
+    if view=='back': ground.rotation_euler.z=math.pi
     scene.world=bpy.data.worlds.new('Studio ambient')
     scene.world.use_nodes=True
     scene.world.node_tree.nodes['Background'].inputs['Color'].default_value=(.55,.65,.8,1)
@@ -341,11 +394,12 @@ def scene_setup(view, preview=False):
     if view=='launch':
         # Room for a headline at image-left; camera sees the full wave and both feet.
         rig.location.x=1.45
-        rig.rotation_euler.z=math.radians(-9)
         pose_rotation(rig,'arm.L',-125)
-        pose_rotation(rig,'arm.R',12)
-        pose_rotation(rig,'body',-3)
-        camera.location=(4,-13,6.3); aim(camera,(.25,0,1.72)); camera_data.ortho_scale=9.2
+        # Level perspective sees the floor below the feet; lens shift preserves
+        # headline space without rotating the camera away from his face.
+        camera_data.type='PERSP'; camera_data.lens=62.6
+        camera_data.shift_x=-1.2/9.2
+        camera.location=(1.45,-16,1.72); aim(camera,(1.45,0,1.72))
         coral=material('Launch • coral','DC5B3D',.38,.15)
         gold=material('Launch • gold','EDB950',.4,.1)
         # Small four-point stars are launch accents, not extra character anatomy.
@@ -354,8 +408,10 @@ def scene_setup(view, preview=False):
             obj=extruded_outline('Launch.sparkle.'+str(i),[(a*s,b*s) for a,b in star],x,y,z,.055,mat,studio,.015)
             obj.rotation_euler.z=math.radians(8)
     else:
-        positions={'front':(0,-12,4.4),'three-quarter':(5,-12,5.0),'back':(5,12,4.6),'transparent':(4,-12,4.8)}
+        positions={'front':(0,-12,1.62),'three-quarter':(5,-12,5.0),'back':(5,12,4.6),'transparent':(4,-12,4.8)}
         camera.location=positions[view]; aim(camera,(0,0,1.62)); camera_data.ortho_scale=6.3
+        if view=='front':
+            camera_data.type='PERSP'; camera_data.lens=68.57
         if view=='transparent':
             ground.hide_render=True
             scene.render.film_transparent=True

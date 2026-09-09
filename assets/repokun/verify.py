@@ -9,6 +9,7 @@ import math
 import struct
 import sys
 import bpy
+from mathutils import Vector
 
 ROOT=Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('repokun_builder',ROOT/'build.py')
@@ -25,6 +26,12 @@ assert len([o for o in parts if o.name=='Body'])==1
 assert all(any(m.type=='ARMATURE' and m.object==rig for m in o.modifiers) for o in parts)
 for part in parts:
     assert all(math.isfinite(c) for v in part.data.vertices for c in v.co)
+limbs=[o for o in parts if o.name.startswith(('Arm.','Foot.'))]
+for part in limbs:
+    root=Vector(part['joint_root'])
+    # The proximal ring has a full-width attachment, not an ellipsoid's tip.
+    assert part['joint_width']>=.29
+    assert min((v.co-root).length for v in list(part.data.vertices)[:64])>=.285
 tracks={t.name:t for t in rig.animation_data.nla_tracks}
 assert set(tracks)=={'Idle','Wave','Hop'}
 for name,track in tracks.items():
@@ -33,6 +40,16 @@ for name,track in tracks.items():
     first={b.name:b.matrix.copy() for b in rig.pose.bones}
     bpy.context.scene.frame_set(24)
     assert any(first[b.name]!=b.matrix for b in rig.pose.bones), name+' does not move'
+    for frame in (1,24,48,72):
+        bpy.context.scene.frame_set(frame)
+        depsgraph=bpy.context.evaluated_depsgraph_get()
+        body_transform=rig.matrix_world @ rig.pose.bones['body'].matrix @ rig.data.bones['body'].matrix_local.inverted()
+        for part in limbs:
+            evaluated=part.evaluated_get(depsgraph)
+            for vertex in list(evaluated.data.vertices)[:64]:
+                p=body_transform.inverted() @ (evaluated.matrix_world @ vertex.co)
+                inside=(abs(p.x)/1.82)**(2/.42)+(abs(p.y)/.61)**(2/.42)+(abs(p.z-1.91)/1.31)**(2/.42)
+                assert inside<1, f'{name} frame {frame}: {part.name} attachment protrudes from shell'
 rig.animation_data.action=None
 
 # Check every floating-point accessor in the actual GLB, including skin matrices.
@@ -80,4 +97,13 @@ for view in views:
     assert struct.unpack_from('>II',header,16)==(2000,1334), path
     if view=='transparent': assert header[25]==6, 'Cutout must have an alpha channel'
     assert (ROOT/'scenes'/('repokun-'+view+'.blend')).exists()
+    bpy.ops.wm.open_mainfile(filepath=str(ROOT/'scenes'/('repokun-'+view+'.blend')))
+    # Scene snapshots must use the revised geometry, not stale embedded models.
+    for side in ('L','R'):
+        assert bpy.data.objects['Arm.'+side]['joint_width']>=.29
+        assert bpy.data.objects['Foot.'+side]['joint_width']>=.29
+    if view in ('launch','front'):
+        camera=bpy.context.scene.camera
+        forward=camera.rotation_euler.to_matrix() @ Vector((0,0,-1))
+        assert abs(forward.x)<1e-5 and abs(forward.z)<1e-5, 'Camera must face level and straight on'
 print(f'REPOKUN VERIFIED: geometry, 6-bone skin, 3 moving clips, GLB round-trip, independent reuse, {len(views)} exact-size renders.',flush=True)

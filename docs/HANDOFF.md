@@ -1217,3 +1217,14 @@ Blender volume was detached after verification; its official installer remains
 in the local cache. No live article cover was replaced. The queued Discord
 navigation-link request was waiting without an agent process during this final
 asset commit; these assets do not overlap its navbar/footer work.
+
+**RepoKun limb revision checkpoint (2026-09-09).** Owner requested broad, direct
+arm/leg connections instead of oval "tacked-on" ends, plus a facing render
+(interpreted as front-facing). Builder now makes full-width cylindrical roots
+buried in the shell with rounded distal ends. Shoulder pivots moved inward;
+the six-bone rig and Idle/Wave/Hop clips remain. Added checks that attachment
+rings stay inside the body at sampled frames of every clip. Those checks and
+GLB/reuse verification pass. Launch/front use level frontal perspective cameras;
+launch keeps headline space through lens shift, not character rotation. Added
+a seamless cyclorama. Preview visually reviewed; all five final renders/scenes
+are regenerating. Site typecheck/build and 892 tests pass for this revision.

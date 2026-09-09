@@ -50,6 +50,12 @@ There is one body, two arms and two feet. Face parts follow the body bone.
 The mouth, tongue, cheeks, button sockets, red buttons and D-pad remain separately
 named meshes and can be edited individually.
 
+Arms and legs have full-width stems extending inside the shell, with rounded
+outer ends—not oval pieces touching at their tips. The separate skinned meshes
+remain poseable; the attachment rings stay buried through the supplied clips.
+The launch and front cameras face the mascot straight on, against a seamless
+curved studio backdrop.
+
 | Bone | Control |
 | --- | --- |
 | `root` | Whole-character movement and hops |
