@@ -1258,3 +1258,26 @@ Sharp came from the existing bundled workspace runtime via NODE_PATH; no site
 dependency was added. Typecheck/build and all 892 tests passed. Model files and
 live site covers are unchanged; temporary Blender volume detached. Bot idle
 before committing this work.
+
+**GitHub organization profile prepared (2026-09-09).** Added a complete
+`docs/github-organization/profile/` handoff containing the organization README,
+RepoKun and three real gameplay images. Copy follows the current homepage:
+preserve/expand/reinvent; Minish Cap adaptive widescreen, X6 Tweaks and SMB
+character mods; links to shared org tools, docs, catalog and Discord. Images
+are bundled with relative paths; gameplay aspect ratios are unchanged.
+
+This is **not live on the organization yet**. The public `.github` URL returned
+404 and git reported repository not found. No `add_repo` tool is available in
+this session. In accordance with the org-access contract, the owner must create
+a public empty `.github` repo and perform the first push. Exact chained commands
+and six suggested public pins are in `docs/github-organization/README.md`.
+No organization settings, pins or onboarding checklist were changed.
+
+Local GitHub-style Markdown previews were visually checked at desktop and
+mobile sizes: all four images loaded, with alt text and no horizontal overflow.
+This is a local approximation, not verification of GitHub's live renderer.
+The live getting-started URL serves the expected Start here page, and the game
+pages and public tool READMEs were inspected. Typecheck, build and all 892 tests
+passed. Bot was idle before editing; website content and canonical mascot
+assets are untouched. After the owner's first push, check the public Overview
+and images signed out; the new `.github` repo becomes the profile source of truth.
