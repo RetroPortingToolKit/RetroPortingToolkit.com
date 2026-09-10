@@ -17,8 +17,16 @@ const token = process.env.DISCORD_BOT_TOKEN || "";
 if (!token) throw new Error("DISCORD_BOT_TOKEN is required.");
 
 const png = fs.readFileSync(ICON);
+const image = `data:image/png;base64,${png.toString("base64")}`;
 const rest = new REST({ version: "10" }).setToken(token);
-const user = await rest.patch(Routes.user("@me"), {
-  body: { avatar: `data:image/png;base64,${png.toString("base64")}` },
-});
-console.log(`avatar set for ${user.username} (${user.id}): ${user.avatar}`);
+
+// Two different pictures wear the same icon. The bot USER's avatar is what
+// sits beside its messages; the APPLICATION's icon is what the profile
+// popout, the app directory and the server's integration list show. Setting
+// only the first leaves the app looking blank in every one of those places,
+// which is what happened on 2026-09-08.
+const user = await rest.patch(Routes.user("@me"), { body: { avatar: image } });
+console.log(`bot avatar: ${user.username} (${user.id}) -> ${user.avatar}`);
+
+const app = await rest.patch(Routes.currentApplication(), { body: { icon: image } });
+console.log(`app icon:   ${app.name} (${app.id}) -> ${app.icon}`);

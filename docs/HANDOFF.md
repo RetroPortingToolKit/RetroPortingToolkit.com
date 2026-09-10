@@ -1281,3 +1281,12 @@ pages and public tool READMEs were inspected. Typecheck, build and all 892 tests
 passed. Bot was idle before editing; website content and canonical mascot
 assets are untouched. After the owner's first push, check the public Overview
 and images signed out; the new `.github` repo becomes the profile source of truth.
+
+**The bot's picture is two pictures (2026-09-10).** Setting the bot user's
+avatar was not enough: the application's own icon was still empty, and that is
+what the profile popout, the app directory and the server's integration list
+show, so the bot still looked blank in the places people actually look.
+`scripts/discord-bot-avatar.mjs` now PATCHes both `/users/@me` (avatar) and
+`/applications/@me` (icon) from `public/site-icon.png`, and both report the
+same hash. Re-run it when the icon changes; Discord allows only a couple of
+changes an hour.
