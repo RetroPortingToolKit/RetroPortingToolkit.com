@@ -1290,3 +1290,5 @@ show, so the bot still looked blank in the places people actually look.
 `/applications/@me` (icon) from `public/site-icon.png`, and both report the
 same hash. Re-run it when the icon changes; Discord allows only a couple of
 changes an hour.
+
+2026-09-13: Owner-requested instruction cleanup: AGENTS.md 1493 → 232 words; removed repetition/stale build-lane guidance where present, retained safeguards and linked task-specific procedures where extracted. Local project checks passed; application code unchanged.
