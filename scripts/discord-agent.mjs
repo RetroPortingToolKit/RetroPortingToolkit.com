@@ -6,7 +6,7 @@ import process from "node:process";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
-import { Client, Events, GatewayIntentBits } from "discord.js";
+import { Client, Events, GatewayIntentBits, Partials } from "discord.js";
 import {
   agentCommand,
   askInterruptedMessage,
@@ -40,6 +40,7 @@ import {
   resumedMessage,
   taskPrompt,
 } from "./discord-agent-core.mjs";
+import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
 // The site's own address, read out of src/lib/site.ts: the one place a brand
 // string lives, so the bot never carries a domain of its own.
@@ -66,7 +67,7 @@ const config = {
   publicChannelIds: parseCsv(process.env.DISCORD_PUBLIC_CHANNEL_IDS),
   // The moderation lane is a stable Discord channel for this project; an env
   // override keeps the bridge reusable in the harness or another server.
-  adminChannelId: process.env.DISCORD_ADMIN_CHANNEL_ID || "1523871171551039649",
+  adminChannelId: process.env.DISCORD_ADMIN_CHANNEL_ID ?? "1523871171551039649",
   userIds: parseCsv(process.env.DISCORD_ALLOWED_USER_IDS),
   roleIds: parseCsv(process.env.DISCORD_ALLOWED_ROLE_IDS),
   destructiveUserIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_USER_IDS),
@@ -149,9 +150,11 @@ const QUIET_PERIOD_MS = envMs("DISCORD_AGENT_QUIET_MS", 20 * 1_000);
 const SETTLE_MS = envMs("DISCORD_AGENT_SETTLE_MS", 5_000);
 
 const client = new Client({
+  partials: [Partials.Message, Partials.Channel, Partials.Reaction],
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.MessageContent,
   ],
 });
@@ -197,6 +200,7 @@ function jobRecord(job) {
     ref: job.ref,
     messageUrl: job.messageUrl ?? null,
     request: job.request,
+    submissionModeration: job.submissionModeration ?? null,
     context: job.context ?? "",
     startedAt: job.startedAt ?? null,
     startedHead: job.startedHead ?? null,
@@ -351,7 +355,7 @@ async function notifyAdminChannel(job, summary) {
 
 async function gitSnapshot() {
   const [{ stdout: status }, { stdout: last }] = await Promise.all([
-    execFileAsync("git", ["status", "--porcelain"], { cwd: ROOT }),
+    execFileAsync("git", ["--no-optional-locks", "status", "--porcelain"], { cwd: ROOT }),
     execFileAsync("git", ["log", "-1", "--format=%H %ct"], { cwd: ROOT }),
   ]);
   const [head = "", committedAt = ""] = last.trim().split(" ");
@@ -976,10 +980,24 @@ async function drainQueue() {
       await persistJobs();
     }
     startStatusTicker(job);
-    const summary = await runPublish(job);
+    let summary;
+    if (job.submissionModeration) {
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
+      if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
+      job.phase = "running";
+      summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration,
+        exec: async (command, args) => {
+          if (job.stopRequested) throw new TaskStoppedError("Stopped.");
+          const task = execFileAsync(command, args, { cwd: ROOT, env: safeAgentEnv("codex"), maxBuffer: 8 * 1024 * 1024, timeout: 180_000 });
+          activeChild = task.child;
+          try { return await task; }
+          catch (error) { if (job.stopRequested) throw new TaskStoppedError("Stopped."); throw error; }
+          finally { activeChild = null; }
+        } });
+    } else summary = await runPublish(job);
     const { heading, body } = presentSummary(summary);
     await replyChunks(job.ref, heading, body);
-    await notifyAdminChannel(job, body);
+    if (!job.submissionModeration) await notifyAdminChannel(job, body);
     outcome = "✅";
   } catch (error) {
     outcome = "❌";
@@ -1018,6 +1036,7 @@ async function drainQueue() {
       await replyChunks(job.ref, "❌ The task did not complete.", `${detail}${await leftBehindNote()}`);
     }
   } finally {
+    if (!parked && job.submissionModeration) await submissions.completed(job.submissionModeration.id, outcome === "✅").catch(() => console.error("[discord-agent] could not persist moderation outcome"));
     if (!parked) await clearStatus(job);
     if (!parked && outcome) await markOutcome(job.ref, "🔍", outcome);
     running = null;
@@ -1043,7 +1062,7 @@ async function recoverInterruptedJobs() {
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null });
   if (saved.active) {
     // An interrupted run is resumed when the tree is clean: that means it was
     // killed before it changed anything, usually while waiting for the
@@ -1076,6 +1095,22 @@ async function recoverInterruptedJobs() {
   }
 }
 
+const submissions = submissionBridge({
+  client, endpoint: process.env.DISCORD_SUBMISSIONS_URL ?? (process.env.DISCORD_AGENT_REPO ? "" : `${SITE.url}/api/submissions`),
+  adminChannelId: config.adminChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
+  authorized: (message) => isAuthorized(message, { ...config, channelIds: new Set() }),
+  send: safeSend,
+  enqueue: async (job) => {
+    if (queue.some(item => item.submissionModeration?.id === job.submissionModeration.id) || running?.submissionModeration?.id === job.submissionModeration.id) return;
+    queue.push(job);
+    await persistJobs();
+    void drainQueue().catch(error => console.error("[discord-agent] moderation queue failed", error));
+  },
+});
+client.on("messageReactionAdd", (reaction, user) => {
+  void submissions.reaction(reaction, user).catch(() => console.error("[discord-agent] submission reaction failed"));
+});
+
 client.on("messageCreate", async (message) => {
   if (!client.user || message.author.bot || !message.guildId) return;
   let referenced = null;
@@ -1086,13 +1121,15 @@ client.on("messageCreate", async (message) => {
   if (!message.mentions.users.has(client.user.id) && !addressedByReply) return;
 
   const mode = channelMode(message, config);
-  if (mode === "ignore") return;
+  if (!config.guildIds.has(message.guildId)) return;
   const ref = {
     channelId: message.channelId,
     messageId: message.id,
     authorId: message.author.id,
   };
   const request = stripBotMention(message.content, client.user.id);
+  if (await submissions.intake(message, ref, request)) return;
+  if (mode === "ignore") return;
   if (mode === "denied") {
     await safeSend({
       ...ref,
@@ -1230,6 +1267,10 @@ client.once(Events.ClientReady, async () => {
   await recoverInterruptedJobs().catch((error) =>
     console.error("[discord-agent] interrupted-job recovery failed", error),
   );
+  await submissions.start().catch(() => console.error("[discord-agent] submission recovery failed"));
+  const submissionTimer = setInterval(() => void submissions.poll().catch(() => console.error("[discord-agent] submission notice retry failed")), 60_000);
+  submissionTimer.unref();
+
 });
 client.on(Events.Error, (error) => console.error("[discord-agent] Discord client error", error));
 client.on(Events.Warn, (warning) => console.warn("[discord-agent] Discord warning", warning));

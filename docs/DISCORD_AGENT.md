@@ -5,22 +5,29 @@ against this repository. It is intentionally a local bridge: Discord needs a
 Gateway connection, while repository work needs this checkout, the logged-in
 Codex CLI, git credentials, the project test gate, and production verification.
 
-## Channels decide capability
+## Publishing, submissions, and questions
 
-There are two kinds of channel, and the channel a message arrives in is what
-decides what the bot can do. A maintainer in a public channel gets answers, not
-publishing, so there is one place to look to know whether a message could have
-changed the site.
+Within configured guilds, approved developers can request edits from any
+channel the bot can read. Anyone can mention it with `submit` and one public
+GitHub/GitLab repository link (a bare repository link also works). This narrow
+submission path calls the same endpoint as the website form. It cannot run an
+agent, edit an existing page, or accept attachments. The rest of the message
+is an optional description, treated only as public text.
 
-| Channel | Who | What happens |
-| --- | --- | --- |
-| Trusted publishing | Allowlisted users and roles, in any Discord channel the bot can read | The full agent: edits, checks, commits, pushes, verifies |
-| Public (`DISCORD_PUBLIC_CHANNEL_IDS`) | Anyone who can post there | Answers questions about the site. Cannot change anything |
-| Anything else | — | Silence |
+Untrusted questions still use the read-only lane in
+`DISCORD_PUBLIC_CHANNEL_IDS`; elsewhere the bot stays silent. The general
+publishing agent remains restricted to allowlisted users and roles.
 
-An unlisted channel gets no reply at all. A bot that announces its own refusal
-everywhere it can see is noise, and each refusal is one more message for someone
-to reply to.
+Submission notices appear in `DISCORD_ADMIN_CHANNEL_ID`, with repository
+ownership, page link, and the Discord username/source message when available.
+Approved editors can react ✅ to confirm or ❌ to unlist that submission.
+Unlisting sets `draft: true`, retaining the direct URL and editorial content.
+Reactions cannot target unrelated pages or run arbitrary requests. Moderation
+runs in the existing serialized work queue, checks the current page identity,
+runs typecheck/build/test, then commits and pushes. The durable register is
+`data/submissions.json`; notification IDs and interrupted HTTP requests are
+saved in `state/submission-notices.json`. The existing bridge checks pending
+submissions every minute and recovers reactions made while offline.
 
 In a public channel the agent runs under Codex's `read-only` sandbox, so a write
 is refused by the sandbox rather than only discouraged by the prompt. Its prompt
@@ -106,8 +113,8 @@ it the bridge simply runs on Codex alone and says so when it cannot serve.
 
 ## Safety boundary
 
-- The bot fails closed unless its guild, channel, and requester user or role
-  IDs are allowlisted.
+- General editing fails closed unless the guild and requester user or role
+  IDs are allowlisted. Public submissions only create a validated game page.
 - It responds to direct mentions and to authorized human replies to one of its
   messages. A reply includes the bot message and its original request as task
   context when Discord can resolve both.
@@ -128,6 +135,19 @@ it the bridge simply runs on Codex alone and says so when it cannot serve.
   or out-of-repository work stop for human approval.
 - Every task replies to the source message with a completion, failure, or
   clarification summary. Discord's message limit is handled automatically.
+
+## Submission operations
+
+The website endpoint uses the existing Vercel `GITHUB_TOKEN` and repository
+identity variables. No new credentials or persistent service are required.
+It writes the page and register atomically using a non-forced GitHub ref update,
+retries concurrent edits, and caps intake at 20 new repositories per hour and
+five per repository owner per hour. A short per-IP cooldown also applies.
+Public project metadata is fetched without the site token.
+
+`DISCORD_SUBMISSIONS_URL` can override the endpoint for an isolated test.
+The harness disables it by default; never aim a test submission at production.
+A bridge restart is needed to load code changes and requires owner approval.
 
 ## Discord application settings
 
@@ -174,7 +194,8 @@ promote themselves past the gate.
 remain silent outside the configured channels. Trusted developers may submit
 from any channel the bot can read. After a successful submission, the bot posts
 a moderation notice with the source message link to `DISCORD_ADMIN_CHANNEL_ID`;
-leave it empty to disable that notice.
+set it explicitly to an empty string to disable notices. If unset, it uses
+the project’s existing admin channel.
 
 At least one user or role is required. Guild and channel restrictions are
 always required. IDs can be resolved without copying them through chat. After

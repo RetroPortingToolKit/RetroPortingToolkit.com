@@ -387,4 +387,26 @@ describe("bridge harness: queueing and the shared checkout", () => {
     expect(log).toMatch(/Bash: tick/);
     expect(log).toMatch(/done: OK: trace me/);
   });
+  it("accepts a stranger's repository submission in an unlisted channel without starting an agent", async () => {
+    let posted = null;
+    const server = http.createServer((req, res) => {
+      res.setHeader("content-type", "application/json");
+      if (req.method === "GET") { res.end(JSON.stringify({ submissions: [] })); return; }
+      let body = ""; req.on("data", chunk => { body += chunk; }); req.on("end", () => {
+        posted = JSON.parse(body);
+        res.end(JSON.stringify({ message: "Your page is publishing.", record: { id: "1234567890abcdef", url: "/games/test-recomp" } }));
+      });
+    });
+    await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+    try {
+      const b = await up({ env: { DISCORD_SUBMISSIONS_URL: `http://127.0.0.1:${server.address().port}/api/submissions` } });
+      const id = b.send("other-channel", "STRANGER", "submit https://github.com/example/recomp My port boots");
+      await b.waitFor(forMsg(id, "Your page is publishing."));
+      expect(posted.repo).toBe("https://github.com/example/recomp");
+      expect(fs.existsSync(path.join(b.state, "task-logs"))).toBe(false);
+      const saved = JSON.parse(fs.readFileSync(path.join(b.state, "submission-notices.json"), "utf8"));
+      expect(saved.sources["1234567890abcdef"].username).toBe("STRANGER");
+    } finally { server.close(); }
+  });
+
 });

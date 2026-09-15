@@ -11,6 +11,7 @@ import { EventEmitter } from "node:events";
 import readline from "node:readline";
 
 export const Events = { ClientReady: "ready", Error: "error", Warn: "warn", ShardError: "shardError" };
+export const Partials = { Message: 1, Channel: 2, Reaction: 3 };
 export const GatewayIntentBits = { Guilds: 1, GuildMessages: 2, MessageContent: 4 };
 
 const emit = (record) => process.stdout.write("@@" + JSON.stringify({ t: Date.now(), ...record }) + "\n");
