@@ -21,7 +21,7 @@ export async function handler(req: Request): Promise<Response> {
     const origin = req.headers.get('origin');
     if (origin && origin !== new URL(req.url).origin) return json({ error: 'Submit from this website.' }, 403);
     const text = await req.text();
-    if (text.length > 4096) return json({ error: 'The submission is too long.' }, 413);
+    if (text.length > 16384) return json({ error: 'The submission is too long.' }, 413);
     let input;
     try { input = JSON.parse(text); } catch { return json({ error: 'Invalid JSON.' }, 400); }
     if (!input || typeof input !== 'object' || Array.isArray(input)) return json({ error: 'Invalid submission.' }, 400);
@@ -32,7 +32,7 @@ export async function handler(req: Request): Promise<Response> {
     if (attempts.has(ip)) return json({ error: 'Please wait 30 seconds before submitting again.' }, 429);
     attempts.set(ip, now);
     const result = await submitRepository(store, input);
-    return json({ ...result, message: result.duplicate ? 'This project has already been submitted.' : 'Your game page is publishing. It usually appears within a couple of minutes.' }, result.duplicate ? 200 : 201);
+    return json({ ...result, message: result.duplicate ? 'This project has already been submitted.' : `Your game page is publishing. It usually appears within a couple of minutes. ${result.record.mediaNote || ''}` }, result.duplicate ? 200 : 201);
   } catch (error) {
     return json({ error: error instanceof SubmissionError ? error.message : 'Submissions are temporarily unavailable. Please try again.' }, error instanceof SubmissionError ? error.status : 503);
   }

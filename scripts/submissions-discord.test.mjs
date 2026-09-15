@@ -63,4 +63,11 @@ describe('Discord submission moderation', () => {
     await expect(moderateSubmission({ root: f.dir, action: { id: record.id, decision: 'removed' }, exec })).rejects.toThrow('check failed');
     expect(exec.mock.calls.some(([, args]) => args.includes('commit') || args.includes('push'))).toBe(false);
   });
+  it('forwards same-message image attachments with the repository submission', async () => {
+    const f = await fixture();
+    await f.bridge.intake({author:{username:'maker'},url:'https://discord.com/channels/g/c/m',react:async()=>{},attachments:new Map([['a',{url:'https://cdn.discordapp.com/attachments/1/2/banner.png',name:'banner.png',contentType:'image/png'}]])}, {messageId:'m',channelId:'c',authorId:'u'}, `submit ${record.repo}`);
+    const post = fetch.mock.calls.find(([,init])=>init?.method==='POST');
+    expect(JSON.parse(post[1].body).images).toEqual([{url:'https://cdn.discordapp.com/attachments/1/2/banner.png',alt:'Project banner'}]);
+  });
+
 });

@@ -1,3 +1,4 @@
+import { messageImages } from './submission-media.mjs';
 import crypto from 'node:crypto';
 
 export const SUBMISSIONS_PATH = 'data/submissions.json';
@@ -21,20 +22,25 @@ export function submissionPage(record) {
     tags: ['Community'], provenance: 'community', repo: record.repo, status: 'Community submission',
     added: record.createdAt.slice(0, 10), updated: record.createdAt.slice(0, 10),
     submissionId: record.id, draft: false,
+    ...(record.images?.length ? { cover: record.images[0].path } : {}),
   };
-  return `---\n${Object.entries(fm).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n\n${markdownText(record.description)}\n\n## Project\n\n[View the source repository](${record.repo}).\n\nRepository owner: **${markdownText(record.owner)}**. This identifies the repository namespace, not a verified submitter identity.\n\nThis community submission has not yet been reviewed by the team. See the repository for supported platforms, setup instructions, and current progress. Supply your own game files where required.\n`;
+  const artwork = record.images?.map(image => `![${markdownText(image.alt)}](${image.path})`).join('\n\n') || '';
+  return `---\n${Object.entries(fm).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n\n${markdownText(record.description)}\n\n${artwork ? `${artwork}\n\n` : ''}## Project\n\n[View the source repository](${record.repo}).\n\nRepository owner: **${markdownText(record.owner)}**. This identifies the repository namespace, not a verified submitter identity.\n\nThis community submission has not yet been reviewed by the team. See the repository for supported platforms, setup instructions, and current progress. Supply your own game files where required.\n`;
 }
-export function discordSubmission(text) {
+export function discordSubmission(text, attachments = []) {
   // An explicit submit/add request or a bare repository link is intake. A
   // question that merely mentions a repository keeps the existing answer lane.
-  const links = text.match(/https:\/\/(?:github|gitlab)\.com\/[^\s<>]+/gi) ?? [];
+  const links = (text.match(/https:\/\/(?:github|gitlab)\.com\/[^\s<>]+/gi) ?? []).filter(link => { try { repositoryUrl(link.replace(/[),.!?]+$/, '')); return true; } catch { return false; } });
   if (links.length !== 1) return null;
   const candidate = links[0].replace(/[),.!?]+$/, '');
   let repo;
   try { repo = repositoryUrl(candidate); } catch { return null; }
   const rest = text.replace(links[0], '').trim();
   if (rest && !/\b(submit|add|list|publish|made|built|my recomp|our recomp|new recomp)\b/i.test(rest)) return null;
-  return { repo, description: plainText(rest.replace(/^(?:submit|add|list|publish)(?:\s+(?:this|my|our))?(?:\s+(?:recomp|project|game))?\b[\s:—–-]*/i, ''), 500) };
+  const images = messageImages(text, attachments);
+  const title = rest.match(/(?:^|\n)(?:title|name):\s*([^\n]+)/i)?.[1];
+  const clean = rest.replace(/(?:^|\n)(?:title|name):[^\n]*/gi, '').replace(/https:\/\/[^\s<>]+/g, '').replace(/(?:^|\n)(?:banner|cover|screenshots?|images?):[^\n]*/gi, '').replace(/(?:^|\n)description:\s*/gi, '');
+  return { repo, ...(title ? { name: plainText(title, 100) } : {}), ...(images.length ? { images } : {}), description: plainText(clean.replace(/^(?:submit|add|list|publish)(?:\s+(?:this|my|our))?(?:\s+(?:recomp|project|game))?\b[\s:—–-]*/i, ''), 500) };
 }
 export function moderationPage(raw, record, decision) {
   if (!['confirmed', 'removed'].includes(decision) || !/^data\/games\/\d+_[a-z0-9-]+\/index\.md$/.test(record.path)) throw new Error('Invalid submission moderation target.');

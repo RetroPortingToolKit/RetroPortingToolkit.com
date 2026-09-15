@@ -70,7 +70,7 @@ export function SubmitRecompDialog() {
       </div> : <form ref={form} onSubmit={submit}>
         <label htmlFor="recomp-repo">Repository URL</label>
         <input id="recomp-repo" name="repo" type="url" required maxLength={300} autoFocus placeholder="https://github.com/you/your-recomp" aria-describedby="recomp-repo-help" />
-        <p id="recomp-repo-help" className="recomp-help">A public repository on GitHub or GitLab.</p>
+        <p id="recomp-repo-help" className="recomp-help">A public repository on GitHub or GitLab. We also look in its README for a banner and screenshots.</p>
         <label htmlFor="recomp-name">Project name <span>Optional</span></label>
         <input id="recomp-name" name="name" maxLength={100} placeholder="The name of your game or port" />
         <label htmlFor="recomp-description">Description <span>Optional</span></label>

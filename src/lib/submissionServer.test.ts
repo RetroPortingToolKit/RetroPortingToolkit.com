@@ -64,4 +64,15 @@ describe('submission publishing', () => {
     expect(calls[1].body.parents).toEqual(['original']);
     expect(calls[2].body).toEqual({ sha: 'new', force: false });
   });
+  it('includes image blobs and their local references in the same publishing tree', async () => {
+    const calls: {url: string; body: any}[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url, init) => { calls.push({url, body: JSON.parse(init.body)}); return Response.json({sha: 'image-sha'}); }));
+    const store = new SubmissionStore('https://api.github.com/repos/site/site', 'fake');
+    await store.create({head:'original',tree:'base',entries:[],records:[]}, {id:'id',repo,title:'Game',description:'Port',owner:'example',path:'data/games/01_game/index.md',url:'/games/game',createdAt:new Date().toISOString(),status:'pending',images:[{path:'./submission-1.png',alt:'Banner'}]}, [{name:'submission-1.png',content:'aW1hZ2U=',alt:'Banner'}]);
+    expect(calls[0].body).toEqual({content:'aW1hZ2U=',encoding:'base64'});
+    expect(calls[1].body.tree[0]).toMatchObject({path:'data/games/01_game/submission-1.png',sha:'image-sha'});
+    expect(calls[1].body.tree[1].content).toContain('cover: "./submission-1.png"');
+    expect(calls.at(-1)!.body.force).toBe(false);
+  });
+
 });

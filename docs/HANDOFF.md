@@ -28,3 +28,8 @@ The Discord reporting follow-up preserves trusted request scope across turns
 and verifies completion receipts against committed source and the remote ref.
 See [context and completion reports](DISCORD_AGENT.md#context-and-completion-reports).
 It is loaded by the completed restart; implementation is in commit `5e5937e`.
+
+Submission artwork now imports same-message Discord images and repository README
+images into the game folder, with a cover and body images. See the public guide's
+[artwork section](../data/docs/01_start/07_submit-a-recomp/index.md#banners-and-screenshots).
+Validation: typecheck, build, 953 tests, and a read-only public README/image import.

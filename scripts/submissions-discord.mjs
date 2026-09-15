@@ -33,7 +33,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
   }
   async function intake(message, ref, request) {
     if (!endpoint) return false;
-    const input = discordSubmission(request);
+    const input = discordSubmission(request, [...(message.attachments?.values() ?? [])]);
     if (!input) return false;
     const key = ref.messageId;
     if (state.intake[key]) return true;
@@ -94,6 +94,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
             description: plainText(record.description, 500),
             fields: [
               { name: 'Repository', value: record.repo },
+              { name: 'Artwork', value: record.mediaNote || 'No imported artwork recorded.' },
               { name: 'Repository owner', value: record.owner || source?.username || 'Not available' },
               { name: 'Submitted through', value: source ? `Discord: ${source.username}\n${source.url}` : 'Website form' },
               { name: 'Moderation', value: 'The game page publishes automatically. ✅ confirms it; ❌ removes it from listings (keeps its unlisted URL). Only approved site editors can moderate.' },

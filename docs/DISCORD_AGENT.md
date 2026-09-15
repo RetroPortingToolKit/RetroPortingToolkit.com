@@ -171,6 +171,15 @@ retries concurrent edits, and caps intake at 20 new repositories per hour and
 five per repository owner per hour. A short per-IP cooldown also applies.
 Public project metadata is fetched without the site token.
 
+Submission artwork is copied into the game folder and committed atomically with
+its page. Same-message Discord attachments/image links take priority over README
+images; cover/banner labels take priority within each source. Imports are bounded
+to four raster images, 4 MB each and 8 MB total. Only supported GitHub/GitLab/Discord
+hosts are fetched, without credentials or redirects. README text is parsed as data,
+never passed to an agent as instructions. Missing artwork does not block publishing;
+confirmation and review notices report the import result. Existing pages are never
+overwritten by a repeat submission.
+
 `DISCORD_SUBMISSIONS_URL` can override the endpoint for an isolated test.
 The harness disables it by default; never aim a test submission at production.
 A bridge restart is needed to load code changes and requires owner approval.
