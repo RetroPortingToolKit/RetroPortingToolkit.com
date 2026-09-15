@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import handler from '../../api/submissions';
+import { handler, GET, POST } from '../../api/submissions';
 import { SubmissionStore } from './submissionServer';
 beforeEach(() => { vi.stubEnv('CMS_REPO_OWNER', 'site'); vi.stubEnv('CMS_REPO_NAME', 'site'); vi.stubEnv('GITHUB_TOKEN', 'fake'); vi.stubEnv('VERCEL_ENV', 'production'); });
 afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
@@ -12,4 +12,10 @@ it('prevents preview deployments from writing', async () => { vi.stubEnv('VERCEL
 it('only lists pending moderation records', async () => {
   vi.spyOn(SubmissionStore.prototype, 'snapshot').mockResolvedValue({ head: 'head', tree: 'tree', entries: [], records: [{ id: 'pending', status: 'pending' }, { id: 'gone', status: 'removed' }] as never });
   expect(await (await handler(new Request('https://site/api/submissions'))).json()).toEqual({ submissions: [{ id: 'pending', status: 'pending' }] });
+});
+
+it("exports Vercel Web API handlers", async () => {
+  vi.stubEnv("GITHUB_TOKEN", "");
+  expect((await GET(new Request("https://site/api/submissions"))).status).toBe(503);
+  expect((await POST(new Request("https://site/api/submissions", { method: "POST" }))).status).toBe(503);
 });

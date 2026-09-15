@@ -3,7 +3,7 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 // The durable register also caps submissions globally and per repository owner.
 // This short local window reduces repeated requests before repository lookups.
 const attempts = new Map<string, number>();
-export default async function handler(req: Request): Promise<Response> {
+export async function handler(req: Request): Promise<Response> {
   if (!['POST', 'GET'].includes(req.method)) return json({ error: 'Method not allowed.' }, 405);
   const owner = process.env.CMS_REPO_OWNER || process.env.VERCEL_GIT_REPO_OWNER;
   const repo = process.env.CMS_REPO_NAME || process.env.VERCEL_GIT_REPO_SLUG;
@@ -37,3 +37,7 @@ export default async function handler(req: Request): Promise<Response> {
     return json({ error: error instanceof SubmissionError ? error.message : 'Submissions are temporarily unavailable. Please try again.' }, error instanceof SubmissionError ? error.status : 503);
   }
 }
+
+// Match the Web API entry points used by the existing CMS and newsletter.
+export async function GET(req: Request): Promise<Response> { return handler(req); }
+export async function POST(req: Request): Promise<Response> { return handler(req); }

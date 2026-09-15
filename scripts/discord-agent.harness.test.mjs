@@ -319,8 +319,9 @@ describe("bridge harness: queueing and the shared checkout", () => {
     await new Promise((r) => setTimeout(r, 2500));
     expect(b.agentStartedAt(id)).toBeNull();
     clearInterval(churn);
+    const stoppedChurnAt = Date.now();
     const done = await b.waitFor(forMsg(id, "OK: during churn"), 20000, "started once the commits stopped");
-    expect(done.t - Date.now()).toBeLessThan(0);
+    expect(done.t).toBeGreaterThanOrEqual(stoppedChurnAt);
   });
 
   it("downloads a trusted author's attachment and hands the agent its path", async () => {
