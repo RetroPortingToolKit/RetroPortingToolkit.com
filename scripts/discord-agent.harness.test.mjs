@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BRIDGE = path.join(HERE, "discord-agent.mjs");
 const HOOKS = path.join(HERE, "discord-agent-harness", "hooks.mjs");
 const FAKE_BIN = path.join(HERE, "discord-agent-harness", "bin");
-const ADMIN = "admin", PUBLIC = "public";
+const ADMIN = "admin", PUBLIC = "public", MODERATION = "moderation";
 
 function makeRepo() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rpt-harness-repo-"));
@@ -49,6 +49,7 @@ function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdi
       DISCORD_ALLOWED_GUILD_IDS: "G", // the stub stamps every message with guild "G"
       DISCORD_ALLOWED_CHANNEL_IDS: ADMIN,
       DISCORD_PUBLIC_CHANNEL_IDS: PUBLIC,
+      DISCORD_ADMIN_CHANNEL_ID: MODERATION,
       DISCORD_ALLOWED_USER_IDS: "U1,U2,U3",
       DISCORD_AGENT_STATE_DIR: state,
       DISCORD_AGENT_REPO: repo.dir,

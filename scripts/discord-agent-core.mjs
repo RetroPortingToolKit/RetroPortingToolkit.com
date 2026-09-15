@@ -164,9 +164,10 @@ export function canRequestDestructive(message, config) {
  */
 export function channelMode(message, config) {
   if (config.guildIds.size && !config.guildIds.has(message.guildId)) return "ignore";
-  if (config.channelIds.has(message.channelId)) {
-    return isAuthorized(message, config) ? "admin" : "denied";
-  }
+  // Trusted developers may submit from any channel the bot can read.
+  const identityConfig = { ...config, channelIds: new Set() };
+  if (isAuthorized(message, identityConfig)) return "admin";
+  if (config.channelIds.has(message.channelId)) return "denied";
   if (config.publicChannelIds?.has(message.channelId)) return "ask";
   return "ignore";
 }

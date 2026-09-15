@@ -14,7 +14,7 @@ changed the site.
 
 | Channel | Who | What happens |
 | --- | --- | --- |
-| Publishing (`DISCORD_ALLOWED_CHANNEL_IDS`) | Allowlisted users and roles | The full agent: edits, checks, commits, pushes, verifies |
+| Trusted publishing | Allowlisted users and roles, in any Discord channel the bot can read | The full agent: edits, checks, commits, pushes, verifies |
 | Public (`DISCORD_PUBLIC_CHANNEL_IDS`) | Anyone who can post there | Answers questions about the site. Cannot change anything |
 | Anything else | — | Silence |
 
@@ -153,6 +153,7 @@ with these shell assignments:
 DISCORD_ALLOWED_GUILD_IDS="guild-id"
 DISCORD_ALLOWED_CHANNEL_IDS="channel-id"
 DISCORD_PUBLIC_CHANNEL_IDS="optional-channel-id,optional-channel-id"
+DISCORD_ADMIN_CHANNEL_ID="optional-moderation-channel-id"
 DISCORD_ALLOWED_USER_IDS="user-id,user-id"
 DISCORD_ALLOWED_ROLE_IDS="optional-role-id"
 DISCORD_DESTRUCTIVE_USER_IDS="optional-user-id,optional-user-id"
@@ -169,8 +170,11 @@ This is deliberately not a chat command. The publishing channel authorizes by
 role, so a "grant me this" command there would let anyone who can post in it
 promote themselves past the gate.
 
-`DISCORD_PUBLIC_CHANNEL_IDS` is optional. Leave it empty and the bot behaves
-exactly as before: publishing in its own channel, silent everywhere else.
+`DISCORD_PUBLIC_CHANNEL_IDS` is optional. Leave it empty and untrusted users
+remain silent outside the configured channels. Trusted developers may submit
+from any channel the bot can read. After a successful submission, the bot posts
+a moderation notice with the source message link to `DISCORD_ADMIN_CHANNEL_ID`;
+leave it empty to disable that notice.
 
 At least one user or role is required. Guild and channel restrictions are
 always required. IDs can be resolved without copying them through chat. After

@@ -263,10 +263,9 @@ describe("Discord agent core", () => {
     expect(channelMode(at("admin", "dev"), config)).toBe("admin");
     expect(channelMode(at("admin", "stranger"), config)).toBe("denied");
     expect(channelMode(at("lounge", "stranger"), config)).toBe("ask");
-    // Capability follows the room: a maintainer in a public channel still only
-    // gets answers.
-    expect(channelMode(at("lounge", "dev"), config)).toBe("ask");
-    expect(channelMode(at("random", "dev"), config)).toBe("ignore");
+    // Trusted submissions are accepted from every channel the bot can read.
+    expect(channelMode(at("lounge", "dev"), config)).toBe("admin");
+    expect(channelMode(at("random", "dev"), config)).toBe("admin");
     expect(channelMode({ ...at("admin", "dev"), guildId: "other" }, config)).toBe("ignore");
   });
 

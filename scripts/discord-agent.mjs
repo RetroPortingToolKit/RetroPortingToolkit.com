@@ -64,6 +64,9 @@ const config = {
   guildIds: parseCsv(process.env.DISCORD_ALLOWED_GUILD_IDS),
   channelIds: parseCsv(process.env.DISCORD_ALLOWED_CHANNEL_IDS),
   publicChannelIds: parseCsv(process.env.DISCORD_PUBLIC_CHANNEL_IDS),
+  // The moderation lane is a stable Discord channel for this project; an env
+  // override keeps the bridge reusable in the harness or another server.
+  adminChannelId: process.env.DISCORD_ADMIN_CHANNEL_ID || "1523871171551039649",
   userIds: parseCsv(process.env.DISCORD_ALLOWED_USER_IDS),
   roleIds: parseCsv(process.env.DISCORD_ALLOWED_ROLE_IDS),
   destructiveUserIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_USER_IDS),
@@ -334,6 +337,16 @@ async function replyChunks(ref, heading, body, options = {}) {
       ...options,
     });
   }
+}
+
+async function notifyAdminChannel(job, summary) {
+  if (!config.adminChannelId) return;
+  const requester = job.requester?.display || job.requester?.username || `Discord user ${job.ref.authorId}`;
+  await safeSend({
+    channelId: config.adminChannelId,
+    content: `📝 Discord submission completed by ${requester}.\nSource: ${job.messageUrl}\n\n${summary}`,
+    suppressMentions: true,
+  });
 }
 
 async function gitSnapshot() {
@@ -966,6 +979,7 @@ async function drainQueue() {
     const summary = await runPublish(job);
     const { heading, body } = presentSummary(summary);
     await replyChunks(job.ref, heading, body);
+    await notifyAdminChannel(job, body);
     outcome = "✅";
   } catch (error) {
     outcome = "❌";
