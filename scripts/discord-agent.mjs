@@ -36,10 +36,11 @@ import {
   traceStreamLine,
   statusMessage,
   stripBotMention,
-  presentSummary,
   resumedMessage,
   taskPrompt,
 } from "./discord-agent-core.mjs";
+import { createTaskContext } from "./discord-task-context.mjs";
+import { verifyCompletion, outcomeReaction } from "./discord-completion.mjs";
 import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
 // The site's own address, read out of src/lib/site.ts: the one place a brand
@@ -212,14 +213,20 @@ function jobRecord(job) {
   };
 }
 
+let jobSaveChain = Promise.resolve();
 async function persistJobs() {
+  // Snapshot immediately, but serialize writes: concurrent saves must not
+  // overwrite the same temporary file or land older state after newer state.
+  const snapshot = {
+    active: running ? jobRecord(running) : null,
+    queued: queue.map(jobRecord),
+    askActive: askRunning ? jobRecord(askRunning) : null,
+    askQueued: askQueue.map(jobRecord),
+  };
+  const save = jobSaveChain.then(() => writeJson(JOBS_FILE, snapshot));
+  jobSaveChain = save.catch(() => {});
   try {
-    await writeJson(JOBS_FILE, {
-      active: running ? jobRecord(running) : null,
-      queued: queue.map(jobRecord),
-      askActive: askRunning ? jobRecord(askRunning) : null,
-      askQueued: askQueue.map(jobRecord),
-    });
+    await save;
   } catch (error) {
     console.error("[discord-agent] could not persist job state", error);
   }
@@ -348,7 +355,7 @@ async function notifyAdminChannel(job, summary) {
   const requester = job.requester?.display || job.requester?.username || `Discord user ${job.ref.authorId}`;
   await safeSend({
     channelId: config.adminChannelId,
-    content: `📝 Discord submission completed by ${requester}.\nSource: ${job.messageUrl}\n\n${summary}`,
+    content: `📝 Discord task published changes for ${requester}.\nSource: ${job.messageUrl}\n\n${summary}`,
     suppressMentions: true,
   });
 }
@@ -695,6 +702,13 @@ async function fetchAttachments(job, dir) {
   return files;
 }
 
+async function remoteMain() {
+  try {
+    const { stdout } = await execFileAsync("git", ["ls-remote", "--exit-code", "origin", "refs/heads/main"], { cwd: ROOT, timeout: 20_000 });
+    return stdout.trim().split(/\s+/)[0] || null;
+  } catch { return null; }
+}
+
 async function runPublish(job) {
   const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => {
     if (job.phase !== "waiting") {
@@ -716,10 +730,14 @@ async function runPublish(job) {
   job.phase = "running";
   job.agentStartedAt = Date.now();
   job.startedHead = starting.head;
+  // Record the actual remote tip so merely pulling someone else's commits
+  // cannot be reported as work published by this request.
+  const remoteBefore = await remoteMain();
   await persistJobs();
 
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rpt-discord-agent-"));
   const outputFile = path.join(tempDir, "final.txt");
+  const receiptFile = path.join(tempDir, "completion.json");
   const taskLog = await createTaskLog(job.ref.messageId);
   console.log(`[discord-agent] task ${job.ref.messageId} log: ${taskLog.file}`);
   const attachments = await fetchAttachments(job, path.join(tempDir, "attachments"));
@@ -741,6 +759,7 @@ async function runPublish(job) {
     requester,
     roster: rosterLines(team),
     siteUrl: SITE.url,
+    receiptFile,
   });
   try {
     if (job.stopRequested) throw new TaskStoppedError("Stopped before the agent started.");
@@ -755,18 +774,37 @@ async function runPublish(job) {
       onActivity: (entry) => { job.lastActivity = entry; },
     });
     if (job.stopRequested) throw new TaskStoppedError("The active agent process was terminated.");
-    // What matters is whether THIS request's work landed, not whether the tree
-    // is pristine. Someone starting an unrelated edit halfway through used to
-    // fail a finished request; their files are simply not ours to care about,
-    // because the agent stages its own paths by name.
     const ending = await gitSnapshot();
-    const published = ending.head !== starting.head;
-    if (!published && ending.status) {
+    if (ending.head === starting.head && ending.status) {
       throw new SharedCheckoutConflictError(
         "Blocked: the agent left uncommitted changes in the shared checkout and nothing was published. The tree needs a look before anything else runs.",
       );
     }
-    return summary || "Task completed, but the agent returned no summary.";
+    let receipt = null;
+    try {
+      if ((await fs.stat(receiptFile)).size <= 64 * 1024) receipt = JSON.parse(await fs.readFile(receiptFile, "utf8"));
+    } catch { /* Missing or malformed evidence is handled as unverified. */ }
+    let remoteContainsHead = false;
+    let newCommits = [];
+    if (receipt) {
+      const remoteAfter = await remoteMain();
+      if (remoteAfter === ending.head) remoteContainsHead = true;
+      else if (remoteAfter) {
+        // Fetch only when the remote moved again. A later commit may still
+        // contain this run's work; a cached origin/main alone proves nothing.
+        try {
+          await execFileAsync("git", ["fetch", "origin", "main"], { cwd: ROOT, timeout: 20_000 });
+          await execFileAsync("git", ["merge-base", "--is-ancestor", ending.head, remoteAfter], { cwd: ROOT });
+          remoteContainsHead = true;
+        } catch {}
+      }
+      if (remoteBefore) {
+        const result = await execFileAsync("git", ["rev-list", ending.head, `^${starting.head}`, `^${remoteBefore}`], { cwd: ROOT }).catch(() => ({ stdout: "" }));
+        newCommits = result.stdout.trim().split("\n").filter(Boolean);
+      }
+    }
+    return await verifyCompletion({ request: job.request, summary, receipt, newCommits, remoteContainsHead, head: ending.head,
+      readCommittedFile: async (file) => (await execFileAsync("git", ["show", `${ending.head}:${file}`], { cwd: ROOT, maxBuffer: 2 * 1024 * 1024 })).stdout });
   } finally {
     activeChild = null; // "stop" must not aim at a process that already exited
     await taskLog.close();
@@ -980,12 +1018,12 @@ async function drainQueue() {
       await persistJobs();
     }
     startStatusTicker(job);
-    let summary;
+    let report;
     if (job.submissionModeration) {
       const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
-      summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration,
+      const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration,
         exec: async (command, args) => {
           if (job.stopRequested) throw new TaskStoppedError("Stopped.");
           const task = execFileAsync(command, args, { cwd: ROOT, env: safeAgentEnv("codex"), maxBuffer: 8 * 1024 * 1024, timeout: 180_000 });
@@ -994,11 +1032,11 @@ async function drainQueue() {
           catch (error) { if (job.stopRequested) throw new TaskStoppedError("Stopped."); throw error; }
           finally { activeChild = null; }
         } });
-    } else summary = await runPublish(job);
-    const { heading, body } = presentSummary(summary);
-    await replyChunks(job.ref, heading, body);
-    if (!job.submissionModeration) await notifyAdminChannel(job, body);
-    outcome = "✅";
+      report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
+    } else report = await runPublish(job);
+    await replyChunks(job.ref, report.heading, report.body, { suppressMentions: true });
+    if (!job.submissionModeration && report.published) await notifyAdminChannel(job, `${report.heading}\n${report.body}`);
+    outcome = outcomeReaction(report.outcome);
   } catch (error) {
     outcome = "❌";
     if (error instanceof CheckoutBusyError) {
@@ -1094,6 +1132,11 @@ async function recoverInterruptedJobs() {
     await safeSend({ ...job.ref, content: askInterruptedMessage(), ping: true });
   }
 }
+
+const taskContext = createTaskContext({
+  stateDir: STATE_DIR, botId: () => client.user.id,
+  authorized: message => isAuthorized(message, { ...config, channelIds: new Set() }),
+});
 
 const submissions = submissionBridge({
   client, endpoint: process.env.DISCORD_SUBMISSIONS_URL ?? (process.env.DISCORD_AGENT_REPO ? "" : `${SITE.url}/api/submissions`),
@@ -1222,12 +1265,19 @@ client.on("messageCreate", async (message) => {
   // author's message is inherited as context.
   const originalIsTrusted =
     original && !original.author?.bot && isAuthorized(original, config);
-  const context = addressedByReply
+  const directContext = addressedByReply
     ? replyContext({
         referencedContent: referenced?.content || "",
         originalContent: originalIsTrusted ? original.content : "",
       })
     : "";
+  let priorContext;
+  try { priorContext = await taskContext.remember(message, request); }
+  catch {
+    await safeSend({ ...ref, content: "I could not recover the task context. Please retry or restate the full request; I have not started any work.", ping: true });
+    return;
+  }
+  const context = [priorContext, directContext].filter(Boolean).join("\n\n");
   const job = {
     ref,
     messageUrl: message.url,

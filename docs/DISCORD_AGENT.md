@@ -58,6 +58,32 @@ Public questions run in their own lane: one at a time, a four-minute limit, a
 45-second per-person cooldown, and at most five waiting. A question never delays
 a publish, and a publish never makes the community channel look dead.
 
+## Context and completion reports
+
+Accepted developer requests are retained in `state/task-context.json`, scoped
+by guild, channel, and author. Explicit new tasks reset the scope; follow-ups
+keep the original request and the latest amendments. Retention is bounded to
+24 hours, 80 conversations, and ten turns per conversation, preserving the
+original turn. If a follow-up has no saved context, the bridge can recover
+recent messages by that same trusted author addressing the bot. Previous bot
+answers are never stored as proof that work was completed.
+
+Implementation and completion-status answers require a JSON receipt outside
+the checkout. It lists each requested deliverable as present, missing, or
+unverified, with exact file/line evidence for present items. The bridge checks
+those lines at the final committed revision and independently reads the real
+remote ref. Merely pulling earlier commits or changing local HEAD is not
+proof that this run published work. Discord receives the checked checklist;
+unsubstantiated completion prose is withheld. This verifies the cited source
+and publication state; semantic relevance still depends on the agent's review
+of the full request and is exposed for the reader to assess.
+
+A successful runner exit alone never means the task is done. Partial, blocked,
+clarification, and unverified results have distinct headings and reactions.
+Ordinary factual answers use 💬. Admin publication notices are sent only when
+new commits have been verified on the remote, not for questions or failed
+completion claims.
+
 ## Sharing the checkout with a person
 
 A person editing this checkout by hand is normal and must not cost anyone their

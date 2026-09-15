@@ -17,3 +17,8 @@ are implemented. See [submission operations](DISCORD_AGENT.md#submission-operati
 and the [public guide](../data/docs/01_start/07_submit-a-recomp/index.md).
 The existing Discord process still needs an owner-authorized restart to load
 this change; its persistent job configuration is unchanged.
+
+The Discord reporting follow-up preserves trusted request scope across turns
+and verifies completion receipts against committed source and the remote ref.
+See [context and completion reports](DISCORD_AGENT.md#context-and-completion-reports).
+It shares the pending bot restart above.

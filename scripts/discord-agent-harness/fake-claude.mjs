@@ -17,6 +17,25 @@ process.stdin.on("end", async () => {
   // marker is the request, whatever surrounds it.
   const request = (prompt.split("\n").find((l) => l.includes("[[")) || prompt.split("\n")[0]).trim();
   const say = (o) => process.stdout.write(JSON.stringify(o) + "\n");
+  const answer = text => prompt.startsWith("A trusted") ? `[answer]\n${text}` : text;
+  const receiptPath = prompt.match(/^Completion receipt: (.+)$/m)?.[1];
+  if (/\[\[false-complete\]\]/.test(request)) {
+    say({ type: "result", subtype: "success", is_error: false, result: '[answer]\nYes. The footer links, homepage Explore games CTA, and modal behavior are already in main and pushed to origin/main.' });
+    process.exit(0);
+  }
+  if (/\[\[scope-start\]\]/.test(request)) {
+    say({ type: "result", subtype: "success", is_error: false, result: '[clarification]\nWhich admin channel should receive notices?' });
+    process.exit(0);
+  }
+  if (/\[\[scope-check\]\]/.test(request)) {
+    const hasOriginal = prompt.includes('Submit a recomp') && prompt.includes('GitLab') && prompt.includes('anyone');
+    if (receiptPath && hasOriginal) fs.writeFileSync(receiptPath, JSON.stringify({ outcome: "partial", requirements: [
+      { requirement: 'Submit a recomp CTA and GitHub/GitLab form', status: 'missing' },
+      { requirement: 'Discord intake from anyone', status: 'missing' },
+    ] }));
+    say({ type: "result", subtype: "success", is_error: false, result: hasOriginal ? 'Partial: submission features are missing.' : '[answer]\nYes. All the old features are done.' });
+    process.exit(0);
+  }
   say({ type: "system", subtype: "init" });
   // Before anything else, so "[[dirty]] [[silent]]" is a run that wrote a
   // file and then hung — the case the left-behind note exists for.
@@ -37,13 +56,13 @@ process.stdin.on("end", async () => {
     const m = prompt.match(/^- (\/\S+)\s/m);
     let seen = "no attachment path in prompt";
     if (m) { try { seen = fs.readFileSync(m[1], "utf8").split("\n")[0]; } catch (e) { seen = "unreadable: " + e.message; } }
-    say({ type: "result", subtype: "success", is_error: false, result: `OK: attachment says ${seen}` });
+    say({ type: "result", subtype: "success", is_error: false, result: answer(`OK: attachment says ${seen}`) });
     process.exit(0);
   }
   if (/\[\[whoami\]\]/.test(request)) {
     const who = (prompt.match(/^Requester: .*$/m) || ["no Requester line"])[0];
     const roster = (prompt.match(/^- .* — .*$/gm) || []).length;
-    say({ type: "result", subtype: "success", is_error: false, result: `OK: ${who} roster=${roster}` });
+    say({ type: "result", subtype: "success", is_error: false, result: answer(`OK: ${who} roster=${roster}`) });
     process.exit(0);
   }
   if (/\[\[question\]\]/.test(request)) {
@@ -51,6 +70,6 @@ process.stdin.on("end", async () => {
     process.exit(0);
   }
   say({ type: "result", subtype: isError ? "error" : "success", is_error: isError,
-        result: isError ? "The fake agent failed on purpose." : `OK: ${request.replace(/\[\[[^\]]*\]\]/g, "").trim().slice(0, 80)}` });
+        result: isError ? "The fake agent failed on purpose." : answer(`OK: ${request.replace(/\[\[[^\]]*\]\]/g, "").trim().slice(0, 80)}`) });
   process.exit(0);
 });

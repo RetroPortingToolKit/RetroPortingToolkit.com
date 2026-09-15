@@ -246,10 +246,10 @@ describe("bridge harness: queueing and the shared checkout", () => {
     // named by its address, and a preview card per address was the spam.
     expect(summary.flags & 4).toBe(4);
     expect(b.events.filter((e) => (e.kind === "reply" || e.kind === "send") && !(e.flags & 4))).toHaveLength(0);
-    // 🔍 while it worked, then swapped for ✅ — not both.
-    await b.waitFor((e) => e.messageId === ok && e.kind === "react" && e.content === "✅", 5000, "done reaction");
+    // This fake task only answers: 💬 must not imply code was completed.
+    await b.waitFor((e) => e.messageId === ok && e.kind === "react" && e.content === "💬", 5000, "done reaction");
     const marks = b.events.filter((e) => e.messageId === ok && (e.kind === "react" || e.kind === "unreact")).map((e) => `${e.kind}:${e.content}`);
-    expect(marks).toEqual(["react:🔍", "unreact:🔍", "react:✅"]);
+    expect(marks).toEqual(["react:🔍", "unreact:🔍", "react:💬"]);
     // A failure is marked as one.
     const bad = b.send(ADMIN, "U1", "break [[fail]]");
     await b.waitFor(forMsg(bad, "did not complete"), 12000, "failure report");
@@ -386,7 +386,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const log = fs.readdirSync(logDir).map((f) => fs.readFileSync(path.join(logDir, f), "utf8")).join("\n");
     expect(log).toMatch(/\d\d:\d\d:\d\d started/);
     expect(log).toMatch(/Bash: tick/);
-    expect(log).toMatch(/done: OK: trace me/);
+    expect(log).toMatch(/done: \[answer\] OK: trace me/);
   });
   it("accepts a stranger's repository submission in an unlisted channel without starting an agent", async () => {
     let posted = null;
@@ -408,6 +408,33 @@ describe("bridge harness: queueing and the shared checkout", () => {
       const saved = JSON.parse(fs.readFileSync(path.join(b.state, "submission-notices.json"), "utf8"));
       expect(saved.sources["1234567890abcdef"].username).toBe("STRANGER");
     } finally { server.close(); }
+  });
+
+  it("withholds the screenshot's false completion claim even when the runner exits successfully", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U1", "did you do the work on the footer, CTA on games page, modal etc? [[false-complete]]");
+    const reply = await b.waitFor(forMsg(id, "could not verify completion"));
+    expect(reply.content).not.toContain("Yes.");
+    await b.waitFor(e => e.messageId === id && e.kind === "react" && e.content === "⚠️");
+    expect(b.events.some(e => e.channelId === MODERATION)).toBe(false);
+    expect(b.events.some(e => e.messageId === id && e.kind === "react" && e.content === "✅")).toBe(false);
+  });
+
+  it("retains the original scope for a bare follow-up across a restart and marks missing work incomplete", async () => {
+    const repo = makeRepo();
+    const a = await up({ repo });
+    const first = a.send(ADMIN, "U1", 'Build a Submit a recomp CTA, a GitHub or GitLab form, and Discord intake from anyone. [[scope-start]]');
+    await a.waitFor(forMsg(first, "Which admin channel"));
+    await a.waitFor(e => e.messageId === first && e.kind === "react" && e.content === "❓");
+    a.stop();
+    await new Promise(resolve => setTimeout(resolve, 300));
+    const b = await up({ repo, state: a.state });
+    const second = b.send(ADMIN, "U1", "did you do the footer, CTA, modal etc? [[scope-check]]");
+    const reply = await b.waitFor(forMsg(second, "Missing: Submit a recomp CTA"));
+    expect(reply.content).toContain("Missing: Discord intake from anyone");
+    expect(reply.content).toContain("Incomplete");
+    await b.waitFor(e => e.messageId === second && e.kind === "react" && e.content === "⚠️");
+    expect(b.events.some(e => e.channelId === MODERATION)).toBe(false);
   });
 
 });

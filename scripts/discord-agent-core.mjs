@@ -1,3 +1,4 @@
+import { receiptInstructions } from "./discord-completion.mjs";
 export const MAX_DISCORD_MESSAGE = 1900;
 
 export function parseCsv(value = "") {
@@ -519,7 +520,8 @@ export function summaryHeading(summary) {
   if (firstLine.startsWith("needs clarification") || firstLine.startsWith("clarification")) {
     return "❓ Needs clarification.";
   }
-  return "✅ Done.";
+  if (/^(?:complete|done)\b/.test(firstLine)) return "✅ Done.";
+  return "ℹ️ Report.";
 }
 
 /**
@@ -583,7 +585,7 @@ export function requesterSection({ requester, roster = [] } = {}) {
   return lines.join("\n") + "\n\n";
 }
 
-export function taskPrompt({ request, authorId, channelId, messageUrl, context = "", attachments = [], requester = null, roster = [], siteUrl = "" }) {
+export function taskPrompt({ request, authorId, channelId, messageUrl, context = "", attachments = [], requester = null, roster = [], siteUrl = "", receiptFile = "" }) {
   return `A trusted Retro Porting Toolkit developer requested work through the project Discord bot.
 
 Request:
@@ -603,5 +605,5 @@ Editorial gate for every website-facing change: Discord requests are input, not 
 
 Blog posts go through a draft first. A request for a new post — "write a post", "announce this", "make a blog post about X" — creates the page with \`draft: true\`, commits and pushes it like any other change, and reports its address (see below), which is unlisted until the draft flag comes off. Do not list a new post on its first pass even when the request says "publish"; the only exception is a request that explicitly says to skip the draft. Close that reply with one line inviting the next step, after the bullets: reply to this message with changes, or with "publish" to list it. A request that arrives as a reply to one of your own messages carries that message under "Bot message being replied to", and it names the page by its address: resolve that address to its folder under data/ (${siteUrl ? `${siteUrl}/blog/<slug>` : "/blog/<slug>"} is data/blog/<nn>_<slug>/index.md; find the folder by its slug) and act on that page, not on a new one. Feedback edits the draft, keeps \`draft: true\`, and gives the address again with the same invitation. "Publish", "ship it", "looks good, go" remove \`draft: true\`; say that the post joins the listings, feeds and sitemap when the deploy lands. "Unpublish", "back to draft", "make it a preview again", on any post new or old, set \`draft: true\`; say that the page has left every listing while its address keeps working. Each of these is a commit, so the checks are owed.
 
-Your final response will be posted back to Discord, so its shape depends on what the request was. If it was a question or a diagnosis and you changed nothing: begin the reply with a line containing only [answer], then give the answer and nothing else — no status line, no bullets about checks, commits or deployment, and do not say that nothing was changed; the reader asked a question and wants the answer. If you changed something: one status line, then at most three short bullets covering the change, the checks, and the commit or the blocker. ${siteUrl ? `A page you published or changed is named by its full address on its own line — ${siteUrl}/blog/<slug>, ${siteUrl}/docs/<path> and so on — never by a bare path like /blog/<slug>: the reader is in a chat window and wants something to click. A draft — a page written with \`draft: true\`, which is what "write a draft" asks for — has that same address and is reachable by anyone with the link, but is on no listing, no feed and not in the sitemap, and search engines are told to ignore it; give its address too, and say it is unlisted until \`draft\` is removed. ` : ""}Skip background and repetition. Keep it under 1,200 characters.`;
+${receiptFile ? receiptInstructions(receiptFile) + "\n\n" : ""}Your final response will be posted back to Discord, so its shape depends on what the request was. If it was a question or a diagnosis and you changed nothing: begin the reply with a line containing only [answer], then give the answer and nothing else — no status line, no bullets about checks, commits or deployment, and do not say that nothing was changed; the reader asked a question and wants the answer. If you changed something: one status line, then at most three short bullets covering the change, the checks, and the commit or the blocker. ${siteUrl ? `A page you published or changed is named by its full address on its own line — ${siteUrl}/blog/<slug>, ${siteUrl}/docs/<path> and so on — never by a bare path like /blog/<slug>: the reader is in a chat window and wants something to click. A draft — a page written with \`draft: true\`, which is what "write a draft" asks for — has that same address and is reachable by anyone with the link, but is on no listing, no feed and not in the sitemap, and search engines are told to ignore it; give its address too, and say it is unlisted until \`draft\` is removed. ` : ""}Skip background and repetition. Keep it under 1,200 characters.`;
 }
