@@ -15,10 +15,15 @@ For other topics, search `HANDOFF-history-2026-09-13.md` by term, then read that
 Website submission form, repository-backed publishing, and Discord intake/moderation
 are implemented. See [submission operations](DISCORD_AGENT.md#submission-operations)
 and the [public guide](../data/docs/01_start/07_submit-a-recomp/index.md).
-The existing Discord process still needs an owner-authorized restart to load
-this change; its persistent job configuration is unchanged.
+The owner-authorized Discord restart completed on 2026-09-15; the new process
+reported ready, and the live submission API and guide responded successfully.
+Community instructions are [posted in general](https://discord.com/channels/1514467450429640824/1514467451201523846/1549508402080776213).
+Blocked: Discord returns `403 / 50001 Missing Access` for the bot on admin
+channel `1523871171551039649`. Admin announcements and submission review notices
+need that channel to grant the bot View Channel, Send Messages, Read Message
+History, and Add Reactions. The public announcement discloses this limitation.
 
 The Discord reporting follow-up preserves trusted request scope across turns
 and verifies completion receipts against committed source and the remote ref.
 See [context and completion reports](DISCORD_AGENT.md#context-and-completion-reports).
-It shares the pending bot restart above.
+It is loaded by the completed restart; implementation is in commit `5e5937e`.
