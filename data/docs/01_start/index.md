@@ -1,10 +1,10 @@
 ---
 title: "Start here"
-summary: "Six short pages for readers who know the emulator and porting scene, with technical ideas explained as plainly as possible."
+summary: "Short guides for readers who know the emulator and porting scene, with technical ideas explained as plainly as possible."
 sectionTitle: "Start here"
 pageType: "reference"
 tags: ["Orientation"]
-updated: "2026-08-31"
+updated: "2026-09-15"
 ---
 
 Start here if you know emulators and fan-made ports, but static recompilation is new to you.
@@ -21,3 +21,5 @@ The pages explain unfamiliar details as they appear and aim to be as beginner-fr
 - [How do I recomp my own game?](/docs/start/recomp-your-own-game). You own a game and want a port of it. Start here.
 
 When you want the ideas underneath, go to [Concepts](/docs/concepts). When you want a specific console, go to [Platforms](/docs/platforms).
+
+Have a project to share? [Submit a recomp](/docs/start/submit-a-recomp) explains how to add it to the Games catalogue.

@@ -1,0 +1,26 @@
+.submit-recomp-link { display: inline-flex; align-items: center; gap: 7px; color: var(--accent); font-size: 14px; white-space: nowrap; text-decoration: none; }
+.submit-recomp-link:hover { text-decoration: underline; }
+.hn-tab-head .submit-recomp-link { margin-left: auto; border-radius: 999px; background: var(--accent); color: white; padding: 10px 17px; font-weight: 500; }
+.hn-hero-actions .submit-recomp-link { align-self: center; padding: 12px 0; }
+.recomp-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 1px solid var(--hairline-2); border-radius: 24px; background: var(--bg); color: var(--ink); box-shadow: 0 24px 100px #0004; overflow-y: auto; margin: auto; }
+.recomp-dialog::backdrop { background: #0007; backdrop-filter: blur(8px); }
+.recomp-dialog-inner { padding: 44px 40px 32px; position: relative; }
+.recomp-close { position: absolute; top: 14px; right: 16px; width: 32px; height: 32px; border: 0; border-radius: 50%; background: var(--bg-soft); color: var(--muted); font-size: 25px; cursor: pointer; }
+.recomp-eyebrow { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+.recomp-dialog h2 { font-size: clamp(28px, 5vw, 36px); letter-spacing: -.04em; line-height: 1.1; margin: 0 0 14px; }
+#recomp-intro { color: var(--muted); font-size: 15px; line-height: 1.5; margin-bottom: 26px; }
+.recomp-dialog label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin: 18px 0 8px; }
+.recomp-dialog label span { font-weight: 400; color: var(--muted); }
+.recomp-dialog input, .recomp-dialog textarea { display: block; box-sizing: border-box; width: 100%; font: inherit; font-size: 16px; border: 1px solid var(--hairline); background: var(--bg-soft); color: var(--ink); border-radius: 10px; padding: 12px 14px; }
+.recomp-dialog textarea { resize: vertical; min-height: 90px; }
+.recomp-dialog :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.recomp-help, .recomp-note { font-size: 12px; line-height: 1.5; color: var(--muted); }
+.recomp-help { margin: 7px 0 0; }
+.recomp-note { margin: 20px 0; }
+.recomp-primary { display: block; text-align: center; width: 100%; box-sizing: border-box; border: 0; border-radius: 999px; background: var(--accent); color: white; padding: 13px 20px; font: inherit; font-size: 15px; cursor: pointer; text-decoration: none; }
+.recomp-primary:disabled { opacity: .6; cursor: wait; }
+.recomp-guide, .recomp-another { display: block; text-align: center; color: var(--accent); font-size: 13px; margin: 16px auto 0; }
+.recomp-another { border: 0; background: transparent; cursor: pointer; }
+.recomp-error { font-size: 14px; color: var(--ink); border-left: 3px solid #d64c35; padding-left: 12px; line-height: 1.5; }
+.recomp-result p { color: var(--muted); line-height: 1.5; margin: 12px 0 24px; }
+@media (max-width: 520px) { .recomp-dialog-inner { padding: 44px 24px 26px; } .hn-tab-head { flex-wrap: wrap; } .hn-tab-head .submit-recomp-link { padding: 9px 12px; font-size: 12px; } }

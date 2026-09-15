@@ -40,6 +40,7 @@ import "./styles/16-subscribe-corner.css";
 // The /team page. Appended last per the partial ordering; it only adds .team-*
 // classes of its own, so it neither depends on nor disturbs the cascade above.
 import "./styles/17-team.css";
+import "./styles/18-submissions.css";
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Missing #root element");

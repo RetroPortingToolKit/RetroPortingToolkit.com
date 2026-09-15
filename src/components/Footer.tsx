@@ -3,6 +3,7 @@ import { SITE_TOOLS_PATH } from "@/lib/siteToolPaths";
 import { SmartLink } from "./SmartLink";
 import { FeedFooterLink } from "./FeedLink";
 import { DiscordFooterLink } from "./DiscordLink";
+import { SubmitRecompLink } from "./SubmitRecomp";
 import { SITE } from "@/lib/site";
 
 function GitHubGlyph() {
@@ -43,6 +44,7 @@ export function Footer() {
               every page: someone whose browser just offered them "site tools"
               needs somewhere to read what those are. */}
           <div className="site-footer-elsewhere">
+            <SubmitRecompLink />
             <SmartLink href={SITE_TOOLS_PATH}>Site tools for browser agents</SmartLink>
             {/* The org every project on this site is published from. A plain
                 <a>: it leaves the site, so it is a real navigation. */}

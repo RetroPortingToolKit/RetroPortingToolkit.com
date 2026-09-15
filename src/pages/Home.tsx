@@ -1,3 +1,4 @@
+import { SubmitRecompLink } from "../components/SubmitRecomp";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -209,6 +210,7 @@ function TabGrid({
           <span className="hn-tab-count">{shownCount}</span>
           {/* Only the blog has a feed, so only the blog offers one. */}
           {kind === "blog" && <FeedButton />}
+          {kind === "game" && <SubmitRecompLink />}
         </header>
         <p className="blog-tab-sub">{GRID_SUBS[kind]}</p>
         {kind === "game" && gameFilters.length > 1 && (
@@ -442,10 +444,11 @@ function TabContent({
                 >
                   Explore platforms
                 </a>
+                <SubmitRecompLink />
               </div>
               <p className="hn-hero-note">
                 You provide your own game files. No copyrighted game data is
-                included.
+                included. <a href="/docs/start/submit-a-recomp">How to submit your project</a>.
               </p>
             </div>
           </header>
@@ -689,7 +692,7 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
         return;
       if (window.location.pathname !== TAB_PATH[tab]) return;
       if (document.body.classList.contains("modal-open")) return;
-      if (document.querySelector(".avatar-lightbox")) return;
+      if (document.querySelector(".avatar-lightbox, .recomp-dialog[open]")) return;
       if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
         const i = TAB_ORDER.indexOf(tab);
         const next = TAB_ORDER[i + (e.key === "ArrowRight" ? 1 : -1)];
@@ -858,7 +861,7 @@ export default function Home({ tab = "home" }: { tab?: TabId }) {
     const blocked = () =>
       window.location.pathname !== TAB_PATH[tab] ||
       document.body.classList.contains("modal-open") ||
-      !!document.querySelector(".avatar-lightbox");
+      !!document.querySelector(".avatar-lightbox, .recomp-dialog[open]");
 
     const drive = (delta: number) => {
       g.offset += delta;

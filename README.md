@@ -33,6 +33,15 @@ with GitHub. Write, upload images and video, preview live as you type, publish.
 Good for a post, a fix, or a quick edit from a machine without a checkout. It
 commits to `main` under your name, so it deploys like any other push.
 
+## Community submissions
+
+Anyone can use **Submit a recomp** on Games, the home page, or the footer to
+share a public GitHub/GitLab repository. The narrow `/api/submissions` endpoint
+creates a new game page and a record in `data/submissions.json`; it cannot edit
+existing pages. The Discord bot accepts the same submissions and delivers
+moderation notices. See [the submission guide](data/docs/01_start/07_submit-a-recomp/index.md)
+and [bot operations](docs/DISCORD_AGENT.md#submission-operations).
+
 ## Content
 
 Content is plain files under `data/`, read at build time by

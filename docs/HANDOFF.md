@@ -9,3 +9,11 @@
 - [Meet the Team, first draft (2026-09-08, branch `meet-the-team`)](HANDOFF-history-2026-09-13.md#meet-the-team-first-draft-2026-09-08-branch-meet-the-team)
 
 For other topics, search `HANDOFF-history-2026-09-13.md` by term, then read that section. Implementation and checks are in their source files and git history; this entry point does not duplicate them.
+
+## Current work: public game submissions (2026-09-15)
+
+Website submission form, repository-backed publishing, and Discord intake/moderation
+are implemented. See [submission operations](DISCORD_AGENT.md#submission-operations)
+and the [public guide](../data/docs/01_start/07_submit-a-recomp/index.md).
+The existing Discord process still needs an owner-authorized restart to load
+this change; its persistent job configuration is unchanged.

@@ -1,3 +1,4 @@
+import { SubmitRecompDialog } from "./components/SubmitRecomp";
 import { lazy, Suspense } from "react";
 import {
   BrowserRouter,
@@ -289,6 +290,7 @@ function AppRoutes() {
         </Suspense>
         <Footer />
       </div>
+      <SubmitRecompDialog />
 
       {/* One <Routes> per modal layer, keyed by DEPTH (not path) so sibling
           navigation inside a layer reconciles in place while opening/closing

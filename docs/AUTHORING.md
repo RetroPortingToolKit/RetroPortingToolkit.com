@@ -237,3 +237,11 @@ npm run build
 The build fails on a referenced asset that does not exist, which is the mistake
 worth catching before anyone sees the page. `npm run typecheck` and `npm run
 test` cover the rest.
+
+## Community-submitted games
+
+Pages created by `/api/submissions` carry `submissionId`. Preserve it when
+editing: Discord moderation verifies that identity before changing the page.
+The corresponding record lives in `data/submissions.json`. Confirming updates
+its review status; removing sets `draft: true` and preserves the page content.
+The public form cannot replace an existing page or resubmit a removed repo.
