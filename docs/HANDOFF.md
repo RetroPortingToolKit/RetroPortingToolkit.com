@@ -18,10 +18,11 @@ and the [public guide](../data/docs/01_start/07_submit-a-recomp/index.md).
 The owner-authorized Discord restart completed on 2026-09-15; the new process
 reported ready, and the live submission API and guide responded successfully.
 Community instructions are [posted in general](https://discord.com/channels/1514467450429640824/1514467451201523846/1549508402080776213).
-Blocked: Discord returns `403 / 50001 Missing Access` for the bot on admin
-channel `1523871171551039649`. Admin announcements and submission review notices
-need that channel to grant the bot View Channel, Send Messages, Read Message
-History, and Add Reactions. The public announcement discloses this limitation.
+The owner selected #website for review notices and publication reports. Local
+`config.env` sets `DISCORD_ADMIN_CHANNEL_ID="1543379435246592001"`; the bot was
+restarted with that override. Sending, reading, and reacting were verified on
+the [shipping announcement](https://discord.com/channels/1514467450429640824/1543379435246592001/1549512702571970590).
+The general announcement reflects the working destination; no access blocker remains.
 
 The Discord reporting follow-up preserves trusted request scope across turns
 and verifies completion receipts against committed source and the remote ref.
