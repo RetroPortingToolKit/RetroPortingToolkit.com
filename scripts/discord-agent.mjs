@@ -241,10 +241,12 @@ async function persistJobs() {
  */
 const SUPPRESS_EMBEDS = 1 << 2;
 
-async function deliver({ channelId, messageId, content, ping = false, suppressMentions = false, suppressEmbeds = true }) {
+async function deliver({ channelId, messageId, content, ping = false, suppressMentions = false, suppressEmbeds = true, mentionUsers = [] }) {
   const channel = await client.channels.fetch(channelId);
+  // `mentionUsers` names the only users a suppressed message may still ping,
+  // such as the person whose submission the reply is about.
   const allowedMentions = suppressMentions
-    ? { parse: [], repliedUser: ping }
+    ? { parse: [], repliedUser: ping, ...(mentionUsers.length ? { users: mentionUsers } : {}) }
     : { repliedUser: ping };
   // No preview cards on anything the bot posts. Every published page is named
   // by its address, and Discord would unfurl each one into a card the size

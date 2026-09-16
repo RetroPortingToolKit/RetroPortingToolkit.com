@@ -29,7 +29,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     delete state.intake[key];
     await save();
     const auto = intake.trusted && !result.duplicate;
-    await send({ ...intake.ref, content: `${result.message}${auto ? ' As a team submission it is confirmed without review.' : ''}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true });
+    await send({ ...intake.ref, content: `<@${intake.ref.authorId}> ${result.message}${auto ? ' As a team submission it is confirmed without review.' : ''}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true, mentionUsers: [intake.ref.authorId] });
     await poll();
     // A trusted author's submission takes the same serialized path as a ✅.
     if (auto) await enqueue({ ref: intake.ref, request: `Moderate submission ${record.id}`, messageUrl: intake.url,
@@ -52,7 +52,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     try { await postIntake(key, item); await message.react('✅').catch(() => {}); }
     catch (error) {
       delete state.intake[key]; await save();
-      await send({ ...ref, content: `${error.message} You can retry safely; duplicate repositories are detected.`, ping: true, suppressMentions: true });
+      await send({ ...ref, content: `<@${ref.authorId}> ${error.message} You can retry safely; duplicate repositories are detected.`, ping: true, suppressMentions: true, mentionUsers: [ref.authorId] });
     }
     return true;
   }
@@ -133,7 +133,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
       // canonical repository key makes resubmitting this durable input safe.
       for (const [key, item] of Object.entries(state.intake)) {
         try { await postIntake(key, item); }
-        catch { await send({ ...item.ref, content: 'Your submission was interrupted. Please retry; duplicates are detected.', ping: true }); delete state.intake[key]; await save(); }
+        catch { await send({ ...item.ref, content: `<@${item.ref.authorId}> Your submission was interrupted. Please retry; duplicates are detected.`, ping: true, suppressMentions: true, mentionUsers: [item.ref.authorId] }); delete state.intake[key]; await save(); }
       }
       await poll();
     },
