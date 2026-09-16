@@ -258,6 +258,24 @@ function DiscordGlyph() {
   );
 }
 
+/** Dated notes from the page's owner, newest first. */
+export function UpdatesBlock({ item, delay = 500 }: { item: Item; delay?: number }) {
+  if (!item.updates?.length) return null;
+  return (
+    <section className="page-updates blur-in" style={delayed(delay)} aria-label="What's new">
+      <h3 className="page-updates-title">What&rsquo;s new</h3>
+      <ul className="page-updates-list">
+        {item.updates.slice(0, 5).map((u) => (
+          <li key={u.date + u.text}>
+            <time dateTime={u.date}>{u.date}</time>
+            <span>{u.text}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 export function CreatorLine({ item, delay = 260 }: { item: Item; delay?: number }) {
   const creator = creatorOf(item);
   if (!creator) return null;
@@ -562,6 +580,7 @@ function LabSplit({
               </Markdown>
             </div>
           )}
+          <UpdatesBlock item={item} delay={500} />
           <LinksBlock links={item.links} delay={520} mediaActive={mediaActive} />
           {item.kind !== "blog" && (
           <p className="game-data-notice blur-in" style={delayed(480)}>

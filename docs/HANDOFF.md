@@ -64,3 +64,9 @@ hand-posted bot changelogs.
 edit them in the CMS, `/creators` lists everyone, game pages have a Download
 button, and the bot records new releases (`scripts/repo-updates.mjs`) and
 announces them in #website.
+
+2026-09-17: "What's new" notes on game pages (`scripts/page-updates.mjs`),
+editable in the CMS and from Discord via `update /games/<slug> …`
+(`scripts/owner-updates.mjs`); notes are announced in #website. Team-owned
+repositories carry the member's Discord name in the credit. Discord roles for
+contributors are deferred until roles exist on the server.

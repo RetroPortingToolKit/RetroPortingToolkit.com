@@ -49,6 +49,10 @@ describe('site change watcher', () => {
     const again = siteChangeWatcher(f.args); await again.start();
     expect(f.send).toHaveBeenCalledOnce();
   });
+  it("announces a page's new note in the owner's words", () => {
+    const pages = pageChanges([{ filename: 'data/games/72_lufia/index.md', status: 'modified', additions: 3, deletions: 0, patch: '+updates:\n+  - date: "2026-09-16"\n+    text: "Saves now work."\n' }]);
+    expect(changeReport(pages, { siteUrl: 'https://site' })).toBe('🚀 Site updated\n• lufia: “Saves now work.” https://site/games/lufia');
+  });
   it('says nothing for code-only or trivial pushes but still moves on', async () => {
     const f = await fixture({ heads: [head('a', 60), head('b', 10)], files: [{ filename: 'api/cms.ts', status: 'modified', additions: 3, deletions: 1 }] });
     await f.watcher.start();

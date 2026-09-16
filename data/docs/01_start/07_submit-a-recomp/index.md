@@ -42,6 +42,8 @@ The page says "Made by" the repository owner or namespace reported by GitHub or 
 
 ## Editing your page
 
+The confirmation includes an edit link. You can also update your page from Discord: mention the bot with **update**, your page address, and what changed, for example `@RetroPortingToolkit Bot update /games/your-game status: Playable; news: Saves now work.` The note appears under "What's new" on the page and is announced in the website channel.
+
 The confirmation includes an edit link. Open it and sign in with the GitHub account that owns the repository: you can then change the text, upload or replace the cover, and add screenshots. Saving publishes within a couple of minutes. You see only your own pages; creating, renaming, or deleting pages stays with the team. For Discord submissions, the moderation notice also includes your Discord username and original message; it provides a fallback if repository attribution is unavailable.
 
 The page becomes visible without waiting for review. The team receives a notice and can confirm it with ✅ or remove it from listings with ❌. Removed pages retain their unlisted direct URL. Moderators can edit the page through the normal editor.

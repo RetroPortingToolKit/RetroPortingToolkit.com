@@ -1689,6 +1689,40 @@ button {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.page-updates {
+  margin: 8px 0 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--hairline, rgba(0, 0, 0, 0.1));
+  border-radius: 14px;
+}
+.page-updates-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted, #6b6b6b);
+}
+.page-updates-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+.page-updates-list li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+.page-updates-list time {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted, #6b6b6b);
+  font-size: 12.5px;
+}
 .project-cta--download {
   background: transparent;
   color: var(--ink);

@@ -1,5 +1,5 @@
 import team from "@data/team.json";
-import { teamMemberByName } from "../../scripts/authors.mjs";
+import { teamMemberByName, teamMemberByGithub } from "../../scripts/authors.mjs";
 import type { Creator, Item } from "./types";
 
 /** The code-host owner of a repository URL, or null for anything else. */
@@ -21,8 +21,13 @@ export function creatorOf(item: Item): Creator | null {
     const creator = { github: handle("GitHub"), discord: handle("Discord") };
     if (creator.github || creator.discord) return creator;
   }
-  if (item.provenance !== "core") return repoOwner(item.repo);
-  return null;
+  if (item.provenance === "core") return null;
+  const owner = repoOwner(item.repo);
+  if (!owner) return null;
+  // A repository owned by a team member carries their Discord name too.
+  const teammate = owner.github ? teamMemberByGithub(team, owner.github) : null;
+  const discord = teammate?.handles?.find((h) => h.label === "Discord")?.value?.split(/[\s,]/)[0]?.replace(/^@/, "");
+  return discord ? { ...owner, discord } : owner;
 }
 
 export function creatorLogin(creator: Creator): string {

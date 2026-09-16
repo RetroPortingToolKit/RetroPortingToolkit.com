@@ -260,6 +260,19 @@ line links there. A game page shows a Download button when it has
 `download: "https://…"`, which the bot sets to the latest release when the
 repository publishes one.
 
+Game pages take `updates`, a list of dated notes newest first, rendered as
+"What's new" above the links:
+
+```yaml
+updates:
+  - date: "2026-09-16"
+    text: "Saves now work."
+```
+
+The editor's "What's new" field adds and removes them; the bot's `update`
+command and the shared `scripts/page-updates.mjs` write the same block. A new
+note is announced in the website channel.
+
 The owner of a repository named on any game page, or of a submitted repository, can sign in to `/admin` with that GitHub
 account and edit those pages, including their covers, and nothing else. The
 grant comes from `data/submissions.json` and each game page's `repo`.

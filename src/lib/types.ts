@@ -108,6 +108,8 @@ export interface Item {
   creator?: Creator;
   /** Where builds are published; the host's releases page when absent. */
   download?: string;
+  /** Dated "What's new" notes, newest first. */
+  updates?: { date: string; text: string }[];
   videoUrl?: string;
   coverBgSize?: string;
   coverBgPos?: string;

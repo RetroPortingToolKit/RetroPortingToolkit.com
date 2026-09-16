@@ -7,6 +7,7 @@ describe("creators", () => {
     expect(creatorOf(item({ creator: { github: "a" }, repo: "https://github.com/b/c" }))).toEqual({ github: "a" });
     expect(creatorOf(item({ authors: ["Shokunin"] }))).toMatchObject({ github: expect.any(String) });
     expect(creatorOf(item({ repo: "https://github.com/DerrickGold/ar-recomp" }))).toEqual({ github: "DerrickGold" });
+    expect(creatorOf(item({ repo: "https://github.com/mstan/TombaRecomp" }))).toEqual({ github: "mstan", discord: "gamemaster" });
     expect(creatorOf(item({ repo: "https://gitlab.com/team/sub/game" }))).toEqual({ gitlab: "team" });
     expect(creatorOf(item({ repo: "https://github.com/RetroPortingToolKit/x", provenance: "core" }))).toBeNull();
     expect(creatorOf(item({}))).toBeNull();

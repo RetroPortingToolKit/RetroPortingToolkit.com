@@ -69,7 +69,7 @@ export function pageChanges(files) {
   const pages = new Map();
   const entry = (kind, folder) => {
     const key = `${kind}/${folder}`;
-    if (!pages.has(key)) pages.set(key, { kind, folder, path: `data/${kind}/${folder}/index.md`, created: false, removed: false, lines: 0, cover: false, draft: null, media: 0 });
+    if (!pages.has(key)) pages.set(key, { kind, folder, path: `data/${kind}/${folder}/index.md`, created: false, removed: false, lines: 0, cover: false, draft: null, media: 0, notes: [] });
     return pages.get(key);
   };
   for (const file of files) {
@@ -81,6 +81,11 @@ export function pageChanges(files) {
       e.lines += (file.additions ?? 0) + (file.deletions ?? 0);
       const patch = file.patch ?? '';
       if (/^[+-]cover:/m.test(patch)) e.cover = true;
+      for (const note of patch.matchAll(/^\+\s+text:\s*(.+)$/gm)) {
+        let text = note[1].trim();
+        try { text = JSON.parse(text); } catch { text = text.replace(/^["']|["']$/g, ''); }
+        if (text) e.notes.push(String(text));
+      }
       const draft = patch.match(/^\+draft:\s*(true|false)/m);
       if (draft) e.draft = draft[1] === 'true';
       continue;
@@ -106,6 +111,7 @@ export function changeReport(pages, { siteUrl = '' } = {}) {
     const link = `${siteUrl}${pageUrl(page)}`;
     if (page.removed) { lines.push(`• ${name}: ${KIND[page.kind]} removed`); continue; }
     if (page.created) { lines.push(`• New ${KIND[page.kind]}: ${name} ${link}`); continue; }
+    if (page.notes?.length) { lines.push(`• ${name}: ${page.notes.map((n) => `“${n}”`).join(' ')} ${link}`); continue; }
     const what = [];
     if (page.draft === false) what.push('published');
     if (page.draft === true) what.push('unlisted');

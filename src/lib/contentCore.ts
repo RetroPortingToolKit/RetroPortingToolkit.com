@@ -217,6 +217,15 @@ function asGallery(v: unknown, baseDir: string, assetUrls: AssetUrlMap): Gallery
   return out;
 }
 
+function asUpdates(v: unknown): { date: string; text: string }[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const list = v
+    .filter((x): x is Record<string, unknown> => !!x && typeof x === "object")
+    .map((x) => ({ date: asString(x.date), text: asString(x.text).trim().slice(0, 300) }))
+    .filter((x) => /^\d{4}-\d{2}-\d{2}$/.test(x.date) && x.text)
+    .sort((a, b) => b.date.localeCompare(a.date));
+  return list.length ? list : undefined;
+}
 function asCreator(v: unknown): Creator | undefined {
   if (!v || typeof v !== "object") return undefined;
   const o = v as Record<string, unknown>;
@@ -335,6 +344,7 @@ function parseItem(path: string, raw: string, assetUrls: AssetUrlMap): Item | nu
     gallery,
     links: asLinks(fm.links),
     creator: asCreator(fm.creator),
+    updates: asUpdates(fm.updates),
     download: /^https:\/\//.test(asString(fm.download)) ? asString(fm.download) : undefined,
     body: resolveBodyMedia(body.trim(), baseDir, assetUrls),
     order,

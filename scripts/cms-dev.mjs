@@ -11,6 +11,7 @@
 // (YAML, validated on save) + body; home.json as validated JSON; the few
 // copy-bearing TSX/TS files as raw text.
 import fs from "node:fs";
+import { parseUpdates } from "./page-updates.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { execFile } from "node:child_process";
@@ -387,10 +388,11 @@ export function mdFields(fmText) {
       sectionTitle: typeof fm.sectionTitle === "string" ? fm.sectionTitle : "",
       draft: fm.draft === true,
       featured: fm.featured === true,
+      updates: parseUpdates(fmText),
       tags: Array.isArray(fm.tags) ? fm.tags.filter((t) => typeof t === "string") : [],
     };
   } catch {
-    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authors: [], authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, tags: [] };
+    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authors: [], authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, updates: [], tags: [] };
   }
 }
 

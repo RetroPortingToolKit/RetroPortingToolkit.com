@@ -12,6 +12,7 @@
 // Chrome comes from src/styles/apple.css (scoped to .applecms), the same Apple
 // HIG token set and component vocabulary this markup was written against.
 import teamRoster from "@data/team.json";
+import { addUpdate, setUpdates } from "../../scripts/page-updates.mjs";
 import { teamMemberByGithub } from "../../scripts/authors.mjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SITE } from "@/lib/site";
@@ -59,6 +60,8 @@ interface MdFields {
   draft: boolean;
   /** promoted onto the home strips */
   featured: boolean;
+  /** games: dated "What's new" notes, newest first */
+  updates: { date: string; text: string }[];
   tags: string[];
 }
 
@@ -79,6 +82,7 @@ const EMPTY_FIELDS: MdFields = {
   sectionTitle: "",
   draft: false,
   featured: false,
+  updates: [],
   tags: [],
 };
 interface HomeRecGroup {
@@ -1060,6 +1064,23 @@ export default function Admin() {
   const wordCount = useMemo(() => (body.trim() ? body.trim().split(/\s+/).length : 0), [body]);
   const readMinutes = Math.max(1, Math.round(wordCount / 200));
 
+  // "What's new": one line per note, newest first; the bot and the watcher
+  // read the same block, so a posted note is announced in the website channel.
+  const [newUpdate, setNewUpdate] = useState("");
+  const postUpdate = () => {
+    const text = newUpdate.trim();
+    if (!text) return;
+    setFrontmatter((fm) => addUpdate(fm, text));
+    setQ((p) => ({ ...p, updates: [{ date: new Date().toISOString().slice(0, 10), text }, ...p.updates].slice(0, 20) }));
+    setNewUpdate("");
+  };
+  const removeUpdate = (index: number) => {
+    setQ((p) => {
+      const updates = p.updates.filter((_, i) => i !== index);
+      setFrontmatter((fm) => setUpdates(fm, updates));
+      return { ...p, updates };
+    });
+  };
   const patchBool = (key: "draft" | "featured", value: boolean) => {
     setQ((p) => ({ ...p, [key]: value }));
     setFrontmatter((fm) => setBool(fm, key, value));
@@ -1773,6 +1794,33 @@ export default function Admin() {
                             />
                           </Field>
                         </div>
+                      )}
+
+                      {openKind === "games" && (
+                        <Field label="What's new">
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <input
+                              style={{ ...styles.input, flex: 1 }}
+                              value={newUpdate}
+                              onChange={(e) => setNewUpdate(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); postUpdate(); } }}
+                              maxLength={300}
+                              placeholder="One line about what changed, e.g. Saves now work"
+                            />
+                            <button className="cmsx-ghost" style={styles.ghostBtn} disabled={!newUpdate.trim()} onClick={postUpdate}>Add note</button>
+                          </div>
+                          {q.updates.length > 0 && (
+                            <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0, display: "flex", flexDirection: "column", gap: 4 }}>
+                              {q.updates.map((u, i) => (
+                                <li key={u.date + u.text} style={{ display: "flex", gap: 10, alignItems: "baseline", font: "400 12.5px/1.4 var(--ac-font-text)" }}>
+                                  <span style={{ color: "var(--ac-label-2)", fontVariantNumeric: "tabular-nums" }}>{u.date}</span>
+                                  <span style={{ flex: 1 }}>{u.text}</span>
+                                  <button className="cmsx-ghost" style={styles.ghostBtn} onClick={() => removeUpdate(i)} aria-label={`Remove note from ${u.date}`}>Remove</button>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </Field>
                       )}
 
                       {openKind === "blog" && (

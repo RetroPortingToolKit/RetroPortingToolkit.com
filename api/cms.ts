@@ -8,6 +8,7 @@
 // (Contents read/write). On a preview deployment it commits to the branch it was
 // built from; in production it commits to main.
 import crypto from "node:crypto";
+import { parseUpdates } from "../scripts/page-updates.mjs";
 import yaml from "js-yaml";
 import { authorsOf, canonicalAuthors, teamMemberByGithub, type Team } from "../scripts/authors.mjs";
 import { SUBMISSIONS_PATH } from "../scripts/submissions.mjs";
@@ -672,10 +673,11 @@ export function mdFields(fmText: string) {
       sectionTitle: str(fm.sectionTitle),
       draft: fm.draft === true,
       featured: fm.featured === true,
+      updates: parseUpdates(fmText),
       tags: Array.isArray(fm.tags) ? (fm.tags as unknown[]).filter((t) => typeof t === "string") : [],
     };
   } catch {
-    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authors: [] as string[], authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, tags: [] as string[] };
+    return { title: "", desc: "", kicker: "", date: "", cover: "", platform: "", status: "", repo: "", author: "", authors: [] as string[], authorAvatar: "", summary: "", pageType: "", sectionTitle: "", draft: false, featured: false, updates: [] as { date: string; text: string }[], tags: [] as string[] };
   }
 }
 

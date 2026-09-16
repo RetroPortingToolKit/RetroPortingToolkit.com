@@ -35,6 +35,14 @@ to everything else on the machine. The first run
 after install records the current head silently; state is `site-changes.json`
 in the state directory.
 
+A page's creator can update it from Discord without an agent:
+`@Bot update /games/<slug> status: Playable; news: Saves now work.` Fields are
+`status`, `description`, and `news` (a dated "What's new" note). The author
+must be the page's Discord creator, the team member owning its repository, or
+a trusted submitter. The edit is a frontmatter rewrite on the shared checkout
+with the usual checks, then a commit and push; a new note is announced in the
+website channel by the change watcher. Implementation: `scripts/owner-updates.mjs`.
+
 Game pages are kept current with their repositories: every hour
 (`DISCORD_REPO_UPDATE_POLL_MS`) the next slice of pages is checked for a new
 release on GitHub or GitLab, sized so every page is checked about once a day. A finding becomes a queued page update on the

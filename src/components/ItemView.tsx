@@ -5,7 +5,7 @@ import type { Item } from "@/lib/types";
 import { useMobile } from "@/lib/useMobile";
 import { itemsForCatalogKind } from "@/lib/catalogContent";
 import { pathFor } from "@/lib/contentCore";
-import { ItemDetail, ArticleByline, CreatorLine, blogIsSplit } from "./ItemDetail";
+import { ItemDetail, ArticleByline, CreatorLine, UpdatesBlock, blogIsSplit } from "./ItemDetail";
 import { Markdown } from "./Markdown";
 import { LazyProjectCarousel, type Slide } from "./LazyProjectCarousel";
 import { lockBody, scrollFocusTarget, unlockBody } from "@/lib/bodyLock";
@@ -518,6 +518,7 @@ function ProjectMobileView({ item, onClose, covered }: Props) {
                   {item.body}
                 </Markdown>
               )}
+              <UpdatesBlock item={item} delay={0} />
               {item.links.length > 0 && (
                 <div className="modal-links">
                   {item.links.map((l, i) => {

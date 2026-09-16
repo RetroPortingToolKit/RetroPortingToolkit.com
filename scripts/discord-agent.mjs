@@ -44,6 +44,8 @@ import { verifyCompletion, outcomeReaction } from "./discord-completion.mjs";
 import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs";
 import { siteChangeWatcher } from "./site-changes.mjs";
 import { repoUpdateWatcher, applyRepoUpdate, releaseAnnouncement } from "./repo-updates.mjs";
+import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
+import fsp from "node:fs/promises";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
 // The site's own address, read out of src/lib/site.ts: the one place a brand
 // string lives, so the bot never carries a domain of its own.
@@ -216,6 +218,7 @@ function jobRecord(job) {
     request: job.request,
     submissionModeration: job.submissionModeration ?? null,
     repoUpdate: job.repoUpdate ?? null,
+    ownerUpdate: job.ownerUpdate ?? null,
     context: job.context ?? "",
     startedAt: job.startedAt ?? null,
     startedHead: job.startedHead ?? null,
@@ -1062,6 +1065,12 @@ async function drainQueue() {
       job.phase = "running";
       const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
+    } else if (job.ownerUpdate) {
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
+      if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
+      job.phase = "running";
+      const summary = await applyOwnerUpdate({ root: ROOT, update: job.ownerUpdate, siteUrl: SITE.url, exec: checkedExec(job) });
+      report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.repoUpdate) {
       const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
@@ -1072,7 +1081,7 @@ async function drainQueue() {
       if (job.repoUpdate.announce && config.adminChannelId) await safeSend({ channelId: config.adminChannelId, content: releaseAnnouncement(job.repoUpdate, SITE.url), suppressMentions: true });
     } else report = await runPublish(job);
     await replyChunks(job.ref, report.heading, report.body, { suppressMentions: true });
-    if (!job.submissionModeration && !job.repoUpdate && report.published) await notifyAdminChannel(job, `${report.heading}\n${report.body}`);
+    if (!job.submissionModeration && !job.repoUpdate && !job.ownerUpdate && report.published) await notifyAdminChannel(job, `${report.heading}\n${report.body}`);
     outcome = outcomeReaction(report.outcome);
   } catch (error) {
     outcome = "❌";
@@ -1138,7 +1147,7 @@ async function recoverInterruptedJobs() {
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, repoUpdate: job.repoUpdate ?? null, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, repoUpdate: job.repoUpdate ?? null, ownerUpdate: job.ownerUpdate ?? null, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null });
   if (saved.active) {
     // An interrupted run is resumed when the tree is clean: that means it was
     // killed before it changed anything, usually while waiting for the
@@ -1192,6 +1201,28 @@ client.on("messageReactionAdd", (reaction, user) => {
   void submissions.reaction(reaction, user).catch(() => console.error("[discord-agent] submission reaction failed"));
 });
 
+/** "update /games/<slug> status: …; news: …" from the page's creator: a
+    frontmatter rewrite on the shared checkout, no agent involved. */
+async function ownerUpdate(message, ref, request) {
+  const parsed = parseOwnerRequest(request);
+  if (!parsed) return false;
+  const pagePath = await findGamePage(ROOT, parsed.slug);
+  if (!pagePath) { await safeSend({ ...ref, content: `There is no game page at /games/${parsed.slug}.`, ping: true, suppressMentions: true }); return true; }
+  const raw = await fsp.readFile(path.join(ROOT, pagePath), "utf8");
+  const allowed = config.trustedSubmitterIds.has(message.author.id) || (await isPageOwner(ROOT, raw, message.author.username));
+  if (!allowed) { await safeSend({ ...ref, content: "Only the page's creator can update it from here. If that is you, make sure your Discord name is on the page, or edit it in the site editor with your GitHub account.", ping: true, suppressMentions: true }); return true; }
+  const title = raw.match(/^title:\s*["']?(.+?)["']?\s*$/m)?.[1] ?? parsed.slug;
+  if (queue.some((item) => item.ownerUpdate?.path === pagePath) || running?.ownerUpdate?.path === pagePath) {
+    await safeSend({ ...ref, content: "An update to that page is already in progress. Send this again once it is done.", ping: true, suppressMentions: true });
+    return true;
+  }
+  await message.react("🔍").catch(() => {});
+  queue.push({ ref, request: `Update ${title} for its creator`, messageUrl: message.url, ownerUpdate: { ...parsed, path: pagePath, title, date: new Date().toISOString().slice(0, 10) } });
+  await persistJobs();
+  void drainQueue().catch((error) => console.error("[discord-agent] queue drain failed", error));
+  return true;
+}
+
 client.on("messageCreate", async (message) => {
   if (!client.user || message.author.bot || !message.guildId) return;
   let referenced = null;
@@ -1214,6 +1245,7 @@ client.on("messageCreate", async (message) => {
   };
   const request = stripBotMention(message.content, client.user.id);
   if (addressedByMention && await submissions.intake(message, ref, request, config.trustedSubmitterIds.has(message.author.id))) return;
+  if (addressedByMention && await ownerUpdate(message, ref, request)) return;
   if (mode === "ignore") return;
   if (mode === "denied") {
     await safeSend({
