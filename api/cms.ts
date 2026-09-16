@@ -146,7 +146,7 @@ export async function orgReady(): Promise<boolean> {
 // lets them edit their page and nothing else. The register is the source of
 // truth, read fresh at most once a minute per function instance.
 let scopeCache: { at: number; records: { owner: string; path: string; status: string }[] } | null = null;
-export function clearScopeCache(): void { scopeCache = null; }
+export function clearScopeCache(): void { scopeCache = null; ownersCache = null; }
 export async function contributorScope(login: string, now = Date.now()): Promise<string[]> {
   const want = login.trim().toLowerCase();
   if (!want) return [];
@@ -159,9 +159,30 @@ export async function contributorScope(login: string, now = Date.now()): Promise
       return [];
     }
   }
-  return scopeCache.records
+  const fromRegister = scopeCache.records
     .filter((r) => typeof r.owner === "string" && r.owner.toLowerCase() === want && r.status !== "removed" && isAllowed(r.path))
     .map((r) => r.path);
+  // Any game page whose repository this login owns is theirs to edit too,
+  // whether the team wrote it or it came through a submission.
+  const owned = (await repoOwners()).filter((p) => p.owner === want).map((p) => p.path);
+  return [...new Set([...fromRegister, ...owned])];
+}
+let ownersCache: { at: number; pages: { path: string; owner: string }[] } | null = null;
+async function repoOwners(now = Date.now()): Promise<{ path: string; owner: string }[]> {
+  if (ownersCache && now - ownersCache.at < 60_000) return ownersCache.pages;
+  try {
+    const paths = (await ghListTree()).map((e) => e.path).filter((p) => /^data\/games\/[^/]+\/index\.md$/.test(p));
+    const texts = await ghReadMany(paths);
+    const pages: { path: string; owner: string }[] = [];
+    for (const [p, raw] of texts) {
+      const owner = splitRaw(raw).fmText.match(/^repo:\s*["']?https:\/\/(?:github|gitlab)\.com\/([^/\s"']+)\//m)?.[1];
+      if (owner) pages.push({ path: p, owner: owner.toLowerCase() });
+    }
+    ownersCache = { at: now, pages };
+    return pages;
+  } catch {
+    return ownersCache?.pages ?? [];
+  }
 }
 /** Is this item within what the actor may touch? Full editors have no scope. */
 export function withinScope(actor: Actor | null, id: string): boolean {

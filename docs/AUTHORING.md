@@ -254,6 +254,11 @@ handles from `data/team.json` the same way. Submission pages get `creator`
 from the repository owner and, for Discord submissions, the submitter's
 username; the form also takes an optional Discord username.
 
-The owner of a submitted repository can sign in to `/admin` with that GitHub
-account and edit their own page, including its cover, and nothing else. The
-grant comes from `data/submissions.json` and ends when a submission is removed.
+A community game page without `creator` or `authors` is credited to the owner
+of its `repo`. `/creators` lists every creator and their pages; the "Made by"
+line links there. Game pages show a Download button: `download: "https://…"`
+when set, else the repository host's releases page.
+
+The owner of a repository named on any game page, or of a submitted repository, can sign in to `/admin` with that GitHub
+account and edit those pages, including their covers, and nothing else. The
+grant comes from `data/submissions.json` and each game page's `repo`.

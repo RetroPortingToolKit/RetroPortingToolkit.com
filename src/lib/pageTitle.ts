@@ -31,6 +31,10 @@ export function titleForTeam(): string {
   return `Meet the Team · ${SITE.title}`;
 }
 
+export function titleForCreators(): string {
+  return `Creators · ${SITE.title}`;
+}
+
 export function titleForTopic(topic: Topic): string {
   return `${topic.label} · ${SITE.title}`;
 }

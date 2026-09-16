@@ -1683,6 +1683,18 @@ button {
   margin: 0 1px 0 2px;
   color: #5865f2;
 }
+.creator-all {
+  font-size: 12.5px;
+  color: var(--muted, #6b6b6b);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.project-cta--download {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  margin-right: 8px;
+}
 
 .project-cta {
   display: inline-flex;

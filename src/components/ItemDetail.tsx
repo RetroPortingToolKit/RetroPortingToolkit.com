@@ -1,7 +1,8 @@
 import team from "@data/team.json";
-import { teamSlugFor, teamMemberByName } from "../../scripts/authors.mjs";
+import { teamSlugFor } from "../../scripts/authors.mjs";
+import { creatorOf, creatorLogin, creatorProfile, downloadUrl } from "@/lib/creators";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { Item, Creator } from "@/lib/types";
+import type { Item } from "@/lib/types";
 import { SITE } from "@/lib/site";
 import { itemsForCatalogKind } from "@/lib/catalogContent";
 import {
@@ -257,25 +258,11 @@ function DiscordGlyph() {
   );
 }
 
-/** The person behind a page: their code-host login, linked, and their Discord
-    name beside it. A page's own `creator` wins; otherwise the first listed
-    author's handles from data/team.json. */
-export function creatorOf(item: Item): Creator | null {
-  if (item.creator) return item.creator;
-  // Only a byline the page states itself; the site-wide default author is not a creator.
-  const named = item.authors?.length ? item.authors : item.author ? [item.author] : [];
-  const member = named.map((name) => teamMemberByName(team, name)).find(Boolean);
-  if (!member) return null;
-  const handle = (label: string) => member.handles?.find((h) => h.label === label)?.value?.split(/[\s,]/)[0]?.replace(/^@/, "");
-  const creator = { github: handle("GitHub"), discord: handle("Discord") };
-  return creator.github || creator.discord ? creator : null;
-}
-
 export function CreatorLine({ item, delay = 260 }: { item: Item; delay?: number }) {
   const creator = creatorOf(item);
   if (!creator) return null;
   const login = creator.github ?? creator.gitlab;
-  const profile = creator.github ? `https://github.com/${creator.github}` : creator.gitlab ? `https://gitlab.com/${creator.gitlab}` : "";
+  const profile = creatorProfile(creator);
   return (
     <p className="creator-line blur-in" style={delayed(delay)}>
       <span className="creator-label">Made by</span>{" "}
@@ -290,6 +277,7 @@ export function CreatorLine({ item, delay = 260 }: { item: Item; delay?: number 
           <span>{creator.discord}</span>)
         </span>
       )}
+      <SmartLink href={`/creators#${creatorLogin(creator)}`} className="creator-all">All pages</SmartLink>
     </p>
   );
 }
@@ -551,6 +539,11 @@ function LabSplit({
             </div>
           )}
           {item.kind !== "blog" && <CreatorLine item={item} delay={250} />}
+          {item.kind === "game" && downloadUrl(item) && (
+            <a className="project-cta project-cta--download blur-in" style={delayed(300)} href={downloadUrl(item)!} target="_blank" rel="noopener noreferrer">
+              Download <span className="ext">↗</span>
+            </a>
+          )}
           {item.kind !== "blog" && item.repo && (
             <a
               className="project-cta blur-in"
@@ -734,6 +727,11 @@ function DefaultDetail({ item, mediaActive }: { item: Item; mediaActive: boolean
                 )}
                 {item.kind === "game" && item.status && <span className="pill">{item.status}</span>}
                 <CreatorLine item={item} delay={0} />
+                {item.kind === "game" && downloadUrl(item) && (
+                  <a className="project-cta project-cta--download" href={downloadUrl(item)!} target="_blank" rel="noopener noreferrer">
+                    Download <span className="ext">↗</span>
+                  </a>
+                )}
                 {item.repo && (
                   <a
                     className="project-cta"
@@ -813,6 +811,11 @@ function DefaultDetail({ item, mediaActive }: { item: Item; mediaActive: boolean
               </div>
             )}
             {item.kind !== "blog" && <CreatorLine item={item} delay={250} />}
+            {item.kind === "game" && downloadUrl(item) && (
+              <a className="project-cta project-cta--download blur-in" style={delayed(300)} href={downloadUrl(item)!} target="_blank" rel="noopener noreferrer">
+                Download <span className="ext">↗</span>
+              </a>
+            )}
             {item.repo && (
               <a
                 className="project-cta blur-in"

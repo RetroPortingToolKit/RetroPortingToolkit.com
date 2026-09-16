@@ -138,6 +138,9 @@ export function collectItems() {
       gallery,
       kicker: typeof fm.kicker === "string" ? fm.kicker : "",
       draft: fm.draft === true,
+      repo: typeof fm.repo === "string" ? fm.repo : "",
+      provenance: typeof fm.provenance === "string" ? fm.provenance : "",
+      creator: fm.creator && typeof fm.creator === "object" ? fm.creator : null,
       body: (body || "").trim(),
       links: Array.isArray(fm.links)
         ? fm.links.filter((l) => l && typeof l.href === "string")
@@ -1291,6 +1294,36 @@ export function buildRouteMeta(origin) {
   // that resolves to NotFound. Add them back here alongside the React routes if
   // you build them.
 
+
+  // The creators page: everyone with a page, from the items already parsed.
+  {
+    const owner = (repo) => repo?.match(/^https:\/\/(?:github|gitlab)\.com\/([^/\s]+)\//i)?.[1] ?? null;
+    const byLogin = new Map();
+    for (const it of items) {
+      if (it.draft || it.kind === "blog" || it.kind === "docs") continue;
+      const login = it.creator?.github ?? it.creator?.gitlab ?? (it.provenance !== "core" ? owner(it.repo) : null);
+      if (!login) continue;
+      const key = login.toLowerCase();
+      if (!byLogin.has(key)) byLogin.set(key, { login, pages: [] });
+      byLogin.get(key).pages.push(it);
+    }
+    const creators = [...byLogin.values()].sort((a, b) => b.pages.length - a.pages.length || a.login.localeCompare(b.login));
+    add("/creators", {
+      title: `Creators · ${SITE_NAME}`,
+      description: `The people who made the projects on ${SITE_NAME}, and every page of theirs.`,
+      image: defaultImage,
+      url: `${origin}/creators`,
+      type: "website",
+      static: wrapStatic(
+        `<h1>Creators</h1>\n` +
+          creators
+            .map((c) => `<section id="${escapeAttr(c.login.toLowerCase())}"><h2>${escapeHtml(c.login)}</h2>\n<ul>${c.pages
+              .map((it) => `<li><a href="${escapeAttr(`/${KIND_SEGMENT[it.kind]}/${it.slug}`)}">${escapeHtml(it.title)}</a></li>`)
+              .join("")}</ul></section>`)
+            .join("\n"),
+      ),
+    });
+  }
 
   // The team page. Its copy lives in data/team.json rather than in an item
   // folder, because a person is not one of the four content kinds. This reads

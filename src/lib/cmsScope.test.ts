@@ -14,7 +14,8 @@ const cms = await import("../../api/cms");
 
 const page = (title: string, extra = "") => `---\ntitle: "${title}"\n${extra}---\n\nbody\n`;
 const files: Record<string, string> = {
-  "data/games/01_tomba/index.md": page("Tomba"),
+  "data/games/01_tomba/index.md": page("Tomba", 'repo: "https://github.com/Maker/tomba-recomp"\n'),
+  "data/games/04_other/index.md": page("Other", 'repo: "https://github.com/Else/other"\n'),
   "data/hardware/01_super-nintendo/index.md": page("Super Nintendo"),
   "data/games/02_game-abcd1234/index.md": page("Game", 'submissionId: "abcd1234abcd1234"\n'),
   "data/submissions.json": JSON.stringify([
@@ -32,7 +33,7 @@ const as = (login: string, route: string, init: RequestInit = {}) =>
   new Request(`https://site.test/api/cms?__sub=${route}`, { ...init, headers: { cookie: cookie(login), "content-type": "application/json", ...(init.headers || {}) } });
 
 beforeAll(() => {
-  vi.stubGlobal("fetch", async (input: RequestInfo | URL) => {
+  vi.stubGlobal("fetch", async function (input: RequestInfo | URL) {
     const url = String(input);
     const contents = /\/contents\/(.+?)(\?|$)/.exec(url);
     if (contents) {
@@ -40,6 +41,12 @@ beforeAll(() => {
       return file
         ? Response.json({ content: Buffer.from(file).toString("base64"), encoding: "base64", sha: sha(file) })
         : Response.json({ message: "Not Found" }, { status: 404 });
+    }
+    if (/\/graphql$/.test(url)) {
+      const query = JSON.parse(String((arguments[1] as RequestInit)?.body ?? "{}")).query as string;
+      const repo: Record<string, { text: string } | null> = {};
+      for (const m of query.matchAll(/(f\d+): object\(expression: "main:([^"]+)"\)/g)) repo[m[1]] = files[m[2]] ? { text: files[m[2]] } : null;
+      return Response.json({ data: { repository: repo } });
     }
     if (/\/git\/ref\/heads\//.test(url)) return Response.json({ object: { sha: "head" } });
     if (/\/git\/commits\/head$/.test(url)) return Response.json({ tree: { sha: "tree" } });
@@ -52,21 +59,21 @@ afterAll(() => vi.unstubAllGlobals());
 describe("contributor scope", () => {
   it("is the pages of the repositories a login owns, minus removed ones", async () => {
     cms.clearScopeCache();
-    expect(await cms.contributorScope("maker")).toEqual(["data/games/02_game-abcd1234/index.md"]);
+    expect(await cms.contributorScope("maker")).toEqual(["data/games/02_game-abcd1234/index.md", "data/games/01_tomba/index.md"]);
     expect(await cms.contributorScope("nobody")).toEqual([]);
   });
   it("lists and reads only the contributor's own page", async () => {
     const list = await (await cms.GET(as("maker", "list"))).json();
-    expect(list.groups).toEqual([{ group: "Your pages", items: [expect.objectContaining({ id: "data/games/02_game-abcd1234/index.md" })] }]);
+    expect(list.groups[0].items.map((i: { id: string }) => i.id).sort()).toEqual(["data/games/01_tomba/index.md", "data/games/02_game-abcd1234/index.md"]);
     expect(list.platforms).toEqual([{ slug: "super-nintendo", title: "Super Nintendo" }]);
-    expect((await cms.GET(as("maker", "read&id=data%2Fgames%2F01_tomba%2Findex.md"))).status).toBe(403);
+    expect((await cms.GET(as("maker", "read&id=data%2Fgames%2F04_other%2Findex.md"))).status).toBe(403);
     expect((await cms.GET(as("maker", "read&id=data%2Fgames%2F02_game-abcd1234%2Findex.md"))).status).toBe(200);
     const auth = await (await cms.GET(as("maker", "auth"))).json();
-    expect(auth.user).toMatchObject({ login: "maker", scope: ["data/games/02_game-abcd1234/index.md"] });
+    expect(auth.user.scope).toContain("data/games/02_game-abcd1234/index.md");
   });
   it("refuses writes outside the page and any structural change", async () => {
     const post = (route: string, body: unknown) => cms.POST(as("maker", route, { method: "POST", body: JSON.stringify(body) }));
-    expect((await post("save", { id: "data/games/01_tomba/index.md", frontmatter: "", body: "x" })).status).toBe(403);
+    expect((await post("save", { id: "data/games/04_other/index.md", frontmatter: "", body: "x" })).status).toBe(403);
     expect((await post("new", { kind: "games", title: "Mine" })).status).toBe(403);
     expect((await post("delete", { id: "data/games/02_game-abcd1234/index.md" })).status).toBe(403);
     expect((await post("rename", { id: "data/games/02_game-abcd1234/index.md", slug: "other" })).status).toBe(403);

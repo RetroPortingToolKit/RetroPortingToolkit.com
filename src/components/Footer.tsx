@@ -30,6 +30,7 @@ export function Footer() {
               needs somewhere to read what those are. */}
           <div className="site-footer-elsewhere">
             <SubmitRecompLink />
+            <SmartLink href="/creators">Creators</SmartLink>
             <SmartLink href={SITE_TOOLS_PATH}>Site tools for browser agents</SmartLink>
             {/* The org every project on this site is published from. A plain
                 <a>: it leaves the site, so it is a real navigation. */}

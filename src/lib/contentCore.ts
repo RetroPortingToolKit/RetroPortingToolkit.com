@@ -335,6 +335,7 @@ function parseItem(path: string, raw: string, assetUrls: AssetUrlMap): Item | nu
     gallery,
     links: asLinks(fm.links),
     creator: asCreator(fm.creator),
+    download: /^https:\/\//.test(asString(fm.download)) ? asString(fm.download) : undefined,
     body: resolveBodyMedia(body.trim(), baseDir, assetUrls),
     order,
     meta: asStringArray(fm.meta),

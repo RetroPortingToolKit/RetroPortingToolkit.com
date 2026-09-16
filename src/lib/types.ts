@@ -106,6 +106,8 @@ export interface Item {
   /** Who made the project: a code-host login and, when known, a Discord name.
       Team pages fall back to the author's handles in data/team.json. */
   creator?: Creator;
+  /** Where builds are published; the host's releases page when absent. */
+  download?: string;
   videoUrl?: string;
   coverBgSize?: string;
   coverBgPos?: string;
