@@ -1387,7 +1387,7 @@ export default function Admin() {
                 {publishing ? "Publishing..." : "Publish"}
               </button>
             )}
-            {isItemId(selected?.id) && (
+            {isItemId(selected?.id) && !scoped && (
               <button
                 className="ac-btn ac-btn-plain ac-danger"
                 onClick={deleteItem}
@@ -1476,7 +1476,7 @@ export default function Admin() {
                 <div className="ac-listview-count">
                   {currentItems.length} {currentItems.length === 1 ? "item" : "items"}
                 </div>
-                {newKind && (
+                {newKind && !scoped && (
                   <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
                     {newKind === "docs" && (
                       <select
@@ -1581,6 +1581,7 @@ export default function Admin() {
                           >
                             {it.draft ? "Draft" : "Building"}
                           </span>
+                          {!scoped && (
                           <button
                             className="ac-btn ac-btn-plain ac-danger"
                             disabled={rowBusy === it.id}
@@ -1588,6 +1589,7 @@ export default function Admin() {
                           >
                             {rowBusy === it.id ? "..." : "Delete"}
                           </button>
+                          )}
                         </>
                       )}
                     </div>
@@ -1647,18 +1649,22 @@ export default function Admin() {
                               games and blog only (src/lab/labContent.ts), so
                               featuring a docs page would do nothing. Draft is
                               the opposite: it works for every kind, so it stays. */}
-                          {openKind !== "docs" && (
+                          {openKind !== "docs" && !scoped && (
                             <label style={{ display: "inline-flex", alignItems: "center", gap: 6, font: "400 12.5px/1 var(--ac-font-text)", color: "var(--ac-label)" }}>
                               <input type="checkbox" checked={q.featured} onChange={(e) => patchBool("featured", e.target.checked)} style={{ width: "auto", boxShadow: "none" }} />
                               Featured
                             </label>
                           )}
+                          {!scoped && (
+                            <>
                           <button className="ac-btn ac-btn-plain" onClick={renameSlug} disabled={slugBusy}>
                             {slugBusy ? "..." : "Change address"}
                           </button>
                           <button className="ac-btn ac-btn-plain" onClick={duplicateItem} disabled={duplicating}>
                             {duplicating ? "..." : "Duplicate"}
                           </button>
+                            </>
+                          )}
                         </div>
                       )}
                       <Field label="Title">

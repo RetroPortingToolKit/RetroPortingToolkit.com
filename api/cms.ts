@@ -871,6 +871,16 @@ async function writeEditable(
     } catch (e) {
       return { ok: false, error: `invalid YAML frontmatter: ${(e as Error).message}` };
     }
+    if (actor?.scope) {
+      // A contributor edits their page's words and pictures. Promotion onto the
+      // home strips and the identity moderation checks stay with the team.
+      const next = (yaml.load(fm) || {}) as Record<string, unknown>;
+      const prev = (yaml.load(splitRaw(existing!.content).fmText) || {}) as Record<string, unknown>;
+      if (next.featured === true) return { ok: false, error: "Only the team can feature a page." };
+      for (const key of ["submissionId", "creator"] as const) {
+        if (JSON.stringify(next[key] ?? null) !== JSON.stringify(prev[key] ?? null)) return { ok: false, error: `Only the team can change ${key}.` };
+      }
+    }
     const body = String(payload.body ?? "").replace(/\s+$/, "");
     out = `---\n${fm.trim()}\n---\n\n${body}\n`;
   } else {

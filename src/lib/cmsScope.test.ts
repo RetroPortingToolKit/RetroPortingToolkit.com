@@ -69,6 +69,14 @@ describe("contributor scope", () => {
     expect((await post("delete", { id: "data/games/02_game-abcd1234/index.md" })).status).toBe(403);
     expect((await post("rename", { id: "data/games/02_game-abcd1234/index.md", slug: "other" })).status).toBe(403);
   });
+  it("lets a contributor save words but not promotion or identity", async () => {
+    const id = "data/games/02_game-abcd1234/index.md";
+    const read = await (await cms.GET(as("maker", `read&id=${encodeURIComponent(id)}`))).json();
+    const save = (frontmatter: string) => cms.POST(as("maker", "save", { method: "POST", body: JSON.stringify({ id, expectedBase: read.baseSha, frontmatter, body: "new words" }) }));
+    expect(await (await save('title: "Game"\nsubmissionId: "abcd1234abcd1234"\nfeatured: true')).json()).toMatchObject({ ok: false, error: "Only the team can feature a page." });
+    expect(await (await save('title: "Game"\nsubmissionId: "other"')).json()).toMatchObject({ ok: false, error: "Only the team can change submissionId." });
+    expect(await (await save('title: "Game"\nsubmissionId: "abcd1234abcd1234"\ncreator: {github: "someone"}')).json()).toMatchObject({ ok: false, error: "Only the team can change creator." });
+  });
   it("keeps a stranger out and a full editor unscoped", async () => {
     expect((await cms.GET(as("nobody", "list"))).status).toBe(401);
     const auth = await (await cms.GET(as("alice", "auth"))).json();
