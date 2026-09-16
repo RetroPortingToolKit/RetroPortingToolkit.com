@@ -14,9 +14,11 @@ group: "NES"
 links:
   - { label: "NESRecomp progress article (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-07-23"
+updated: "2026-07-01"
 added: "2026-04-10"
 cover: "/data/blog/20_nesrecomp-10-titles/DuckHuntRecomp_ALvjc1KEbx.png"
+release: "v1.1.0"
+download: "https://github.com/mstan/DuckHuntNESRecomp/releases/tag/v1.1.0"
 ---
 
 Duck Hunt needs hardware most modern setups do not have: the Zapper light gun and a CRT television.
