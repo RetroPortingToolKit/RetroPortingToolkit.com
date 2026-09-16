@@ -12,9 +12,11 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/FireRedLeafGreenRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
-updated: "2026-07-30"
+updated: "2026-07-17"
 added: "2026-06-22"
 cover: "./pokemon-firered.webp"
+release: "v0.0.3"
+download: "https://github.com/mstan/FireRedLeafGreenRecomp/releases/tag/v0.0.3"
 ---
 
 Pokemon FireRed and LeafGreen, the Kanto remakes, run as native PC games through [GBARecomp](/hardware/game-boy-advance).
