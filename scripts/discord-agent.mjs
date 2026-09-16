@@ -43,6 +43,7 @@ import { createTaskContext } from "./discord-task-context.mjs";
 import { verifyCompletion, outcomeReaction } from "./discord-completion.mjs";
 import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs";
 import { siteChangeWatcher } from "./site-changes.mjs";
+import { repoUpdateWatcher, applyRepoUpdate, releaseAnnouncement } from "./repo-updates.mjs";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
 // The site's own address, read out of src/lib/site.ts: the one place a brand
 // string lives, so the bot never carries a domain of its own.
@@ -140,6 +141,7 @@ const ATTACHMENT_FETCH_MS = 60_000;
 // hand is normal and usually brief, so a request parks and retries instead of
 // being thrown away.
 const SITE_CHANGE_POLL_MS = envMs("DISCORD_SITE_CHANGE_POLL_MS", 5 * 60 * 1_000);
+const REPO_UPDATE_POLL_MS = envMs("DISCORD_REPO_UPDATE_POLL_MS", 60 * 60 * 1_000);
 // The GitHub repository whose main branch deploys the site.
 const SITE_REPO = process.env.DISCORD_SITE_REPO || "RetroPortingToolKit/RetroPortingToolkit.com";
 const CHECKOUT_WAIT_MS = envMs("DISCORD_AGENT_WAIT_MS", 5 * 60 * 1_000);
@@ -213,6 +215,7 @@ function jobRecord(job) {
     messageUrl: job.messageUrl ?? null,
     request: job.request,
     submissionModeration: job.submissionModeration ?? null,
+    repoUpdate: job.repoUpdate ?? null,
     context: job.context ?? "",
     startedAt: job.startedAt ?? null,
     startedHead: job.startedHead ?? null,
@@ -278,6 +281,7 @@ async function deliver({ channelId, messageId, content, ping = false, suppressMe
  * reaction needs no permission beyond adding one.
  */
 async function markOutcome(ref, from, to) {
+  if (!ref?.messageId) return; // a scheduled job has no message to mark
   try {
     const channel = await client.channels.fetch(ref.channelId);
     const message = await channel.messages.fetch(ref.messageId);
@@ -1011,6 +1015,18 @@ async function deleteById(channelId, messageId) {
   } catch {}
 }
 
+/** Runs a checkout command for a queued job, stoppable like an agent task. */
+function checkedExec(job) {
+  return async (command, args) => {
+    if (job.stopRequested) throw new TaskStoppedError("Stopped.");
+    const task = execFileAsync(command, args, { cwd: ROOT, env: safeAgentEnv("codex"), maxBuffer: 8 * 1024 * 1024, timeout: 180_000 });
+    activeChild = task.child;
+    try { return await task; }
+    catch (error) { if (job.stopRequested) throw new TaskStoppedError("Stopped."); throw error; }
+    finally { activeChild = null; }
+  };
+}
+
 async function drainQueue() {
   if (running || !queue.length) return;
   running = queue.shift();
@@ -1036,19 +1052,19 @@ async function drainQueue() {
       const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
-      const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url,
-        exec: async (command, args) => {
-          if (job.stopRequested) throw new TaskStoppedError("Stopped.");
-          const task = execFileAsync(command, args, { cwd: ROOT, env: safeAgentEnv("codex"), maxBuffer: 8 * 1024 * 1024, timeout: 180_000 });
-          activeChild = task.child;
-          try { return await task; }
-          catch (error) { if (job.stopRequested) throw new TaskStoppedError("Stopped."); throw error; }
-          finally { activeChild = null; }
-        } });
+      const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
+    } else if (job.repoUpdate) {
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
+      if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
+      job.phase = "running";
+      const summary = await applyRepoUpdate({ root: ROOT, update: job.repoUpdate, siteUrl: SITE.url, exec: checkedExec(job) });
+      report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
+      // A release people have not seen is news for the website channel.
+      if (job.repoUpdate.announce && config.adminChannelId) await safeSend({ channelId: config.adminChannelId, content: releaseAnnouncement(job.repoUpdate, SITE.url), suppressMentions: true });
     } else report = await runPublish(job);
     await replyChunks(job.ref, report.heading, report.body, { suppressMentions: true });
-    if (!job.submissionModeration && report.published) await notifyAdminChannel(job, `${report.heading}\n${report.body}`);
+    if (!job.submissionModeration && !job.repoUpdate && report.published) await notifyAdminChannel(job, `${report.heading}\n${report.body}`);
     outcome = outcomeReaction(report.outcome);
   } catch (error) {
     outcome = "❌";
@@ -1114,7 +1130,7 @@ async function recoverInterruptedJobs() {
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, repoUpdate: job.repoUpdate ?? null, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null });
   if (saved.active) {
     // An interrupted run is resumed when the tree is clean: that means it was
     // killed before it changed anything, usually while waiting for the
@@ -1344,6 +1360,17 @@ client.once(Events.ClientReady, async () => {
   await siteChanges.start().catch((error) => console.error("[discord-agent] site change watch failed", error));
   const siteChangeTimer = setInterval(() => void siteChanges.tick().catch((error) => console.error("[discord-agent] site change watch failed", error)), SITE_CHANGE_POLL_MS);
   siteChangeTimer.unref();
+  // Repositories are checked in slices for new releases; each finding is a
+  // queued page update, run on the shared checkout like moderation.
+  const repoUpdates = repoUpdateWatcher({ root: ROOT, stateDir: STATE_DIR, enqueue: async (update) => {
+    if (queue.some((item) => item.repoUpdate?.path === update.path) || running?.repoUpdate?.path === update.path) return;
+    queue.push({ ref: { channelId: config.botChannelId, messageId: null, authorId: null }, request: `Record release ${update.tag} for ${update.title}`, messageUrl: "", repoUpdate: update });
+    await persistJobs();
+    void drainQueue().catch((error) => console.error("[discord-agent] queue drain failed", error));
+  } });
+  await repoUpdates.start().catch((error) => console.error("[discord-agent] repository watch failed", error));
+  const repoUpdateTimer = setInterval(() => void repoUpdates.tick().catch((error) => console.error("[discord-agent] repository watch failed", error)), REPO_UPDATE_POLL_MS);
+  repoUpdateTimer.unref();
 
 });
 client.on(Events.Error, (error) => console.error("[discord-agent] Discord client error", error));

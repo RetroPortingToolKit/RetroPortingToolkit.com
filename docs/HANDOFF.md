@@ -59,3 +59,8 @@ changes are posted to #rptk-bot (1549838020163797052) by hand after each restart
 only site change announcements; #rptk-bot (`DISCORD_BOT_CHANNEL_ID`, default
 1549838020163797052) gets task reports, submission notices, moderation, and
 hand-posted bot changelogs.
+
+2026-09-16 (late): Pages credit repository owners automatically, owners can
+edit them in the CMS, `/creators` lists everyone, game pages have a Download
+button, and the bot records new releases (`scripts/repo-updates.mjs`) and
+announces them in #website.

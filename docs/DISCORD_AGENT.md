@@ -32,6 +32,14 @@ a burst of saves is reported once, after three quiet minutes. The first run
 after install records the current head silently; state is `site-changes.json`
 in the state directory.
 
+Game pages are kept current with their repositories: every hour
+(`DISCORD_REPO_UPDATE_POLL_MS`) a slice of twelve pages is checked for a new
+release on GitHub or GitLab. A finding becomes a queued page update on the
+shared checkout, setting `release`, `download`, and `updated` in frontmatter
+after the usual checks, committed and pushed. The first release seen for a
+repository is recorded quietly; a later one is announced in
+`DISCORD_ADMIN_CHANNEL_ID`. State is `repo-updates.json` in the state directory.
+
 Submission notices appear in `DISCORD_BOT_CHANNEL_ID`, with repository
 ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
