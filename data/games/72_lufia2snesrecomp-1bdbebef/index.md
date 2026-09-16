@@ -29,4 +29,4 @@ A SNESRecomp port of the SNES RPG, playable from start to finish, with widescree
 
 Repository owner: **Cellenseres**. This identifies the repository namespace, not a verified submitter identity.
 
-This community submission has not yet been reviewed by the team. See the repository for supported platforms, setup instructions, and current progress. Supply your own game files where required.
+This community submission has been reviewed by the team. See the repository for supported platforms, setup instructions, and current progress. Supply your own game files where required.
