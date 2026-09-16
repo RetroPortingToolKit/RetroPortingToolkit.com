@@ -16,8 +16,6 @@ creator: {"github":"Cellenseres"}
 cover: "./images.png"
 ---
 
-![](./images.png)
-
 ![](./submission-1.png)
 
 A [SNESRecomp](/hardware/super-nintendo) port of the SNES RPG, playable from start to finish, with widescreen, rewind, and Windows and Linux builds that run on the Steam Deck.
