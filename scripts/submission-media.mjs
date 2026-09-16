@@ -69,10 +69,12 @@ export function readmeSummary(markdown, limit = 1700) {
     const out = [];
     let paragraph = [];
     const flush = () => { const value = text(paragraph.join(' ')); if (value && value.length >= 40 && /[.!?:]$/.test(value) && !/^\|/.test(value)) out.push(value); paragraph = []; };
+    let inBullet = false;
     for (const line of lines) {
       const bullet = line.match(/^\s*(?:[-*+]|\d+[.)])\s+(.+)/);
-      if (bullet) { flush(); const value = text(bullet[1]); if (value) out.push(`- ${value}`); }
-      else if (!line.trim() || /^\s*(?:\||>|<)/.test(line)) flush();
+      if (bullet) { flush(); const value = text(bullet[1]); inBullet = Boolean(value); if (value) out.push(`- ${value}`); }
+      else if (!line.trim() || /^\s*(?:\||>|<)/.test(line)) { flush(); inBullet = false; }
+      else if (inBullet) out[out.length - 1] += ` ${text(line)}`; // a wrapped list item
       else paragraph.push(line.trim());
     }
     flush();

@@ -27,7 +27,7 @@ describe('readmeSummary', () => {
     const md = `# Game Recompiled\n\nA native recompilation of **Game** using [\`snesrecomp\`](https://x).\n\n<p align="center"><img src="a.png" alt="x"><br><sub><b>Title screen caption</b></sub></p>\n\nIt boots from the original ROM and plays through to the ending.\n\n## Status\n\n- Intro works\n- Battles work\n\n## Build\n\n\`\`\`sh\nmake\n\`\`\`\n\nRun cmake with the preset.\n\n## License\n\nMIT\n`;
     expect(readmeSummary(md)).toEqual(['A native recompilation of Game using snesrecomp.', 'It boots from the original ROM and plays through to the ending.', '- Intro works', '- Battles work']);
     expect(readmeSummary('# Title\n\nshort\n')).toEqual([]);
-    expect(readmeSummary('# T\n\nA playable native port of the game that runs on modern machines.\n\nThe one known visual limitation is described under Known Limitations.\n\n## Known Limitations\n\n- The skybox does not reach the sides of a widescreen frame.\n')).toEqual(['A playable native port of the game that runs on modern machines.', '- The skybox does not reach the sides of a widescreen frame.']);
+    expect(readmeSummary('# T\n\nA playable native port of the game that runs on modern machines.\n\nThe one known visual limitation is described under Known Limitations.\n\n## Known Limitations\n\n- The skybox does not reach the sides of a\n  widescreen frame.\n')).toEqual(['A playable native port of the game that runs on modern machines.', '- The skybox does not reach the sides of a widescreen frame.']);
     expect(readmeSummary(`# T\n\n${'x'.repeat(900)}.\n\n${'y'.repeat(900)}.\n`, 700)).toEqual(['x'.repeat(600)]);
   });
 });
