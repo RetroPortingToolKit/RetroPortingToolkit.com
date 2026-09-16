@@ -68,9 +68,11 @@
     "path": "data/games/74_fuc-recomp-b1210a4c/index.md",
     "url": "/games/fuc-recomp-b1210a4c",
     "createdAt": "2026-09-16T21:01:45.772Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [],
     "summary": [],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "moderatedBy": "398336732287991808",
+    "moderatedAt": "2026-09-16T21:51:24.990Z"
   }
 ]
