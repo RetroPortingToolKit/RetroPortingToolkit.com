@@ -1586,7 +1586,10 @@ export async function GET(req: Request): Promise<Response> {
       const groups = await listEditable();
       if (actor?.scope) {
         const items = groups.flatMap((g) => g.items).filter((i) => actor.scope!.includes(i.id));
-        return json({ groups: [{ group: "Your pages", items }] });
+        // The platform picker is built from the Hardware folder, which a
+        // contributor does not see, so the choices travel separately.
+        const platforms = (groups.find((g) => g.group === "Hardware")?.items ?? []).map((i) => ({ slug: i.sub || "", title: i.title })).filter((o) => o.slug);
+        return json({ groups: [{ group: "Your pages", items }], platforms });
       }
       return json({ groups });
     } catch (e) {

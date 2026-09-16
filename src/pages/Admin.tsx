@@ -212,6 +212,8 @@ const V = {
 
 export default function Admin() {
   const [groups, setGroups] = useState<Group[] | null>(null);
+  // Platform choices sent alongside a scoped list, since its groups hold no Hardware.
+  const [listedPlatforms, setListedPlatforms] = useState<{ slug: string; title: string }[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [selected, setSelected] = useState<ListItem | null>(null);
@@ -493,6 +495,7 @@ export default function Admin() {
       .then((d) => {
         if (d) {
           setGroups(d.groups);
+          setListedPlatforms(Array.isArray(d.platforms) ? d.platforms : null);
           setAuthNeeded(false);
         }
       })
@@ -1106,11 +1109,12 @@ export default function Admin() {
   /** Platforms a game can sit on, read from the Hardware folder rather than
       hardcoded, so adding a platform makes it selectable straight away. */
   const platformOptions = useMemo(() => {
+    if (listedPlatforms) return listedPlatforms;
     const g = groups?.find((gr) => gr.group === "Hardware");
     return (g?.items || [])
       .map((i) => ({ slug: (i.sub || "").trim(), title: i.title }))
       .filter((o) => o.slug);
-  }, [groups]);
+  }, [groups, listedPlatforms]);
 
   // Split the folder into what the site publishes as a card and what it does
   // not, preserving the list order within each part.

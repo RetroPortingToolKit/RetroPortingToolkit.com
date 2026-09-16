@@ -15,6 +15,7 @@ const cms = await import("../../api/cms");
 const page = (title: string, extra = "") => `---\ntitle: "${title}"\n${extra}---\n\nbody\n`;
 const files: Record<string, string> = {
   "data/games/01_tomba/index.md": page("Tomba"),
+  "data/hardware/01_super-nintendo/index.md": page("Super Nintendo"),
   "data/games/02_game-abcd1234/index.md": page("Game", 'submissionId: "abcd1234abcd1234"\n'),
   "data/submissions.json": JSON.stringify([
     { id: "abcd1234abcd1234", owner: "Maker", path: "data/games/02_game-abcd1234/index.md", status: "pending" },
@@ -57,6 +58,7 @@ describe("contributor scope", () => {
   it("lists and reads only the contributor's own page", async () => {
     const list = await (await cms.GET(as("maker", "list"))).json();
     expect(list.groups).toEqual([{ group: "Your pages", items: [expect.objectContaining({ id: "data/games/02_game-abcd1234/index.md" })] }]);
+    expect(list.platforms).toEqual([{ slug: "super-nintendo", title: "Super Nintendo" }]);
     expect((await cms.GET(as("maker", "read&id=data%2Fgames%2F01_tomba%2Findex.md"))).status).toBe(403);
     expect((await cms.GET(as("maker", "read&id=data%2Fgames%2F02_game-abcd1234%2Findex.md"))).status).toBe(200);
     const auth = await (await cms.GET(as("maker", "auth"))).json();
