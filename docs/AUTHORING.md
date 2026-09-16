@@ -256,8 +256,9 @@ username; the form also takes an optional Discord username.
 
 A community game page without `creator` or `authors` is credited to the owner
 of its `repo`. `/creators` lists every creator and their pages; the "Made by"
-line links there. Game pages show a Download button: `download: "https://…"`
-when set, else the repository host's releases page.
+line links there. A game page shows a Download button when it has
+`download: "https://…"`, which the bot sets to the latest release when the
+repository publishes one.
 
 The owner of a repository named on any game page, or of a submitted repository, can sign in to `/admin` with that GitHub
 account and edit those pages, including their covers, and nothing else. The

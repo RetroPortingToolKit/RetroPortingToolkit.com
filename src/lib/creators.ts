@@ -35,13 +35,10 @@ export function creatorProfile(creator: Creator): string {
   return "";
 }
 
-/** Where a project's builds are: an explicit `download`, else the host's releases page. */
+/** Where a project's builds are: the latest release, recorded on the page by
+    the bot when the repository has one. No release, no button. */
 export function downloadUrl(item: Item): string | null {
-  if (item.download) return item.download;
-  if (!item.repo) return null;
-  if (/^https:\/\/github\.com\//.test(item.repo)) return `${item.repo.replace(/\/$/, "")}/releases`;
-  if (/^https:\/\/gitlab\.com\//.test(item.repo)) return `${item.repo.replace(/\/$/, "")}/-/releases`;
-  return null;
+  return item.download || null;
 }
 
 export interface CreatorEntry { login: string; creator: Creator; items: Item[] }

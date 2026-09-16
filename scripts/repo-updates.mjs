@@ -5,8 +5,10 @@ import path from 'node:path';
  * slice of the pages for a new release on GitHub or GitLab; a change becomes
  * a queued page update (release, download link, updated date) and, once a
  * release has been seen before, an announcement. Public APIs, no credentials;
- * the slice size keeps the hourly poll well inside GitHub's anonymous limit. */
-export function repoUpdateWatcher({ root, stateDir, enqueue, fetcher = fetch, batch = 12 }) {
+ * the rolling slice keeps the hourly poll far inside GitHub's anonymous limit. */
+/** Each repository is checked about once a day: an hourly tick takes the
+ * next slice, sized so a full pass takes twenty-four ticks. */
+export function repoUpdateWatcher({ root, stateDir, enqueue, fetcher = fetch, batch, passTicks = 24 }) {
   const stateFile = path.join(stateDir, 'repo-updates.json');
   let state = { cursor: 0, seen: {} };
   let ticking = false;
@@ -24,7 +26,8 @@ export function repoUpdateWatcher({ root, stateDir, enqueue, fetcher = fetch, ba
       const pages = await gamePages(root);
       if (!pages.length) return queued;
       const start = state.cursor % pages.length;
-      const slice = [...pages.slice(start), ...pages.slice(0, start)].slice(0, batch);
+      const size = batch ?? Math.max(1, Math.ceil(pages.length / passTicks));
+      const slice = [...pages.slice(start), ...pages.slice(0, start)].slice(0, size);
       state.cursor = (start + slice.length) % pages.length;
       for (const page of slice) {
         const release = await latestRelease(page.repo, fetcher).catch(() => undefined);

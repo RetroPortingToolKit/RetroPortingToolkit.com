@@ -130,6 +130,7 @@ describe("Discord agent core", () => {
   it("tells an unavailable runner apart from a failed task", () => {
     expect(isRunnerUnavailable("ERROR: You've hit your usage limit. Visit ... to purchase more credits")).toBe(true);
     expect(isRunnerUnavailable("API Error: 401 OAuth access token has expired.")).toBe(true);
+    expect(isRunnerUnavailable("Failed to authenticate. API Error: 401 OAuth access token has been revoked.")).toBe(true);
     expect(isRunnerUnavailable("zsh: command not found: codex")).toBe(true);
     // An identity-linked key the CLI cannot present a workspace for is an
     // unusable credential, not a failed task.

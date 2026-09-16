@@ -206,7 +206,7 @@ export function isRunnerUnavailable(output) {
   // identity-linked one the CLI cannot present a workspace for. That is a
   // credential the runner cannot use, not a failed task, so it hands over and
   // the exhausted-chain alert still reaches a maintainer.
-  return /usage limit|purchase more credits|out of credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)|access token has expired|failed to authenticate|invalid api key|authentication_error|anthropic-workspace-id is required|401 |command not found|enoent/.test(
+  return /usage limit|purchase more credits|out of credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)|access token has (?:expired|been revoked)|failed to authenticate|invalid api key|authentication_error|anthropic-workspace-id is required|401 |command not found|enoent/.test(
     text,
   );
 }

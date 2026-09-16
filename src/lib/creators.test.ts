@@ -12,10 +12,9 @@ describe("creators", () => {
     expect(creatorOf(item({}))).toBeNull();
     expect(repoOwner("https://example.com/a/b")).toBeNull();
   });
-  it("points downloads at an explicit link or the host's releases", () => {
+  it("points downloads at the recorded release only", () => {
     expect(downloadUrl(item({ download: "https://x/y.zip", repo: "https://github.com/a/b" }))).toBe("https://x/y.zip");
-    expect(downloadUrl(item({ repo: "https://github.com/a/b/" }))).toBe("https://github.com/a/b/releases");
-    expect(downloadUrl(item({ repo: "https://gitlab.com/a/b" }))).toBe("https://gitlab.com/a/b/-/releases");
+    expect(downloadUrl(item({ repo: "https://github.com/a/b/" }))).toBeNull();
     expect(downloadUrl(item({}))).toBeNull();
   });
   it("groups pages by login, case-insensitively, merging what each page knows", () => {

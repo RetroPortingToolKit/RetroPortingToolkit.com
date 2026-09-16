@@ -539,7 +539,15 @@ function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, on
       let text;
       if (resultFrom === "stream") {
         if (streamResult?.isError) {
-          reject(new Error(streamResult.text || `${runner} reported an error.`));
+          // The CLI reports a dead credential as a stream error, not an exit
+          // code. "OAuth access token has been revoked" is the runner being
+          // unable to serve, which the next tier should get, not a failed task.
+          const message = streamResult.text || `${runner} reported an error.`;
+          if (isRunnerUnavailable(`${message}\n${diagnostics}`)) {
+            reject(new RunnerUnavailableError(`${runner} is unavailable`, message));
+            return;
+          }
+          reject(new Error(message));
           return;
         }
         text = streamResult?.text ?? "";

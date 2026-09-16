@@ -29,6 +29,15 @@ describe('repository update watcher', () => {
     const f = await fixture({ alpha: 'v1', beta: '2.0' });
     expect((await gamePages(f.dir)).map(p => p.url)).toEqual(['/games/alpha', '/games/beta']);
   });
+  it('spreads a full pass over the configured number of ticks', async () => {
+    const f = await fixture({ alpha: null, beta: null });
+    const w = repoUpdateWatcher({ root: f.dir, stateDir: path.join(f.dir, 'state'), enqueue: f.enqueue, fetcher: f.fetcher, passTicks: 2 });
+    await w.start();
+    expect(f.fetcher).toHaveBeenCalledTimes(1);
+    await w.tick();
+    expect(f.fetcher).toHaveBeenCalledTimes(2);
+    expect(new Set(f.fetcher.mock.calls.map(c => c[0].includes('github') ? 'alpha' : 'beta')).size).toBe(2);
+  });
   it('records a first-seen release quietly and announces the next one', async () => {
     const f = await fixture({ alpha: 'v1', beta: null });
     await f.watcher.start();

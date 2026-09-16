@@ -33,8 +33,8 @@ after install records the current head silently; state is `site-changes.json`
 in the state directory.
 
 Game pages are kept current with their repositories: every hour
-(`DISCORD_REPO_UPDATE_POLL_MS`) a slice of twelve pages is checked for a new
-release on GitHub or GitLab. A finding becomes a queued page update on the
+(`DISCORD_REPO_UPDATE_POLL_MS`) the next slice of pages is checked for a new
+release on GitHub or GitLab, sized so every page is checked about once a day. A finding becomes a queued page update on the
 shared checkout, setting `release`, `download`, and `updated` in frontmatter
 after the usual checks, committed and pushed. The first release seen for a
 repository is recorded quietly; a later one is announced in
