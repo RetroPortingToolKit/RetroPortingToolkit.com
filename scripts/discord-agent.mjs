@@ -1171,7 +1171,11 @@ client.on("messageCreate", async (message) => {
     referenced = await message.fetchReference().catch(() => null);
   }
   const addressedByReply = referenced?.author?.id === client.user.id;
-  if (!message.mentions.users.has(client.user.id) && !addressedByReply) return;
+  // A message is for the bot when it opens with the bot's mention or replies
+  // to the bot. A mention mid-sentence ("I built @Bot, try it") is talk
+  // about the bot, and a reply's automatic ping is not a mention at all.
+  const addressedByMention = new RegExp(`^\\s*<@!?${client.user.id}>`).test(message.content);
+  if (!addressedByMention && !addressedByReply) return;
 
   const mode = channelMode(message, config);
   if (!config.guildIds.has(message.guildId)) return;
@@ -1181,11 +1185,7 @@ client.on("messageCreate", async (message) => {
     authorId: message.author.id,
   };
   const request = stripBotMention(message.content, client.user.id);
-  // Intake needs the bot named in the text. A reply's automatic ping also
-  // lands in `mentions`, and a link someone posted in conversation is not a
-  // submission.
-  const namedInText = new RegExp(`<@!?${client.user.id}>`).test(message.content);
-  if (namedInText && await submissions.intake(message, ref, request, config.trustedSubmitterIds.has(message.author.id))) return;
+  if (addressedByMention && await submissions.intake(message, ref, request, config.trustedSubmitterIds.has(message.author.id))) return;
   if (mode === "ignore") return;
   if (mode === "denied") {
     await safeSend({

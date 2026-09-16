@@ -29,8 +29,9 @@ ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
 the repository owner's login, and the intake reply carries an edit link that
 works once the repository owner signs in to `/admin` with GitHub.
-Intake needs the bot named in the message text; a reply's automatic ping or
-a repository link in conversation is not a submission. Submissions from
+The bot answers only messages that open with its mention or reply to one of
+its messages. A mention mid-sentence, a reply's automatic ping, or a repository
+link in conversation is not a request or a submission. Submissions from
 `DISCORD_TRUSTED_SUBMITTER_IDS` (default: the team) are confirmed on
 publication without a review reaction.
 Approved editors can react ✅ to confirm or ❌ to unlist that submission.
