@@ -12,18 +12,21 @@ async function publicBytes(url: string, limit: number): Promise<Buffer> {
   } finally { await reader.cancel(); }
   return Buffer.concat(chunks);
 }
-export async function repositoryReadme(repo: string, branch: string, readmePath = 'README.md') {
+export async function repositoryReadmeText(repo: string, branch: string, readmePath = 'README.md'): Promise<{ markdown: string; base: string } | null> {
   try {
     const u = new URL(repo); const project = u.pathname.slice(1);
     if (u.hostname === 'github.com') {
       const data = JSON.parse((await publicBytes(`https://api.github.com/repos/${project}/readme`, 400_000)).toString());
-      if (data.encoding !== 'base64' || typeof data.content !== 'string' || typeof data.path !== 'string') return [];
-      const base = `https://raw.githubusercontent.com/${project}/${encodeURIComponent(branch)}/${data.path}`;
-      return readmeImages(Buffer.from(data.content, 'base64').toString('utf8'), base);
+      if (data.encoding !== 'base64' || typeof data.content !== 'string' || typeof data.path !== 'string') return null;
+      return { markdown: Buffer.from(data.content, 'base64').toString('utf8'), base: `https://raw.githubusercontent.com/${project}/${encodeURIComponent(branch)}/${data.path}` };
     }
     const raw = await publicBytes(`https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}/repository/files/${encodeURIComponent(readmePath)}/raw?ref=${encodeURIComponent(branch)}`, 300_000);
-    return readmeImages(raw.toString('utf8'), `${repo}/-/raw/${encodeURIComponent(branch)}/${readmePath}`);
-  } catch { return []; } // Optional artwork must not prevent a text submission.
+    return { markdown: raw.toString('utf8'), base: `${repo}/-/raw/${encodeURIComponent(branch)}/${readmePath}` };
+  } catch { return null; } // Optional artwork and summary must not prevent a text submission.
+}
+export async function repositoryReadme(repo: string, branch: string, readmePath = 'README.md') {
+  const readme = await repositoryReadmeText(repo, branch, readmePath);
+  return readme ? readmeImages(readme.markdown, readme.base) : [];
 }
 function imageExtension(bytes: Buffer) {
   if (bytes.length >= 24 && bytes.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) return 'png';

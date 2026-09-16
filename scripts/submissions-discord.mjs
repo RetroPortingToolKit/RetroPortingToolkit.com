@@ -93,6 +93,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
             title: plainText(record.title, 100), url: `${siteUrl}${record.url}`, color: 0x0066cc,
             description: plainText(record.description, 500),
             fields: [
+              { name: 'Page', value: `${siteUrl}${record.url}` },
               { name: 'Repository', value: record.repo },
               { name: 'Artwork', value: record.mediaNote || 'No imported artwork recorded.' },
               { name: 'Repository owner', value: record.owner || source?.username || 'Not available' },
@@ -138,14 +139,24 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
       const message = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
       await queueReaction(message, reaction.emoji.name, user);
     },
-    async completed(id, success) {
+    async completed(id, success, decision) {
       pending.delete(id);
-      if (success && state.notices[id]) { state.notices[id].done = true; await save(); }
+      const notice = state.notices[id];
+      if (!success || !notice) return;
+      notice.done = true;
+      await save();
+      // A confirmed page needs no further moderation, so its notice goes.
+      // An unlisted one stays as the record of what was removed and why.
+      if (decision === 'confirmed') {
+        const channel = await client.channels.fetch(notice.channelId).catch(() => null);
+        const message = channel ? await channel.messages.fetch(notice.messageId).catch(() => null) : null;
+        if (message) await message.delete().catch(() => {});
+      }
     },
   };
 }
 
-export async function moderateSubmission({ root, action, exec }) {
+export async function moderateSubmission({ root, action, exec, siteUrl = '' }) {
   if (!/^[a-f0-9]{16}$/.test(action.id) || !['confirmed', 'removed'].includes(action.decision)) throw new Error('Invalid moderation action.');
   await exec('git', ['pull', '--ff-only']);
   const records = JSON.parse(await fs.readFile(path.join(root, SUBMISSIONS_PATH), 'utf8'));
@@ -165,5 +176,5 @@ export async function moderateSubmission({ root, action, exec }) {
   await exec('git', ['add', '--', record.path, SUBMISSIONS_PATH]);
   await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `${action.decision === 'confirmed' ? 'Confirm' : 'Unlist'} community submission ${record.id}`]);
   await exec('git', ['push', 'origin', 'main']);
-  return action.decision === 'confirmed' ? `Submission confirmed. ${record.url}` : `Submission removed from listings. Its unlisted URL is retained: ${record.url}`;
+  return action.decision === 'confirmed' ? `Submission confirmed. ${siteUrl}${record.url}` : `Submission removed from listings. Its unlisted URL is retained: ${siteUrl}${record.url}`;
 }

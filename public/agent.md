@@ -20,11 +20,14 @@ include optional `images: [{ "url": "https://raw.githubusercontent.com/owner/pro
 repository files, and Discord attachment URLs. Up to four PNG/JPEG/WebP/GIF
 images are copied into the page folder (4 MB each, 8 MB total); the first is
 the cover. `record.mediaNote` reports the import result. Missing artwork does
-not prevent publication. Existing pages are not refreshed by repeat submissions.
+not prevent publication. The README's introduction and any status or features
+section become the page's project summary (`record.summary`); toolkit names
+link to their platform pages. Existing pages are not refreshed by repeat
+submissions.
 
 The team receives a Discord moderation notice and can confirm or unlist the
-page. Repository ownership is credited, without asserting that an anonymous
-submitter owns it. [Submission guide](/docs/start/submit-a-recomp).
+page. The page credits the repository owner with a link to their GitHub or
+GitLab profile, without asserting that an anonymous submitter owns it. [Submission guide](/docs/start/submit-a-recomp).
 
 ## First, check you are on the right path
 

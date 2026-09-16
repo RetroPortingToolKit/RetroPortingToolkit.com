@@ -1023,7 +1023,7 @@ async function drainQueue() {
       const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
-      const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration,
+      const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url,
         exec: async (command, args) => {
           if (job.stopRequested) throw new TaskStoppedError("Stopped.");
           const task = execFileAsync(command, args, { cwd: ROOT, env: safeAgentEnv("codex"), maxBuffer: 8 * 1024 * 1024, timeout: 180_000 });
@@ -1074,9 +1074,10 @@ async function drainQueue() {
       await replyChunks(job.ref, "❌ The task did not complete.", `${detail}${await leftBehindNote()}`);
     }
   } finally {
-    if (!parked && job.submissionModeration) await submissions.completed(job.submissionModeration.id, outcome === "✅").catch(() => console.error("[discord-agent] could not persist moderation outcome"));
     if (!parked) await clearStatus(job);
     if (!parked && outcome) await markOutcome(job.ref, "🔍", outcome);
+    // After the outcome reaction: a confirmed submission deletes its notice.
+    if (!parked && job.submissionModeration) await submissions.completed(job.submissionModeration.id, outcome === "✅", job.submissionModeration.decision).catch(() => console.error("[discord-agent] could not persist moderation outcome"));
     running = null;
     await persistJobs();
     void drainQueue().catch((error) =>

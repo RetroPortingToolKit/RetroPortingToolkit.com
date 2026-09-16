@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mediaUrl, readmeImages, messageImages } from './submission-media.mjs';
+import { readmeSummary, mediaUrl, readmeImages, messageImages } from './submission-media.mjs';
 import { discordSubmission, submissionPage } from './submissions.mjs';
 const base = 'https://raw.githubusercontent.com/team/game/main/docs/README.md';
 describe('submission artwork parsing', () => {
@@ -19,6 +19,14 @@ describe('submission artwork parsing', () => {
   });
   it('renders local artwork as cover and body images with escaped captions', () => {
     const page=submissionPage({title:'Game',description:'Port',repo:'https://github.com/a/b',owner:'a',createdAt:'2026-09-15',images:[{path:'./submission-1.png',alt:'<script>banner</script>'}]});
-    expect(page).toContain('cover: "./submission-1.png"');expect(page).toContain('](./submission-1.png)');expect(page).not.toContain('![<script>');
+    expect(page).toContain('cover: "./submission-1.png"');expect(page).not.toContain('](./submission-1.png)');expect(page).not.toContain('![<script>');
+  });
+});
+describe('readmeSummary', () => {
+  it('keeps the intro and descriptive sections, dropping build steps, images, and code', () => {
+    const md = `# Game Recompiled\n\nA native recompilation of **Game** using [\`snesrecomp\`](https://x).\n\n<p align="center"><img src="a.png" alt="x"><br><sub><b>Title screen caption</b></sub></p>\n\nIt boots from the original ROM and plays through to the ending.\n\n## Status\n\n- Intro works\n- Battles work\n\n## Build\n\n\`\`\`sh\nmake\n\`\`\`\n\nRun cmake with the preset.\n\n## License\n\nMIT\n`;
+    expect(readmeSummary(md)).toEqual(['A native recompilation of Game using snesrecomp.', 'It boots from the original ROM and plays through to the ending.', '- Intro works', '- Battles work']);
+    expect(readmeSummary('# Title\n\nshort\n')).toEqual([]);
+    expect(readmeSummary(`# T\n\n${'x'.repeat(900)}.\n\n${'y'.repeat(900)}.\n`, 700)).toEqual(['x'.repeat(600)]);
   });
 });

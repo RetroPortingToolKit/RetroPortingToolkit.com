@@ -38,7 +38,7 @@ The confirmation reports the number imported, or says the page has no artwork. C
 
 ## Credit and review
 
-We credit the repository owner or namespace reported by GitHub or GitLab. That credit does not verify the identity of the person submitting the link. For Discord submissions, the moderation notice also includes your Discord username and original message; it provides a fallback if repository attribution is unavailable.
+The page says "Made by" the repository owner or namespace reported by GitHub or GitLab, linked to that profile, and summarises the README's introduction and any status or features section. That credit does not verify the identity of the person submitting the link. For Discord submissions, the moderation notice also includes your Discord username and original message; it provides a fallback if repository attribution is unavailable.
 
 The page becomes visible without waiting for review. The team receives a notice and can confirm it with ✅ or remove it from listings with ❌. Removed pages retain their unlisted direct URL. Moderators can edit the page through the normal editor.
 

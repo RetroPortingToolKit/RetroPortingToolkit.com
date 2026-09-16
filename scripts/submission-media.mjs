@@ -48,3 +48,47 @@ export function messageImages(text, attachments = []) {
   }
   return found.filter((item, index) => found.findIndex(i => i.url === item.url) === index).slice(0, 8);
 }
+/** Plain-text blocks from a README: intro paragraphs, then the sections that
+ * describe what the project is and how far it has come. Build steps, ROM
+ * hashes, and licensing are left to the repository. Each block is a paragraph
+ * or a `- ` bullet, ready to be escaped for markdown. */
+export function readmeSummary(markdown, limit = 1400) {
+  const stripped = markdown.replace(/\r\n?/g, '\n').replace(/```[\s\S]*?```|~~~[\s\S]*?~~~/g, '').replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<(?:img|picture|video|source|br)\b[^>]*>/gi, '').replace(/<\/?(?:p|div|table|tr|td|th|tbody|thead|details|summary|sub|sup|b|i|em|strong|a|center|h[1-6]|span)\b[^>]*>/gi, '')
+    .replace(/!\[[^\]]*\]\([^)]*\)|!\[[^\]]*\]\[[^\]]*\]/g, '');
+  const sections = [];
+  let current = { heading: '', level: 0, lines: [] };
+  for (const line of stripped.split('\n')) {
+    const heading = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (heading) { sections.push(current); current = { heading: heading[2], level: heading[1].length, lines: [] }; }
+    else current.lines.push(line);
+  }
+  sections.push(current);
+  const text = value => value.replace(/\[([^\]]*)\]\([^)]*\)|\[([^\]]*)\]\[[^\]]*\]/g, (_, a, b) => a ?? b ?? '').replace(/[*_`~]+/g, '').replace(/\s+/g, ' ').trim();
+  const blocks = (lines, max) => {
+    const out = [];
+    let paragraph = [];
+    const flush = () => { const value = text(paragraph.join(' ')); if (value && value.length >= 40 && /[.!?:]$/.test(value) && !/^\|/.test(value)) out.push(value); paragraph = []; };
+    for (const line of lines) {
+      const bullet = line.match(/^\s*(?:[-*+]|\d+[.)])\s+(.+)/);
+      if (bullet) { flush(); const value = text(bullet[1]); if (value) out.push(`- ${value}`); }
+      else if (!line.trim() || /^\s*(?:\||>|<)/.test(line)) flush();
+      else paragraph.push(line.trim());
+    }
+    flush();
+    return out.slice(0, max);
+  };
+  const intro = sections.filter(s => s.level <= 1).flatMap(s => blocks(s.lines, 3)).filter(b => !b.startsWith('- ')).slice(0, 3);
+  const keep = /\b(about|overview|introduction|features|status|progress|what works|working|highlights|current state|roadmap|goals|compatib)/i;
+  const skip = /\b(build|install|requirement|rom|usage|running|licen[cs]e|credits?|contribut|donat|support|faq|troubleshoot|download)/i;
+  const extra = sections.filter(s => s.level >= 2 && keep.test(s.heading) && !skip.test(s.heading)).slice(0, 2).flatMap(s => blocks(s.lines, 6));
+  const out = [];
+  let size = 0;
+  for (const block of [...intro, ...extra]) {
+    const value = block.slice(0, 600);
+    if (out.includes(value)) continue;
+    if (size + value.length > limit) break;
+    out.push(value); size += value.length;
+  }
+  return out;
+}

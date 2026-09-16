@@ -21,7 +21,9 @@ publishing agent remains restricted to allowlisted users and roles.
 Submission notices appear in `DISCORD_ADMIN_CHANNEL_ID`, with repository
 ownership, page link, and the Discord username/source message when available.
 Approved editors can react ✅ to confirm or ❌ to unlist that submission.
-Unlisting sets `draft: true`, retaining the direct URL and editorial content.
+Confirming deletes the notice once the commit is pushed; the "Done" reply with
+the page link remains. Unlisting keeps the notice and sets `draft: true`,
+retaining the direct URL and editorial content.
 Reactions cannot target unrelated pages or run arbitrary requests. Moderation
 runs in the existing serialized work queue, checks the current page identity,
 runs typecheck/build/test, then commits and pushes. The durable register is

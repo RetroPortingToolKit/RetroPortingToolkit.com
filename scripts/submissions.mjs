@@ -16,16 +16,41 @@ export function plainText(value, max) {
   return typeof value === 'string' ? value.replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max) : '';
 }
 export function markdownText(value) { return value.replace(/[\\`*_{}\[\]()<>!#|~]/g, '\\$&'); }
+/** Toolkit names as they appear in READMEs and descriptions, linked to the
+ * platform page that introduces each recompiler. */
+export const TOOLKITS = [
+  ['PSXRecomp', 'playstation'], ['NESRecomp', 'nes'], ['SNESRecomp', 'super-nintendo'], ['GBARecomp', 'game-boy-advance'],
+  ['SegaGenesisRecomp', 'sega-genesis'], ['NDSRecomp', 'nintendo-ds'], ['VBRecomp', 'virtual-boy'], ['CDiRecomp', 'cd-i'], ['SMSGGRecomp', 'master-system-game-gear'],
+];
+export function linkToolkits(escaped) {
+  // Runs on escaped markdown, so the only brackets it emits are its own.
+  return TOOLKITS.reduce((text, [name, slug]) => text.replace(new RegExp(`(?<![\\w/])${name}(?![\\w-])`, 'gi'), `[${name}](/hardware/${slug})`), escaped);
+}
+export function detectPlatform(...texts) {
+  return TOOLKITS.find(([name]) => texts.some(t => new RegExp(`(?<![\\w/])${name}(?![\\w-])`, 'i').test(t || '')))?.[1];
+}
+export function ownerProfile(record) {
+  const host = record.repo.startsWith('https://gitlab.com/') ? 'gitlab.com' : 'github.com';
+  return `https://${host}/${record.owner.split('/').map(encodeURIComponent).join('/')}`;
+}
 export function submissionPage(record) {
+  const platform = detectPlatform(record.description, ...(record.summary ?? []));
+  const hostName = record.repo.startsWith('https://gitlab.com/') ? 'GitLab' : 'GitHub';
   const fm = {
     title: record.title, desc: record.description, kicker: 'Community submission',
     tags: ['Community'], provenance: 'community', repo: record.repo, status: 'Community submission',
+    ...(platform ? { platform } : {}),
+    links: [{ label: `Project on ${hostName}`, href: record.repo }],
     added: record.createdAt.slice(0, 10), updated: record.createdAt.slice(0, 10),
     submissionId: record.id, draft: false,
     ...(record.images?.length ? { cover: record.images[0].path } : {}),
   };
-  const artwork = record.images?.map(image => `![${markdownText(image.alt)}](${image.path})`).join('\n\n') || '';
-  return `---\n${Object.entries(fm).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n\n${markdownText(record.description)}\n\n${artwork ? `${artwork}\n\n` : ''}## Project\n\n[View the source repository](${record.repo}).\n\nRepository owner: **${markdownText(record.owner)}**. This identifies the repository namespace, not a verified submitter identity.\n\nThis community submission has not yet been reviewed by the team. See the repository for supported platforms, setup instructions, and current progress. Supply your own game files where required.\n`;
+  // The first image is the cover, which the layout already shows above the body.
+  const artwork = record.images?.slice(1).map(image => `![${markdownText(image.alt)}](${image.path})`).join('\n\n') || '';
+  const summary = (record.summary ?? []).map(block => block.startsWith('- ') ? `- ${linkToolkits(markdownText(block.slice(2)))}` : linkToolkits(markdownText(block)))
+    .reduce((out, block) => { const last = out.at(-1); if (block.startsWith('- ') && last?.startsWith('- ')) out[out.length - 1] = `${last}\n${block}`; else out.push(block); return out; }, []).join('\n\n');
+  const credit = `Made by [${markdownText(record.owner)}](${ownerProfile(record)}). [Source repository](${record.repo}) on ${hostName}.`;
+  return `---\n${Object.entries(fm).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n\n${linkToolkits(markdownText(record.description))}\n\n${artwork ? `${artwork}\n\n` : ''}## Project\n\n${summary ? `${summary}\n\n` : ''}${credit}\n`;
 }
 export function discordSubmission(text, attachments = []) {
   // An explicit submit/add request or a bare repository link is intake. A
@@ -49,7 +74,7 @@ export function moderationPage(raw, record, decision) {
   // Preserve editorial work. Removal unlists the page; it never deletes files.
   const draft = `draft: ${decision === 'removed'}`;
   const front = /^draft:.*$/m.test(match[1]) ? match[1].replace(/^draft:.*$/m, draft) : `${match[1]}\n${draft}`;
-  let body = raw.slice(match[0].length);
-  if (decision === 'confirmed') body = body.replace('This community submission has not yet been reviewed by the team.', 'This community submission has been reviewed by the team.');
+  // Pages generated before the review sentence was dropped lose it on confirmation.
+  const body = raw.slice(match[0].length).replace(/\n*This community submission has not yet been reviewed by the team\.[^\n]*\n/, '\n');
   return `---\n${front}\n---\n${body}`;
 }

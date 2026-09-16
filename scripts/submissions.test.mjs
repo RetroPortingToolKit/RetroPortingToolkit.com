@@ -16,11 +16,22 @@ describe('submission boundaries', () => {
     expect(raw).not.toContain('\n[bad](javascript:');
     expect(raw).toContain('\\<script\\>');
   });
+  it('credits the owner, links toolkits, and keeps the cover out of the body', () => {
+    const raw = submissionPage({ ...record, description: 'A snesrecomp port.', images: [{ path: './submission-1.png', alt: 'Cover' }, { path: './submission-2.png', alt: 'Town' }], summary: ['Built with SNESRecomp.', '- Boots to gameplay', '- Saves work'] });
+    const fm = yaml.load(raw.split('---\n')[1]);
+    expect(fm.cover).toBe('./submission-1.png'); expect(fm.platform).toBe('super-nintendo'); expect(fm.links[0].href).toBe(record.repo);
+    expect(raw).not.toContain('](./submission-1.png)'); expect(raw).toContain('![Town](./submission-2.png)');
+    expect(raw).toContain('A [SNESRecomp](/hardware/super-nintendo) port.');
+    expect(raw).toContain('Built with [SNESRecomp](/hardware/super-nintendo).\n\n- Boots to gameplay\n- Saves work\n\nMade by [example](https://github.com/example). [Source repository](https://github.com/example/recomp) on GitHub.');
+    expect(raw).not.toContain('reviewed'); expect(raw).not.toContain('namespace');
+    expect(submissionPage({ ...record, repo: 'https://gitlab.com/team/sub/game', owner: 'team/sub' })).toContain('Made by [team/sub](https://gitlab.com/team/sub)');
+  });
   it('unlists only the identified page and preserves editorial content', () => {
     const raw = submissionPage(record) + '\nEditorial addition.\n';
     expect(moderationPage(raw, record, 'removed')).toContain('draft: true');
     expect(moderationPage(raw, record, 'removed')).toContain('Editorial addition.');
-    expect(moderationPage(raw, record, 'confirmed')).toContain('has been reviewed');
+    expect(moderationPage(raw, record, 'confirmed')).not.toContain('reviewed by the team');
+    expect(moderationPage(raw.replace('## Project', 'This community submission has not yet been reviewed by the team. See the repository.\n\n## Project'), record, 'confirmed')).not.toContain('reviewed by the team');
     expect(() => moderationPage(raw.replace(record.id, 'different'), record, 'removed')).toThrow();
     expect(() => moderationPage(raw, { ...record, path: '../AGENTS.md' }, 'removed')).toThrow();
   });

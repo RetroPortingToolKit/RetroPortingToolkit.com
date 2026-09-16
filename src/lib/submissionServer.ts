@@ -1,5 +1,5 @@
-import { repositoryReadme, importSubmissionImages, type ImportedAsset } from './submissionMedia.js';
-import { mediaUrl, type MediaCandidate } from '../../scripts/submission-media.mjs';
+import { repositoryReadmeText, importSubmissionImages, type ImportedAsset } from './submissionMedia.js';
+import { mediaUrl, readmeImages, readmeSummary, type MediaCandidate } from '../../scripts/submission-media.mjs';
 import { repositoryUrl, submissionId, plainText, submissionPage, SUBMISSIONS_PATH, type Submission } from '../../scripts/submissions.mjs';
 
 type Entry = { path: string; sha: string; type: string };
@@ -85,6 +85,7 @@ export async function submitRepository(store: SubmissionStore, input: Record<str
   }
   const metadata = await repositoryMetadata(repo);
   let assets: ImportedAsset[] | undefined;
+  let summary: string[] | undefined;
   repo = metadata.repo;
   const id = submissionId(repo);
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -108,11 +109,15 @@ export async function submitRepository(store: SubmissionStore, input: Record<str
     if (recent.length >= 20 || recent.filter(r => r.owner.toLowerCase() === metadata.owner.toLowerCase()).length >= 5) throw new SubmissionError('Submissions are busy right now. Please try again in an hour.', 429);
     const slug = `${repo.split('/').at(-1)!.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'recomp'}-${id.slice(0, 8)}`;
     const order = Math.max(0, ...pages.map(p => Number(p.path.split('/')[2].split('_')[0]) || 0)) + 1;
-    assets ??= await importSubmissionImages(explicit, await repositoryReadme(repo, metadata.branch, metadata.readmePath));
+    if (!assets) {
+      const readme = await repositoryReadmeText(repo, metadata.branch, metadata.readmePath);
+      summary = readme ? readmeSummary(readme.markdown) : [];
+      assets = await importSubmissionImages(explicit, readme ? readmeImages(readme.markdown, readme.base) : []);
+    }
     const record: Submission = { id, repo, title: plainText(input.name, 100) || metadata.title,
       description: plainText(input.description, 500) || metadata.description || 'A community game project. See the source repository for details and current progress.',
       owner: metadata.owner, path: `data/games/${String(order).padStart(2, '0')}_${slug}/index.md`, url: `/games/${slug}`, createdAt: now.toISOString(), status: 'pending',
-      images: assets.map(asset => ({ path: `./${asset.name}`, alt: asset.alt })),
+      images: assets.map(asset => ({ path: `./${asset.name}`, alt: asset.alt })), summary: summary ?? [],
       mediaNote: assets.length ? `Imported ${assets.length} image${assets.length === 1 ? '' : 's'}. The first is the cover; check the page for any missing artwork.` : 'No supported images could be imported. The page is publishing without artwork.' };
     try { await store.create(snapshot, record, assets); return { record, duplicate: false }; }
     catch (error) { if (!(error instanceof SubmissionError) || error.status !== 409 || attempt === 2) throw error; }
