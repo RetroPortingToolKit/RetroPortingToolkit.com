@@ -2,49 +2,67 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { siteChangeWatcher, changeReport } from './site-changes.mjs';
+import { siteChangeWatcher, changeReport, pageChanges } from './site-changes.mjs';
 
 const dirs = [];
 afterEach(async () => { await Promise.all(dirs.splice(0).map(d => fs.rm(d, { recursive: true, force: true }))); });
-const commit = (sha, message) => ({ sha, commit: { message } });
-async function fixture(pages) {
+const T0 = Date.parse('2026-09-16T10:00:00Z');
+const head = (sha, minutesAgo) => ({ sha, commit: { committer: { date: new Date(T0 - minutesAgo * 60_000).toISOString() } } });
+async function fixture({ heads, files, titles = {} }) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'rpt-site-changes-')); dirs.push(dir);
   let call = 0;
-  const fetcher = vi.fn(async () => Response.json(pages[Math.min(call++, pages.length - 1)]));
+  const fetcher = vi.fn(async (url) => {
+    if (/\/commits\/main$/.test(url)) return Response.json(heads[Math.min(call++, heads.length - 1)]);
+    if (/\/compare\//.test(url)) return Response.json({ files });
+    const raw = url.match(/raw\.githubusercontent\.com\/org\/site\/[^/]+\/(.+)$/);
+    if (raw && titles[raw[1]]) return new Response(`---\ntitle: "${titles[raw[1]]}"\n---\n`);
+    return new Response('', { status: 404 });
+  });
   const send = vi.fn(async () => {});
-  const args = { repo: 'org/site', stateDir: dir, send, channelId: 'web', siteUrl: 'https://site', fetcher };
+  const args = { repo: 'org/site', stateDir: dir, send, channelId: 'web', siteUrl: 'https://site', fetcher, now: () => T0 };
   return { args, send, fetcher, watcher: siteChangeWatcher(args) };
 }
 
 describe('site change watcher', () => {
-  it('records the head silently first, then reports only new commits oldest first', async () => {
-    const f = await fixture([
-      [commit('b', 'Second'), commit('a', 'First')],
-      [commit('d', 'Fourth\n\nbody'), commit('c', 'Third'), commit('b', 'Second'), commit('a', 'First')],
-    ]);
+  it('records the head silently, waits for a burst to end, then reports pages by what changed', async () => {
+    const f = await fixture({
+      heads: [head('a', 60), head('b', 1), head('b', 10), head('b', 10)],
+      files: [
+        { filename: 'data/games/73_banjo-tooie/index.md', status: 'added', additions: 20, deletions: 0 },
+        { filename: 'data/games/72_lufia/index.md', status: 'modified', additions: 5, deletions: 4, patch: '-cover: ""\n+cover: "./cover.png"\n' },
+        { filename: 'data/games/72_lufia/cover.png', status: 'added', additions: 0, deletions: 0 },
+        { filename: 'data/games/72_lufia/shot.png', status: 'added', additions: 0, deletions: 0 },
+        { filename: 'data/games/01_tomba/index.md', status: 'modified', additions: 1, deletions: 1, patch: '-updated: "2026-01-01"\n+updated: "2026-02-02"\n' },
+        { filename: 'src/pages/Admin.tsx', status: 'modified', additions: 50, deletions: 10 },
+      ],
+      titles: { 'data/games/73_banjo-tooie/index.md': 'Banjo-Tooie: Recompiled', 'data/games/72_lufia/index.md': 'Lufia II' },
+    });
     await f.watcher.start();
+    expect(f.send).not.toHaveBeenCalled();
+    await f.watcher.tick(); // head b is one minute old: still a burst
     expect(f.send).not.toHaveBeenCalled();
     await f.watcher.tick();
     expect(f.send).toHaveBeenCalledOnce();
-    const { content } = f.send.mock.calls[0][0];
-    expect(content).toContain('2 changes, live at https://site');
-    expect(content).toContain('• Third\n• Fourth');
-    expect(content).not.toContain('github.com');
+    expect(f.send.mock.calls[0][0].content).toBe('🚀 Site updated\n• New game page: Banjo-Tooie: Recompiled https://site/games/banjo-tooie\n• Lufia II: new cover, 2 images added, text updated https://site/games/lufia');
     await f.watcher.tick();
     expect(f.send).toHaveBeenCalledOnce();
-    // The last reported commit survives a restart.
     const again = siteChangeWatcher(f.args); await again.start();
     expect(f.send).toHaveBeenCalledOnce();
   });
-  it('says when more commits landed than one page shows', () => {
-    const text = changeReport([commit('z', 'Latest')], { truncated: true });
-    expect(text).toContain('1+ changes');
-  });
-  it('tolerates API failures without losing its place', async () => {
-    const f = await fixture([[commit('a', 'First')]]);
+  it('says nothing for code-only or trivial pushes but still moves on', async () => {
+    const f = await fixture({ heads: [head('a', 60), head('b', 10)], files: [{ filename: 'api/cms.ts', status: 'modified', additions: 3, deletions: 1 }] });
     await f.watcher.start();
-    f.fetcher.mockResolvedValueOnce(new Response('', { status: 403 }));
     expect(await f.watcher.tick()).toBeNull();
     expect(f.send).not.toHaveBeenCalled();
+    expect(JSON.parse(await fs.readFile(path.join(f.args.stateDir, 'site-changes.json'), 'utf8')).lastSha).toBe('b');
+  });
+  it('describes publishing, unlisting, removal, and nested docs addresses', () => {
+    const pages = pageChanges([
+      { filename: 'data/docs/01_start/07_submit/index.md', status: 'modified', additions: 1, deletions: 1, patch: '-draft: true\n+draft: false\n' },
+      { filename: 'data/blog/03_old/index.md', status: 'removed', additions: 0, deletions: 30 },
+      { filename: 'data/hardware/02_nes/index.md', status: 'modified', additions: 1, deletions: 1, patch: '+draft: true\n' },
+    ]);
+    expect(changeReport(pages)).toBe('🚀 Site updated\n• submit: published /docs/start/submit\n• old: post removed\n• nes: unlisted /hardware/nes');
+    expect(changeReport([])).toBeNull();
   });
 });
