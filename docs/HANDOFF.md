@@ -33,3 +33,9 @@ Submission artwork now imports same-message Discord images and repository README
 images into the game folder, with a cover and body images. See the public guide's
 [artwork section](../data/docs/01_start/07_submit-a-recomp/index.md#banners-and-screenshots).
 Validation: typecheck, build, 953 tests, and a read-only public README/image import.
+
+2026-09-16: Submission pages now carry a README-derived project summary,
+toolkit links, platform, and a "Made by" profile credit; the Lufia II page was
+regenerated. See commit `b68fca6`. The Discord changes in that commit (page URL
+in the notice, notice deleted on ✅) load only after an owner-approved bot
+restart, which has not yet happened.
