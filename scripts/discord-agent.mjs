@@ -70,6 +70,9 @@ const config = {
   // override keeps the bridge reusable in the harness or another server.
   adminChannelId: process.env.DISCORD_ADMIN_CHANNEL_ID ?? "1523871171551039649",
   userIds: parseCsv(process.env.DISCORD_ALLOWED_USER_IDS),
+  // Team members whose repository submissions publish as confirmed without a
+  // moderation pass. Overridable, but the team roster is the default.
+  trustedSubmitterIds: new Set(parseCsv(process.env.DISCORD_TRUSTED_SUBMITTER_IDS ?? "71388029540900864,174355715551526912,398336732287991808,121056800341491712")),
   roleIds: parseCsv(process.env.DISCORD_ALLOWED_ROLE_IDS),
   destructiveUserIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_USER_IDS),
   destructiveRoleIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_ROLE_IDS),
@@ -1172,7 +1175,11 @@ client.on("messageCreate", async (message) => {
     authorId: message.author.id,
   };
   const request = stripBotMention(message.content, client.user.id);
-  if (await submissions.intake(message, ref, request)) return;
+  // Intake needs the bot named in the text. A reply's automatic ping also
+  // lands in `mentions`, and a link someone posted in conversation is not a
+  // submission.
+  const namedInText = new RegExp(`<@!?${client.user.id}>`).test(message.content);
+  if (namedInText && await submissions.intake(message, ref, request, config.trustedSubmitterIds.has(message.author.id))) return;
   if (mode === "ignore") return;
   if (mode === "denied") {
     await safeSend({

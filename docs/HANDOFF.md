@@ -38,4 +38,6 @@ Validation: typecheck, build, 953 tests, and a read-only public README/image imp
 toolkit links, platform, and a "Made by" profile credit; the Lufia II page was
 regenerated. See commit `b68fca6`. The Discord changes in that commit (page URL
 in the notice, notice deleted on ✅) load only after an owner-approved bot
-restart, which has not yet happened.
+restart, which has not yet happened. The same applies to the follow-up: intake
+requires the bot named in the message text, and the four team members'
+submissions are confirmed on publication without a review reaction.

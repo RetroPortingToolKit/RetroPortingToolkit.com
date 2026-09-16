@@ -20,6 +20,10 @@ publishing agent remains restricted to allowlisted users and roles.
 
 Submission notices appear in `DISCORD_ADMIN_CHANNEL_ID`, with repository
 ownership, page link, and the Discord username/source message when available.
+Intake needs the bot named in the message text; a reply's automatic ping or
+a repository link in conversation is not a submission. Submissions from
+`DISCORD_TRUSTED_SUBMITTER_IDS` (default: the team) are confirmed on
+publication without a review reaction.
 Approved editors can react ✅ to confirm or ❌ to unlist that submission.
 Confirming deletes the notice once the commit is pushed; the "Done" reply with
 the page link remains. Unlisting keeps the notice and sets `draft: true`,
@@ -212,6 +216,7 @@ DISCORD_ALLOWED_CHANNEL_IDS="channel-id"
 DISCORD_PUBLIC_CHANNEL_IDS="optional-channel-id,optional-channel-id"
 DISCORD_ADMIN_CHANNEL_ID="optional-moderation-channel-id"
 DISCORD_ALLOWED_USER_IDS="user-id,user-id"
+DISCORD_TRUSTED_SUBMITTER_IDS="optional; defaults to the team roster"
 DISCORD_ALLOWED_ROLE_IDS="optional-role-id"
 DISCORD_DESTRUCTIVE_USER_IDS="optional-user-id,optional-user-id"
 DISCORD_DESTRUCTIVE_ROLE_IDS="optional-role-id"

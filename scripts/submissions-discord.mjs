@@ -28,10 +28,14 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     state.sources[record.id] ??= { ref: intake.ref, username: intake.username, url: intake.url };
     delete state.intake[key];
     await save();
-    await send({ ...intake.ref, content: `${result.message}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true });
+    const auto = intake.trusted && !result.duplicate;
+    await send({ ...intake.ref, content: `${result.message}${auto ? ' As a team submission it is confirmed without review.' : ''}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true });
     await poll();
+    // A trusted author's submission takes the same serialized path as a ✅.
+    if (auto) await enqueue({ ref: intake.ref, request: `Moderate submission ${record.id}`, messageUrl: intake.url,
+      submissionModeration: { id: record.id, decision: 'confirmed', moderator: intake.ref.authorId } });
   }
-  async function intake(message, ref, request) {
+  async function intake(message, ref, request, trusted = false) {
     if (!endpoint) return false;
     const input = discordSubmission(request, [...(message.attachments?.values() ?? [])]);
     if (!input) return false;
@@ -41,7 +45,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
       await send({ ...ref, content: 'There are several submissions in progress. Please try again shortly.', ping: true });
       return true;
     }
-    const item = { input, ref, username: plainText(message.author.username, 80), url: message.url };
+    const item = { input, ref, username: plainText(message.author.username, 80), url: message.url, trusted: trusted === true };
     state.intake[key] = item;
     await save();
     await message.react('🔍').catch(() => {});

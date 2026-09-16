@@ -31,6 +31,16 @@ describe('Discord submission moderation', () => {
     await restored.reaction({ message: f.message, emoji: { name: '✅' } }, { id: 'EDITOR' });
     expect(f.enqueue).toHaveBeenCalledOnce();
   });
+  it('confirms a trusted author\'s submission without a review reaction', async () => {
+    const f = await fixture();
+    const message = { author: { username: 'lead' }, url: 'https://discord.com/channels/g/c/m', react: async () => {} };
+    await f.bridge.intake(message, { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, `submit ${record.repo}`, true);
+    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ submissionModeration: { id: record.id, decision: 'confirmed', moderator: 'LEAD' } }));
+    expect(f.send.mock.calls[0][0].content).toContain('confirmed without review');
+    f.enqueue.mockClear();
+    await f.bridge.intake(message, { messageId: 'm2', channelId: 'c', authorId: 'U' }, `submit ${record.repo}`);
+    expect(f.enqueue).not.toHaveBeenCalled();
+  });
   it('does not moderate an unrelated message', async () => {
     const f = await fixture(); await f.bridge.start();
     await f.bridge.reaction({ message: { ...f.message, id: 'other' }, emoji: { name: '❌' } }, { id: 'EDITOR' });
