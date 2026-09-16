@@ -27,9 +27,9 @@ describe('site change watcher', () => {
     await f.watcher.tick();
     expect(f.send).toHaveBeenCalledOnce();
     const { content } = f.send.mock.calls[0][0];
-    expect(content).toContain('2 changes on main');
+    expect(content).toContain('2 changes, live at https://site');
     expect(content).toContain('• Third\n• Fourth');
-    expect(content).toContain('https://github.com/org/site/compare/b...d');
+    expect(content).not.toContain('github.com');
     await f.watcher.tick();
     expect(f.send).toHaveBeenCalledOnce();
     // The last reported commit survives a restart.
@@ -37,7 +37,7 @@ describe('site change watcher', () => {
     expect(f.send).toHaveBeenCalledOnce();
   });
   it('says when more commits landed than one page shows', () => {
-    const text = changeReport([commit('z', 'Latest')], { repo: 'org/site', from: 'old', truncated: true });
+    const text = changeReport([commit('z', 'Latest')], { truncated: true });
     expect(text).toContain('1+ changes');
   });
   it('tolerates API failures without losing its place', async () => {

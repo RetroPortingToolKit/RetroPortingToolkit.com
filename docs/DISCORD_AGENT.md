@@ -19,7 +19,7 @@ Untrusted questions still use the read-only lane in
 publishing agent remains restricted to allowlisted users and roles.
 
 Every push to the site's main branch is announced in `DISCORD_ADMIN_CHANNEL_ID`
-as a short list of commit subjects with a compare link, polled every five
+as a short list of commit subjects, polled every five
 minutes from GitHub's public commits API (`DISCORD_SITE_CHANGE_POLL_MS`,
 `DISCORD_SITE_REPO`). The first run after install records the current head
 silently; state is `site-changes.json` in the state directory.

@@ -29,7 +29,7 @@ export function siteChangeWatcher({ repo, branch = 'main', stateDir, send, chann
       const index = commits.findIndex(c => c.sha === state.lastSha);
       const fresh = (index === -1 ? commits : commits.slice(0, index)).reverse();
       if (!fresh.length) return null;
-      const content = changeReport(fresh, { repo, from: state.lastSha, siteUrl, truncated: index === -1 });
+      const content = changeReport(fresh, { siteUrl, truncated: index === -1 });
       await send({ channelId, content, suppressMentions: true });
       state.lastSha = commits[0].sha;
       await save();
@@ -45,9 +45,8 @@ export function siteChangeWatcher({ repo, branch = 'main', stateDir, send, chann
   };
 }
 
-export function changeReport(commits, { repo, from, siteUrl = '', truncated = false }) {
+export function changeReport(commits, { siteUrl = '', truncated = false } = {}) {
   const lines = commits.map(c => `• ${(c.commit?.message ?? '').split('\n')[0].trim().slice(0, 140)}`);
   const count = commits.length + (truncated ? '+' : '');
-  const compare = from ? `https://github.com/${repo}/compare/${from.slice(0, 12)}...${commits.at(-1).sha.slice(0, 12)}` : `https://github.com/${repo}/commits`;
-  return `🚀 Site updated: ${count} change${commits.length === 1 && !truncated ? '' : 's'} on main, live${siteUrl ? ` at ${siteUrl}` : ''} within a couple of minutes.\n${lines.join('\n')}\n${compare}`;
+  return `🚀 Site updated: ${count} change${commits.length === 1 && !truncated ? '' : 's'}, live${siteUrl ? ` at ${siteUrl}` : ''} within a couple of minutes.\n${lines.join('\n')}`;
 }
