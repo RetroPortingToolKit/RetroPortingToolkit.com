@@ -57,5 +57,20 @@
     "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
     "moderatedBy": "398336732287991808",
     "moderatedAt": "2026-09-16T17:22:45.071Z"
+  },
+  {
+    "id": "b1210a4cf7279a12",
+    "repo": "https://github.com/elprogramadorloco-arch/fuc-recomp",
+    "title": "Fate Unlimited Codes",
+    "description": "Hybrid native Fate/unlimited codes project: PSP static-recompilation/gameplay base with PS2 assets and controls in development. No game files included.",
+    "owner": "elprogramadorloco-arch",
+    "discord": "elprogramadorloco_87045",
+    "path": "data/games/74_fuc-recomp-b1210a4c/index.md",
+    "url": "/games/fuc-recomp-b1210a4c",
+    "createdAt": "2026-09-16T21:01:45.772Z",
+    "status": "pending",
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
