@@ -52,7 +52,7 @@ export function messageImages(text, attachments = []) {
  * describe what the project is and how far it has come. Build steps, ROM
  * hashes, and licensing are left to the repository. Each block is a paragraph
  * or a `- ` bullet, ready to be escaped for markdown. */
-export function readmeSummary(markdown, limit = 1400) {
+export function readmeSummary(markdown, limit = 1700) {
   const stripped = markdown.replace(/\r\n?/g, '\n').replace(/```[\s\S]*?```|~~~[\s\S]*?~~~/g, '').replace(/<!--[\s\S]*?-->/g, '')
     .replace(/<(?:img|picture|video|source|br)\b[^>]*>/gi, '').replace(/<\/?(?:p|div|table|tr|td|th|tbody|thead|details|summary|sub|sup|b|i|em|strong|a|center|h[1-6]|span)\b[^>]*>/gi, '')
     .replace(/!\[[^\]]*\]\([^)]*\)|!\[[^\]]*\]\[[^\]]*\]/g, '');
@@ -79,14 +79,15 @@ export function readmeSummary(markdown, limit = 1400) {
     return out.slice(0, max);
   };
   const intro = sections.filter(s => s.level <= 1).flatMap(s => blocks(s.lines, 3)).filter(b => !b.startsWith('- ')).slice(0, 3);
-  const keep = /\b(about|overview|introduction|features|status|progress|what works|working|highlights|current state|roadmap|goals|compatib)/i;
+  const keep = /\b(about|overview|introduction|features|status|progress|what works|working|highlights|current state|roadmap|goals|compatib|known (?:issues|limitations))/i;
   const skip = /\b(build|install|requirement|rom|usage|running|licen[cs]e|credits?|contribut|donat|support|faq|troubleshoot|download)/i;
   const extra = sections.filter(s => s.level >= 2 && keep.test(s.heading) && !skip.test(s.heading)).slice(0, 2).flatMap(s => blocks(s.lines, 6));
   const out = [];
   let size = 0;
   for (const block of [...intro, ...extra]) {
     const value = block.slice(0, 600);
-    if (out.includes(value)) continue;
+    // A pointer to another README section has nothing to point at here.
+    if (out.includes(value) || (value.length < 160 && /\b(?:described|listed|documented|detailed|see)\b.*\b(?:under|below|above|section)\b/i.test(value))) continue;
     if (size + value.length > limit) break;
     out.push(value); size += value.length;
   }
