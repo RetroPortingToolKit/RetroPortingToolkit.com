@@ -1329,7 +1329,7 @@ export default function Admin() {
         <div style={{ flex: 1, minWidth: 0, marginLeft: 4 }}>
           <div className="ac-toolbar-title">{selected ? selected.title : selectedFolder}</div>
         </div>
-        {!selected && (
+        {!selected && !scoped && (
           <button className="ac-btn ac-btn-plain" onClick={() => setShowHelp(true)}>
             How this works
           </button>
@@ -1397,6 +1397,7 @@ export default function Admin() {
                 {deleting ? "Deleting..." : "Delete"}
               </button>
             )}
+            {!scoped && (
             <button
               className="ac-icon-btn"
               title={
@@ -1409,6 +1410,7 @@ export default function Admin() {
             >
               <HelpIcon />
             </button>
+            )}
           </div>
         )}
       </header>
