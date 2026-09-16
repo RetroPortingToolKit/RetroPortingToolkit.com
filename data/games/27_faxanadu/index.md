@@ -14,9 +14,11 @@ group: "NES"
 links:
   - { label: "NESRecomp progress article (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-08-04"
+updated: "2026-06-17"
 added: "2026-03-15"
 cover: "./title-screen.png"
+release: "v2.2.0"
+download: "https://github.com/mstan/FaxanaduRecomp/releases/tag/v2.2.0"
 ---
 
 Faxanadu was the [first commercial title](/blog/nesrecomp-4-titles) [NESRecomp](/hardware/nes) ever supported.
