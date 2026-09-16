@@ -140,7 +140,7 @@ const ATTACHMENT_FETCH_MS = 60_000;
 // A busy shared checkout is a wait, not a failure. Someone editing the repo by
 // hand is normal and usually brief, so a request parks and retries instead of
 // being thrown away.
-const SITE_CHANGE_POLL_MS = envMs("DISCORD_SITE_CHANGE_POLL_MS", 5 * 60 * 1_000);
+const SITE_CHANGE_POLL_MS = envMs("DISCORD_SITE_CHANGE_POLL_MS", 30 * 60 * 1_000);
 const REPO_UPDATE_POLL_MS = envMs("DISCORD_REPO_UPDATE_POLL_MS", 60 * 60 * 1_000);
 // The GitHub repository whose main branch deploys the site.
 const SITE_REPO = process.env.DISCORD_SITE_REPO || "RetroPortingToolKit/RetroPortingToolkit.com";

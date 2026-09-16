@@ -26,9 +26,12 @@ hand-written notes on the bot's own changes.
 Changes to the site's pages are announced in `DISCORD_ADMIN_CHANNEL_ID`: one
 line per page that was created, removed, published, unlisted, given a new
 cover or images, or had its text substantially edited, with the page link.
-Code changes and small edits are not mentioned. Polled every five minutes from
-GitHub's public compare API (`DISCORD_SITE_CHANGE_POLL_MS`, `DISCORD_SITE_REPO`);
-a burst of saves is reported once, after three quiet minutes. The first run
+Code changes and small edits are not mentioned. Polled every thirty minutes
+from GitHub's public compare API (`DISCORD_SITE_CHANGE_POLL_MS`,
+`DISCORD_SITE_REPO`); a burst of saves is reported once, after three quiet
+minutes. Together with the release watcher the bot makes well under ten
+anonymous GitHub calls an hour, leaving the shared per-address limit of sixty
+to everything else on the machine. The first run
 after install records the current head silently; state is `site-changes.json`
 in the state directory.
 
