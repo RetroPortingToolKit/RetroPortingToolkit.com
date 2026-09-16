@@ -50,3 +50,7 @@ Discord username. Repository owners can sign in to `/admin` with GitHub and edit
 only their own submission pages (`contributorScope` in `api/cms.ts`). Intake
 replies include the edit link. The bot change (Discord username on intake)
 needs the next owner-approved restart.
+
+2026-09-16 (evening): The bot announces every push to main in #website via
+`scripts/site-changes.mjs` (GitHub commits API, 5-minute poll). Bot feature
+changes are posted to #rptk-bot (1549838020163797052) by hand after each restart.

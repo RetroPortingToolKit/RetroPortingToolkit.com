@@ -42,6 +42,7 @@ import {
 import { createTaskContext } from "./discord-task-context.mjs";
 import { verifyCompletion, outcomeReaction } from "./discord-completion.mjs";
 import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs";
+import { siteChangeWatcher } from "./site-changes.mjs";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
 // The site's own address, read out of src/lib/site.ts: the one place a brand
 // string lives, so the bot never carries a domain of its own.
@@ -134,6 +135,9 @@ const ATTACHMENT_FETCH_MS = 60_000;
 // A busy shared checkout is a wait, not a failure. Someone editing the repo by
 // hand is normal and usually brief, so a request parks and retries instead of
 // being thrown away.
+const SITE_CHANGE_POLL_MS = envMs("DISCORD_SITE_CHANGE_POLL_MS", 5 * 60 * 1_000);
+// The GitHub repository whose main branch deploys the site.
+const SITE_REPO = process.env.DISCORD_SITE_REPO || "RetroPortingToolKit/RetroPortingToolkit.com";
 const CHECKOUT_WAIT_MS = envMs("DISCORD_AGENT_WAIT_MS", 5 * 60 * 1_000);
 // Waiting is the bot's job, not the requester's. A request parks for as long as
 // the repository stays busy and starts itself when it goes quiet; the cap only
@@ -1330,6 +1334,12 @@ client.once(Events.ClientReady, async () => {
   await submissions.start().catch(() => console.error("[discord-agent] submission recovery failed"));
   const submissionTimer = setInterval(() => void submissions.poll().catch(() => console.error("[discord-agent] submission notice retry failed")), 60_000);
   submissionTimer.unref();
+  // Every push to main, from wherever it came, is announced in the website
+  // channel. Unauthenticated, so the poll stays well inside GitHub's limit.
+  const siteChanges = siteChangeWatcher({ repo: SITE_REPO, stateDir: STATE_DIR, send: safeSend, channelId: config.adminChannelId, siteUrl: SITE.url });
+  await siteChanges.start().catch((error) => console.error("[discord-agent] site change watch failed", error));
+  const siteChangeTimer = setInterval(() => void siteChanges.tick().catch((error) => console.error("[discord-agent] site change watch failed", error)), SITE_CHANGE_POLL_MS);
+  siteChangeTimer.unref();
 
 });
 client.on(Events.Error, (error) => console.error("[discord-agent] Discord client error", error));

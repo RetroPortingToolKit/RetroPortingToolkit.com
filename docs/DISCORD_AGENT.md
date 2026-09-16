@@ -18,6 +18,12 @@ Untrusted questions still use the read-only lane in
 `DISCORD_PUBLIC_CHANNEL_IDS`; elsewhere the bot stays silent. The general
 publishing agent remains restricted to allowlisted users and roles.
 
+Every push to the site's main branch is announced in `DISCORD_ADMIN_CHANNEL_ID`
+as a short list of commit subjects with a compare link, polled every five
+minutes from GitHub's public commits API (`DISCORD_SITE_CHANGE_POLL_MS`,
+`DISCORD_SITE_REPO`). The first run after install records the current head
+silently; state is `site-changes.json` in the state directory.
+
 Submission notices appear in `DISCORD_ADMIN_CHANNEL_ID`, with repository
 ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
