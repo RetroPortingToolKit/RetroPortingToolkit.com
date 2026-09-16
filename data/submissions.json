@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "1bdbebefc9dd9af5",
+    "repo": "https://github.com/Cellenseres/Lufia2SNESRecomp",
+    "title": "Lufia II: Rise of the Sinistrals",
+    "description": "A SNESRecomp port of the SNES RPG, playable from start to finish, with widescreen, rewind, and Windows and Linux builds that run on the Steam Deck.",
+    "owner": "Cellenseres",
+    "path": "data/games/72_lufia2snesrecomp-1bdbebef/index.md",
+    "url": "/games/lufia2snesrecomp-1bdbebef",
+    "createdAt": "2026-09-16T07:46:09.127Z",
+    "status": "pending",
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "The Lufia II title screen rendered at 16:9"
+      },
+      {
+        "path": "./submission-2.png",
+        "alt": "The Mode 7 intro flyover rendered at 16:9"
+      },
+      {
+        "path": "./submission-3.png",
+        "alt": "The Mode 7 overworld in Lufia II Recompiled"
+      },
+      {
+        "path": "./submission-4.png",
+        "alt": "A town in Lufia II Recompiled"
+      }
+    ],
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+  }
+]
