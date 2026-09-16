@@ -1,7 +1,7 @@
 ---
 title: "Lufia II: Rise of the Sinistrals"
 desc: "A SNESRecomp port of the SNES RPG, playable from start to finish, with widescreen, rewind, and Windows and Linux builds that run on the Steam Deck."
-kicker: "Community submission"
+kicker: "Super Nintendo"
 tags: ["Community"]
 provenance: "community"
 repo: "https://github.com/Cellenseres/Lufia2SNESRecomp"
