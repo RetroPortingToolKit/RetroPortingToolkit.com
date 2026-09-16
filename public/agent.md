@@ -6,7 +6,10 @@ is everything you need. Follow it exactly.
 ## Submit a game repository
 
 Anyone can submit a public GitHub or GitLab repository using
-`POST /api/submissions` with JSON `{ "repo": "https://github.com/owner/project", "name": "Optional name", "description": "Optional description" }`.
+`POST /api/submissions` with JSON `{ "repo": "https://github.com/owner/project", "name": "Optional name", "description": "Optional description", "cover": "Optional image URL", "discord": "Optional Discord username" }`.
+A `cover` (same hosts as `images`) becomes the page cover ahead of anything
+found in the README. `discord` (80 characters) is shown beside the repository
+owner's login as the page's creator.
 This creates a new Games page automatically; it cannot edit existing content.
 Names are limited to 100 characters and descriptions to 500. Omitted fields
 come from the public repository metadata. Duplicate and removed repositories
@@ -27,7 +30,10 @@ submissions.
 
 The team receives a Discord moderation notice and can confirm or unlist the
 page. The page credits the repository owner with a link to their GitHub or
-GitLab profile, without asserting that an anonymous submitter owns it. [Submission guide](/docs/start/submit-a-recomp).
+GitLab profile, without asserting that an anonymous submitter owns it. The
+response message includes an edit link: the repository owner can sign in to
+`/admin` with that GitHub account and edit their own page, including its
+cover, and nothing else. [Submission guide](/docs/start/submit-a-recomp).
 
 ## First, check you are on the right path
 

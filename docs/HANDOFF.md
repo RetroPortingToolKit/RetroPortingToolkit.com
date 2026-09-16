@@ -42,3 +42,11 @@ restart. The same applies to the follow-up: intake
 requires the bot named in the message text, and the four team members'
 submissions are confirmed on publication without a review reaction, and intake replies @-mention the submitter.
 The owner approved the restart on 2026-09-16.
+
+2026-09-16 (later): Community pages carry `creator` (code-host login plus Discord
+name) rendered as a "Made by" line; team-authored pages derive the same line from
+`data/team.json`. The submission form and API accept an optional cover link and
+Discord username. Repository owners can sign in to `/admin` with GitHub and edit
+only their own submission pages (`contributorScope` in `api/cms.ts`). Intake
+replies include the edit link. The bot change (Discord username on intake)
+needs the next owner-approved restart.

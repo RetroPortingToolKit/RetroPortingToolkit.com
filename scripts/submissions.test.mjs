@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { repositoryUrl, submissionId, submissionPage, moderationPage, discordSubmission } from './submissions.mjs';
+import { repositoryUrl, submissionId, submissionPage, moderationPage, discordSubmission, editLink } from './submissions.mjs';
 import yaml from 'js-yaml';
 const record = { id: submissionId('https://github.com/example/recomp'), repo: 'https://github.com/example/recomp', owner: 'example', title: 'Game\n---\ndraft: true', description: '[bad](javascript:alert(1)) <script>bad</script>', path: 'data/games/40_recomp-1234/index.md', createdAt: '2026-09-15T00:00:00.000Z' };
 describe('submission boundaries', () => {
@@ -22,9 +22,13 @@ describe('submission boundaries', () => {
     expect(fm.cover).toBe('./submission-1.png'); expect(fm.platform).toBe('super-nintendo'); expect(fm.links[0].href).toBe(record.repo);
     expect(raw).not.toContain('](./submission-1.png)'); expect(raw).toContain('![Town](./submission-2.png)');
     expect(raw).toContain('A [SNESRecomp](/hardware/super-nintendo) port.');
-    expect(raw).toContain('Built with [SNESRecomp](/hardware/super-nintendo).\n\n- Boots to gameplay\n- Saves work\n\nMade by [example](https://github.com/example). [Source repository](https://github.com/example/recomp) on GitHub.');
+    expect(raw).toContain('## Project\n\nBuilt with [SNESRecomp](/hardware/super-nintendo).\n\n- Boots to gameplay\n- Saves work\n');
+    expect(fm.creator).toEqual({ github: 'example' });
+    expect(raw).not.toContain('Made by');
     expect(raw).not.toContain('reviewed'); expect(raw).not.toContain('namespace');
-    expect(submissionPage({ ...record, repo: 'https://gitlab.com/team/sub/game', owner: 'team/sub' })).toContain('Made by [team/sub](https://gitlab.com/team/sub)');
+    expect(yaml.load(submissionPage({ ...record, repo: 'https://gitlab.com/team/sub/game', owner: 'team/sub', discord: 'maker' }).split('---\n')[1]).creator).toEqual({ gitlab: 'team/sub', discord: 'maker' });
+    expect(submissionPage(record)).not.toContain('## Project');
+    expect(editLink({ url: '/games/game' }, 'https://site')).toBe('https://site/admin?at=/games/game');
   });
   it('unlists only the identified page and preserves editorial content', () => {
     const raw = submissionPage(record) + '\nEditorial addition.\n';
@@ -36,7 +40,7 @@ describe('submission boundaries', () => {
     expect(() => moderationPage(raw, { ...record, path: '../AGENTS.md' }, 'removed')).toThrow();
   });
   it('routes submissions without converting ordinary questions into writes', () => {
-    expect(discordSubmission('submit https://github.com/example/recomp This is my port')).toMatchObject({ repo: record.repo });
+    expect(discordSubmission('submit https://github.com/example/recomp This is my port', [], 'maker')).toMatchObject({ repo: record.repo, discord: 'maker' });
     expect(discordSubmission(record.repo)).toMatchObject({ repo: record.repo });
     expect(discordSubmission(`What is ${record.repo}?`)).toBeNull();
     expect(discordSubmission('submit https://github.com/a/b https://github.com/c/d')).toBeNull();

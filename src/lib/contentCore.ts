@@ -8,6 +8,7 @@ import type {
   Item,
   Kind,
   LinkRef,
+  Creator,
 } from "./types";
 
 export type AssetUrlMap = Readonly<Record<string, string>>;
@@ -216,6 +217,13 @@ function asGallery(v: unknown, baseDir: string, assetUrls: AssetUrlMap): Gallery
   return out;
 }
 
+function asCreator(v: unknown): Creator | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const o = v as Record<string, unknown>;
+  const handle = (x: unknown) => (typeof x === "string" && /^[\w][\w.\-\/]{0,100}$/.test(x.trim()) ? x.trim() : undefined);
+  const creator = { github: handle(o.github), gitlab: handle(o.gitlab), discord: typeof o.discord === "string" && o.discord.trim() ? o.discord.trim().slice(0, 80) : undefined };
+  return creator.github || creator.gitlab || creator.discord ? creator : undefined;
+}
 function asLinks(v: unknown): LinkRef[] {
   if (!Array.isArray(v)) return [];
   return v
@@ -326,6 +334,7 @@ function parseItem(path: string, raw: string, assetUrls: AssetUrlMap): Item | nu
     poster: posterM?.src,
     gallery,
     links: asLinks(fm.links),
+    creator: asCreator(fm.creator),
     body: resolveBodyMedia(body.trim(), baseDir, assetUrls),
     order,
     meta: asStringArray(fm.meta),

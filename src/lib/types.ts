@@ -18,6 +18,12 @@ export interface Topic {
   items?: TopicItemRef[];
 }
 
+export interface Creator {
+  github?: string;
+  gitlab?: string;
+  discord?: string;
+}
+
 export interface LinkRef {
   label: string;
   href: string;
@@ -97,6 +103,9 @@ export interface Item {
   arch?: string;
   /** Canonical source repository URL. */
   repo?: string;
+  /** Who made the project: a code-host login and, when known, a Discord name.
+      Team pages fall back to the author's handles in data/team.json. */
+  creator?: Creator;
   videoUrl?: string;
   coverBgSize?: string;
   coverBgPos?: string;

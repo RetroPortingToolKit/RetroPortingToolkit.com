@@ -10,6 +10,7 @@
 import crypto from "node:crypto";
 import yaml from "js-yaml";
 import { authorsOf, canonicalAuthors, teamMemberByGithub, type Team } from "../scripts/authors.mjs";
+import { SUBMISSIONS_PATH } from "../scripts/submissions.mjs";
 
 // Repo identity comes from Vercel's build env so this function is not pinned
 // to one GitHub repo. Override with CMS_REPO_OWNER / CMS_REPO_NAME if you host
@@ -53,6 +54,9 @@ export interface Actor {
   via: "github" | "agent";
   /** the agent key's label, when via === "agent" */
   agent?: string;
+  /** Item ids this person may edit, when they are not a full editor: the
+      pages of community submissions whose repository they own. */
+  scope?: string[];
 }
 
 function csv(value: string): string[] {
@@ -136,6 +140,34 @@ export async function orgReady(): Promise<boolean> {
   }
 }
 
+// ------------------------------------------------------- contributor scope
+// Someone who submitted a recomp owns its repository, and GitHub verified that
+// ownership when the submission was published. Signing in with that account
+// lets them edit their page and nothing else. The register is the source of
+// truth, read fresh at most once a minute per function instance.
+let scopeCache: { at: number; records: { owner: string; path: string; status: string }[] } | null = null;
+export function clearScopeCache(): void { scopeCache = null; }
+export async function contributorScope(login: string, now = Date.now()): Promise<string[]> {
+  const want = login.trim().toLowerCase();
+  if (!want) return [];
+  if (!scopeCache || now - scopeCache.at > 60_000) {
+    try {
+      const file = await ghReadFile(SUBMISSIONS_PATH);
+      const records = file ? JSON.parse(file.content) : [];
+      scopeCache = { at: now, records: Array.isArray(records) ? records : [] };
+    } catch {
+      return [];
+    }
+  }
+  return scopeCache.records
+    .filter((r) => typeof r.owner === "string" && r.owner.toLowerCase() === want && r.status !== "removed" && isAllowed(r.path))
+    .map((r) => r.path);
+}
+/** Is this item within what the actor may touch? Full editors have no scope. */
+export function withinScope(actor: Actor | null, id: string): boolean {
+  return !actor?.scope || actor.scope.includes(id);
+}
+
 /** May this GitHub login edit? Org membership or the explicit allowlist. */
 export async function mayEdit(login: string): Promise<boolean> {
   if (!login) return false;
@@ -207,7 +239,13 @@ function identityFor(req: Request): Actor | null {
 async function actorFor(req: Request): Promise<Actor | null> {
   const who = identityFor(req);
   if (!who) return null;
-  if (!(await mayEdit(who.login))) return null;
+  if (!(await mayEdit(who.login))) {
+    // Agents act for their owner and inherit nothing narrower than that.
+    if (who.via !== "github") return null;
+    const scope = await contributorScope(who.login);
+    if (!scope.length) return null;
+    who.scope = scope;
+  }
   // The name the team page uses for them, so a post they create is bylined
   // "Shokunin", not "tetrisgm" and not whatever GitHub has as a display name.
   who.byline = teamMemberByGithub(await teamRoster(), who.login)?.name;
@@ -1106,7 +1144,7 @@ async function githubCallback(req: Request): Promise<Response> {
   });
   const user = (await userRes.json().catch(() => ({}))) as { login?: string; name?: string; avatar_url?: string };
   if (!userRes.ok || !user.login) return loginFailed("profile");
-  if (!(await mayEdit(user.login))) return loginFailed("not_allowed");
+  if (!(await mayEdit(user.login)) && !(await contributorScope(user.login)).length) return loginFailed("not_allowed");
 
   return new Response(null, {
     status: 302,
@@ -1526,26 +1564,34 @@ export async function GET(req: Request): Promise<Response> {
       org: allowedOrg() || null,
       orgReady: await orgReady(),
       user: actor
-        ? { login: actor.login, via: actor.via, agent: actor.agent ?? null, name: actor.name ?? null, avatar: actor.avatar ?? null }
+        ? { login: actor.login, via: actor.via, agent: actor.agent ?? null, name: actor.name ?? null, avatar: actor.avatar ?? null, scope: actor.scope ?? null }
         : null,
       env: "prod",
     });
   }
   if (!(await authed(req))) return json({ error: "auth", required: true }, 401);
+  const actor = await actorFor(req);
   if (route === "list") {
     try {
-      return json({ groups: await listEditable() });
+      const groups = await listEditable();
+      if (actor?.scope) {
+        const items = groups.flatMap((g) => g.items).filter((i) => actor.scope!.includes(i.id));
+        return json({ groups: [{ group: "Your pages", items }] });
+      }
+      return json({ groups });
     } catch (e) {
       return json({ error: (e as Error).message }, 500);
     }
   }
   if (route === "read") {
     const id = new URL(req.url).searchParams.get("id") || "";
+    if (!withinScope(actor, id)) return json({ error: "forbidden" }, 403);
     const data = await readEditable(id);
     return data ? json(data) : json({ error: "not_found" }, 404);
   }
   if (route === "assets") {
     const id = new URL(req.url).searchParams.get("id") || "";
+    if (!withinScope(actor, id)) return json({ error: "forbidden" }, 403);
     return json(await listAssets(id));
   }
   return json({ error: "unknown_cms_route" }, 404);
@@ -1558,9 +1604,16 @@ export async function POST(req: Request): Promise<Response> {
   if (route === "logout") return json({ ok: true }, 200, [clearSession(), hintCookie(false)]);
 
   if (!(await authed(req))) return json({ error: "auth", required: true }, 401);
+  const actor = await actorFor(req);
+  // A contributor may change their own page and its files, and nothing else:
+  // no new pages, no renames, no deletions, no posting.
+  if (actor?.scope) {
+    if (!["upload", "asset/delete", "save", "publish"].includes(route)) return json({ ok: false, error: "forbidden" }, 403);
+    if (route !== "publish" && !withinScope(actor, String(body.id || ""))) return json({ ok: false, error: "forbidden" }, 403);
+  }
   if (route === "upload") {
     try {
-      const r = await uploadAsset(body, await actorFor(req));
+      const r = await uploadAsset(body, actor);
       return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
@@ -1568,7 +1621,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "asset/delete") {
     try {
-      const r = await deleteAsset(body, await actorFor(req));
+      const r = await deleteAsset(body, actor);
       return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
@@ -1576,7 +1629,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "post") {
     try {
-      const r = await postItem(body, await actorFor(req));
+      const r = await postItem(body, actor);
       return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
@@ -1584,7 +1637,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "rename") {
     try {
-      const r = await renameEditable(body, await actorFor(req));
+      const r = await renameEditable(body, actor);
       return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
@@ -1592,7 +1645,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "duplicate") {
     try {
-      const r = await duplicateEditable(body, await actorFor(req));
+      const r = await duplicateEditable(body, actor);
       return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
@@ -1600,7 +1653,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "delete") {
     try {
-      const r = await deleteEditable(body, await actorFor(req));
+      const r = await deleteEditable(body, actor);
       return json(r, mutationStatus(r));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);
@@ -1608,7 +1661,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "save") {
     try {
-      const result = await writeEditable(String(body.id || ""), body, await actorFor(req));
+      const result = await writeEditable(String(body.id || ""), body, actor);
       // 428 tells clients to read before their first save. 409 tells an editor
       // that the version it did read is no longer current.
       return json(result, result.ok ? 200 : result.preconditionRequired ? 428 : result.staleBase ? 409 : 400);
@@ -1618,7 +1671,7 @@ export async function POST(req: Request): Promise<Response> {
   }
   if (route === "new") {
     try {
-      const result = await createEditable(body, await actorFor(req));
+      const result = await createEditable(body, actor);
       return json(result, mutationStatus(result));
     } catch (e) {
       return json({ ok: false, error: (e as Error).message }, 500);

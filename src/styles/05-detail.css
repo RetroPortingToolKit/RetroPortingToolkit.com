@@ -1657,6 +1657,33 @@ button {
 }
 
 /* Primary project action: the one link to the project itself. */
+.creator-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--muted, #6b6b6b);
+}
+.creator-login {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.creator-login:hover {
+  text-decoration: underline;
+}
+.creator-discord {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.creator-discord svg {
+  margin: 0 1px 0 2px;
+  color: #5865f2;
+}
+
 .project-cta {
   display: inline-flex;
   align-items: center;

@@ -72,10 +72,15 @@ export async function repositoryMetadata(repo: string) {
 export async function submitRepository(store: SubmissionStore, input: Record<string, unknown>, now = new Date()) {
   let repo: string;
   try { repo = repositoryUrl(input.repo); } catch (error) { throw new SubmissionError((error as Error).message); }
-  for (const [key, max] of [['name', 100], ['description', 500]] as const) {
-    if (input[key] !== undefined && (typeof input[key] !== 'string' || (input[key] as string).length > max)) throw new SubmissionError(`${key === 'name' ? 'Name' : 'Description'} must be at most ${max} characters.`);
+  for (const [key, max] of [['name', 100], ['description', 500], ['discord', 80]] as const) {
+    if (input[key] !== undefined && (typeof input[key] !== 'string' || (input[key] as string).length > max)) throw new SubmissionError(`${{ name: 'Name', description: 'Description', discord: 'Discord username' }[key]} must be at most ${max} characters.`);
   }
   const explicit: MediaCandidate[] = [];
+  // A chosen cover goes first, ahead of anything the README offers.
+  if (input.cover !== undefined && input.cover !== '') {
+    if (typeof input.cover !== 'string' || !mediaUrl(input.cover)) throw new SubmissionError('Use a cover image link from GitHub, GitLab, or a Discord attachment.');
+    explicit.push({ url: mediaUrl(input.cover)!, alt: 'Project banner' });
+  }
   if (input.images !== undefined) {
     if (!Array.isArray(input.images) || input.images.length > 8) throw new SubmissionError('Provide up to eight image links.');
     for (const image of input.images) {
@@ -116,7 +121,7 @@ export async function submitRepository(store: SubmissionStore, input: Record<str
     }
     const record: Submission = { id, repo, title: plainText(input.name, 100) || metadata.title,
       description: plainText(input.description, 500) || metadata.description || 'A community game project. See the source repository for details and current progress.',
-      owner: metadata.owner, path: `data/games/${String(order).padStart(2, '0')}_${slug}/index.md`, url: `/games/${slug}`, createdAt: now.toISOString(), status: 'pending',
+      owner: metadata.owner, ...(plainText(input.discord, 80) ? { discord: plainText(input.discord, 80) } : {}), path: `data/games/${String(order).padStart(2, '0')}_${slug}/index.md`, url: `/games/${slug}`, createdAt: now.toISOString(), status: 'pending',
       images: assets.map(asset => ({ path: `./${asset.name}`, alt: asset.alt })), summary: summary ?? [],
       mediaNote: assets.length ? `Imported ${assets.length} image${assets.length === 1 ? '' : 's'}. The first is the cover; check the page for any missing artwork.` : 'No supported images could be imported. The page is publishing without artwork.' };
     try { await store.create(snapshot, record, assets); return { record, duplicate: false }; }

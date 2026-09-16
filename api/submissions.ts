@@ -1,4 +1,5 @@
 import { SubmissionStore, SubmissionError, submitRepository } from '../src/lib/submissionServer.js';
+import { editNote } from '../scripts/submissions.mjs';
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
 // The durable register also caps submissions globally and per repository owner.
 // This short local window reduces repeated requests before repository lookups.
@@ -32,7 +33,7 @@ export async function handler(req: Request): Promise<Response> {
     if (attempts.has(ip)) return json({ error: 'Please wait 30 seconds before submitting again.' }, 429);
     attempts.set(ip, now);
     const result = await submitRepository(store, input);
-    return json({ ...result, message: result.duplicate ? 'This project has already been submitted.' : `Your game page is publishing. It usually appears within a couple of minutes. ${result.record.mediaNote || ''}` }, result.duplicate ? 200 : 201);
+    return json({ ...result, message: result.duplicate ? `This project has already been submitted. ${editNote(result.record, new URL(req.url).origin)}` : `Your game page is publishing. It usually appears within a couple of minutes. ${result.record.mediaNote || ''} ${editNote(result.record, new URL(req.url).origin)}` }, result.duplicate ? 200 : 201);
   } catch (error) {
     return json({ error: error instanceof SubmissionError ? error.message : 'Submissions are temporarily unavailable. Please try again.' }, error instanceof SubmissionError ? error.status : 503);
   }

@@ -75,8 +75,13 @@ export function SubmitRecompDialog() {
         <input id="recomp-name" name="name" maxLength={100} placeholder="The name of your game or port" />
         <label htmlFor="recomp-description">Description <span>Optional</span></label>
         <textarea id="recomp-description" name="description" maxLength={500} rows={3} placeholder="What have you made? What can people try?" />
+        <label htmlFor="recomp-cover">Cover image link <span>Optional</span></label>
+        <input id="recomp-cover" name="cover" type="url" maxLength={1500} placeholder="https://raw.githubusercontent.com/you/your-recomp/main/banner.png" aria-describedby="recomp-cover-help" />
+        <p id="recomp-cover-help" className="recomp-help">A PNG, JPEG, WebP, or GIF hosted on GitHub, GitLab, or Discord. It replaces the cover we would pick from the README.</p>
+        <label htmlFor="recomp-discord">Discord username <span>Optional</span></label>
+        <input id="recomp-discord" name="discord" maxLength={80} autoComplete="off" placeholder="Shown next to your GitHub name as the page's creator" />
         <div className="subscribe-hp" aria-hidden="true"><label htmlFor="recomp-company">Company</label><input id="recomp-company" name="company" tabIndex={-1} autoComplete="off" /></div>
-        <p className="recomp-note">Your page publishes automatically, usually within a couple of minutes. The team can confirm or remove it. Repository ownership is credited publicly.</p>
+        <p className="recomp-note">Your page publishes automatically, usually within a couple of minutes. The team can confirm or remove it. The repository owner is credited publicly and can edit the page after signing in with that GitHub account.</p>
         {error && <p className="recomp-error" role="alert">{error}</p>}
         <button className="recomp-primary" type="submit" disabled={busy}>{busy ? 'Submitting…' : 'Submit a recomp'}</button>
         <a className="recomp-guide" href="/docs/start/submit-a-recomp" onClick={close}>How submissions work</a>

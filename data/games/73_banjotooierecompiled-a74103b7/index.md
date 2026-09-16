@@ -11,6 +11,7 @@ added: "2026-09-16"
 updated: "2026-09-16"
 submissionId: "a74103b7df3ac077"
 draft: false
+creator: {"github":"Vidanox"}
 ---
 
 Static recompilation of Banjo-Tooie \(USA\) to native Windows, built on N64Recomp + N64ModernRuntime + RT64. Runs the full game with widescreen, high-refresh interpolation, and native audio/input.
@@ -27,5 +28,3 @@ The skybox does not reach the sides of a 16:9 frame at Aspect Ratio: Expand. Too
 
 - Scene correctness has not been diffed against the original hardware.
 - The alternate CPU-skinned character forms are not covered by the high-refresh interpolation metadata \(the ordinary Banjo/Kazooie form is\).
-
-Made by [Vidanox](https://github.com/Vidanox). [Source repository](https://github.com/Vidanox/BanjoTooieRecompiled) on GitHub.

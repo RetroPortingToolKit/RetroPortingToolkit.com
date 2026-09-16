@@ -37,7 +37,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
   }
   async function intake(message, ref, request, trusted = false) {
     if (!endpoint) return false;
-    const input = discordSubmission(request, [...(message.attachments?.values() ?? [])]);
+    const input = discordSubmission(request, [...(message.attachments?.values() ?? [])], message.author.username);
     if (!input) return false;
     const key = ref.messageId;
     if (state.intake[key]) return true;

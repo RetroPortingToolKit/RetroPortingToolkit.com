@@ -1,7 +1,7 @@
 import team from "@data/team.json";
-import { teamSlugFor } from "../../scripts/authors.mjs";
+import { teamSlugFor, teamMemberByName } from "../../scripts/authors.mjs";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import type { Item } from "@/lib/types";
+import type { Item, Creator } from "@/lib/types";
 import { SITE } from "@/lib/site";
 import { itemsForCatalogKind } from "@/lib/catalogContent";
 import {
@@ -243,6 +243,54 @@ function AuthorNames({ names }: { names: string[] }) {
         </span>
       ))}
     </>
+  );
+}
+
+function DiscordGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M20.3 4.4A19.8 19.8 0 0 0 15.4 3l-.6 1.3a18.3 18.3 0 0 0-5.6 0L8.6 3a19.7 19.7 0 0 0-4.9 1.5C.6 9.1-.2 13.6.2 18a19.9 19.9 0 0 0 6 3l1.3-2a12.9 12.9 0 0 1-2-1l.5-.4a14.2 14.2 0 0 0 12 0l.5.4a12.9 12.9 0 0 1-2 1l1.3 2a19.8 19.8 0 0 0 6-3c.5-5.1-.8-9.6-3.5-13.6ZM8 15.3c-1.2 0-2.1-1.1-2.1-2.4S6.8 10.5 8 10.5s2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4Zm8 0c-1.2 0-2.1-1.1-2.1-2.4s.9-2.4 2.1-2.4 2.2 1.1 2.1 2.4c0 1.3-.9 2.4-2.1 2.4Z"
+      />
+    </svg>
+  );
+}
+
+/** The person behind a page: their code-host login, linked, and their Discord
+    name beside it. A page's own `creator` wins; otherwise the first listed
+    author's handles from data/team.json. */
+export function creatorOf(item: Item): Creator | null {
+  if (item.creator) return item.creator;
+  // Only a byline the page states itself; the site-wide default author is not a creator.
+  const named = item.authors?.length ? item.authors : item.author ? [item.author] : [];
+  const member = named.map((name) => teamMemberByName(team, name)).find(Boolean);
+  if (!member) return null;
+  const handle = (label: string) => member.handles?.find((h) => h.label === label)?.value?.split(/[\s,]/)[0]?.replace(/^@/, "");
+  const creator = { github: handle("GitHub"), discord: handle("Discord") };
+  return creator.github || creator.discord ? creator : null;
+}
+
+export function CreatorLine({ item, delay = 260 }: { item: Item; delay?: number }) {
+  const creator = creatorOf(item);
+  if (!creator) return null;
+  const login = creator.github ?? creator.gitlab;
+  const profile = creator.github ? `https://github.com/${creator.github}` : creator.gitlab ? `https://gitlab.com/${creator.gitlab}` : "";
+  return (
+    <p className="creator-line blur-in" style={delayed(delay)}>
+      <span className="creator-label">Made by</span>{" "}
+      {login ? (
+        <a className="creator-login" href={profile} target="_blank" rel="noopener noreferrer">{login}</a>
+      ) : (
+        <span className="creator-login">{creator.discord}</span>
+      )}
+      {login && creator.discord && (
+        <span className="creator-discord" title="Discord">
+          (<DiscordGlyph />
+          <span>{creator.discord}</span>)
+        </span>
+      )}
+    </p>
   );
 }
 
@@ -502,6 +550,7 @@ function LabSplit({
               <span className="pill">{item.status}</span>
             </div>
           )}
+          {item.kind !== "blog" && <CreatorLine item={item} delay={250} />}
           {item.kind !== "blog" && item.repo && (
             <a
               className="project-cta blur-in"
@@ -684,6 +733,7 @@ function DefaultDetail({ item, mediaActive }: { item: Item; mediaActive: boolean
                   </SmartLink>
                 )}
                 {item.kind === "game" && item.status && <span className="pill">{item.status}</span>}
+                <CreatorLine item={item} delay={0} />
                 {item.repo && (
                   <a
                     className="project-cta"
@@ -762,6 +812,7 @@ function DefaultDetail({ item, mediaActive }: { item: Item; mediaActive: boolean
                 <span className="pill">{item.status}</span>
               </div>
             )}
+            {item.kind !== "blog" && <CreatorLine item={item} delay={250} />}
             {item.repo && (
               <a
                 className="project-cta blur-in"

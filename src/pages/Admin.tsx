@@ -307,6 +307,8 @@ export default function Admin() {
   const [hasGithub, setHasGithub] = useState(false);
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
   const [me, setMe] = useState<{ name: string; avatar: string; login: string } | null>(null);
+  // Set for a contributor: the only pages they may edit, their own submissions.
+  const [scoped, setScoped] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [creating, setCreating] = useState(false);
@@ -543,6 +545,7 @@ export default function Admin() {
           setHasGithub(!!d.github);
           setSignedInAs(d.user?.login ?? null);
           setMe(d.user ? { name: d.user.name || d.user.login || "", avatar: d.user.avatar || "", login: d.user.login || "" } : null);
+          setScoped(Array.isArray(d.user?.scope));
           setAuthRequired(!!d.required);
           if (d.env === "prod") setProd(true);
           setEnvKnown(true);
@@ -1439,6 +1442,11 @@ export default function Admin() {
           </div>
           {publishMsg && (
             <div style={{ font: "500 12px/1.35 var(--ac-font-text)", color: publishMsg.kind === "ok" ? "var(--ac-accent)" : "var(--ac-red)", padding: "0 12px 6px" }}>{publishMsg.text}</div>
+          )}
+          {scoped && (
+            <div style={{ font: "500 12px/1.35 var(--ac-font-text)", color: "var(--ac-label-2)", padding: "0 12px 6px" }}>
+              You can edit the pages of the repositories you own, including their cover. Save publishes within a couple of minutes.
+            </div>
           )}
           <div className="ac-account">
             <img src="/navbar-icon.png" alt="" aria-hidden="true" className="ac-avatar" />

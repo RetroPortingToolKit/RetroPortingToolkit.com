@@ -12,6 +12,7 @@ added: "2026-09-16"
 updated: "2026-09-16"
 submissionId: "1bdbebefc9dd9af5"
 draft: false
+creator: {"github":"Cellenseres"}
 cover: "./submission-1.png"
 ---
 
@@ -28,5 +29,3 @@ A [SNESRecomp](/hardware/super-nintendo) port of the SNES RPG, playable from sta
 A native recompilation of Lufia II: Rise of the Sinistrals using [SNESRecomp](/hardware/super-nintendo).
 
 The game boots from the original US ROM and supports the intro, title screen, normal gameplay, battles, audio, input, saves and the desktop launcher. Video output can use SDL or OpenGL 3.3.
-
-Made by [Cellenseres](https://github.com/Cellenseres). [Source repository](https://github.com/Cellenseres/Lufia2SNESRecomp) on GitHub.

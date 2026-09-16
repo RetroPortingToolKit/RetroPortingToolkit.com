@@ -245,3 +245,15 @@ editing: Discord moderation verifies that identity before changing the page.
 The corresponding record lives in `data/submissions.json`. Confirming updates
 its review status; removing sets `draft: true` and preserves the page content.
 The public form cannot replace an existing page or resubmit a removed repo.
+
+Any game page may name its maker with `creator: { github: "login", discord: "name" }`
+(`gitlab` instead of `github` for GitLab projects). The page shows "Made by"
+with the login linked to its profile and the Discord name beside it. A page
+without `creator` but with `authors` shows the first author's GitHub and Discord
+handles from `data/team.json` the same way. Submission pages get `creator`
+from the repository owner and, for Discord submissions, the submitter's
+username; the form also takes an optional Discord username.
+
+The owner of a submitted repository can sign in to `/admin` with that GitHub
+account and edit their own page, including its cover, and nothing else. The
+grant comes from `data/submissions.json` and ends when a submission is removed.

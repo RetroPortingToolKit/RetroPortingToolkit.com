@@ -23,6 +23,15 @@ describe('submission publishing', () => {
     expect(result.record.path).toMatch(/^data\/games\/01_recomp-[a-f0-9]+\/index.md$/);
     expect(store.create).toHaveBeenCalledOnce();
   });
+  it('records the Discord name and puts a chosen cover ahead of README artwork', async () => {
+    const { store } = fixture();
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aG1cAAAAASUVORK5CYII=', 'base64');
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => url.includes('/readme') ? Response.json({ encoding: 'base64', path: 'README.md', content: Buffer.from('![Shot](docs/shot.png)').toString('base64') })
+      : url.endsWith('.png') ? new Response(png) : Response.json({ html_url: repo, name: 'Recomp', description: 'A playable port.', private: false, owner: { login: 'example' } })));
+    const result = await submitRepository(store, { repo, discord: ' maker ', cover: 'https://raw.githubusercontent.com/example/recomp/main/banner.png' });
+    expect(result.record.discord).toBe('maker');
+    expect(result.record.images?.map(i => i.alt)).toEqual(['Project banner', 'Shot']);
+  });
   it('rechecks duplicates after a concurrent update instead of overwriting', async () => {
     const { store, snapshot } = fixture();
     vi.mocked(store.create).mockRejectedValueOnce(new SubmissionError('conflict', 409));
@@ -52,6 +61,8 @@ describe('submission publishing', () => {
   it('rejects private metadata and malformed optional fields', async () => {
     const { store } = fixture();
     await expect(submitRepository(store, { repo, name: {} })).rejects.toMatchObject({ status: 400 });
+    await expect(submitRepository(store, { repo, cover: 'https://evil.example/x.png' })).rejects.toThrow('cover image link');
+    await expect(submitRepository(store, { repo, discord: 'x'.repeat(81) })).rejects.toThrow('Discord username');
     vi.stubGlobal('fetch', vi.fn(async () => Response.json({ private: true })));
     await expect(submitRepository(store, { repo })).rejects.toThrow('Only public');
   });

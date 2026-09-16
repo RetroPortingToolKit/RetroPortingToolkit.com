@@ -24,13 +24,13 @@ Mention **RetroPortingToolkit Bot** in any channel it can read in the community 
 
 > @RetroPortingToolkit Bot submit https://github.com/your-name/your-recomp — My game port now boots and supports keyboard input.
 
-Anyone can submit this way. Submitting a link does not grant access to edit the website. Other bot editing commands remain restricted to the team.
+Anyone can submit this way. Your Discord username appears beside the repository owner's name as the page's creator. Other bot editing commands remain restricted to the team.
 
 ## Banners and screenshots
 
 We automatically look for images in the repository README, including Markdown images, reference-style images, and HTML `<img>` tags. Relative image paths are resolved from the README. Build badges and status shields are skipped.
 
-For Discord submissions, attach photos, a banner, or screenshots to the **same message** as the repository link, or include direct image links. Label a link **banner:** or **cover:** (or name an attachment accordingly) to prefer it as the cover. You can also use **title:** and **description:** on separate lines. Images in your message take priority over README images.
+On the website form, the optional **Cover image link** replaces any cover we would pick from the README. For Discord submissions, attach photos, a banner, or screenshots to the **same message** as the repository link, or include direct image links. Label a link **banner:** or **cover:** (or name an attachment accordingly) to prefer it as the cover. You can also use **title:** and **description:** on separate lines. Images in your message take priority over README images.
 
 We copy up to four PNG, JPEG, WebP, or GIF images into the site: at most 4 MB each and 8 MB total. The first imported image becomes the card cover; the images also appear on the game page. Automatic imports support GitHub-hosted images, GitLab repository files, and Discord attachments. Other image hosts, SVGs, inaccessible images, and oversized files are skipped. Copying images means expiring Discord links do not break the published page.
 
@@ -38,7 +38,11 @@ The confirmation reports the number imported, or says the page has no artwork. C
 
 ## Credit and review
 
-The page says "Made by" the repository owner or namespace reported by GitHub or GitLab, linked to that profile, and summarises the README's introduction and any status or features section. That credit does not verify the identity of the person submitting the link. For Discord submissions, the moderation notice also includes your Discord username and original message; it provides a fallback if repository attribution is unavailable.
+The page says "Made by" the repository owner or namespace reported by GitHub or GitLab, linked to that profile, with your Discord username beside it when you gave one, and summarises the README's introduction and any status or features section. That credit does not verify the identity of the person submitting the link.
+
+## Editing your page
+
+The confirmation includes an edit link. Open it and sign in with the GitHub account that owns the repository: you can then change the text, upload or replace the cover, and add screenshots. Saving publishes within a couple of minutes. You see only your own pages; creating, renaming, or deleting pages stays with the team. For Discord submissions, the moderation notice also includes your Discord username and original message; it provides a fallback if repository attribution is unavailable.
 
 The page becomes visible without waiting for review. The team receives a notice and can confirm it with ✅ or remove it from listings with ❌. Removed pages retain their unlisted direct URL. Moderators can edit the page through the normal editor.
 

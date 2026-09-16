@@ -43,16 +43,16 @@ export function submissionPage(record) {
     links: [{ label: `Project on ${hostName}`, href: record.repo }],
     added: record.createdAt.slice(0, 10), updated: record.createdAt.slice(0, 10),
     submissionId: record.id, draft: false,
+    creator: { [record.repo.startsWith('https://gitlab.com/') ? 'gitlab' : 'github']: record.owner, ...(record.discord ? { discord: record.discord } : {}) },
     ...(record.images?.length ? { cover: record.images[0].path } : {}),
   };
   // The first image is the cover, which the layout already shows above the body.
   const artwork = record.images?.slice(1).map(image => `![${markdownText(image.alt)}](${image.path})`).join('\n\n') || '';
   const summary = (record.summary ?? []).map(block => block.startsWith('- ') ? `- ${linkToolkits(markdownText(block.slice(2)))}` : linkToolkits(markdownText(block)))
     .reduce((out, block) => { const last = out.at(-1); if (block.startsWith('- ') && last?.startsWith('- ')) out[out.length - 1] = `${last}\n${block}`; else out.push(block); return out; }, []).join('\n\n');
-  const credit = `Made by [${markdownText(record.owner)}](${ownerProfile(record)}). [Source repository](${record.repo}) on ${hostName}.`;
-  return `---\n${Object.entries(fm).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n\n${linkToolkits(markdownText(record.description))}\n\n${artwork ? `${artwork}\n\n` : ''}## Project\n\n${summary ? `${summary}\n\n` : ''}${credit}\n`;
+  return `---\n${Object.entries(fm).map(([key, value]) => `${key}: ${JSON.stringify(value)}`).join('\n')}\n---\n\n${linkToolkits(markdownText(record.description))}\n\n${artwork ? `${artwork}\n\n` : ''}${summary ? `## Project\n\n${summary}\n` : ''}`;
 }
-export function discordSubmission(text, attachments = []) {
+export function discordSubmission(text, attachments = [], discord = '') {
   // An explicit submit/add request or a bare repository link is intake. A
   // question that merely mentions a repository keeps the existing answer lane.
   const links = (text.match(/https:\/\/(?:github|gitlab)\.com\/[^\s<>]+/gi) ?? []).filter(link => { try { repositoryUrl(link.replace(/[),.!?]+$/, '')); return true; } catch { return false; } });
@@ -65,7 +65,16 @@ export function discordSubmission(text, attachments = []) {
   const images = messageImages(text, attachments);
   const title = rest.match(/(?:^|\n)(?:title|name):\s*([^\n]+)/i)?.[1];
   const clean = rest.replace(/(?:^|\n)(?:title|name):[^\n]*/gi, '').replace(/https:\/\/[^\s<>]+/g, '').replace(/(?:^|\n)(?:banner|cover|screenshots?|images?):[^\n]*/gi, '').replace(/(?:^|\n)description:\s*/gi, '');
-  return { repo, ...(title ? { name: plainText(title, 100) } : {}), ...(images.length ? { images } : {}), description: plainText(clean.replace(/^(?:submit|add|list|publish)(?:\s+(?:this|my|our))?(?:\s+(?:recomp|project|game))?\b[\s:—–-]*/i, ''), 500) };
+  return { repo, ...(title ? { name: plainText(title, 100) } : {}), ...(images.length ? { images } : {}), ...(plainText(discord, 80) ? { discord: plainText(discord, 80) } : {}), description: plainText(clean.replace(/^(?:submit|add|list|publish)(?:\s+(?:this|my|our))?(?:\s+(?:recomp|project|game))?\b[\s:—–-]*/i, ''), 500) };
+}
+/** Where the owner of a submitted repository edits their page after signing
+ * in to the CMS with that GitHub account. */
+export function editLink(record, siteUrl = '') {
+  // The editor opens the page whose public address `at` names.
+  return `${siteUrl}/admin?at=${record.url}`;
+}
+export function editNote(record, siteUrl = '') {
+  return `Edit the page, including its cover, at ${editLink(record, siteUrl)} after signing in with the GitHub account ${record.owner}.`;
 }
 export function moderationPage(raw, record, decision) {
   if (!['confirmed', 'removed'].includes(decision) || !/^data\/games\/\d+_[a-z0-9-]+\/index\.md$/.test(record.path)) throw new Error('Invalid submission moderation target.');
