@@ -14,9 +14,11 @@ group: "NES"
 links:
   - { label: "NESRecomp progress article (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-08-04"
+updated: "2026-06-18"
 added: "2026-04-03"
 cover: "/data/blog/20_nesrecomp-10-titles/MetroidNESRecomp_Csz3Tj0DhO.png"
+release: "v0.1.0"
+download: "https://github.com/mstan/MetroidNESRecomp/releases/tag/v0.1.0"
 ---
 
 Metroid is an early [NESRecomp](/hardware/nes) proof for a larger action game.
