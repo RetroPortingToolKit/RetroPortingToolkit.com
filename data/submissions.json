@@ -34,5 +34,24 @@
       "A native recompilation of Lufia II: Rise of the Sinistrals using snesrecomp.",
       "The game boots from the original US ROM and supports the intro, title screen, normal gameplay, battles, audio, input, saves and the desktop launcher. Video output can use SDL or OpenGL 3.3."
     ]
+  },
+  {
+    "id": "a74103b7df3ac077",
+    "repo": "https://github.com/Vidanox/BanjoTooieRecompiled",
+    "title": "Banjo Tooie Recompiled",
+    "description": "Static recompilation of Banjo-Tooie (USA) to native Windows, built on N64Recomp + N64ModernRuntime + RT64. Runs the full game with widescreen, high-refresh interpolation, and native audio/input.",
+    "owner": "Vidanox",
+    "path": "data/games/73_banjotooierecompiled-a74103b7/index.md",
+    "url": "/games/banjotooierecompiled-a74103b7",
+    "createdAt": "2026-09-16T10:36:44.662Z",
+    "status": "pending",
+    "images": [],
+    "summary": [
+      "A native PC port of Banjo-Tooie (USA) produced by statically recompiling the original N64 ROM with N64Recomp, and rendering through RT64.",
+      "The recompiler translates the game's MIPS code into C once, ahead of time; there is no emulator at runtime. The result is a normal Windows executable that plays the original game logic, with the enhancements a native port makes possible: widescreen, high refresh rates, and an in-game settings menu.",
+      "Playable end to end. Verified working: boot, attract loop, the intro cutscene, gameplay, repeated scene transitions, audio, controller input, overlay load/unload, and save/load. Multi-minute soaks run without crashes, stalls, or missing-function lookups.",
+      "The one known visual limitation is described under Known Limitations."
+    ],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
