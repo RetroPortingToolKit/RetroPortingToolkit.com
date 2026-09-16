@@ -54,3 +54,8 @@ needs the next owner-approved restart.
 2026-09-16 (evening): The bot announces every push to main in #website via
 `scripts/site-changes.mjs` (GitHub commits API, 5-minute poll). Bot feature
 changes are posted to #rptk-bot (1549838020163797052) by hand after each restart.
+
+2026-09-16 (night): Channels split. #website (`DISCORD_ADMIN_CHANNEL_ID`) gets
+only site change announcements; #rptk-bot (`DISCORD_BOT_CHANNEL_ID`, default
+1549838020163797052) gets task reports, submission notices, moderation, and
+hand-posted bot changelogs.

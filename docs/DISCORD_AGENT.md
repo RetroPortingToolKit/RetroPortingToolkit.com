@@ -18,13 +18,18 @@ Untrusted questions still use the read-only lane in
 `DISCORD_PUBLIC_CHANNEL_IDS`; elsewhere the bot stays silent. The general
 publishing agent remains restricted to allowlisted users and roles.
 
+Two channels: `DISCORD_ADMIN_CHANNEL_ID` (#website) carries only changes to the
+site; `DISCORD_BOT_CHANNEL_ID` (#rptk-bot, the default) carries everything the
+bot did: task publish reports, submission review notices and moderation, and
+hand-written notes on the bot's own changes.
+
 Every push to the site's main branch is announced in `DISCORD_ADMIN_CHANNEL_ID`
 as a short list of commit subjects, polled every five
 minutes from GitHub's public commits API (`DISCORD_SITE_CHANGE_POLL_MS`,
 `DISCORD_SITE_REPO`). The first run after install records the current head
 silently; state is `site-changes.json` in the state directory.
 
-Submission notices appear in `DISCORD_ADMIN_CHANNEL_ID`, with repository
+Submission notices appear in `DISCORD_BOT_CHANNEL_ID`, with repository
 ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
 the repository owner's login, and the intake reply carries an edit link that
@@ -224,7 +229,8 @@ with these shell assignments:
 DISCORD_ALLOWED_GUILD_IDS="guild-id"
 DISCORD_ALLOWED_CHANNEL_IDS="channel-id"
 DISCORD_PUBLIC_CHANNEL_IDS="optional-channel-id,optional-channel-id"
-DISCORD_ADMIN_CHANNEL_ID="optional-moderation-channel-id"
+DISCORD_ADMIN_CHANNEL_ID="website channel: site change announcements"
+DISCORD_BOT_CHANNEL_ID="bot channel: task reports, submission notices"
 DISCORD_ALLOWED_USER_IDS="user-id,user-id"
 DISCORD_TRUSTED_SUBMITTER_IDS="optional; defaults to the team roster"
 DISCORD_ALLOWED_ROLE_IDS="optional-role-id"

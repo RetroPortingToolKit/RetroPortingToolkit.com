@@ -69,7 +69,11 @@ const config = {
   publicChannelIds: parseCsv(process.env.DISCORD_PUBLIC_CHANNEL_IDS),
   // The moderation lane is a stable Discord channel for this project; an env
   // override keeps the bridge reusable in the harness or another server.
+  // The website channel: only announcements of changes to the site itself.
   adminChannelId: process.env.DISCORD_ADMIN_CHANNEL_ID ?? "1523871171551039649",
+  // The bot channel: everything the bot did. Task reports, submission review
+  // notices and moderation, and (by hand) notes on the bot's own changes.
+  botChannelId: process.env.DISCORD_BOT_CHANNEL_ID ?? "1549838020163797052",
   userIds: parseCsv(process.env.DISCORD_ALLOWED_USER_IDS),
   // Team members whose repository submissions publish as confirmed without a
   // moderation pass. Overridable, but the team roster is the default.
@@ -360,10 +364,10 @@ async function replyChunks(ref, heading, body, options = {}) {
 }
 
 async function notifyAdminChannel(job, summary) {
-  if (!config.adminChannelId) return;
+  if (!config.botChannelId) return;
   const requester = job.requester?.display || job.requester?.username || `Discord user ${job.ref.authorId}`;
   await safeSend({
-    channelId: config.adminChannelId,
+    channelId: config.botChannelId,
     content: `📝 Discord task published changes for ${requester}.\nSource: ${job.messageUrl}\n\n${summary}`,
     suppressMentions: true,
   });
@@ -1150,7 +1154,7 @@ const taskContext = createTaskContext({
 
 const submissions = submissionBridge({
   client, endpoint: process.env.DISCORD_SUBMISSIONS_URL ?? (process.env.DISCORD_AGENT_REPO ? "" : `${SITE.url}/api/submissions`),
-  adminChannelId: config.adminChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
+  adminChannelId: config.botChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
   authorized: (message) => isAuthorized(message, { ...config, channelIds: new Set() }),
   send: safeSend,
   enqueue: async (job) => {
