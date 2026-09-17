@@ -246,8 +246,11 @@ permissions, moderation of members), whoever asks. Those happen only through
 scripts run deliberately from the checkout. `scripts/discord-contributor-roles.mjs`
 grants the gold **RPTK contributor** role to everyone who owns a GitHub
 repository a live page tracks (`--dry-run` to preview, `--announce <channel>`
-to post a one-time mention of the newly added members). Re-run it after new
-submissions are confirmed.
+to mention the newly added members once). The bridge runs the same sync on
+startup and every hour (`DISCORD_CONTRIBUTOR_SYNC_MS`), mentioning new
+contributors in `DISCORD_CONTRIBUTOR_ANNOUNCE_CHANNEL_ID` (default #general),
+so a confirmed submitter gets the role within the hour. That sync is driven by
+the clock and committed pages only; no message or reaction can invoke it.
 
 A bridge restart is needed to load code changes and requires owner approval.
 

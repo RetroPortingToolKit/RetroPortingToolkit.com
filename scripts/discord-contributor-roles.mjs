@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // Grants the "RPTK contributor" Discord role to everyone who owns a GitHub
-// repository the site tracks. Run by hand (or by Claude/Codex) from the
-// checkout; it is deliberately NOT part of the bot's message handling, because
-// the bot's role carries Administrator and no Discord message may ever
-// trigger an admin action. Usage:
+// repository the site tracks. Runs from the command line, and hourly inside
+// the bridge on a timer. It is deliberately NOT part of the bot's message or
+// reaction handling: the bot's role carries Administrator and no Discord
+// message may ever trigger an admin action. Usage:
 //
 //   DISCORD_BOT_TOKEN="$(security find-generic-password -s retroportingtoolkit-discord-bot -w)" \
 //   node scripts/discord-contributor-roles.mjs [--dry-run] [--announce <channel-id>]
@@ -16,20 +16,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const GUILD = process.env.DISCORD_ALLOWED_GUILD_IDS?.split(',')[0]?.trim() || '1514467450429640824';
-const ROLE_NAME = 'RPTK contributor';
+export const ROLE_NAME = 'RPTK contributor';
 const ROLE_COLOR = 0xd4af37; // gold
-const TOKEN = process.env.DISCORD_BOT_TOKEN || '';
-const dryRun = process.argv.includes('--dry-run');
-const announce = process.argv[process.argv.indexOf('--announce') + 1];
-if (!TOKEN) throw new Error('DISCORD_BOT_TOKEN is required.');
-
-const api = async (route, init = {}) => {
-  const r = await fetch(`https://discord.com/api/v10${route}`, { ...init, headers: { authorization: `Bot ${TOKEN}`, 'content-type': 'application/json', ...(init.headers || {}) } });
-  if (r.status === 429) { const j = await r.json(); await new Promise((res) => setTimeout(res, (j.retry_after ?? 1) * 1000 + 100)); return api(route, init); }
-  if (!r.ok) throw new Error(`${init.method || 'GET'} ${route}: ${r.status} ${await r.text()}`);
-  return r.status === 204 ? null : r.json();
-};
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export function trackedOwners(root = ROOT) {
@@ -56,36 +44,58 @@ export function trackedOwners(root = ROOT) {
   return [...owners.values()];
 }
 
-async function findMember(hints) {
-  for (const hint of hints) {
-    const found = await api(`/guilds/${GUILD}/members/search?query=${encodeURIComponent(hint)}&limit=10`);
-    await pause(400);
-    const want = hint.toLowerCase();
-    const hit = found.find((m) => [m.user.username, m.user.global_name, m.nick].filter(Boolean).some((n) => n.toLowerCase() === want));
-    if (hit) return hit;
+/** Grants the role to every tracked owner on the server who lacks it.
+ * Returns { added: [memberIds], missing: [logins] }. */
+export async function syncContributorRoles({ token, guild, root = ROOT, announceChannelId = '', dryRun = false, log = () => {}, fetcher = fetch }) {
+  if (!token) throw new Error('A bot token is required.');
+  const api = async (route, init = {}) => {
+    const r = await fetcher(`https://discord.com/api/v10${route}`, { ...init, headers: { authorization: `Bot ${token}`, 'content-type': 'application/json', ...(init.headers || {}) } });
+    if (r.status === 429) { const j = await r.json(); await pause((j.retry_after ?? 1) * 1000 + 100); return api(route, init); }
+    if (!r.ok) throw new Error(`${init.method || 'GET'} ${route}: ${r.status} ${await r.text()}`);
+    return r.status === 204 ? null : r.json();
+  };
+  const findMember = async (hints) => {
+    for (const hint of hints) {
+      const found = await api(`/guilds/${guild}/members/search?query=${encodeURIComponent(hint)}&limit=10`);
+      await pause(400);
+      const want = hint.toLowerCase();
+      const hit = found.find((m) => [m.user.username, m.user.global_name, m.nick].filter(Boolean).some((n) => n.toLowerCase() === want));
+      if (hit) return hit;
+    }
+    return null;
+  };
+  const roles = await api(`/guilds/${guild}/roles`);
+  let role = roles.find((r) => r.name === ROLE_NAME);
+  if (!role) {
+    if (dryRun) log(`would create role ${ROLE_NAME}`);
+    else { role = await api(`/guilds/${guild}/roles`, { method: 'POST', body: JSON.stringify({ name: ROLE_NAME, color: ROLE_COLOR, hoist: false, mentionable: false, permissions: '0' }) }); log(`created role ${ROLE_NAME} (${role.id})`); }
   }
-  return null;
+  const added = [];
+  const missing = [];
+  for (const owner of trackedOwners(root)) {
+    const member = await findMember(owner.hints);
+    if (!member) { missing.push(owner.login); log(`${owner.login}: no Discord member found (${[...owner.hints].join(', ')})`); continue; }
+    const has = role && member.roles.includes(role.id);
+    if (has) continue;
+    log(`${owner.login} (${owner.pages} page${owner.pages === 1 ? '' : 's'}): ${member.user.username} ${dryRun ? 'would get the role' : 'granted'}`);
+    if (dryRun) continue;
+    await api(`/guilds/${guild}/members/${member.user.id}/roles/${role.id}`, { method: 'PUT' });
+    await pause(400);
+    added.push(member.user.id);
+  }
+  if (announceChannelId && added.length && !dryRun) {
+    const content = `${added.map((id) => `<@${id}>`).join(' ')} you now have the **${ROLE_NAME}** role: you each maintain a project the site tracks. Thanks for building these.`;
+    await api(`/channels/${announceChannelId}/messages`, { method: 'POST', body: JSON.stringify({ content, allowed_mentions: { users: added }, flags: 4 }) });
+    log(`announced in ${announceChannelId}`);
+  }
+  return { added, missing };
 }
 
-const roles = await api(`/guilds/${GUILD}/roles`);
-let role = roles.find((r) => r.name === ROLE_NAME);
-if (!role) {
-  if (dryRun) console.log(`would create role ${ROLE_NAME}`);
-  else { role = await api(`/guilds/${GUILD}/roles`, { method: 'POST', body: JSON.stringify({ name: ROLE_NAME, color: ROLE_COLOR, hoist: false, mentionable: false, permissions: '0' }) }); console.log(`created role ${ROLE_NAME} (${role.id})`); }
-}
-const added = [];
-for (const owner of trackedOwners()) {
-  const member = await findMember(owner.hints);
-  if (!member) { console.log(`${owner.login}: no Discord member found (${[...owner.hints].join(', ')})`); continue; }
-  const has = role && member.roles.includes(role.id);
-  console.log(`${owner.login} (${owner.pages} page${owner.pages === 1 ? '' : 's'}): ${member.user.username} ${has ? 'already has the role' : dryRun ? 'would get the role' : 'granted'}`);
-  if (has || dryRun) continue;
-  await api(`/guilds/${GUILD}/members/${member.user.id}/roles/${role.id}`, { method: 'PUT' });
-  await pause(400);
-  added.push(member.user.id);
-}
-if (announce && added.length && !dryRun) {
-  const content = `${added.map((id) => `<@${id}>`).join(' ')} you now have the **${ROLE_NAME}** role: you each maintain a project the site tracks. Thanks for building these.`;
-  await api(`/channels/${announce}/messages`, { method: 'POST', body: JSON.stringify({ content, allowed_mentions: { users: added }, flags: 4 }) });
-  console.log(`announced in ${announce}`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const dryRun = process.argv.includes('--dry-run');
+  const announceChannelId = process.argv.includes('--announce') ? process.argv[process.argv.indexOf('--announce') + 1] : '';
+  await syncContributorRoles({
+    token: process.env.DISCORD_BOT_TOKEN || '', guild: process.env.DISCORD_ALLOWED_GUILD_IDS?.split(',')[0]?.trim() || '1514467450429640824',
+    announceChannelId, dryRun, log: console.log,
+  });
 }

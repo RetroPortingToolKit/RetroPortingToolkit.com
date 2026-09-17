@@ -46,6 +46,7 @@ import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs"
 import { siteChangeWatcher } from "./site-changes.mjs";
 import { repoUpdateWatcher, applyRepoUpdate, releaseAnnouncement } from "./repo-updates.mjs";
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
+import { syncContributorRoles } from "./discord-contributor-roles.mjs";
 import fsp from "node:fs/promises";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
 // The site's own address, read out of src/lib/site.ts: the one place a brand
@@ -145,6 +146,9 @@ const ATTACHMENT_FETCH_MS = 60_000;
 // being thrown away.
 const SITE_CHANGE_POLL_MS = envMs("DISCORD_SITE_CHANGE_POLL_MS", 30 * 60 * 1_000);
 const REPO_UPDATE_POLL_MS = envMs("DISCORD_REPO_UPDATE_POLL_MS", 15 * 60 * 1_000);
+const CONTRIBUTOR_SYNC_MS = envMs("DISCORD_CONTRIBUTOR_SYNC_MS", 60 * 60 * 1_000);
+// Where newly added contributors are mentioned once; empty disables the mention.
+const CONTRIBUTOR_ANNOUNCE_CHANNEL_ID = process.env.DISCORD_CONTRIBUTOR_ANNOUNCE_CHANNEL_ID ?? "1514467451201523846";
 // The GitHub repository whose main branch deploys the site.
 const SITE_REPO = process.env.DISCORD_SITE_REPO || "RetroPortingToolKit/RetroPortingToolkit.com";
 const CHECKOUT_WAIT_MS = envMs("DISCORD_AGENT_WAIT_MS", 5 * 60 * 1_000);
@@ -1479,6 +1483,14 @@ client.once(Events.ClientReady, async () => {
     void drainQueue().catch((error) => console.error("[discord-agent] queue drain failed", error));
   } });
   await repoUpdates.start().catch((error) => console.error("[discord-agent] repository watch failed", error));
+  // The contributor role follows committed data on a timer. This is the one
+  // admin-permission action the bridge performs, and no message, mention or
+  // reaction can reach it: only the clock and what is in the checkout.
+  const syncRoles = () => syncContributorRoles({ token: TOKEN, guild: [...config.guildIds][0], root: ROOT, announceChannelId: CONTRIBUTOR_ANNOUNCE_CHANNEL_ID, log: (line) => console.log(`[discord-agent] contributor roles: ${line}`) })
+    .catch((error) => console.error("[discord-agent] contributor role sync failed", error));
+  await syncRoles();
+  const roleTimer = setInterval(() => void syncRoles(), CONTRIBUTOR_SYNC_MS);
+  roleTimer.unref();
   const repoUpdateTimer = setInterval(() => void repoUpdates.tick().catch((error) => console.error("[discord-agent] repository watch failed", error)), REPO_UPDATE_POLL_MS);
   repoUpdateTimer.unref();
 
