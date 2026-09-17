@@ -9,11 +9,13 @@ status: "Community submission"
 platform: "playstation"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/BattleArenaToshindenRecomp"}]
 added: "2026-09-17"
-updated: "2026-09-17"
+updated: "2026-09-08"
 submissionId: "3cbb017e983d38ac"
 draft: false
 creator: {"github":"mstan","discord":"gameamster"}
 cover: "./submission-1.png"
+release: "v0.1.3"
+download: "https://github.com/mstan/BattleArenaToshindenRecomp/releases/tag/v0.1.3"
 ---
 
 Battle Arena Toshinden is a Playstation 1 3D fighter that's been recompiled and enhanced with widescreen support, netplay, and selectors for two previously hidden characters: Gaia and Sho
