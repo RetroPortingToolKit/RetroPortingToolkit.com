@@ -46,6 +46,14 @@ a trusted submitter. The edit is a frontmatter rewrite on the shared checkout
 with the usual checks, then a commit and push; a new note is announced in the
 website channel by the change watcher. Implementation: `scripts/owner-updates.mjs`.
 
+Every commit to main is a Vercel production build, so the bridge keeps them
+few: a tick's releases go into one job, one commit and one deployment, and
+`vercel.json`'s `ignoreCommand` (`scripts/vercel-ignore-build.sh`) skips the
+build for commits that touch only bot code, `docs/`, or repository notes. The
+submission notice poll, a serverless invocation that reads the catalogue from
+GitHub, runs every ten minutes (`DISCORD_SUBMISSION_POLL_MS`); intake polls
+immediately on its own.
+
 Game pages are kept current with their repositories: every fifteen minutes
 (`DISCORD_REPO_UPDATE_POLL_MS`) the next quarter of the pages is checked for a
 new release, so every page is checked about once an hour. Scheduled jobs post

@@ -46,7 +46,7 @@ import { createTaskContext } from "./discord-task-context.mjs";
 import { verifyCompletion, outcomeReaction } from "./discord-completion.mjs";
 import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs";
 import { siteChangeWatcher } from "./site-changes.mjs";
-import { repoUpdateWatcher, applyRepoUpdate, releaseAnnouncement } from "./repo-updates.mjs";
+import { repoUpdateWatcher, applyRepoUpdates, releaseAnnouncement } from "./repo-updates.mjs";
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
 import { plainText } from "./submissions.mjs";
@@ -150,6 +150,7 @@ const ATTACHMENT_FETCH_MS = 60_000;
 const SITE_CHANGE_POLL_MS = envMs("DISCORD_SITE_CHANGE_POLL_MS", 30 * 60 * 1_000);
 const REPO_UPDATE_POLL_MS = envMs("DISCORD_REPO_UPDATE_POLL_MS", 15 * 60 * 1_000);
 const CONTRIBUTOR_SYNC_MS = envMs("DISCORD_CONTRIBUTOR_SYNC_MS", 60 * 60 * 1_000);
+const SUBMISSION_POLL_MS = envMs("DISCORD_SUBMISSION_POLL_MS", 10 * 60 * 1_000);
 // Where newly added contributors are mentioned once; empty disables the mention.
 const CONTRIBUTOR_ANNOUNCE_CHANNEL_ID = process.env.DISCORD_CONTRIBUTOR_ANNOUNCE_CHANNEL_ID ?? "1514467451201523846";
 // The GitHub repository whose main branch deploys the site.
@@ -1139,10 +1140,11 @@ async function drainQueue() {
       const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
-      const summary = await applyRepoUpdate({ root: ROOT, update: job.repoUpdate, siteUrl: SITE.url, exec: checkedExec(job) });
+      const updates = job.repoUpdate.updates ?? [job.repoUpdate];
+      const summary = await applyRepoUpdates({ root: ROOT, updates, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
       // A release people have not seen is news for the website channel.
-      if (job.repoUpdate.announce && config.adminChannelId) await safeSend({ channelId: config.adminChannelId, content: releaseAnnouncement(job.repoUpdate, SITE.url), suppressMentions: true });
+      for (const update of updates) if (update.announce && config.adminChannelId) await safeSend({ channelId: config.adminChannelId, content: releaseAnnouncement(update, SITE.url), suppressMentions: true });
     } else report = await runPublish(job);
     if (scheduled) console.log(`[discord-agent] ${job.request}: ${report.body}`);
     else await replyChunks(job.ref, report.heading, report.body, { suppressMentions: true });
@@ -1234,11 +1236,11 @@ async function recoverInterruptedJobs() {
     // checkout, and the request itself is exactly what it was. A dirty tree
     // means it died mid-edit, and that needs eyes before anything else runs.
     const pulse = await gitSnapshot().catch(() => null);
-    const scheduledPage = saved.active.repoUpdate?.path;
-    if (pulse && scheduledPage && pulse.status.trim() === `M ${scheduledPage}`) {
+    const scheduledPages = saved.active.repoUpdate?.updates?.map((u) => u.path) ?? (saved.active.repoUpdate?.path ? [saved.active.repoUpdate.path] : []);
+    if (pulse && scheduledPages.length && pulse.status.trim().split("\n").every((line) => scheduledPages.some((p) => line.trim() === `M ${p}`))) {
       // A scheduled edit is deterministic: drop the half-written page and
       // let the job redo it from the start, with nobody to tell.
-      await execFileAsync("git", ["checkout", "--", scheduledPage], { cwd: ROOT }).catch(() => undefined);
+      await execFileAsync("git", ["checkout", "--", ...scheduledPages], { cwd: ROOT }).catch(() => undefined);
       queue.unshift({ ...revive(saved.active), resumed: true });
     } else if (pulse && !pulse.status) {
       queue.unshift({ ...revive(saved.active), resumed: true });
@@ -1493,7 +1495,10 @@ client.once(Events.ClientReady, async () => {
     console.error("[discord-agent] interrupted-job recovery failed", error),
   );
   await submissions.start().catch(() => console.error("[discord-agent] submission recovery failed"));
-  const submissionTimer = setInterval(() => void submissions.poll().catch(() => console.error("[discord-agent] submission notice retry failed")), 60_000);
+  // A poll is a serverless invocation that reads the whole catalogue from
+  // GitHub. Intake already polls right after a submission, so this is only
+  // the safety net for one that arrived through the website form.
+  const submissionTimer = setInterval(() => void submissions.poll().catch(() => console.error("[discord-agent] submission notice retry failed")), SUBMISSION_POLL_MS);
   submissionTimer.unref();
   // Every push to main, from wherever it came, is announced in the website
   // channel. Unauthenticated, so the poll stays well inside GitHub's limit.
@@ -1504,10 +1509,15 @@ client.once(Events.ClientReady, async () => {
   // Repositories are checked in slices for new releases; each finding is a
   // queued page update, run on the shared checkout like moderation.
   // Every repository is checked about once an hour: a quarter of them per tick.
-  const repoUpdates = repoUpdateWatcher({ root: ROOT, stateDir: STATE_DIR, passTicks: 4, enqueue: async (update) => {
-    if (scheduledJobsPaused()) return;
-    if (queue.some((item) => item.repoUpdate?.path === update.path) || running?.repoUpdate?.path === update.path) return;
-    queue.push({ ref: { channelId: config.botChannelId, messageId: null, authorId: null }, request: `Record release ${update.tag} for ${update.title}`, messageUrl: "", repoUpdate: update });
+  // One job, one commit and one deployment per tick, however many releases
+  // it found: every commit to main is a production build.
+  const repoUpdates = repoUpdateWatcher({ root: ROOT, stateDir: STATE_DIR, passTicks: 4, enqueueBatch: async (updates) => {
+    if (scheduledJobsPaused() || !updates.length) return;
+    const pending = new Set([...queue, running].filter(Boolean).flatMap((item) => item.repoUpdate?.updates?.map((u) => u.path) ?? []));
+    const fresh = updates.filter((u) => !pending.has(u.path));
+    if (!fresh.length) return;
+    const label = fresh.length === 1 ? `Record release ${fresh[0].tag} for ${fresh[0].title}` : `Record ${fresh.length} releases`;
+    queue.push({ ref: { channelId: config.botChannelId, messageId: null, authorId: null }, request: label, messageUrl: "", repoUpdate: { updates: fresh } });
     await persistJobs();
     void drainQueue().catch((error) => console.error("[discord-agent] queue drain failed", error));
   } });

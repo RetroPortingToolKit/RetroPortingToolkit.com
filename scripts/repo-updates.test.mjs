@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { repoUpdateWatcher, releasePage, applyRepoUpdate, releaseAnnouncement, gamePages } from './repo-updates.mjs';
+import { repoUpdateWatcher, releasePage, applyRepoUpdate, applyRepoUpdates, releaseAnnouncement, gamePages } from './repo-updates.mjs';
 
 const dirs = [];
 afterEach(async () => { await Promise.all(dirs.splice(0).map(d => fs.rm(d, { recursive: true, force: true }))); });
@@ -53,6 +53,20 @@ describe('repository update watcher', () => {
     expect(f.enqueue).toHaveBeenCalledTimes(2);
     const state = JSON.parse(await fs.readFile(path.join(f.dir, 'state/repo-updates.json'), 'utf8'));
     expect(state.seen['https://github.com/a/alpha'].tag).toBe('v2');
+  });
+  it('batches a tick into one job and one commit', async () => {
+    const f = await fixture({ alpha: 'v1', beta: '2.0' });
+    const enqueueBatch = vi.fn(async () => {});
+    const w = repoUpdateWatcher({ root: f.dir, stateDir: path.join(f.dir, 'state'), enqueueBatch, fetcher: f.fetcher, batch: 10 });
+    await w.start();
+    expect(enqueueBatch).toHaveBeenCalledOnce();
+    const updates = enqueueBatch.mock.calls[0][0];
+    expect(updates.map(u => u.tag)).toEqual(['v1', '2.0']);
+    const exec = vi.fn(async () => {});
+    await applyRepoUpdates({ root: f.dir, updates, exec });
+    expect(exec.mock.calls.filter(c => c[1][0] === 'run')).toHaveLength(3);
+    expect(exec.mock.calls.find(c => c[1].includes('commit'))[1].at(-1)).toContain('Record 2 releases');
+    expect(exec.mock.calls.filter(c => c[1][0] === 'push')).toHaveLength(1);
   });
   it('writes release, download, and updated into frontmatter and commits after checks', async () => {
     const f = await fixture({ alpha: 'v1', beta: null });

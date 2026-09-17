@@ -9,7 +9,7 @@ import { latestReleaseFromFeed } from './github-web.mjs';
  * the rolling slice keeps the hourly poll far inside GitHub's anonymous limit. */
 /** Each repository is checked about once a day: an hourly tick takes the
  * next slice, sized so a full pass takes twenty-four ticks. */
-export function repoUpdateWatcher({ root, stateDir, enqueue, fetcher = fetch, batch, passTicks = 24 }) {
+export function repoUpdateWatcher({ root, stateDir, enqueue, enqueueBatch, fetcher = fetch, batch, passTicks = 24 }) {
   const stateFile = path.join(stateDir, 'repo-updates.json');
   let state = { cursor: 0, seen: {} };
   let ticking = false;
@@ -41,8 +41,9 @@ export function repoUpdateWatcher({ root, stateDir, enqueue, fetcher = fetch, ba
         if (page.release === release.tag && page.download === release.url) continue;
         const update = { path: page.path, url: page.url, title: page.title, tag: release.tag, name: release.name, releaseUrl: release.url, date: release.date, announce: Boolean(before && before.tag !== release.tag) };
         queued.push(update);
-        await enqueue(update);
+        if (enqueue) await enqueue(update);
       }
+      if (enqueueBatch && queued.length) await enqueueBatch(queued);
       await save();
       return queued;
     } finally { ticking = false; }
@@ -103,20 +104,29 @@ export function releasePage(raw, update) {
   return raw.replace(match[0], `---\n${fm}\n---`);
 }
 
-export async function applyRepoUpdate({ root, update, exec, siteUrl = '' }) {
-  if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
+/** Applies every update in one commit: one set of checks, one push, one
+ * deployment, however many releases the tick found. */
+export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
+  for (const update of updates) if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
   await exec('git', ['pull', '--ff-only']);
-  const target = path.join(root, update.path);
-  const raw = await fs.readFile(target, 'utf8');
-  const next = releasePage(raw, update);
-  if (next === raw) return `${update.title} already lists ${update.tag}.`;
-  await fs.writeFile(target, next);
+  const changed = [];
+  for (const update of updates) {
+    const target = path.join(root, update.path);
+    const raw = await fs.readFile(target, 'utf8');
+    const next = releasePage(raw, update);
+    if (next === raw) continue;
+    await fs.writeFile(target, next);
+    changed.push(update);
+  }
+  if (!changed.length) return `${updates.map((u) => `${u.title} already lists ${u.tag}`).join('; ')}.`;
   for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
-  await exec('git', ['add', '--', update.path]);
-  await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `Record ${update.tag} for ${update.title}`]);
+  await exec('git', ['add', '--', ...changed.map((u) => u.path)]);
+  const message = changed.length === 1 ? `Record ${changed[0].tag} for ${changed[0].title}` : `Record ${changed.length} releases\n\n${changed.map((u) => `- ${u.title}: ${u.tag}`).join('\n')}`;
+  await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', message]);
   await exec('git', ['push', 'origin', 'main']);
-  return `${update.title}: release ${update.tag} recorded. ${siteUrl}${update.url}`;
+  return changed.map((u) => `${u.title}: release ${u.tag} recorded. ${siteUrl}${u.url}`).join('\n');
 }
+export const applyRepoUpdate = ({ update, ...rest }) => applyRepoUpdates({ updates: [update], ...rest });
 
 /** The website-channel line for a release people have not seen yet. */
 export function releaseAnnouncement(update, siteUrl = '') {
