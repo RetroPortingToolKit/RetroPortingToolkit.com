@@ -85,7 +85,7 @@
     "path": "data/games/75_battlearenatoshindenrecomp-3cbb017e/index.md",
     "url": "/games/battlearenatoshindenrecomp-3cbb017e",
     "createdAt": "2026-09-17T16:19:06.837Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [
       {
         "path": "./submission-1.png",
@@ -102,6 +102,8 @@
       "0.1.2 is believed to be stable despite being an early release. Bug reports are welcome; see validation notes for the tested build and scope.",
       "The game boots through its introduction and character selection into combat. The launcher includes disc setup, settings, and a Mods page."
     ],
-    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork.",
+    "moderatedBy": "71388029540900864",
+    "moderatedAt": "2026-09-17T16:26:56.056Z"
   }
 ]
