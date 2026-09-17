@@ -12,9 +12,11 @@ platform: "playstation"
 repo: "https://github.com/mstan/TsumuLightRecomp"
 group: "PlayStation"
 verified: "2026-08-18"
-updated: "2026-08-11"
+updated: "2026-09-03"
 added: "2026-07-07"
 cover: "./boxart.jpg"
+release: "shared-staging-20260903"
+download: "https://github.com/mstan/TsumuLightRecomp/releases/tag/shared-staging-20260903"
 ---
 
 Tsumu Light is a hamster-themed stacking puzzle game that only released in Japan.
