@@ -13,6 +13,8 @@ submissionId: "b1210a4cf7279a12"
 draft: false
 creator: {"github":"elprogramadorloco-arch","discord":"elprogramadorloco_87045"}
 cover: "https://jetta.vgmtreasurechest.com/soundtracks/fate-unlimited-codes/Box%20Art%20PSP.jpg"
+release: "v0.0.5"
+download: "https://github.com/elprogramadorloco-arch/fuc-recomp/releases/tag/v0.0.5"
 ---
 
 Hybrid native Fate/unlimited codes project: PSP static-recompilation/gameplay base with PS2 assets and controls in development.
