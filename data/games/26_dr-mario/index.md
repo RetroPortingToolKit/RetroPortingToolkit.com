@@ -14,11 +14,11 @@ group: "NES"
 links:
   - { label: "NESRecomp progress article (1379.tech)", href: "https://1379.tech/nesrecomp-from-faxanadu-to-4-supported-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-04-07"
+updated: "2026-06-14"
 added: "2026-03-28"
 cover: "/data/blog/20_nesrecomp-10-titles/DrMarioRecomp_eoeWPp44eP.png"
-release: "v1.1.0"
-download: "https://github.com/mstan/DrMarioNesRecomp/releases/tag/v1.1.0"
+release: "v0.1.0-linux"
+download: "https://github.com/mstan/DrMarioNesRecomp/releases/tag/v0.1.0-linux"
 ---
 
 Dr. Mario runs as a native PC game through [NESRecomp](/hardware/nes).
