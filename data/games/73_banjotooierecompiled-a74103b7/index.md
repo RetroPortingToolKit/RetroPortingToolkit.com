@@ -8,12 +8,12 @@ repo: "https://github.com/Vidanox/BanjoTooieRecompiled"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/Vidanox/BanjoTooieRecompiled"}]
 added: "2026-09-16"
-updated: "2026-09-15"
+updated: "2026-09-17"
 submissionId: "a74103b7df3ac077"
 draft: false
 creator: {"github":"Vidanox"}
-release: "v1.0.0"
-download: "https://github.com/Vidanox/BanjoTooieRecompiled/releases/tag/v1.0.0"
+release: "v1.0.0-build.7"
+download: "https://github.com/Vidanox/BanjoTooieRecompiled/releases/tag/v1.0.0-build.7"
 ---
 
 Static recompilation of Banjo-Tooie \(USA\) to native Windows, built on N64Recomp + N64ModernRuntime + RT64. Runs the full game with widescreen, high-refresh interpolation, and native audio/input.
