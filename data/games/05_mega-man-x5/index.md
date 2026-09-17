@@ -12,9 +12,11 @@ platform: "playstation"
 repo: "https://github.com/mstan/MegaManX5Recomp"
 group: "PlayStation"
 verified: "2026-08-18"
-updated: "2026-08-11"
+updated: "2026-09-12"
 added: "2026-07-05"
 cover: "./mega-man-x5.png"
+release: "v0.1.0-alpha"
+download: "https://github.com/mstan/MegaManX5Recomp/releases/tag/v0.1.0-alpha"
 ---
 
 Mega Man X5 holds the middle of [PSXRecomp](/hardware/playstation)'s PlayStation X run, between [Mega Man X4](/games/mega-man-x4) and [Mega Man X6](/games/mega-man-x6). It is further along than its number suggests: the intro movies decode and play, stages work, and saving works, with no known crashes on the covered path.
