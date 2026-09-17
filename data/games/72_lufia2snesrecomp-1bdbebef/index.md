@@ -9,13 +9,13 @@ status: "Community submission"
 platform: "super-nintendo"
 links: [{"label":"Project on GitHub","href":"https://github.com/Cellenseres/Lufia2SNESRecomp"}]
 added: "2026-09-16"
-updated: "2026-09-16"
+updated: "2026-09-17"
 submissionId: "1bdbebefc9dd9af5"
 draft: false
 creator: {"github":"Cellenseres"}
 cover: "./images.png"
-release: "v0.9.1"
-download: "https://github.com/Cellenseres/Lufia2SNESRecomp/releases/tag/v0.9.1"
+release: "v0.9.2"
+download: "https://github.com/Cellenseres/Lufia2SNESRecomp/releases/tag/v0.9.2"
 ---
 
 ![](./submission-1.png)
