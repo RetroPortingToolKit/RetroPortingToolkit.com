@@ -14,8 +14,8 @@ submission path calls the same endpoint as the website form. It cannot run an
 agent, edit an existing page, or accept attachments. The rest of the message
 is an optional description, treated only as public text.
 
-Untrusted questions still use the read-only lane in
-`DISCORD_PUBLIC_CHANNEL_IDS`; elsewhere the bot stays silent. The general
+Untrusted questions use the read-only lane in any channel the bot can read
+(`DISCORD_PUBLIC_CHANNEL_IDS` is no longer required for that). The general
 publishing agent remains restricted to allowlisted users and roles.
 
 Two channels: `DISCORD_ADMIN_CHANNEL_ID` (#website) carries only changes to the
@@ -56,9 +56,12 @@ ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
 the repository owner's login, and the intake reply carries an edit link that
 works once the repository owner signs in to `/admin` with GitHub.
-The bot answers only messages that open with its mention or reply to one of
-its messages. A mention mid-sentence, a reply's automatic ping, or a repository
-link in conversation is not a request or a submission. Submissions from
+Actions (submitting, updating a page, publishing) need a message that opens
+with the bot's mention or replies to one of its messages. A mention anywhere
+else in a message joins the conversation on the read-only answer lane, in any
+channel the bot can read; so does any mention from someone who is not a
+trusted developer. A reply's automatic ping or a repository link in
+conversation is neither. Submissions from
 `DISCORD_TRUSTED_SUBMITTER_IDS` (default: the team) are confirmed on
 publication without a review reaction.
 Approved editors can react ✅ to confirm or ❌ to unlist that submission.
