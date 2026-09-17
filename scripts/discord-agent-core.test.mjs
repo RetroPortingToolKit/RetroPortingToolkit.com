@@ -199,13 +199,13 @@ describe("Discord agent core", () => {
     // --tools is the set that EXISTS; --allowed-tools merely pre-approves. The
     // lane once had only the latter, and Bash was still there and ran.
     const tools = claudeAsk.args.slice(claudeAsk.args.indexOf("--tools") + 1, claudeAsk.args.indexOf("--allowed-tools"));
-    expect(tools).toEqual(["Read", "Glob", "Grep"]);
+    expect(tools).toEqual(["Read", "Glob", "Grep", "WebFetch"]);
     expect(claudeAsk.args).not.toContain("Bash");
     expect(claudeAsk.args).not.toContain("--dangerously-skip-permissions");
     // Approval is fenced to the checkout: an unscoped "Read" let the lane
     // return the contents of files anywhere on the disk.
     const approved = claudeAsk.args.slice(claudeAsk.args.indexOf("--allowed-tools") + 1);
-    expect(approved).toEqual(["Read(/repo/**)", "Glob(/repo/**)", "Grep(/repo/**)"]);
+    expect(approved).toEqual(["Read(/repo/**)", "Glob(/repo/**)", "Grep(/repo/**)", "WebFetch(domain:github.com)", "WebFetch(domain:api.github.com)"]);
 
     // The publishing lane is the one allowed to write, on either runner.
     expect(agentCommand({ runner: "codex", mode: "publish", root: "/repo", outputFile: "/tmp/o" }).args)

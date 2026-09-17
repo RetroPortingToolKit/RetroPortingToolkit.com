@@ -14,7 +14,9 @@ submission path calls the same endpoint as the website form. It cannot run an
 agent, edit an existing page, or accept attachments. The rest of the message
 is an optional description, treated only as public text.
 
-Untrusted questions use the read-only lane in any channel the bot can read
+The answer lane can also read GitHub, and only GitHub (`WebFetch` fenced to
+github.com and api.github.com), for the repositories that published pages link
+to: pull requests, issues, releases, commits. Untrusted questions use the read-only lane in any channel the bot can read
 (`DISCORD_PUBLIC_CHANNEL_IDS` is no longer required for that). The general
 publishing agent remains restricted to allowlisted users and roles.
 

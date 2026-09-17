@@ -13,6 +13,7 @@ import {
   canRequestDestructive,
   containsSensitiveContent,
   askPrompt,
+  linkedRepositories,
   channelMode,
   chunkDiscordMessage,
   cooldownRemaining,
@@ -870,6 +871,7 @@ async function runAsk(job) {
     question: job.request,
     authorId: job.ref.authorId,
     channelId: job.ref.channelId,
+    repos: linkedRepositories(ROOT),
   });
   try {
     const { text: answer } = await runAgent({
