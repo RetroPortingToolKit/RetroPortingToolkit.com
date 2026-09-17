@@ -1137,6 +1137,7 @@ async function drainQueue() {
         return;
       }
       outcome = "⏸️";
+      if (!job.ref?.messageId) { console.error(`[discord-agent] scheduled job dropped after ${formatElapsed(waited)} of a busy checkout: ${job.request}`); return; }
       await replyChunks(
         job.ref,
         "⏸️ Blocked.",
@@ -1207,8 +1208,16 @@ async function recoverInterruptedJobs() {
     // checkout, and the request itself is exactly what it was. A dirty tree
     // means it died mid-edit, and that needs eyes before anything else runs.
     const pulse = await gitSnapshot().catch(() => null);
-    if (pulse && !pulse.status) {
+    const scheduledPage = saved.active.repoUpdate?.path;
+    if (pulse && scheduledPage && pulse.status.trim() === `M ${scheduledPage}`) {
+      // A scheduled edit is deterministic: drop the half-written page and
+      // let the job redo it from the start, with nobody to tell.
+      await execFileAsync("git", ["checkout", "--", scheduledPage], { cwd: ROOT }).catch(() => undefined);
       queue.unshift({ ...revive(saved.active), resumed: true });
+    } else if (pulse && !pulse.status) {
+      queue.unshift({ ...revive(saved.active), resumed: true });
+    } else if (!saved.active.ref?.messageId) {
+      console.error(`[discord-agent] scheduled job dropped after a restart with a dirty tree: ${saved.active.request}`);
     } else {
       await safeSend({
         ...saved.active.ref,
