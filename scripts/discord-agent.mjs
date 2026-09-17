@@ -13,6 +13,7 @@ import {
   canRequestDestructive,
   containsSensitiveContent,
   askPrompt,
+  askSystemPrompt,
   linkedRepositories,
   fallbackAnswer,
   channelMode,
@@ -472,8 +473,8 @@ class RunnerUnavailableError extends Error {
  * RunnerUnavailableError when this runner cannot serve at all (out of credits,
  * expired auth, not installed) so the caller can try the next one.
  */
-function runAgentOnce({ runner, mode, prompt, outputFile, taskLog, timeoutMs, onSpawn, onTimeout, onActivity }) {
-  const { command, args, resultFrom } = agentCommand({ runner, mode, root: ROOT, outputFile });
+function runAgentOnce({ runner, mode, prompt, systemPrompt = "", outputFile, taskLog, timeoutMs, onSpawn, onTimeout, onActivity }) {
+  const { command, args, resultFrom } = agentCommand({ runner, mode, root: ROOT, outputFile, systemPrompt });
   return new Promise((resolve, reject) => {
     let stdout = ""; // only for runners that answer on plain stdout
     let streamResult = null; // the last "result" event of a stream-json run
@@ -874,6 +875,17 @@ async function runPublish(job) {
  * of the answer, and containsSensitiveContent is the last check on the way
  * out.
  */
+/** A few dozen of the owner's real messages, collected by
+    scripts/discord-voice-examples.mjs into the state directory. Optional. */
+async function voiceExamples() {
+  try {
+    const list = JSON.parse(await fs.readFile(path.join(STATE_DIR, "voice-examples.json"), "utf8"));
+    return Array.isArray(list) ? list.filter((e) => typeof e === "string").slice(0, 40) : [];
+  } catch {
+    return [];
+  }
+}
+
 async function runAsk(job) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "rpt-discord-ask-"));
   const outputFile = path.join(tempDir, "answer.txt");
@@ -882,14 +894,15 @@ async function runAsk(job) {
     question: job.request,
     authorId: job.ref.authorId,
     channelId: job.ref.channelId,
-    repos: linkedRepositories(ROOT),
     context: job.context ?? "",
     asker: job.asker ?? null,
   });
+  const systemPrompt = askSystemPrompt({ repos: linkedRepositories(ROOT), examples: await voiceExamples() });
   try {
     const { text: answer } = await runAgent({
       mode: "ask",
       prompt,
+      systemPrompt,
       outputFile,
       taskLog,
       timeoutMs: ASK_TIMEOUT_MS,

@@ -14,7 +14,13 @@ submission path calls the same endpoint as the website form. It cannot run an
 agent, edit an existing page, or accept attachments. The rest of the message
 is an optional description, treated only as public text.
 
-The answer lane sees the ten messages before the question, fenced as
+The answer lane's system prompt is the owner's voice guide (`ASK_VOICE` in
+`scripts/discord-agent-core.mjs`), followed by up to forty of the owner's real
+Discord messages as style examples and then the operating rules; it replaces
+the CLI's default assistant prompt so nothing generic sits above the voice.
+The examples live in the state directory as `voice-examples.json`, written by
+`scripts/discord-voice-examples.mjs` (chat stays out of the repository); rerun
+it now and then to refresh them. The answer lane sees the ten messages before the question, fenced as
 untrusted data, so follow-ups like "ok but I want to do that recomp" resolve.
 A game with no page is answered from its platform page, the docs, and general
 console knowledge, with a note that anyone can submit a page. The answer lane can also read GitHub, and only GitHub (`WebFetch` fenced to
