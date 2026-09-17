@@ -12,9 +12,11 @@ platform: "playstation"
 repo: "https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-08-25"
 added: "2026-08-17"
 cover: "./boxart.png"
+release: "v0.1.3"
+download: "https://github.com/TechnicallyComputers/Klonoa-Door-to-Phantomile/releases/tag/v0.1.3"
 ---
 
 Klonoa: Door to Phantomile has a community [PSXRecomp](/hardware/playstation) build by TechnicallyComputers.
