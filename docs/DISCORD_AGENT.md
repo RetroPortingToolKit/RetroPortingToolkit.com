@@ -14,7 +14,10 @@ submission path calls the same endpoint as the website form. It cannot run an
 agent, edit an existing page, or accept attachments. The rest of the message
 is an optional description, treated only as public text.
 
-The answer lane can also read GitHub, and only GitHub (`WebFetch` fenced to
+The answer lane sees the ten messages before the question, fenced as
+untrusted data, so follow-ups like "ok but I want to do that recomp" resolve.
+A game with no page is answered from its platform page, the docs, and general
+console knowledge, with a note that anyone can submit a page. The answer lane can also read GitHub, and only GitHub (`WebFetch` fenced to
 github.com and api.github.com), for the repositories that published pages link
 to: pull requests, issues, releases, commits. Untrusted questions use the read-only lane in any channel the bot can read
 (`DISCORD_PUBLIC_CHANNEL_IDS` is no longer required for that). The general

@@ -48,6 +48,7 @@ import { siteChangeWatcher } from "./site-changes.mjs";
 import { repoUpdateWatcher, applyRepoUpdate, releaseAnnouncement } from "./repo-updates.mjs";
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
+import { plainText } from "./submissions.mjs";
 import fsp from "node:fs/promises";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
 // The site's own address, read out of src/lib/site.ts: the one place a brand
@@ -877,6 +878,7 @@ async function runAsk(job) {
     authorId: job.ref.authorId,
     channelId: job.ref.channelId,
     repos: linkedRepositories(ROOT),
+    context: job.context ?? "",
   });
   try {
     const { text: answer } = await runAgent({
@@ -931,6 +933,22 @@ async function drainAskQueue() {
   }
 }
 
+/** The few messages before a question, so a follow-up like "ok but I want
+    to do that recomp" can be understood. Text only, trimmed, oldest first;
+    the prompt fences it as untrusted. */
+async function recentChannelContext(message, limit = 10) {
+  try {
+    const before = await message.channel.messages.fetch({ limit, before: message.id });
+    const lines = [...before.values()]
+      .sort((a, b) => a.createdTimestamp - b.createdTimestamp)
+      .filter((m) => m.content?.trim())
+      .map((m) => `${m.author.bot ? "bot" : plainText(m.author.username, 40)}: ${stripBotMention(m.content, client.user.id).replace(/\s+/g, " ").slice(0, 300)}`);
+    return lines.join("\n");
+  } catch {
+    return "";
+  }
+}
+
 async function handleAsk(message, ref, question) {
   if (!question) {
     await safeSend({
@@ -957,7 +975,7 @@ async function handleAsk(message, ref, question) {
   // One entry per person who ever asked, forever, is a slow leak; anything
   // past the window is irrelevant and can go.
   for (const [who, at] of lastAskAt) if (Date.now() - at > ASK_COOLDOWN_MS) lastAskAt.delete(who);
-  askQueue.push({ ref, request: question });
+  askQueue.push({ ref, request: question, context: await recentChannelContext(message) });
   await persistJobs();
   await message.react("💬").catch(() => undefined);
   void drainAskQueue().catch((error) =>
