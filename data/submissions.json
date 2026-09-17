@@ -74,5 +74,34 @@
     "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
     "moderatedBy": "398336732287991808",
     "moderatedAt": "2026-09-16T21:51:24.990Z"
+  },
+  {
+    "id": "3cbb017e983d38ac",
+    "repo": "https://github.com/mstan/BattleArenaToshindenRecomp",
+    "title": "Battle Arena Toshinden Recompiled",
+    "description": "Battle Arena Toshinden is a Playstation 1 3D fighter that's been recompiled and enhanced with widescreen support, netplay, and selectors for two previously hidden characters: Gaia and Sho",
+    "owner": "mstan",
+    "discord": "gameamster",
+    "path": "data/games/75_battlearenatoshindenrecomp-3cbb017e/index.md",
+    "url": "/games/battlearenatoshindenrecomp-3cbb017e",
+    "createdAt": "2026-09-17T16:19:06.837Z",
+    "status": "pending",
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "Original Battle Arena Toshinden title screen in 4:3"
+      },
+      {
+        "path": "./submission-2.png",
+        "alt": "Gaia versus Sho in 21:9 adaptive ultrawide, with gauges extended to the edges"
+      }
+    ],
+    "summary": [
+      "Static recompilation of Battle Arena Toshinden (USA), PlayStation serial SCUS-94200, to native code using psxrecomp and recomp-ui.",
+      "The original title screen, presented at its native 4:3 aspect ratio.",
+      "0.1.2 is believed to be stable despite being an early release. Bug reports are welcome; see validation notes for the tested build and scope.",
+      "The game boots through its introduction and character selection into combat. The launcher includes disc setup, settings, and a Mods page."
+    ],
+    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork."
   }
 ]
