@@ -932,8 +932,8 @@ async function drainAskQueue() {
   try {
     await persistJobs();
     const answer = await runAsk(job);
+    // A conversation gets a reply, not a receipt: no reactions on chat.
     await replyChunks(job.ref, "", answer);
-    await markOutcome(job.ref, "💬", "✅");
   } catch (error) {
     // Public channel: say something useful without narrating the internals of
     // which runner failed or why.
@@ -942,7 +942,6 @@ async function drainAskQueue() {
     // outcome reads as answered rather than broken.
     const fallback = error instanceof SensitiveAnswerError ? `I can't share that here. The site is at ${SITE.url}.` : fallbackAnswer(job.request, ROOT, SITE.url);
     await safeSend({ ...job.ref, content: fallback, ping: true, suppressMentions: true });
-    await markOutcome(job.ref, "💬", error instanceof SensitiveAnswerError ? "❌" : "✅");
   } finally {
     askRunning = null;
     await persistJobs();
@@ -996,7 +995,6 @@ async function handleAsk(message, ref, question) {
   for (const [who, at] of lastAskAt) if (Date.now() - at > ASK_COOLDOWN_MS) lastAskAt.delete(who);
   askQueue.push({ ref, request: question, context: await recentChannelContext(message), asker: { username: plainText(message.author.username, 40), display: plainText(message.member?.displayName || message.author.globalName || message.author.username, 40) } });
   await persistJobs();
-  await message.react("💬").catch(() => undefined);
   void drainAskQueue().catch((error) =>
     console.error("[discord-agent] ask drain failed", error),
   );

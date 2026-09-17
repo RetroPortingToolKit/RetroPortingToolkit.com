@@ -256,11 +256,11 @@ describe("bridge harness: queueing and the shared checkout", () => {
     await b.waitFor(forMsg(bad, "did not complete"), 12000, "failure report");
     await b.waitFor((e) => e.messageId === bad && e.kind === "react" && e.content === "❌", 5000, "failed reaction");
     expect(b.events.some((e) => e.messageId === bad && e.kind === "unreact" && e.content === "🔍")).toBe(true);
-    // So is an answered question on the public lane: 💬 becomes ✅.
+    // A question on the public lane gets its answer and no reactions at all:
+    // a conversation is not a work request, so it earns no receipt.
     const q = b.send(PUBLIC, "S9", "q [[sleep=0]]");
     await b.waitFor(forMsg(q, "OK: q"), 10000, "answer");
-    await b.waitFor((e) => e.messageId === q && e.kind === "react" && e.content === "✅", 5000, "answered reaction");
-    expect(b.events.some((e) => e.messageId === q && e.kind === "unreact" && e.content === "💬")).toBe(true);
+    expect(b.events.filter((e) => e.messageId === q && (e.kind === "react" || e.kind === "unreact"))).toEqual([]);
   });
 
   it("keeps one status line per request, edits it through waiting and working, and deletes it with the queued notice when done", async () => {
