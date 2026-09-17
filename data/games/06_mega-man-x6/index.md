@@ -16,8 +16,10 @@ links:
 cover: "./mmx6-widescreen-gameplay.png"
 videoUrl: "https://www.youtube.com/watch?v=IXMHXC2BLSc"
 verified: "2026-08-18"
-updated: "2026-08-15"
+updated: "2026-09-12"
 added: "2026-06-04"
+release: "v1.1.1-rc1"
+download: "https://github.com/mstan/MegaManX6Recomp/releases/tag/v1.1.1-rc1"
 ---
 
 Mega Man X6 is one of the most complete titles in the [PSXRecomp](/hardware/playstation) ecosystem.
