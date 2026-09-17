@@ -15,6 +15,8 @@ verified: "2026-08-18"
 updated: "2026-08-03"
 added: "2026-07-30"
 cover: "/data/blog/10_building-enhancing-recomps/boktai.webp"
+release: "v0.1.0"
+download: "https://github.com/Shy/BoktaiRecomp/releases/tag/v0.1.0"
 ---
 
 Boktai's original cartridge had a real light sensor. Sun outside mattered inside the game.
