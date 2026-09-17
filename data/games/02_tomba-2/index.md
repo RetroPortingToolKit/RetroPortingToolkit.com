@@ -12,9 +12,11 @@ platform: "playstation"
 repo: "https://github.com/mstan/Tomba2Recomp"
 group: "PlayStation"
 verified: "2026-08-18"
-updated: "2026-08-12"
+updated: "2026-09-12"
 added: "2026-07-03"
 cover: "./tomba-2.png"
+release: "v0.0.10"
+download: "https://github.com/mstan/Tomba2Recomp/releases/tag/v0.0.10"
 ---
 
 Tomba! 2 follows [Tomba!](/games/tomba) into [PSXRecomp](/hardware/playstation) territory as a core project. It has experimental widescreen work, but culling and spawning are not fully handled yet, so treat the wider view as a preview.
