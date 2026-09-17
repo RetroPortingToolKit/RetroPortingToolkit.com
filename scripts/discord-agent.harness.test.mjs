@@ -232,7 +232,8 @@ describe("bridge harness: queueing and the shared checkout", () => {
 
   it("posts a question's answer as an answer, with no status heading or checks talk", async () => {
     const b = await up();
-    const id = b.send(ADMIN, "U1", "what is the role of Shokunin [[question]]");
+    // Phrased as work: a plain question would now take the answer lane.
+    const id = b.send(ADMIN, "U1", "summarize the role of Shokunin for the team page [[question]]");
     const reply = await b.waitFor(forMsg(id, "Shokunin does"), 12000, "the answer");
     expect(reply.content).toBe("Shokunin does UI/UX, frontend and marketing.");
     expect(reply.content).not.toMatch(/Done|\[answer\]|checks|nothing (was )?changed/i);
@@ -363,7 +364,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
 
   it("tells the agent who asked, by team name, and gives it the roster", async () => {
     const b = await up();
-    const id = b.send(ADMIN, "U1", "who am I [[whoami]]", { username: "tetrisgm", display: "shokunin" });
+    const id = b.send(ADMIN, "U1", "record the requester on the draft [[whoami]]", { username: "tetrisgm", display: "shokunin" });
     const r = await b.waitFor(forMsg(id, "OK: Requester:"), 12000, "requester line");
     expect(r.content).toContain("Requester: Shokunin (a team member; Discord tetrisgm)");
     expect(r.content).toMatch(/roster=[1-9]/);
@@ -371,7 +372,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
 
   it("says so when the requester is not on the team page", async () => {
     const b = await up();
-    const id = b.send(ADMIN, "U2", "who am I [[whoami]]", { username: "someone-new" });
+    const id = b.send(ADMIN, "U2", "record the requester on the draft [[whoami]]", { username: "someone-new" });
     const r = await b.waitFor(forMsg(id, "OK: Requester:"), 12000, "requester line");
     expect(r.content).toContain("Discord user someone-new, who is not on the team page");
   });

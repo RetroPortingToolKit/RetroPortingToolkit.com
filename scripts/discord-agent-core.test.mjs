@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  isChangeRequest,
+  isConversational,
   agentCommand,
   askPrompt,
   fallbackAnswer,
@@ -635,11 +635,10 @@ describe("fallback answer without a model", () => {
   });
 });
 
-describe("change request vs question", () => {
-  it("sends only change requests to the publishing lane", () => {
-    for (const text of ["update the Lufia page status to playable", "add a blog post about the new release", "can you fix the typo on the NES page", "please remove the ActRaiser cover", "Write a draft about co-simulation"]) expect(isChangeRequest(text), text).toBe(true);
-    for (const text of ["Fair but if you had to pick someone", "who's the best guy at making recomps here", "what does the latest release fix?", "how do I set up a toolchain?", "is Lufia playable yet", "sweet"]) expect(isChangeRequest(text), text).toBe(false);
-    expect(isChangeRequest("", { hasAttachments: true })).toBe(true);
-    expect(isChangeRequest("here you go", { hasAttachments: true })).toBe(true);
+describe("question or chat vs work, for a trusted developer", () => {
+  it("only leaves the publishing lane for plain questions and chat", () => {
+    for (const text of ["first", "long task", "update the Lufia page status to playable", "add a blog post about the new release", "can you fix the typo on the NES page", "please remove the ActRaiser cover", "Write a draft about co-simulation", "the page needs a new cover", "did you do the work on the footer, CTA on games page, modal etc?", "have you pushed it yet?"]) expect(isConversational(text), text).toBe(false);
+    for (const text of ["who's the best guy at making recomps here", "what does the latest release fix?", "how do I set up a toolchain?", "is Lufia playable yet", "sweet", "thanks!", "fair enough"]) expect(isConversational(text), text).toBe(true);
+    expect(isConversational("", { hasAttachments: true })).toBe(false);
   });
 });

@@ -61,9 +61,9 @@ ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
 the repository owner's login, and the intake reply carries an edit link that
 works once the repository owner signs in to `/admin` with GitHub.
-A trusted developer reaches the publishing lane only with a change request
-(`isChangeRequest`: change verbs, or an attachment); a question, chat, or a
-reply to one of the bot's answers is answered instead. Actions (submitting, updating a page, publishing) need a message that opens
+A trusted developer's message is answered rather than published when it is
+plainly a question or chat (`isConversational`) or a reply to one of the
+bot's answers; everything else a developer sends is work, as before. Actions (submitting, updating a page, publishing) need a message that opens
 with the bot's mention or replies to one of its messages. A mention anywhere
 else in a message joins the conversation on the read-only answer lane, in any
 channel the bot can read; so does any mention from someone who is not a
@@ -239,8 +239,7 @@ The launch script sets `DEVELOPER_DIR` to the Command Line Tools so git keeps
 working after an Xcode update, which otherwise blocks Xcode's git shim until
 `sudo xcodebuild -license accept` is run. Scheduled jobs (release and page
 updates) never post failures to Discord: one failure pauses scheduling for six
-hours (`DISCORD_SCHEDULED_PAUSE_MS`) and alerts the publishing channels once a
-day; the bot channel records what the bot did, never what went wrong. The same
+hours (`DISCORD_SCHEDULED_PAUSE_MS`), logged only; the bot channel records what the bot did, never what went wrong. The same
 text is never sent to the same channel twice within an hour.
 
 ## Tokens: economical, never required

@@ -27,7 +27,7 @@ import {
   isMassDestructiveRequest,
   isRunnerUnavailable,
   isStatusRequest,
-  isChangeRequest,
+  isConversational,
   isStopRequest,
   parseCsv,
   progressMessage,
@@ -1080,10 +1080,11 @@ async function pauseScheduledJobs(error) {
   await persistJobs();
   if (Date.now() - lastScheduledAlertAt < 24 * 60 * 60 * 1_000) return;
   lastScheduledAlertAt = Date.now();
+  // The website channel is for site changes and the bot channel for what
+  // the bot did, so this goes to the log, where a maintainer looks when
+  // something is off.
   const detail = error instanceof Error ? error.message : String(error);
-  for (const channelId of config.channelIds) {
-    await safeSend({ channelId, content: `⚠️ Scheduled page updates are paused for ${Math.round(SCHEDULED_PAUSE_MS / 3_600_000)} hours: a job failed on the shared checkout.\n${detail.split("\n").slice(0, 3).join("\n")}`, suppressMentions: true });
-  }
+  console.error(`[discord-agent] scheduled page updates paused for ${Math.round(SCHEDULED_PAUSE_MS / 3_600_000)} hours: ${detail.split("\n").slice(0, 3).join(" | ")}`);
 }
 
 /** Runs a checkout command for a queued job, stoppable like an agent task. */
@@ -1355,7 +1356,7 @@ client.on("messageCreate", async (message) => {
   // publishing lane below (status, stop and cancel keep their own words).
   const control = isStatusRequest(request) || isCancelMineRequest(request) || isStopRequest(request);
   const repliedToAnswer = addressedByReply && referenced && !/^(✅|❌|⏸️|🛑|ℹ️|❓|⚠️|On it\.|Still working)/.test(referenced.content ?? "");
-  if (!control && (repliedToAnswer || !isChangeRequest(request, { hasAttachments: attachmentsOf(message).length > 0 }))) {
+  if (!control && (repliedToAnswer || isConversational(request, { hasAttachments: attachmentsOf(message).length > 0 }))) {
     await handleAsk(message, ref, request);
     return;
   }

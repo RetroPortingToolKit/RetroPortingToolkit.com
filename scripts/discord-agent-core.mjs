@@ -17,22 +17,26 @@ export function isStopRequest(content) {
   return /^(?:stop|cancel|abort)(?:\s+(?:it|this(?:\s+(?:task|request))?|the\s+(?:task|request)|task|request|now))?[.!]?$/i.test(String(content).trim());
 }
 
-/** Does a trusted developer's message ask for a change to the site, as
- * opposed to a question or chat? Only a change request belongs on the
- * publishing lane; everything else is answered. Judged by the verbs a
- * request uses and by the shape of the message (an attachment is content to
- * publish; a question mark with no change verb is a question). */
-export function isChangeRequest(content, { hasAttachments = false } = {}) {
+/** Is a trusted developer's message plainly a question or chat rather than
+ * a request to change the site? Only those leave the publishing lane: a
+ * question word up front, a question mark with no change verb, or a few
+ * words of chat. Anything else a developer sends is treated as work, as it
+ * always was. */
+export function isConversational(content, { hasAttachments = false } = {}) {
   const text = String(content ?? "").trim();
-  if (!text) return hasAttachments;
-  if (hasAttachments) return true;
-  const verbs = /\b(add|create|make|write|draft|publish|post|update|edit|change|fix|correct|rename|move|remove|delete|drop|unlist|set|upload|replace|rewrite|reword|translate|tweak|adjust|bump|revert|restore|link|unlink|feature|unfeature|put|insert|append|prepend|merge|deploy|redeploy|rebuild|regenerate|refresh|sync|import|export|tag|untag|retitle|redo|undo)\b/i;
+  if (hasAttachments) return false;
+  if (!text) return true;
+  const changeVerb = /\b(add|create|make|write|draft|publish|post|update|edit|change|fix|correct|rename|move|remove|delete|drop|unlist|set|upload|replace|rewrite|reword|translate|tweak|adjust|bump|revert|restore|link|unlink|feature|unfeature|insert|append|merge|deploy|redeploy|rebuild|regenerate|refresh|sync|import|retitle|redo|undo)\b/i;
   const asksForChange = /\b(can|could|would|will|please)\s+(?:you\s+)?(?:please\s+)?(?:add|create|make|write|draft|publish|post|update|edit|change|fix|rename|move|remove|delete|unlist|set|upload|replace)\b/i;
-  if (asksForChange.test(text)) return true;
-  if (!verbs.test(text)) return false;
-  // "who made X", "what does it fix" are questions that happen to contain a verb.
-  if (/^(who|what|when|where|why|how|which|is|are|was|were|does|do|did|has|have|any)\b/i.test(text) && !/\b(please|for me|on the site|the page|a page|the post|a post)\b/i.test(text)) return false;
-  return true;
+  if (asksForChange.test(text)) return false;
+  // "did you do the footer?" is about the bot's own work, and the task lane
+  // is what checks a completion claim against what was actually committed.
+  if (/^(did|have|are|were|what did|what have|is it|was it|how far)\s+(you|it|that|this)\b/i.test(text) || /\b(you|u)\s+(did|do|done|finish|finished|push|pushed|publish|published|deploy|deployed|complete|completed)\b/i.test(text)) return false;
+  if (/^(who|whom|whose|what|when|where|why|how|which|is|are|was|were|does|do|did|has|have|any|got)\b/i.test(text)) return true;
+  if (/\?\s*$/.test(text) && !changeVerb.test(text)) return true;
+  const words = text.split(/\s+/);
+  if (words.length <= 6 && !changeVerb.test(text) && /^(ok|okay|fair|sweet|nice|cool|thanks|thank you|thx|lol|haha|hi|hello|hey|yo|sure|yes|no|nope|yeah|yep|good|great|awesome|hmm|interesting|wow|right|true|same|agreed|indeed)\b/i.test(text)) return true;
+  return false;
 }
 
 export function isStatusRequest(content) {
