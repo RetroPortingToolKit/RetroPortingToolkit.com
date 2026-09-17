@@ -70,3 +70,8 @@ editable in the CMS and from Discord via `update /games/<slug> …`
 (`scripts/owner-updates.mjs`); notes are announced in #website. Team-owned
 repositories carry the member's Discord name in the credit. Discord roles for
 contributors are deferred until roles exist on the server.
+
+2026-09-17 (later): The bot's role has Administrator; admin actions are
+script-only, never chat-driven (see DISCORD_AGENT.md). The RPTK contributor
+role was created and granted to nine repository owners via
+`scripts/discord-contributor-roles.mjs`; OpokXeno is not on the server.

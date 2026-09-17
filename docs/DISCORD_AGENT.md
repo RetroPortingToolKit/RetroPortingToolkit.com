@@ -238,6 +238,17 @@ hours (`DISCORD_SCHEDULED_PAUSE_MS`) and alerts the publishing channels once a
 day; the bot channel records what the bot did, never what went wrong. The same
 text is never sent to the same channel twice within an hour.
 
+## Admin actions are never chat-driven
+
+The bot's server role carries Administrator. Nothing in the bridge's message,
+mention, or reaction handling may perform an admin action (roles, channels,
+permissions, moderation of members), whoever asks. Those happen only through
+scripts run deliberately from the checkout. `scripts/discord-contributor-roles.mjs`
+grants the gold **RPTK contributor** role to everyone who owns a GitHub
+repository a live page tracks (`--dry-run` to preview, `--announce <channel>`
+to post a one-time mention of the newly added members). Re-run it after new
+submissions are confirmed.
+
 A bridge restart is needed to load code changes and requires owner approval.
 
 ## Discord application settings
