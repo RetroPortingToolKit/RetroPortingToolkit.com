@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   agentCommand,
   askPrompt,
+  fallbackAnswer,
+  ASK_MODEL,
+  modelFor,
   checkoutBusyReason,
   pulseChanged,
   canRequestDestructive,
@@ -185,7 +188,7 @@ describe("Discord agent core", () => {
       expect(codex.args).not.toContain('service_tier="priority"');
       for (const runner of ["claude", "claude-api"]) {
         const cmd = agentCommand({ runner, mode, root: "/r", outputFile: "/o" });
-        expect(cmd.args).toEqual(expect.arrayContaining(["--model", "claude-opus-5", "--effort", effort]));
+        expect(cmd.args).toEqual(expect.arrayContaining(["--model", modelFor(mode), "--effort", effort]));
       }
     }
   });
@@ -200,6 +203,10 @@ describe("Discord agent core", () => {
     // lane once had only the latter, and Bash was still there and ran.
     const tools = claudeAsk.args.slice(claudeAsk.args.indexOf("--tools") + 1, claudeAsk.args.indexOf("--allowed-tools"));
     expect(tools).toEqual(["Read", "Glob", "Grep", "WebFetch"]);
+    // The answer lane runs the smaller model with a turn cap; publishing does not.
+    expect(claudeAsk.args.slice(claudeAsk.args.indexOf("--model") + 1)[0]).toBe(ASK_MODEL);
+    expect(claudeAsk.args).toContain("--max-turns");
+    expect(agentCommand({ runner: "claude", mode: "publish", root: "/repo", outputFile: "/tmp/o" }).args).not.toContain("--max-turns");
     expect(claudeAsk.args).not.toContain("Bash");
     expect(claudeAsk.args).not.toContain("--dangerously-skip-permissions");
     // Approval is fenced to the checkout: an unscoped "Read" let the lane
@@ -610,5 +617,19 @@ describe("the status line's clock", () => {
       "Still working — 1m 30s elapsed. 2 queued behind it. Last: Bash: npm run build",
     );
     expect(progressMessage({ elapsedMs: 106 * 60_000, phase: "waiting" })).toMatch(/— 1h 46m so far\./);
+  });
+});
+
+describe("fallback answer without a model", () => {
+  it("links the pages that match the question, or the site when nothing does", async () => {
+    const os = await import("node:os"); const fs = await import("node:fs"); const path = await import("node:path");
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "rpt-fallback-"));
+    fs.mkdirSync(path.join(root, "data/games/03_lufia-ii"), { recursive: true });
+    fs.writeFileSync(path.join(root, "data/games/03_lufia-ii/index.md"), '---\ntitle: "Lufia II"\ndesc: "A SNES RPG port"\n---\n');
+    fs.mkdirSync(path.join(root, "data/docs/01_start/02_what-you-need"), { recursive: true });
+    fs.writeFileSync(path.join(root, "data/docs/01_start/02_what-you-need/index.md"), '---\ntitle: "What you need"\ndraft: true\n---\n');
+    expect(fallbackAnswer("how is the lufia port going?", root, "https://site")).toBe("I can't reach my answer model right now, but these pages look relevant:\n- Lufia II <https://site/games/lufia-ii>");
+    expect(fallbackAnswer("what do I need?", root, "https://site")).toContain("The site is at <https://site>");
+    fs.rmSync(root, { recursive: true, force: true });
   });
 });

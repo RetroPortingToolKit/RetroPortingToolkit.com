@@ -238,6 +238,19 @@ hours (`DISCORD_SCHEDULED_PAUSE_MS`) and alerts the publishing channels once a
 day; the bot channel records what the bot did, never what went wrong. The same
 text is never sent to the same channel twice within an hour.
 
+## Tokens: economical, never required
+
+Only two things consume model tokens: the public answer lane and the trusted
+publishing lane. Everything else is plain code with no model: submissions,
+moderation, owner updates from Discord, README summaries, release and
+site-change watchers, contributor roles, and every announcement. The answer
+lane runs the smaller model (`ASK_MODEL`) at low effort with a turn cap
+(`ASK_MAX_TURNS`) and a per-person cooldown; publishing keeps the larger model
+because it edits code that ships. If no runner is available (credits, a
+revoked login, a missing key), a question still gets a model-free answer: the
+pages whose titles and descriptions best match it, as links
+(`fallbackAnswer`). Publishing requests report that no runner is available.
+
 ## Admin actions are never chat-driven
 
 The bot's server role carries Administrator. Nothing in the bridge's message,

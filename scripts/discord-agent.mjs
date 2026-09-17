@@ -14,6 +14,7 @@ import {
   containsSensitiveContent,
   askPrompt,
   linkedRepositories,
+  fallbackAnswer,
   channelMode,
   chunkDiscordMessage,
   cooldownRemaining,
@@ -916,12 +917,11 @@ async function drainAskQueue() {
     // Public channel: say something useful without narrating the internals of
     // which runner failed or why.
     console.error("[discord-agent] ask failed", error);
-    await safeSend({
-      ...job.ref,
-      content: `Sorry — I couldn’t answer that just now. Try again in a bit, or browse the site directly at ${SITE.url}.`,
-      ping: true,
-    });
-    await markOutcome(job.ref, "💬", "❌");
+    // No model is not no answer: the matching pages still help, and the
+    // outcome reads as answered rather than broken.
+    const fallback = error instanceof SensitiveAnswerError ? `I can't share that here. The site is at ${SITE.url}.` : fallbackAnswer(job.request, ROOT, SITE.url);
+    await safeSend({ ...job.ref, content: fallback, ping: true, suppressMentions: true });
+    await markOutcome(job.ref, "💬", error instanceof SensitiveAnswerError ? "❌" : "✅");
   } finally {
     askRunning = null;
     await persistJobs();
