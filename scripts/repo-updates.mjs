@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { latestReleaseFromFeed } from './github-web.mjs';
 
 /** Keeps game pages current with their repositories. Each tick checks a
  * slice of the pages for a new release on GitHub or GitLab; a change becomes
@@ -77,13 +78,8 @@ export async function latestRelease(repo, fetcher = fetch) {
   const u = new URL(repo);
   const project = u.pathname.slice(1).replace(/\.git$/, '');
   const headers = { accept: 'application/json' };
-  if (u.hostname === 'github.com') {
-    const r = await fetcher(`https://api.github.com/repos/${project}/releases/latest`, { headers, signal: AbortSignal.timeout(15_000) });
-    if (r.status === 404) return null;
-    if (!r.ok) return undefined;
-    const d = await r.json();
-    return d?.tag_name ? { tag: String(d.tag_name), name: String(d.name || d.tag_name), url: String(d.html_url), date: String(d.published_at || '').slice(0, 10) } : null;
-  }
+  // GitHub's releases feed is a website page, not the metered API.
+  if (u.hostname === 'github.com') return latestReleaseFromFeed(project, fetcher);
   const r = await fetcher(`https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}/releases?per_page=1`, { headers, signal: AbortSignal.timeout(15_000) });
   if (r.status === 404) return null;
   if (!r.ok) return undefined;

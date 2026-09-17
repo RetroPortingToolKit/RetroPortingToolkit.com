@@ -15,9 +15,9 @@ async function fixture(releases) {
   }
   const fetcher = vi.fn(async (url) => {
     const r = releases[url.includes('github') ? 'alpha' : 'beta'];
-    if (r === null) return new Response('', { status: 404 });
+    if (r === null) return url.includes('github') ? new Response('<feed></feed>') : new Response('', { status: 404 });
     if (r === undefined) return new Response('', { status: 503 });
-    return url.includes('github') ? Response.json({ tag_name: r, name: `Alpha ${r}`, html_url: `https://github.com/a/alpha/releases/tag/${r}`, published_at: '2026-09-16T00:00:00Z' })
+    return url.includes('github') ? new Response(`<feed><entry><id>tag:github.com,2008:Repository/1/${r}</id><updated>2026-09-16T00:00:00Z</updated><link rel="alternate" type="text/html" href="https://github.com/a/alpha/releases/tag/${r}"/><title>Alpha ${r}</title></entry></feed>`)
       : Response.json([{ tag_name: r, name: r, released_at: '2026-09-15T00:00:00Z', _links: { self: `https://gitlab.com/b/beta/-/releases/${r}` } }]);
   });
   const enqueue = vi.fn(async () => {});

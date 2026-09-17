@@ -27,11 +27,9 @@ Changes to the site's pages are announced in `DISCORD_ADMIN_CHANNEL_ID`: one
 line per page that was created, removed, published, unlisted, given a new
 cover or images, or had its text substantially edited, with the page link.
 Code changes and small edits are not mentioned. Polled every thirty minutes
-from GitHub's public compare API (`DISCORD_SITE_CHANGE_POLL_MS`,
-`DISCORD_SITE_REPO`); a burst of saves is reported once, after three quiet
-minutes. Together with the release watcher the bot makes well under ten
-anonymous GitHub calls an hour, leaving the shared per-address limit of sixty
-to everything else on the machine. The first run
+from github.com's commits feed and compare diff (`DISCORD_SITE_CHANGE_POLL_MS`,
+`DISCORD_SITE_REPO`), which are website pages rather than the metered API; a
+burst of saves is reported once, after three quiet minutes. The first run
 after install records the current head silently; state is `site-changes.json`
 in the state directory.
 
@@ -45,7 +43,8 @@ website channel by the change watcher. Implementation: `scripts/owner-updates.mj
 
 Game pages are kept current with their repositories: every hour
 (`DISCORD_REPO_UPDATE_POLL_MS`) the next slice of pages is checked for a new
-release on GitHub or GitLab, sized so every page is checked about once a day. A finding becomes a queued page update on the
+release, sized so every page is checked about once a day. GitHub is read
+through its releases feed (`scripts/github-web.mjs`), not the metered API. A finding becomes a queued page update on the
 shared checkout, setting `release`, `download`, and `updated` in frontmatter
 after the usual checks, committed and pushed. The first release seen for a
 repository is recorded quietly; a later one is announced in

@@ -1,16 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { branchCommits, compareFiles } from './github-web.mjs';
 
 /** Watches the site repository's main branch and tells the website channel
  * about pages that were created or changed in a way a reader would notice.
  * Code, configuration, and small edits pass silently. A burst of saves is
- * reported once, after it has gone quiet. Uses GitHub's public compare API
- * without credentials; state is the last commit reported. The first run
+ * reported once, after it has gone quiet. Uses github.com's commit feed and
+ * compare diff, which are not metered like the API; state is the last commit
+ * reported. The first run
  * records the current head silently. */
 export function siteChangeWatcher({ repo, branch = 'main', stateDir, send, channelId, siteUrl = '', fetcher = fetch, quietMs = 3 * 60_000, now = () => Date.now() }) {
   const stateFile = path.join(stateDir, 'site-changes.json');
-  const base = `https://api.github.com/repos/${repo}`;
-  const headers = { accept: 'application/vnd.github+json' };
   let state = { lastSha: '' };
   let ticking = false;
   const save = async () => {
@@ -19,24 +19,23 @@ export function siteChangeWatcher({ repo, branch = 'main', stateDir, send, chann
     await fs.writeFile(temp, JSON.stringify(state, null, 2), { mode: 0o600 });
     await fs.rename(temp, stateFile);
   };
-  const get = async (url) => {
-    const response = await fetcher(url, { signal: AbortSignal.timeout(20_000), headers });
-    return response.ok ? response.json() : null;
-  };
   async function tick() {
     if (ticking || !channelId) return null;
     ticking = true;
     try {
-      const head = await get(`${base}/commits/${encodeURIComponent(branch)}`);
-      if (!head?.sha) return null;
+      // github.com's feeds and diffs, not api.github.com: the site pages are
+      // not metered the way the API is, so polling never crowds out other work.
+      const commits = await branchCommits(repo, branch, fetcher);
+      const head = commits?.[0];
+      if (!head) return null;
       if (!state.lastSha) { state.lastSha = head.sha; await save(); return null; }
       if (head.sha === state.lastSha) return null;
       // Let a run of editor saves finish before describing it as one change.
-      const at = Date.parse(head.commit?.committer?.date ?? head.commit?.author?.date ?? '');
+      const at = Date.parse(head.date);
       if (Number.isFinite(at) && now() - at < quietMs) return null;
-      const compare = await get(`${base}/compare/${state.lastSha}...${head.sha}`);
-      if (!Array.isArray(compare?.files)) return null;
-      const pages = pageChanges(compare.files);
+      const files = await compareFiles(repo, state.lastSha, head.sha, fetcher);
+      if (!files) return null;
+      const pages = pageChanges(files);
       const titled = await Promise.all(pages.map(async (page) => ({ ...page, title: await pageTitle(page, head.sha) })));
       const content = changeReport(titled, { siteUrl });
       if (content) await send({ channelId, content, suppressMentions: true });
