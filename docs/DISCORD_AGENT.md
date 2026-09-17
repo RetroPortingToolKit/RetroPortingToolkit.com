@@ -41,9 +41,10 @@ a trusted submitter. The edit is a frontmatter rewrite on the shared checkout
 with the usual checks, then a commit and push; a new note is announced in the
 website channel by the change watcher. Implementation: `scripts/owner-updates.mjs`.
 
-Game pages are kept current with their repositories: every hour
-(`DISCORD_REPO_UPDATE_POLL_MS`) the next slice of pages is checked for a new
-release, sized so every page is checked about once a day. GitHub is read
+Game pages are kept current with their repositories: every fifteen minutes
+(`DISCORD_REPO_UPDATE_POLL_MS`) the next quarter of the pages is checked for a
+new release, so every page is checked about once an hour. Scheduled jobs post
+no status line, progress, or completion reply; only a new release is announced. GitHub is read
 through its releases feed (`scripts/github-web.mjs`), not the metered API. A finding becomes a queued page update on the
 shared checkout, setting `release`, `download`, and `updated` in frontmatter
 after the usual checks, committed and pushed. The first release seen for a

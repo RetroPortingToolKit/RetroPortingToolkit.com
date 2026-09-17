@@ -143,7 +143,7 @@ const ATTACHMENT_FETCH_MS = 60_000;
 // hand is normal and usually brief, so a request parks and retries instead of
 // being thrown away.
 const SITE_CHANGE_POLL_MS = envMs("DISCORD_SITE_CHANGE_POLL_MS", 30 * 60 * 1_000);
-const REPO_UPDATE_POLL_MS = envMs("DISCORD_REPO_UPDATE_POLL_MS", 60 * 60 * 1_000);
+const REPO_UPDATE_POLL_MS = envMs("DISCORD_REPO_UPDATE_POLL_MS", 15 * 60 * 1_000);
 // The GitHub repository whose main branch deploys the site.
 const SITE_REPO = process.env.DISCORD_SITE_REPO || "RetroPortingToolKit/RetroPortingToolkit.com";
 const CHECKOUT_WAIT_MS = envMs("DISCORD_AGENT_WAIT_MS", 5 * 60 * 1_000);
@@ -1085,14 +1085,17 @@ async function drainQueue() {
     // One status line per request, created on its first turn and edited from
     // then on. A parked request comes back through here on every retry, and
     // each pass used to post a fresh "On it." and a fresh progress message.
-    if (!job.status) {
+    // A scheduled job has no requester: no status line, no progress, no
+    // completion reply. Its result shows up as the change it made.
+    const scheduled = !job.ref?.messageId;
+    if (!job.status && !scheduled) {
       await updateStatus(job, job.resumed ? resumedMessage() : `On it.${queue.length ? ` ${queue.length} queued.` : ""}`);
       // Persist again now that the status line exists: a restart during the
       // wait reads its id from here to tidy it, and the first persist above
       // happened before it was posted.
       await persistJobs();
     }
-    startStatusTicker(job);
+    if (!scheduled) startStatusTicker(job);
     let report;
     if (job.submissionModeration) {
       const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
@@ -1115,7 +1118,8 @@ async function drainQueue() {
       // A release people have not seen is news for the website channel.
       if (job.repoUpdate.announce && config.adminChannelId) await safeSend({ channelId: config.adminChannelId, content: releaseAnnouncement(job.repoUpdate, SITE.url), suppressMentions: true });
     } else report = await runPublish(job);
-    await replyChunks(job.ref, report.heading, report.body, { suppressMentions: true });
+    if (scheduled) console.log(`[discord-agent] ${job.request}: ${report.body}`);
+    else await replyChunks(job.ref, report.heading, report.body, { suppressMentions: true });
     if (!job.submissionModeration && !job.repoUpdate && !job.ownerUpdate && report.published) await notifyAdminChannel(job, `${report.heading}\n${report.body}`);
     outcome = outcomeReaction(report.outcome);
   } catch (error) {
@@ -1451,7 +1455,8 @@ client.once(Events.ClientReady, async () => {
   siteChangeTimer.unref();
   // Repositories are checked in slices for new releases; each finding is a
   // queued page update, run on the shared checkout like moderation.
-  const repoUpdates = repoUpdateWatcher({ root: ROOT, stateDir: STATE_DIR, enqueue: async (update) => {
+  // Every repository is checked about once an hour: a quarter of them per tick.
+  const repoUpdates = repoUpdateWatcher({ root: ROOT, stateDir: STATE_DIR, passTicks: 4, enqueue: async (update) => {
     if (scheduledJobsPaused()) return;
     if (queue.some((item) => item.repoUpdate?.path === update.path) || running?.repoUpdate?.path === update.path) return;
     queue.push({ ref: { channelId: config.botChannelId, messageId: null, authorId: null }, request: `Record release ${update.tag} for ${update.title}`, messageUrl: "", repoUpdate: update });
