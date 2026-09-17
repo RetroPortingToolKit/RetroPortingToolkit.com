@@ -10,7 +10,7 @@ links: [{"label":"Project on GitHub","href":"https://github.com/Vidanox/BanjoToo
 added: "2026-09-16"
 updated: "2026-09-17"
 submissionId: "a74103b7df3ac077"
-draft: false
+draft: true
 creator: {"github":"Vidanox"}
 release: "v1.0.0-build.7"
 download: "https://github.com/Vidanox/BanjoTooieRecompiled/releases/tag/v1.0.0-build.7"
