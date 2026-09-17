@@ -14,6 +14,8 @@ submissionId: "1bdbebefc9dd9af5"
 draft: false
 creator: {"github":"Cellenseres"}
 cover: "./images.png"
+release: "v0.9.1"
+download: "https://github.com/Cellenseres/Lufia2SNESRecomp/releases/tag/v0.9.1"
 ---
 
 ![](./submission-1.png)
