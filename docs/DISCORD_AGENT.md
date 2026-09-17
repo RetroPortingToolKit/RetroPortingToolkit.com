@@ -61,7 +61,9 @@ ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
 the repository owner's login, and the intake reply carries an edit link that
 works once the repository owner signs in to `/admin` with GitHub.
-Actions (submitting, updating a page, publishing) need a message that opens
+A trusted developer reaches the publishing lane only with a change request
+(`isChangeRequest`: change verbs, or an attachment); a question, chat, or a
+reply to one of the bot's answers is answered instead. Actions (submitting, updating a page, publishing) need a message that opens
 with the bot's mention or replies to one of its messages. A mention anywhere
 else in a message joins the conversation on the read-only answer lane, in any
 channel the bot can read; so does any mention from someone who is not a

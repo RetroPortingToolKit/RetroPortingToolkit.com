@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isChangeRequest,
   agentCommand,
   askPrompt,
   fallbackAnswer,
@@ -631,5 +632,14 @@ describe("fallback answer without a model", () => {
     expect(fallbackAnswer("how is the lufia port going?", root, "https://site")).toBe("I can't reach my answer model right now, but these pages look relevant:\n- Lufia II <https://site/games/lufia-ii>");
     expect(fallbackAnswer("what do I need?", root, "https://site")).toContain("The site is at <https://site>");
     fs.rmSync(root, { recursive: true, force: true });
+  });
+});
+
+describe("change request vs question", () => {
+  it("sends only change requests to the publishing lane", () => {
+    for (const text of ["update the Lufia page status to playable", "add a blog post about the new release", "can you fix the typo on the NES page", "please remove the ActRaiser cover", "Write a draft about co-simulation"]) expect(isChangeRequest(text), text).toBe(true);
+    for (const text of ["Fair but if you had to pick someone", "who's the best guy at making recomps here", "what does the latest release fix?", "how do I set up a toolchain?", "is Lufia playable yet", "sweet"]) expect(isChangeRequest(text), text).toBe(false);
+    expect(isChangeRequest("", { hasAttachments: true })).toBe(true);
+    expect(isChangeRequest("here you go", { hasAttachments: true })).toBe(true);
   });
 });

@@ -17,6 +17,24 @@ export function isStopRequest(content) {
   return /^(?:stop|cancel|abort)(?:\s+(?:it|this(?:\s+(?:task|request))?|the\s+(?:task|request)|task|request|now))?[.!]?$/i.test(String(content).trim());
 }
 
+/** Does a trusted developer's message ask for a change to the site, as
+ * opposed to a question or chat? Only a change request belongs on the
+ * publishing lane; everything else is answered. Judged by the verbs a
+ * request uses and by the shape of the message (an attachment is content to
+ * publish; a question mark with no change verb is a question). */
+export function isChangeRequest(content, { hasAttachments = false } = {}) {
+  const text = String(content ?? "").trim();
+  if (!text) return hasAttachments;
+  if (hasAttachments) return true;
+  const verbs = /\b(add|create|make|write|draft|publish|post|update|edit|change|fix|correct|rename|move|remove|delete|drop|unlist|set|upload|replace|rewrite|reword|translate|tweak|adjust|bump|revert|restore|link|unlink|feature|unfeature|put|insert|append|prepend|merge|deploy|redeploy|rebuild|regenerate|refresh|sync|import|export|tag|untag|retitle|redo|undo)\b/i;
+  const asksForChange = /\b(can|could|would|will|please)\s+(?:you\s+)?(?:please\s+)?(?:add|create|make|write|draft|publish|post|update|edit|change|fix|rename|move|remove|delete|unlist|set|upload|replace)\b/i;
+  if (asksForChange.test(text)) return true;
+  if (!verbs.test(text)) return false;
+  // "who made X", "what does it fix" are questions that happen to contain a verb.
+  if (/^(who|what|when|where|why|how|which|is|are|was|were|does|do|did|has|have|any)\b/i.test(text) && !/\b(please|for me|on the site|the page|a page|the post|a post)\b/i.test(text)) return false;
+  return true;
+}
+
 export function isStatusRequest(content) {
   return /^(?:status|queue)[?.!]*$|^what(?:'s|\s+is|\s+are)?\s+(?:you\s+)?(?:working\s+on|doing)[?.!]*$/i.test(
     String(content).trim(),

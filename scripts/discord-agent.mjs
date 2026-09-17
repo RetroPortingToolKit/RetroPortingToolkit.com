@@ -27,6 +27,7 @@ import {
   isMassDestructiveRequest,
   isRunnerUnavailable,
   isStatusRequest,
+  isChangeRequest,
   isStopRequest,
   parseCsv,
   progressMessage,
@@ -1346,6 +1347,15 @@ client.on("messageCreate", async (message) => {
   // channel the bot can read: questions are welcome everywhere, and
   // publishing is what the trusted lane below is for.
   if (mode !== "admin") {
+    await handleAsk(message, ref, request);
+    return;
+  }
+  // A trusted developer chatting with the bot, or replying to one of its
+  // answers, is asking, not publishing. Only a change request goes on to the
+  // publishing lane below (status, stop and cancel keep their own words).
+  const control = isStatusRequest(request) || isCancelMineRequest(request) || isStopRequest(request);
+  const repliedToAnswer = addressedByReply && referenced && !/^(✅|❌|⏸️|🛑|ℹ️|❓|⚠️|On it\.|Still working)/.test(referenced.content ?? "");
+  if (!control && (repliedToAnswer || !isChangeRequest(request, { hasAttachments: attachmentsOf(message).length > 0 }))) {
     await handleAsk(message, ref, request);
     return;
   }
