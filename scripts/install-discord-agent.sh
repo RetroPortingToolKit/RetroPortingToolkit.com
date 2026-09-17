@@ -31,6 +31,10 @@ cat > "$launch_script" <<EOF
 set -a
 source "${config_file}"
 set +a
+# git on a Mac is Xcode's shim, which refuses to run until each Xcode update's
+# licence is accepted with sudo. The Command Line Tools carry their own git
+# and need no click; point the shim at them so an unattended bridge never stalls.
+export DEVELOPER_DIR="/Library/Developer/CommandLineTools"
 export PATH="${node_dir}:${codex_dir}:${claude_dir}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export DISCORD_BOT_TOKEN="\$(security find-generic-password -s retroportingtoolkit-discord-bot -w)"
 # Standby runner credential. Optional: without it the bridge runs on Codex

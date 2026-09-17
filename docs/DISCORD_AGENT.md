@@ -224,6 +224,14 @@ overwritten by a repeat submission.
 
 `DISCORD_SUBMISSIONS_URL` can override the endpoint for an isolated test.
 The harness disables it by default; never aim a test submission at production.
+The launch script sets `DEVELOPER_DIR` to the Command Line Tools so git keeps
+working after an Xcode update, which otherwise blocks Xcode's git shim until
+`sudo xcodebuild -license accept` is run. Scheduled jobs (release and page
+updates) never post failures to Discord: one failure pauses scheduling for six
+hours (`DISCORD_SCHEDULED_PAUSE_MS`) and alerts the publishing channels once a
+day; the bot channel records what the bot did, never what went wrong. The same
+text is never sent to the same channel twice within an hour.
+
 A bridge restart is needed to load code changes and requires owner approval.
 
 ## Discord application settings

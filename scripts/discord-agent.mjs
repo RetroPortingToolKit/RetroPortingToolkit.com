@@ -324,7 +324,22 @@ async function spool(entry) {
  * take the whole bridge down with the queue still in memory; the summary this
  * carries is the entire point of a task, so a failure spools for later instead.
  */
+// The same text to the same channel twice in an hour is a loop, not news.
+const recentSends = new Map();
+function repeatedSend(entry) {
+  const key = `${entry.channelId}\n${entry.content}`;
+  const now = Date.now();
+  for (const [k, at] of recentSends) if (now - at > 60 * 60 * 1_000) recentSends.delete(k);
+  if (recentSends.has(key)) return true;
+  recentSends.set(key, now);
+  return false;
+}
+
 async function safeSend(entry) {
+  if (repeatedSend(entry)) {
+    console.warn(`[discord-agent] suppressed a repeated message to ${entry.channelId}`);
+    return null;
+  }
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       return await deliver(entry);
@@ -1026,6 +1041,26 @@ async function deleteById(channelId, messageId) {
   } catch {}
 }
 
+// A scheduled job that fails on the checkout or its tooling will fail the
+// same way for every other scheduled job until someone fixes the machine.
+// One failure pauses scheduling for a while and tells the maintainers once.
+const SCHEDULED_PAUSE_MS = envMs("DISCORD_SCHEDULED_PAUSE_MS", 6 * 60 * 60 * 1_000);
+let scheduledPausedUntil = 0;
+let lastScheduledAlertAt = 0;
+function scheduledJobsPaused() { return Date.now() < scheduledPausedUntil; }
+async function pauseScheduledJobs(error) {
+  scheduledPausedUntil = Date.now() + SCHEDULED_PAUSE_MS;
+  // Nothing already queued should run into the same wall.
+  for (let i = queue.length - 1; i >= 0; i--) if (!queue[i].ref?.messageId) queue.splice(i, 1);
+  await persistJobs();
+  if (Date.now() - lastScheduledAlertAt < 24 * 60 * 60 * 1_000) return;
+  lastScheduledAlertAt = Date.now();
+  const detail = error instanceof Error ? error.message : String(error);
+  for (const channelId of config.channelIds) {
+    await safeSend({ channelId, content: `⚠️ Scheduled page updates are paused for ${Math.round(SCHEDULED_PAUSE_MS / 3_600_000)} hours: a job failed on the shared checkout.\n${detail.split("\n").slice(0, 3).join("\n")}`, suppressMentions: true });
+  }
+}
+
 /** Runs a checkout command for a queued job, stoppable like an agent task. */
 function checkedExec(job) {
   return async (command, args) => {
@@ -1103,6 +1138,20 @@ async function drainQueue() {
         "⏸️ Blocked.",
         `The shared checkout has been busy for ${formatElapsed(waited)}, so this request never started and nothing was published. Someone has left work in the tree; once it is committed or cleared, send this again.`,
       );
+      return;
+    }
+    if (!job.ref?.messageId) {
+      // A scheduled job has nobody waiting in a channel. Its failure is for
+      // the log and, once, for the maintainers; posting it would only repeat
+      // the same line for every job in the batch.
+      console.error(`[discord-agent] scheduled job failed: ${job.request}:`, error);
+      await pauseScheduledJobs(error);
+      return;
+    }
+    if (job.ref.channelId === config.botChannelId) {
+      // The bot channel records what the bot did, never what went wrong; a
+      // failed moderation gets its ❌ reaction on the notice and a log line.
+      console.error(`[discord-agent] job failed in the bot channel: ${job.request}:`, error);
       return;
     }
     if (error instanceof TaskStoppedError) {
@@ -1403,6 +1452,7 @@ client.once(Events.ClientReady, async () => {
   // Repositories are checked in slices for new releases; each finding is a
   // queued page update, run on the shared checkout like moderation.
   const repoUpdates = repoUpdateWatcher({ root: ROOT, stateDir: STATE_DIR, enqueue: async (update) => {
+    if (scheduledJobsPaused()) return;
     if (queue.some((item) => item.repoUpdate?.path === update.path) || running?.repoUpdate?.path === update.path) return;
     queue.push({ ref: { channelId: config.botChannelId, messageId: null, authorId: null }, request: `Record release ${update.tag} for ${update.title}`, messageUrl: "", repoUpdate: update });
     await persistJobs();
