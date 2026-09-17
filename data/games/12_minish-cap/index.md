@@ -14,9 +14,11 @@ group: "Game Boy Advance"
 links:
   - { label: "Read: GBARecomp launch on 1379.tech", href: "https://1379.tech/expanding-the-recomp-ecosystem-with-gbarecomp/" }
 verified: "2026-08-18"
-updated: "2026-08-10"
+updated: "2026-08-29"
 added: "2026-05-25"
 cover: "/covers/minish-cap.jpg"
+release: "v0.0.5"
+download: "https://github.com/mstan/MinishCapRecomp/releases/tag/v0.0.5"
 ---
 
 The Minish Cap is one of the clearest [GBARecomp](/hardware/game-boy-advance) examples.
