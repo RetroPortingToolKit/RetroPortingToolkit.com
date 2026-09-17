@@ -14,9 +14,11 @@ group: "Virtual Boy"
 links:
   - { label: "VirtualBoy Recomp Gets Its First Title: Mario Tennis (1379.tech)", href: "https://1379.tech/virtualboy-recomp-gets-its-first-title-mario-tennis/" }
 verified: "2026-08-18"
-updated: "2026-07-23"
+updated: "2026-09-08"
 added: "2026-05-20"
 cover: "./title-screen-3x.png"
+release: "v0.2.2"
+download: "https://github.com/mstan/MarioTennisVirtualBoyRecomp/releases/tag/v0.2.2"
 ---
 
 Mario's Tennis is the public proof for [vbrecomp](/hardware/virtual-boy).
