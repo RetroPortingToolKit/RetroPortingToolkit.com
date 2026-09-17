@@ -136,7 +136,9 @@ const IDLE_TIMEOUT_MS = envMs("DISCORD_AGENT_IDLE_MS", 5 * 60 * 1_000);
 // Public questions get their own, much shorter budget, and one at a time. A
 // question is not allowed to cost what a publish costs.
 const ASK_TIMEOUT_MS = envMs("DISCORD_AGENT_ASK_TIMEOUT_MS", 4 * 60 * 1_000);
-const ASK_COOLDOWN_MS = envMs("DISCORD_AGENT_ASK_COOLDOWN_MS", 45_000);
+// Long enough to stop a flood, short enough that a back-and-forth feels like
+// a conversation rather than a queue.
+const ASK_COOLDOWN_MS = envMs("DISCORD_AGENT_ASK_COOLDOWN_MS", 12_000);
 const ASK_QUEUE_LIMIT = 5;
 // Files a trusted author attaches to a request are downloaded into the run's
 // temp dir and handed to the agent by path. Bounded, because a request is one
@@ -229,6 +231,7 @@ function jobRecord(job) {
     repoUpdate: job.repoUpdate ?? null,
     ownerUpdate: job.ownerUpdate ?? null,
     context: job.context ?? "",
+    asker: job.asker ?? null,
     startedAt: job.startedAt ?? null,
     startedHead: job.startedHead ?? null,
     attachments: job.attachments ?? [],
@@ -881,6 +884,7 @@ async function runAsk(job) {
     channelId: job.ref.channelId,
     repos: linkedRepositories(ROOT),
     context: job.context ?? "",
+    asker: job.asker ?? null,
   });
   try {
     const { text: answer } = await runAgent({
@@ -977,7 +981,7 @@ async function handleAsk(message, ref, question) {
   // One entry per person who ever asked, forever, is a slow leak; anything
   // past the window is irrelevant and can go.
   for (const [who, at] of lastAskAt) if (Date.now() - at > ASK_COOLDOWN_MS) lastAskAt.delete(who);
-  askQueue.push({ ref, request: question, context: await recentChannelContext(message) });
+  askQueue.push({ ref, request: question, context: await recentChannelContext(message), asker: { username: plainText(message.author.username, 40), display: plainText(message.member?.displayName || message.author.globalName || message.author.username, 40) } });
   await persistJobs();
   await message.react("💬").catch(() => undefined);
   void drainAskQueue().catch((error) =>
