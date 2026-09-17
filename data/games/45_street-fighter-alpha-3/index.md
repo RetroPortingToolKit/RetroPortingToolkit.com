@@ -17,7 +17,9 @@ links:
   - { label: "Watch: Street Fighter Alpha 3 Recomp is out now", href: "/blog/video-sfa3-recomp-out-now" }
 verified: "2026-08-18"
 added: "2026-08-08"
-updated: "2026-08-18"
+updated: "2026-08-26"
+release: "v0.2.15"
+download: "https://github.com/TechnicallyComputers/Street-Fighter-Alpha-3-Recomp/releases/tag/v0.2.15"
 ---
 
 Street Fighter Alpha 3 runs as a native app through [PSXRecomp](/hardware/playstation).
