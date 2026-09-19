@@ -105,5 +105,32 @@
     "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork.",
     "moderatedBy": "71388029540900864",
     "moderatedAt": "2026-09-17T16:26:56.056Z"
+  },
+  {
+    "id": "e088138b7a320e6a",
+    "repo": "https://github.com/JFryy/reshadowtower",
+    "title": "Shadow Tower",
+    "description": "An experimental Shadow Tower recompilation for Linux and Windows x64. Mouse look, WASD, upscaled rendering, and sharper texture filtering.",
+    "owner": "JFryy",
+    "path": "data/games/76_reshadowtower-e088138b/index.md",
+    "url": "/games/reshadowtower-e088138b",
+    "createdAt": "2026-09-19T23:40:11.621Z",
+    "status": "pending",
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "Project banner"
+      }
+    ],
+    "summary": [
+      "An experimental Shadow Tower recompilation for Linux and Windows x64. Mouse look, WASD, upscaled rendering, and sharper texture filtering.",
+      "Requires your own Shadow Tower (USA), SLUS-00863 BIN/CUE dump. No retail BIOS needed. OpenBIOS is included in the build.",
+      "- Linux x64: prior builds were gameplay-tested on Arch Linux. The current debug-disabled player build has been rebuilt and headless-startup-tested with isolated saves and no open sockets; manual gameplay revalidation is pending.",
+      "- Windows x64: cross-compiled on Linux and smoke-tested under Wine. Earlier tests verified gameplay rendering, injected turning input, and save-state save/load. The current debug-disabled build passed OpenGL startup and clean exit under Wine, with no debug listener. Native MSYS2 builds and gameplay on real Windows still need verification.",
+      "- Source builds only: no verified portable release packages. Build from your own disc; do not redistribute generated game code or local game assets.",
+      "- A full playthrough has not been verified. Geometry seam correction was checked in selected scenes, not throughout the game. Back up normal memory-card saves.",
+      "- No widescreen mode or frame-rate unlock. Gameplay retains roughly 20 updates per second; higher rendering resolution does not change this."
+    ],
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
   }
 ]
