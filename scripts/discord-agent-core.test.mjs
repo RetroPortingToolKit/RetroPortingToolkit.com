@@ -19,6 +19,7 @@ import {
   interruptedMessage,
   isAuthorized,
   isCancelMineRequest,
+  isClearQueueRequest,
   isDestructiveRequest,
   isRunnerUnavailable,
   isStatusRequest,
@@ -324,6 +325,11 @@ describe("Discord agent core", () => {
     expect(isCancelMineRequest("cancel")).toBe(false);
     expect(isStopRequest("cancel mine")).toBe(false);
     expect(isStopRequest("cancel")).toBe(true);
+  });
+  it("recognizes queue clearing as a control command", () => {
+    expect(isClearQueueRequest("clear queue")).toBe(true);
+    expect(isClearQueueRequest("clear the queue!")).toBe(true);
+    expect(isClearQueueRequest("clear the queue and run this")).toBe(false);
   });
 
   it("reports elapsed time without claiming an unobservable phase", () => {

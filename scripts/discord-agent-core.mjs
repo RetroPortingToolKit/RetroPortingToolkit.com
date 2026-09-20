@@ -51,6 +51,10 @@ export function isCancelMineRequest(content) {
   );
 }
 
+export function isClearQueueRequest(content) {
+  return /^clear\s+(?:the\s+)?queue[?.!]*$/i.test(content.trim());
+}
+
 export function isMassDestructiveRequest(content) {
   const normalized = String(content).toLowerCase();
   return /\b(delete|remove|wipe|drop|destroy)\s+(everything|all|the whole|entire)|\brm\s+-rf\b|\bdrop\s+(the\s+)?database|\b(rename|name)\s+.*\b(fuck|shit|asshole|cunt|nazi|slur)\b/.test(normalized);

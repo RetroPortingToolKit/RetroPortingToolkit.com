@@ -22,6 +22,7 @@ import {
   formatElapsed,
   interruptedMessage,
   isCancelMineRequest,
+  isClearQueueRequest,
   checkoutBusyReason,
   isAuthorized,
   isDestructiveRequest,
@@ -1373,7 +1374,7 @@ client.on("messageCreate", async (message) => {
   // A trusted developer chatting with the bot, or replying to one of its
   // answers, is asking, not publishing. Only a change request goes on to the
   // publishing lane below (status, stop and cancel keep their own words).
-  const control = isStatusRequest(request) || isCancelMineRequest(request) || isStopRequest(request);
+  const control = isStatusRequest(request) || isCancelMineRequest(request) || isClearQueueRequest(request) || isStopRequest(request);
   const repliedToAnswer = addressedByReply && referenced && !/^(✅|❌|⏸️|🛑|ℹ️|❓|⚠️|On it\.|Still working)/.test(referenced.content ?? "");
   if (!control && (repliedToAnswer || isConversational(request, { hasAttachments: attachmentsOf(message).length > 0 }))) {
     await handleAsk(message, ref, request);
@@ -1402,6 +1403,20 @@ client.on("messageCreate", async (message) => {
         ? `Removed ${mine.length} of your queued request(s). ${running ? "The running task is unaffected; reply `stop` to end that." : ""}`.trim()
         : "You have no queued requests to cancel.",
       ping: true,
+    });
+    return;
+  }
+  if (isClearQueueRequest(request)) {
+    const cleared = queue.splice(0, queue.length);
+    for (const job of cleared) await clearStatus(job);
+    await persistJobs();
+    await safeSend({
+      ...ref,
+      content: cleared.length
+        ? `Cleared ${cleared.length} queued request(s).${running ? " The active request is still running; reply `stop` to end it." : ""}`
+        : `The queue was already empty.${running ? " The active request is still running; reply `stop` to end it." : ""}`,
+      ping: true,
+      suppressMentions: true,
     });
     return;
   }
