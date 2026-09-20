@@ -3,7 +3,7 @@ import path from 'node:path';
 import { discordSubmission, moderationPage, SUBMISSIONS_PATH, plainText } from './submissions.mjs';
 
 /** Public intake never invokes an agent or writes arbitrary paths. */
-export function submissionBridge({ client, endpoint, adminChannelId, stateDir, authorized, enqueue, send, siteUrl }) {
+export function submissionBridge({ client, endpoint, adminChannelId, stateDir, authorized, moderateAuthorized = authorized, enqueue, send, siteUrl }) {
   const stateFile = path.join(stateDir, 'submission-notices.json');
   let state = { notices: {}, sources: {}, intake: {} };
   let saveChain = Promise.resolve();
@@ -63,7 +63,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     const [id, notice] = entry;
     if (notice.done || pending.has(id)) return;
     const member = await message.guild.members.fetch(user.id).catch(() => null);
-    if (!member || !authorized({ guildId: message.guildId, channelId: message.channelId, author: user, member })) return;
+    if (!member || !moderateAuthorized({ guildId: message.guildId, channelId: message.channelId, author: user, member })) return;
     pending.add(id);
     try {
       await enqueue({ ref: { channelId: message.channelId, messageId: message.id, authorId: user.id },

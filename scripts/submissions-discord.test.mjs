@@ -15,7 +15,7 @@ async function fixture() {
   const channel = { id: 'admin', isTextBased: () => true, send: vi.fn(async () => message), messages: { fetch: vi.fn(async value => typeof value === 'string' ? message : recent) } };
   const enqueue = vi.fn(async () => {}), send = vi.fn(async () => {});
   vi.stubGlobal('fetch', vi.fn(async (_url, init) => Response.json(init?.method === 'POST' ? { record, message: 'Publishing' } : { submissions: [record] })));
-  const args = { client: { user: { id: 'BOT' }, channels: { fetch: async () => channel } }, endpoint: 'https://test/api/submissions', adminChannelId: 'admin', stateDir: dir, authorized: m => m.author.id === 'EDITOR', enqueue, send, siteUrl: 'https://test' };
+  const args = { client: { user: { id: 'BOT' }, channels: { fetch: async () => channel } }, endpoint: 'https://test/api/submissions', adminChannelId: 'admin', stateDir: dir, authorized: m => m.author.id === 'EDITOR', moderateAuthorized: m => m.author.id === 'EDITOR', enqueue, send, siteUrl: 'https://test' };
   return { dir, message, channel, enqueue, send, args, bridge: submissionBridge(args) };
 }
 describe('Discord submission moderation', () => {
@@ -30,6 +30,15 @@ describe('Discord submission moderation', () => {
     expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ submissionModeration: { id: record.id, decision: 'removed', moderator: 'EDITOR' } }));
     await restored.reaction({ message: f.message, emoji: { name: '✅' } }, { id: 'EDITOR' });
     expect(f.enqueue).toHaveBeenCalledOnce();
+  });
+  it('does not let a generally authorized bot user moderate', async () => {
+    const f = await fixture();
+    f.args.authorized = () => true;
+    f.args.moderateAuthorized = m => m.author.id === 'EDITOR';
+    const bridge = submissionBridge(f.args);
+    await bridge.start();
+    await bridge.reaction({ message: f.message, emoji: { name: '✅' } }, { id: 'AUTHORIZED_BUT_NOT_EDITOR' });
+    expect(f.enqueue).not.toHaveBeenCalled();
   });
   it('confirms a trusted author\'s submission without a review reaction', async () => {
     const f = await fixture();

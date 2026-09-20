@@ -163,7 +163,7 @@ const CHECKOUT_WAIT_MS = envMs("DISCORD_AGENT_WAIT_MS", 5 * 60 * 1_000);
 // the repository stays busy and starts itself when it goes quiet; the cap only
 // exists so a tree left dirty overnight eventually reports something instead of
 // sitting silently forever.
-const CHECKOUT_PATIENCE_MS = envMs("DISCORD_AGENT_PATIENCE_MS", 6 * 60 * 60 * 1_000);
+const CHECKOUT_PATIENCE_MS = envMs("DISCORD_AGENT_PATIENCE_MS", 5 * 60 * 1_000);
 // A reply that could not be delivered is spooled; this is how often the spool
 // is retried while the process lives, so a Discord blip does not hold replies
 // until the next restart.
@@ -234,6 +234,7 @@ function jobRecord(job) {
     context: job.context ?? "",
     asker: job.asker ?? null,
     startedAt: job.startedAt ?? null,
+    waitingSince: job.waitingSince ?? null,
     startedHead: job.startedHead ?? null,
     attachments: job.attachments ?? [],
     requester: job.requester ?? null,
@@ -1244,7 +1245,7 @@ async function recoverInterruptedJobs() {
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, repoUpdate: job.repoUpdate ?? null, ownerUpdate: job.ownerUpdate ?? null, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, repoUpdate: job.repoUpdate ?? null, ownerUpdate: job.ownerUpdate ?? null, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null, waitingSince: job.waitingSince ?? null });
   if (saved.active) {
     // An interrupted run is resumed when the tree is clean: that means it was
     // killed before it changed anything, usually while waiting for the
@@ -1294,6 +1295,7 @@ const submissions = submissionBridge({
   client, endpoint: process.env.DISCORD_SUBMISSIONS_URL ?? (process.env.DISCORD_AGENT_REPO ? "" : `${SITE.url}/api/submissions`),
   adminChannelId: config.botChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
   authorized: (message) => isAuthorized(message, { ...config, channelIds: new Set() }),
+  moderateAuthorized: (message) => canRequestDestructive(message, config),
   send: safeSend,
   enqueue: async (job) => {
     if (queue.some(item => item.submissionModeration?.id === job.submissionModeration.id) || running?.submissionModeration?.id === job.submissionModeration.id) return;

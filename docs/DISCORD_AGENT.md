@@ -85,7 +85,9 @@ trusted developer. A reply's automatic ping or a repository link in
 conversation is neither. Submissions from
 `DISCORD_TRUSTED_SUBMITTER_IDS` (default: the team) are confirmed on
 publication without a review reaction.
-Approved editors can react ✅ to confirm or ❌ to unlist that submission.
+Only designated page maintainers can react ✅ to confirm or ❌ to unlist that
+submission; ordinary allowed bot users and the submitter cannot vote. The
+maintainer identity is taken from the destructive-action user/role allowlist.
 Confirming deletes the notice once the commit is pushed; the "Done" reply with
 the page link remains. Unlisting keeps the notice and sets `draft: true`,
 retaining the direct URL and editorial content.
