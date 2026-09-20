@@ -161,6 +161,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
     fs.writeFileSync(path.join(b.repo.dir, "someone-elses-edit.txt"), "wip\n");
     const id = b.send(ADMIN, "U1", "please wait for me [[sleep=1]]");
     await b.waitFor(parkedFor(id), 8000, "busy notice");
+    await b.waitFor((e) => e.kind === "send" && e.channelId === MODERATION && /Task pending/.test(e.content), 8000, "#website pending reminder");
     expect(b.events.some((e) => e.messageId === id && e.content.includes("OK:"))).toBe(false);
     fs.rmSync(path.join(b.repo.dir, "someone-elses-edit.txt"));
     const done = await b.waitFor(forMsg(id, "OK: please wait"), 20000, "started on its own after the tree cleared");
@@ -417,7 +418,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const reply = await b.waitFor(forMsg(id, "could not verify completion"));
     expect(reply.content).not.toContain("Yes.");
     await b.waitFor(e => e.messageId === id && e.kind === "react" && e.content === "⚠️");
-    expect(b.events.some(e => e.channelId === MODERATION)).toBe(false);
+    expect(b.events.filter(e => e.channelId === MODERATION).every(e => /Task pending/.test(e.content))).toBe(true);
     expect(b.events.some(e => e.messageId === id && e.kind === "react" && e.content === "✅")).toBe(false);
   });
 

@@ -410,6 +410,16 @@ async function notifyAdminChannel(job, summary) {
   });
 }
 
+async function notifyPendingAdminChannel(job) {
+  if (!config.adminChannelId || job.pendingNotice) return;
+  const requester = job.requester?.display || job.requester?.username || `Discord user ${job.ref.authorId}`;
+  job.pendingNotice = await safeSend({
+    channelId: config.adminChannelId,
+    content: `⏳ Task pending for ${requester}: the shared checkout is busy, so this request is waiting to start.\nRequest: ${job.messageUrl}`,
+    suppressMentions: true,
+  });
+}
+
 async function gitSnapshot() {
   const [{ stdout: status }, { stdout: last }] = await Promise.all([
     execFileAsync("git", ["--no-optional-locks", "status", "--porcelain"], { cwd: ROOT }),
@@ -773,6 +783,7 @@ async function runPublish(job) {
       job.phase = "waiting";
       job.waitingSince ??= Date.now();
       void updateStatus(job);
+      void notifyPendingAdminChannel(job);
     }
   });
   // Both the dirty tree and the wait that timed out on commit churn (clean
@@ -1070,8 +1081,10 @@ async function clearStatus(job) {
   for (const m of [job.status, job.queuedNotice]) {
     if (m?.delete) await m.delete().catch(() => undefined);
   }
+  if (job.pendingNotice?.delete) await job.pendingNotice.delete().catch(() => undefined);
   job.status = null;
   job.queuedNotice = null;
+  job.pendingNotice = null;
 }
 
 /** Delete a message this process never held, by id; best effort. */
