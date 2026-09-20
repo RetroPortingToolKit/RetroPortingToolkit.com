@@ -35,7 +35,7 @@ export function isConversational(content, { hasAttachments = false } = {}) {
   if (/^(who|whom|whose|what|when|where|why|how|which|is|are|was|were|does|do|did|has|have|any|got)\b/i.test(text)) return true;
   if (/\?\s*$/.test(text) && !changeVerb.test(text)) return true;
   const words = text.split(/\s+/);
-  if (words.length <= 6 && !changeVerb.test(text) && /^(ok|okay|fair|sweet|nice|cool|thanks|thank you|thx|lol|haha|hi|hello|hey|yo|sure|yes|no|nope|yeah|yep|good|great|awesome|hmm|interesting|wow|right|true|same|agreed|indeed)\b/i.test(text)) return true;
+  if (words.length <= 6 && !changeVerb.test(text) && /^(ok|okay|fair|sweet|nice|cool|thanks|thank you|thx|lol|haha|hi|hello|hey|yo|sure|yes|no|nope|yeah|yep|good|great|awesome|hmm|interesting|wow|right|true|same|agreed|indeed|test)\b/i.test(text)) return true;
   return false;
 }
 
