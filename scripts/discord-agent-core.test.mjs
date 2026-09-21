@@ -386,10 +386,17 @@ describe("runner cooldowns", () => {
   const LIMIT =
     "ERROR: You've hit your usage limit. Visit https://chatgpt.com/codex/settings/usage " +
     "to purchase more credits or try again at Sep 11th, 2026 10:48 PM.";
+  // Codex prints its reset time in the machine's own timezone, so the instant
+  // it resolves to moves with the machine. Pinning a UTC string here worked
+  // only at UTC+2: the suite began failing the day this Mac went from CEST to
+  // PDT, and a failing suite stops the bot committing anything at all, which
+  // left a half-written page in the tree and deadlocked every later job.
+  const RESET = Date.parse("Sep 11, 2026 10:48 PM");
 
   it("reads the reset time Codex prints, ordinal and all", () => {
     // Date.parse cannot read "11th"; the real message is the only input that matters.
-    expect(new Date(runnerCooldownUntil(LIMIT, NOW)).toISOString()).toBe("2026-09-11T20:48:00.000Z");
+    expect(runnerCooldownUntil(LIMIT, NOW)).toBe(RESET);
+    expect(Number.isFinite(RESET)).toBe(true);
   });
 
   it("falls back to a short cooldown when no reset time is named", () => {
@@ -404,7 +411,7 @@ describe("runner cooldowns", () => {
   });
 
   it("ignores a reset time that has already passed", () => {
-    const after = Date.parse("2026-09-12T00:00:00Z");
+    const after = RESET + 60_000;
     expect(runnerCooldownUntil(LIMIT, after)).toBe(after + DEFAULT_RUNNER_COOLDOWN_MS);
   });
 
