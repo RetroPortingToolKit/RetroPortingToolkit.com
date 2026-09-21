@@ -418,7 +418,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const reply = await b.waitFor(forMsg(id, "could not verify completion"));
     expect(reply.content).not.toContain("Yes.");
     await b.waitFor(e => e.messageId === id && e.kind === "react" && e.content === "⚠️");
-    expect(b.events.filter(e => e.channelId === MODERATION).every(e => /Task pending/.test(e.content))).toBe(true);
+    expect(b.events.filter(e => e.channelId === MODERATION).some(e => /published changes/.test(e.content))).toBe(false);
     expect(b.events.some(e => e.messageId === id && e.kind === "react" && e.content === "✅")).toBe(false);
   });
 

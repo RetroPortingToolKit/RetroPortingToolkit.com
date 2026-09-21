@@ -420,6 +420,13 @@ async function notifyPendingAdminChannel(job) {
   });
 }
 
+function markWaiting(job) {
+  job.phase = "waiting";
+  job.waitingSince ??= Date.now();
+  if (job.ref?.messageId) void updateStatus(job);
+  void notifyPendingAdminChannel(job);
+}
+
 async function gitSnapshot() {
   const [{ stdout: status }, { stdout: last }] = await Promise.all([
     execFileAsync("git", ["--no-optional-locks", "status", "--porcelain"], { cwd: ROOT }),
@@ -779,12 +786,7 @@ async function remoteMain() {
 
 async function runPublish(job) {
   const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => {
-    if (job.phase !== "waiting") {
-      job.phase = "waiting";
-      job.waitingSince ??= Date.now();
-      void updateStatus(job);
-      void notifyPendingAdminChannel(job);
-    }
+    if (job.phase !== "waiting") markWaiting(job);
   });
   // Both the dirty tree and the wait that timed out on commit churn (clean
   // tree, someone committing every few seconds) are "busy": the second used
@@ -1155,19 +1157,19 @@ async function drainQueue() {
     if (!scheduled) startStatusTicker(job);
     let report;
     if (job.submissionModeration) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { if (job.phase !== "waiting") markWaiting(job); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.ownerUpdate) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { if (job.phase !== "waiting") markWaiting(job); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const summary = await applyOwnerUpdate({ root: ROOT, update: job.ownerUpdate, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.repoUpdate) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { job.phase = "waiting"; job.waitingSince ??= Date.now(); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { if (job.phase !== "waiting") markWaiting(job); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const updates = job.repoUpdate.updates ?? [job.repoUpdate];
