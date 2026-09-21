@@ -415,15 +415,15 @@ async function notifyAdminChannel(job, summary) {
 }
 
 async function notifyPendingAdminChannel(job) {
-  // Waiting is bot activity, so it belongs in the bot channel; the website
-  // channel carries changes to the site and nothing else. A scheduled job has
-  // nobody waiting on it and must never post, and a request made in the bot
-  // channel already shows its own status line there.
-  if (!config.botChannelId || job.pendingNotice) return;
-  if (!job.ref?.messageId || job.ref.channelId === config.botChannelId) return;
+  // The owner wants these in the website channel. What made them useless was
+  // repetition and jobs with no requester ("Task pending for Discord user
+  // null"), not the channel: a scheduled job never posts, and a request that
+  // already shows a status line in this channel does not get a second one.
+  if (!config.adminChannelId || job.pendingNotice) return;
+  if (!job.ref?.messageId || job.ref.channelId === config.adminChannelId) return;
   const requester = job.requester?.display || job.requester?.username || `Discord user ${job.ref.authorId}`;
   job.pendingNotice = await safeSend({
-    channelId: config.botChannelId,
+    channelId: config.adminChannelId,
     content: `⏳ Task pending for ${requester}: the shared checkout is busy, so this request is waiting to start.\nRequest: ${job.messageUrl}`,
     suppressMentions: true,
   });
@@ -1115,18 +1115,34 @@ const SCHEDULED_PAUSE_MS = envMs("DISCORD_SCHEDULED_PAUSE_MS", 6 * 60 * 60 * 1_0
 let scheduledPausedUntil = 0;
 let lastScheduledAlertAt = 0;
 function scheduledJobsPaused() { return Date.now() < scheduledPausedUntil; }
+/**
+ * One message a day, naming the actual cause.
+ *
+ * Twelve "Blocked." replies over two days told nobody anything: the thing a
+ * maintainer needs is which check is failing and where to look. Every path
+ * that cannot publish routes here, so the count of failing jobs never becomes
+ * the count of messages.
+ */
+async function alertPublishingBroken(error) {
+  const detail = error instanceof Error ? error.message : String(error);
+  console.error(`[discord-agent] publishing is blocked: ${detail.split("\n").slice(0, 3).join(" | ")}`);
+  if (Date.now() - lastScheduledAlertAt < 24 * 60 * 60 * 1_000) return;
+  lastScheduledAlertAt = Date.now();
+  const check = detail.match(/Command failed: npm run (\w+)/)?.[1];
+  const head = detail.split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 4).join("\n");
+  await safeSend({
+    channelId: config.adminChannelId || config.botChannelId,
+    content: `⚠️ Publishing is stopped${check ? `: \`npm run ${check}\` is failing` : ""}. Nothing reaches the site until it passes.\nRun \`npm run doctor\` in the checkout for the full picture.\n\`\`\`\n${head.slice(0, 1200)}\n\`\`\``,
+    suppressMentions: true,
+  });
+}
+
 async function pauseScheduledJobs(error) {
   scheduledPausedUntil = Date.now() + SCHEDULED_PAUSE_MS;
   // Nothing already queued should run into the same wall.
   for (let i = queue.length - 1; i >= 0; i--) if (!queue[i].ref?.messageId) queue.splice(i, 1);
   await persistJobs();
-  if (Date.now() - lastScheduledAlertAt < 24 * 60 * 60 * 1_000) return;
-  lastScheduledAlertAt = Date.now();
-  // The website channel is for site changes and the bot channel for what
-  // the bot did, so this goes to the log, where a maintainer looks when
-  // something is off.
-  const detail = error instanceof Error ? error.message : String(error);
-  console.error(`[discord-agent] scheduled page updates paused for ${Math.round(SCHEDULED_PAUSE_MS / 3_600_000)} hours: ${detail.split("\n").slice(0, 3).join(" | ")}`);
+  await alertPublishingBroken(error);
 }
 
 /** Runs a checkout command for a queued job, stoppable like an agent task. */
@@ -1230,10 +1246,12 @@ async function drainQueue() {
       await pauseScheduledJobs(error);
       return;
     }
-    if (job.ref.channelId === config.botChannelId) {
-      // The bot channel records what the bot did, never what went wrong; a
-      // failed moderation gets its ❌ reaction on the notice and a log line.
-      console.error(`[discord-agent] job failed in the bot channel: ${job.request}:`, error);
+    if (job.submissionModeration || job.ref.channelId === config.botChannelId) {
+      // Per-attempt replies here are the useless kind: the submission poll
+      // retries a failed moderation on its own, so one failure becomes a
+      // stream. The daily alert names the real cause instead.
+      console.error(`[discord-agent] job failed without a reply: ${job.request}:`, error);
+      await alertPublishingBroken(error);
       return;
     }
     if (error instanceof TaskStoppedError) {
@@ -1337,7 +1355,7 @@ const taskContext = createTaskContext({
 
 const submissions = submissionBridge({
   client, endpoint: process.env.DISCORD_SUBMISSIONS_URL ?? (process.env.DISCORD_AGENT_REPO ? "" : `${SITE.url}/api/submissions`),
-  adminChannelId: config.botChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
+  adminChannelId: config.adminChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
   authorized: (message) => isAuthorized(message, { ...config, channelIds: new Set() }),
   moderateAuthorized: (message) => canRequestDestructive(message, config),
   send: safeSend,

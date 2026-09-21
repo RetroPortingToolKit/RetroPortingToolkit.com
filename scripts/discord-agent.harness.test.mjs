@@ -162,10 +162,9 @@ describe("bridge harness: queueing and the shared checkout", () => {
     fs.writeFileSync(path.join(b.repo.dir, "someone-elses-edit.txt"), "wip\n");
     const id = b.send(ADMIN, "U1", "please wait for me [[sleep=1]]");
     await b.waitFor(parkedFor(id), 8000, "busy notice");
-    // The bot channel, not the website one: waiting is bot activity, and the
-    // website channel carries changes to the site and nothing else.
-    await b.waitFor((e) => e.kind === "send" && e.channelId === BOTCHAN && /Task pending/.test(e.content), 8000, "pending reminder in the bot channel");
-    expect(b.events.some((e) => e.channelId === MODERATION && /Task pending/.test(e.content))).toBe(false);
+    await b.waitFor((e) => e.kind === "send" && e.channelId === MODERATION && /Task pending/.test(e.content), 8000, "pending reminder in the website channel");
+    // One notice for one waiting job, never a repeat per retry.
+    expect(b.events.filter((e) => e.channelId === MODERATION && /Task pending/.test(e.content))).toHaveLength(1);
     expect(b.events.some((e) => e.messageId === id && e.content.includes("OK:"))).toBe(false);
     fs.rmSync(path.join(b.repo.dir, "someone-elses-edit.txt"));
     const done = await b.waitFor(forMsg(id, "OK: please wait"), 20000, "started on its own after the tree cleared");
@@ -422,10 +421,10 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const reply = await b.waitFor(forMsg(id, "could not verify completion"));
     expect(reply.content).not.toContain("Yes.");
     await b.waitFor(e => e.messageId === id && e.kind === "react" && e.content === "⚠️");
-    // Nothing at all reaches the website channel from a task: it carries
-    // changes to the site and nothing else. This assertion was weakened twice
-    // to let pending notices through; they belong in the bot channel.
-    expect(b.events.some(e => e.channelId === MODERATION)).toBe(false);
+    // A task that produced nothing publishes nothing: the website channel may
+    // carry pending notices and site changes, never a per-attempt failure.
+    expect(b.events.filter(e => e.channelId === MODERATION && e.kind === "send").every(e => /Task pending/.test(e.content))).toBe(true);
+    expect(b.events.some(e => e.channelId === MODERATION && /did not complete|Blocked/.test(e.content))).toBe(false);
     expect(b.events.some(e => e.messageId === id && e.kind === "react" && e.content === "✅")).toBe(false);
   });
 

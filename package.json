@@ -8,14 +8,15 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.api.json --noEmit",
-    "test": "vitest run",
+    "test": "TZ=UTC vitest run",
     "assets:audit": "node scripts/audit-assets.mjs",
     "images": "node scripts/gen-image-variants.mjs",
     "feeds": "node scripts/gen-feeds.mjs",
     "discord-agent": "node scripts/discord-agent.mjs",
     "video:studio": "remotion studio video/src/index.ts --public-dir video/public",
     "video:render": "remotion render video/src/index.ts RetroPortingToolkitShowcase video/out/retro-porting-toolkit-showcase.mp4 --public-dir video/public",
-    "newsletter:send": "node --experimental-strip-types scripts/newsletter-send.ts"
+    "newsletter:send": "node --experimental-strip-types scripts/newsletter-send.ts",
+    "doctor": "node scripts/doctor.mjs"
   },
   "dependencies": {
     "discord.js": "^14.27.0",

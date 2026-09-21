@@ -69,7 +69,8 @@ after the usual checks, committed and pushed. The first release seen for a
 repository is recorded quietly; a later one is announced in
 `DISCORD_ADMIN_CHANNEL_ID`. State is `repo-updates.json` in the state directory.
 
-Submission notices appear in `DISCORD_BOT_CHANNEL_ID`, with repository
+Submission notices appear in `DISCORD_ADMIN_CHANNEL_ID` (the website channel),
+with repository
 ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
 the repository owner's login, and the intake reply carries an edit link that
@@ -284,10 +285,33 @@ to PDT, a release edit was left behind, and the bridge was deadlocked for two
 days. Tests that depend on the machine's timezone, clock or locale are
 therefore production risks, not just test smells.
 
-Waiting is bot activity and is reported in `DISCORD_BOT_CHANNEL_ID`, never in
-the website channel, and never for a scheduled job. `CHECKOUT_PATIENCE_MS`
-is held to at least three times `CHECKOUT_WAIT_MS`: set equal to it, a job
-reports "Blocked." on its first timeout and never parks at all.
+## What counts as a useless message
+
+Channel is not the rule; repetition is. A failure that repeats per attempt is
+noise, and the submission poll retries a failed moderation on its own, so one
+broken check became twelve "Blocked." replies on a single notice. Instead:
+
+- A scheduled job never posts. A moderation job never posts per attempt. The
+  same text never goes to the same channel twice within an hour.
+- `alertPublishingBroken` posts once a day, to `DISCORD_ADMIN_CHANNEL_ID`,
+  naming the check that is failing and pointing at `npm run doctor`. Every
+  path that cannot publish routes through it, so the number of failing jobs
+  never becomes the number of messages.
+- `CHECKOUT_PATIENCE_MS` is held to at least three times `CHECKOUT_WAIT_MS`:
+  set equal to it, a job reports "Blocked." on its first timeout and never
+  parks at all.
+
+## npm run doctor
+
+One command that says why the bridge is not publishing: the state of the
+checkout, whether each check passes and which one fails first, whether the
+process is alive and what its queue holds, any release a page never received,
+and the last errors in the log. Each failure prints what to do about it. Run
+it before diagnosing anything by hand. `--quick` skips the checks.
+
+Tests run under `TZ=UTC` (`npm test`). They used to run in whatever zone the
+machine was in, and an assertion that pinned the UTC instant of a local-time
+string began failing the day this Mac moved from CEST to PDT.
 
 ## Admin actions are never chat-driven
 
