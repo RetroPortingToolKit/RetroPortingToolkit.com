@@ -12,9 +12,11 @@ platform: "master-system-game-gear"
 repo: "https://github.com/mstan/SonicTheHedgehogSMSRecomp"
 group: "Master System"
 verified: "2026-08-20"
-updated: "2026-07-23"
+updated: "2026-06-23"
 added: "2026-06-23"
 cover: "./green-hill-zone.png"
+release: "v0.0.2"
+download: "https://github.com/mstan/SonicTheHedgehogSMSRecomp/releases/tag/v0.0.2"
 ---
 
 This is the 8-bit Sonic the Hedgehog for Master System, not the Genesis game with the same name.

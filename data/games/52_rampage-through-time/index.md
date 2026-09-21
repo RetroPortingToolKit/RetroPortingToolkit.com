@@ -12,9 +12,11 @@ platform: "playstation"
 repo: "https://github.com/TechnicallyComputers/Rampage---Through-Time-Recomp"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-08-26"
 added: "2026-08-10"
 cover: "./boxart.png"
+release: "v0.1.22"
+download: "https://github.com/TechnicallyComputers/Rampage---Through-Time-Recomp/releases/tag/v0.1.22"
 ---
 
 Rampage Through Time Recompiled is a community project by TechnicallyComputers.

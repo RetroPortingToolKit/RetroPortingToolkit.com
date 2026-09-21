@@ -15,6 +15,8 @@ verified: "2026-08-20"
 updated: "2026-08-07"
 added: "2026-07-29"
 cover: "./toystory2-gameplay.jpg"
+release: "v0.1.0-alpha"
+download: "https://github.com/PeriBluGaming/ToyStory2Recomp/releases/tag/v0.1.0-alpha"
 ---
 
 ToyStory2Recomp is a community project by PeriBluGaming.
