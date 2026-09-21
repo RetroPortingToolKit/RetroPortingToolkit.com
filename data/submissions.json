@@ -143,7 +143,7 @@
     "path": "data/games/77_starfox-enhanced-c5318b98/index.md",
     "url": "/games/starfox-enhanced-c5318b98",
     "createdAt": "2026-09-20T22:20:15.853Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [],
     "summary": [
       "A native C++/SDL3 port of UltraStarFox, with Original Star Fox and Star Fox EX experiences, high-frame-rate presentation, widescreen support, and optional visual enhancements.",
@@ -154,6 +154,8 @@
       "- 2D Options: artwork filtering, 2D Bloom, World Effects and their intensity. The artwork filter also covers textures on 3D polygons.",
       "- 3D Options: anti-aliasing, VSync, 1–4× Render Upscale, 3D Bloom, 3D Smoothing, Enhanced Lighting, HDR Effect, Ray Tracing (hardware DXR shadows, default Off), Chromatic Aberration, Model Effects and Model Effect Intensity. HDR Effect is brightness/contrast processing, not HDR display output. Ray Tracing replaces original shadows rather than drawing a second set; there is no separate Enhanced Shadows toggle."
     ],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "moderatedBy": "398336732287991808",
+    "moderatedAt": "2026-09-21T12:50:07.985Z"
   }
 ]
