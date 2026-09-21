@@ -75,3 +75,20 @@ contributors are deferred until roles exist on the server.
 script-only, never chat-driven (see DISCORD_AGENT.md). The RPTK contributor
 role was created and granted to nine repository owners via
 `scripts/discord-contributor-roles.mjs`; OpokXeno is not on the server.
+
+2026-09-21: Two-day bridge outage, cause and fix. This Mac moved from CEST to
+PDT; a cooldown test pinned the UTC instant a local-time string parses to, so
+`npm run test` began failing. Every publishing job runs the checks after
+writing its pages, so each job threw with its edit on disk, and one dirty file
+parks every job behind it. Fixed in `1b9e257`; the stranded Tomba release is
+`afd7577`.
+
+The review of the seven Codex commits since `6360b39` landed in `7dde249` and
+`fc5f34f`: jobs roll back what they wrote (`scripts/checkout.mjs`), checkout
+patience is held above one wait window, the release watcher decides from the
+page rather than its own memory, auto-approved submissions carry a real ref,
+pending and submission notices are back in the bot channel, clearing the queue
+releases the bridge's in-flight set and is maintainer-only, and a commit left
+unpushed is carried by the next job. Deliberate and kept: moderation is
+restricted to the destructive allowlist (58e7c1e), and "test" is treated as
+chatter (771b5dc).
