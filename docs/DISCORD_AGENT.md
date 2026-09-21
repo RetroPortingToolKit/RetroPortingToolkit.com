@@ -29,10 +29,9 @@ to: pull requests, issues, releases, commits. Untrusted questions use the read-o
 (`DISCORD_PUBLIC_CHANNEL_IDS` is no longer required for that). The general
 publishing agent remains restricted to allowlisted users and roles.
 
-Two channels: `DISCORD_ADMIN_CHANNEL_ID` (#website) carries only changes to the
-site; `DISCORD_BOT_CHANNEL_ID` (#rptk-bot, the default) carries everything the
-bot did: task publish reports, submission review notices and moderation, and
-hand-written notes on the bot's own changes.
+Two channels: `DISCORD_ADMIN_CHANNEL_ID` (#website) carries site changes and
+submission notices for admins; `DISCORD_BOT_CHANNEL_ID` (#rptk-bot, the
+default) carries task reports and hand-written notes on the bot's own changes.
 
 Changes to the site's pages are announced in `DISCORD_ADMIN_CHANNEL_ID`: one
 line per page that was created, removed, published, unlisted, given a new
@@ -75,6 +74,8 @@ ownership, page link, and the Discord username/source message when available.
 The submitter's Discord username is recorded on the page as its creator next to
 the repository owner's login, and the intake reply carries an edit link that
 works once the repository owner signs in to `/admin` with GitHub.
+Trusted submissions are confirmed on publication without a review reaction.
+Their admin notice is informational only and never blocks the serialized queue.
 A trusted developer's message is answered rather than published when it is
 plainly a question or chat (`isConversational`) or a reply to one of the
 bot's answers; everything else a developer sends is work, as before. Actions (submitting, updating a page, publishing) need a message that opens

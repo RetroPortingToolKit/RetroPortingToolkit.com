@@ -1309,7 +1309,7 @@ const taskContext = createTaskContext({
 
 const submissions = submissionBridge({
   client, endpoint: process.env.DISCORD_SUBMISSIONS_URL ?? (process.env.DISCORD_AGENT_REPO ? "" : `${SITE.url}/api/submissions`),
-  adminChannelId: config.botChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
+  adminChannelId: config.adminChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
   authorized: (message) => isAuthorized(message, { ...config, channelIds: new Set() }),
   moderateAuthorized: (message) => canRequestDestructive(message, config),
   send: safeSend,

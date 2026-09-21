@@ -44,9 +44,10 @@ describe('Discord submission moderation', () => {
     const f = await fixture();
     const message = { author: { username: 'lead' }, url: 'https://discord.com/channels/g/c/m', react: async () => {} };
     await f.bridge.intake(message, { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, `submit ${record.repo}`, true);
-    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ submissionModeration: { id: record.id, decision: 'confirmed', moderator: 'LEAD' } }));
+    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ ref: null, submissionModeration: { id: record.id, decision: 'confirmed', moderator: 'LEAD' } }));
     expect(f.send.mock.calls[0][0].content).toContain('confirmed without review');
     expect(f.send.mock.calls[0][0]).toMatchObject({ content: expect.stringMatching(/^<@LEAD> /), mentionUsers: ['LEAD'] });
+    expect(f.message.react).not.toHaveBeenCalled();
     f.enqueue.mockClear();
     await f.bridge.intake(message, { messageId: 'm2', channelId: 'c', authorId: 'U' }, `submit ${record.repo}`);
     expect(f.enqueue).not.toHaveBeenCalled();

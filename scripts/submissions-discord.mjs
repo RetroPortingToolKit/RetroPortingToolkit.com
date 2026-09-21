@@ -25,14 +25,13 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     if (!response.ok) throw new Error(result.error || 'The submission could not be published.');
     const record = result.record;
     if (!record?.id || !/^\/games\/[a-z0-9-]+$/.test(record.url)) throw new Error('The submission returned an incomplete result.');
-    state.sources[record.id] ??= { ref: intake.ref, username: intake.username, url: intake.url };
+    state.sources[record.id] ??= { ref: intake.ref, username: intake.username, url: intake.url, autoApproved: intake.trusted && !result.duplicate };
     delete state.intake[key];
     await save();
     const auto = intake.trusted && !result.duplicate;
     await send({ ...intake.ref, content: `<@${intake.ref.authorId}> ${result.message}${auto ? ' As a team submission it is confirmed without review.' : ''}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true, mentionUsers: [intake.ref.authorId] });
     await poll();
-    // A trusted author's submission takes the same serialized path as a ✅.
-    if (auto) await enqueue({ ref: intake.ref, request: `Moderate submission ${record.id}`, messageUrl: intake.url,
+    if (auto) await enqueue({ ref: null, request: `Publish auto-approved submission ${record.id}`, messageUrl: intake.url,
       submissionModeration: { id: record.id, decision: 'confirmed', moderator: intake.ref.authorId } });
   }
   async function intake(message, ref, request, trusted = false) {
@@ -61,7 +60,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     const entry = Object.entries(state.notices).find(([, n]) => n.messageId === message.id && n.channelId === message.channelId);
     if (!entry || !message.guildId || message.author?.id !== client.user.id) return;
     const [id, notice] = entry;
-    if (notice.done || pending.has(id)) return;
+    if (notice.done || notice.autoApproved || pending.has(id)) return;
     const member = await message.guild.members.fetch(user.id).catch(() => null);
     if (!member || !moderateAuthorized({ guildId: message.guildId, channelId: message.channelId, author: user, member })) return;
     pending.add(id);
@@ -84,6 +83,15 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
       for (const record of submissions) {
         if (!/^[a-f0-9]{16}$/.test(record.id)) continue;
         let notice = state.notices[record.id];
+        if (record.status !== 'pending') {
+          if (record.status === 'confirmed' && notice) {
+            const oldMessage = await channel.messages.fetch(notice.messageId).catch(() => null);
+            if (oldMessage) await oldMessage.delete().catch(() => {});
+            delete state.notices[record.id];
+            await save();
+          }
+          continue;
+        }
         const source = state.sources[record.id];
         let message = notice ? await channel.messages.fetch(notice.messageId).catch(() => null) : null;
         if (!message) {
@@ -102,13 +110,15 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
               { name: 'Artwork', value: record.mediaNote || 'No imported artwork recorded.' },
               { name: 'Repository owner', value: record.owner || source?.username || 'Not available' },
               { name: 'Submitted through', value: source ? `Discord: ${source.username}\n${source.url}` : 'Website form' },
-              { name: 'Moderation', value: 'The game page publishes automatically. ✅ confirms it; ❌ removes it from listings (keeps its unlisted URL). Only approved site editors can moderate.' },
+              { name: 'Moderation', value: source?.autoApproved
+                ? 'Auto-approved team submission. No review action is required.'
+                : 'The game page publishes automatically. ✅ confirms it; ❌ removes it from listings (keeps its unlisted URL). Only approved site editors can moderate.' },
             ], footer: { text: `Submission ${record.id}` },
           }] });
         }
-        notice = state.notices[record.id] = { ...notice, messageId: message.id, channelId: channel.id };
+        notice = state.notices[record.id] = { ...notice, messageId: message.id, channelId: channel.id, autoApproved: source?.autoApproved === true };
         await save();
-        await message.react('✅'); await message.react('❌');
+        if (!notice.autoApproved) { await message.react('✅'); await message.react('❌'); }
         // Fetch reaction users as well as listening live, so moderation made
         // while the bridge was offline still reaches the serialized queue.
         for (const emoji of ['❌', '✅']) {
