@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { latestReleaseFromFeed } from './github-web.mjs';
-import { rollbackOnFailure } from './checkout.mjs';
+import { rollbackOnFailure, pushPending } from './checkout.mjs';
 
 /** Keeps game pages current with their repositories. Each tick checks a
  * slice of the pages for a new release on GitHub or GitLab; a change becomes
@@ -118,6 +118,7 @@ export function releasePage(raw, update) {
 export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
   for (const update of updates) if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
   await exec('git', ['pull', '--ff-only']);
+  await pushPending(exec);
   const written = [];
   return rollbackOnFailure(exec, written, async () => {
     const changed = [];

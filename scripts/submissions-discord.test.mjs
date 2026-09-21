@@ -76,7 +76,7 @@ describe('Discord submission moderation', () => {
     await moderateSubmission({ root: f.dir, action: { id: record.id, decision: 'removed', moderator: 'EDITOR' }, exec });
     const page = await fs.readFile(path.join(f.dir, record.path), 'utf8');
     expect(page).toContain('draft: true'); expect(page).toContain('Edited paragraph.');
-    expect(exec.mock.calls.slice(0, 4)).toEqual([['git', ['pull', '--ff-only']], ...['typecheck', 'build', 'test'].map(check => ['npm', ['run', check]])]);
+    expect(exec.mock.calls.slice(0, 5)).toEqual([['git', ['pull', '--ff-only']], ['git', ['rev-list', '--count', '@{u}..HEAD']], ...['typecheck', 'build', 'test'].map(check => ['npm', ['run', check]])]);
     expect(exec.mock.calls.at(-1)).toEqual(['git', ['push', 'origin', 'main']]);
   });
   it('never commits or pushes when a required check fails', async () => {

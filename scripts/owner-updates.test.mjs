@@ -37,7 +37,7 @@ describe('owner updates from Discord', () => {
     const raw = await fs.readFile(path.join(dir, update.path), 'utf8');
     expect(raw).toBe('---\ntitle: "Lufia II"\nstatus: "Playable"\nrepo: "https://github.com/mstan/Lufia"\ncreator: {"github":"Cellenseres","discord":"Cellen"}\nupdates:\n  - date: "2026-09-17"\n    text: "Saves now work."\nupdated: "2026-09-17"\n---\n\nBody.\n');
     expect(summary).toBe('Lufia II updated (status: Playable, note: “Saves now work.”). Live within a couple of minutes: https://site/games/lufia-1bdbebef');
-    expect(exec.mock.calls.map(c => c[1][0])).toEqual(['pull', 'run', 'run', 'run', 'add', '-c', 'push']);
+    expect(exec.mock.calls.map(c => c[1][0])).toEqual(['pull', 'rev-list', 'run', 'run', 'run', 'add', '-c', 'push']);
     expect(ownerUpdatedPage(raw, { description: 'New desc', date: '2026-09-18' })).toContain('desc: "New desc"');
   });
 });

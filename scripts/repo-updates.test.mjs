@@ -124,7 +124,7 @@ describe('repository update watcher', () => {
     expect(await applyRepoUpdate({ root: f.dir, update, exec, siteUrl: 'https://site' })).toBe('Alpha: release v1 recorded. https://site/games/alpha');
     const raw = await fs.readFile(path.join(f.dir, update.path), 'utf8');
     expect(raw).toContain('release: "v1"\ndownload: "https://github.com/a/alpha/releases/tag/v1"\nupdated: "2026-09-16"\n---\n\nBody.');
-    expect(exec.mock.calls.map(c => c[1].join(' '))).toEqual(['pull --ff-only', 'run typecheck', 'run build', 'run test', 'add -- data/games/01_alpha/index.md', expect.stringContaining('commit -m Record v1 for Alpha'), 'push origin main']);
+    expect(exec.mock.calls.map(c => c[1].join(' '))).toEqual(['pull --ff-only', 'rev-list --count @{u}..HEAD', 'run typecheck', 'run build', 'run test', 'add -- data/games/01_alpha/index.md', expect.stringContaining('commit -m Record v1 for Alpha'), 'push origin main']);
     expect(releasePage(raw, { ...update, tag: 'v2', releaseUrl: 'u2', date: '' })).toContain('release: "v2"\ndownload: "u2"\nupdated: "2026-09-16"');
     expect(await applyRepoUpdate({ root: f.dir, update, exec })).toContain('already lists v1');
     expect(releaseAnnouncement(update, 'https://site')).toBe('🎉 Alpha: new release Alpha v1 (v1)\nhttps://github.com/a/alpha/releases/tag/v1\nhttps://site/games/alpha');

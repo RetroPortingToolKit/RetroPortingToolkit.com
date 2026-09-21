@@ -1206,7 +1206,15 @@ async function drainQueue() {
         return;
       }
       outcome = "⏸️";
-      if (!job.ref?.messageId) { console.error(`[discord-agent] scheduled job dropped after ${formatElapsed(waited)} of a busy checkout: ${job.request}`); return; }
+      // Nobody to tell: a scheduled job has no requester, a moderation job's
+      // "requester" is the bot's own notice, and the bot channel records what
+      // the bot did rather than what went wrong. Each of those still gets its
+      // reaction and a log line. Twelve "Blocked." replies landed on one
+      // submission notice over two days before this held.
+      if (!job.ref?.messageId || job.submissionModeration || job.ref.channelId === config.botChannelId) {
+        console.error(`[discord-agent] blocked after ${formatElapsed(waited)} of a busy checkout: ${job.request}`);
+        return;
+      }
       await replyChunks(
         job.ref,
         "⏸️ Blocked.",
@@ -1442,6 +1450,12 @@ client.on("messageCreate", async (message) => {
     return;
   }
   if (isClearQueueRequest(request)) {
+    // Clearing throws away work other people asked for, so it sits with the
+    // same maintainers who may ask for anything else destructive.
+    if (!canRequestDestructive(message, config)) {
+      await safeSend({ ...ref, content: "Clearing the queue is restricted to the designated maintainers.", ping: true, suppressMentions: true });
+      return;
+    }
     const cleared = queue.splice(0, queue.length);
     for (const job of cleared) {
       await clearStatus(job);

@@ -52,7 +52,8 @@ export function isCancelMineRequest(content) {
 }
 
 export function isClearQueueRequest(content) {
-  return /^clear\s+(?:the\s+)?queue[?.!]*$/i.test(content.trim());
+  // No "?": "clear queue?" is a question about the queue, not an order.
+  return /^clear\s+(?:the\s+)?queue[.!]*$/i.test(content.trim());
 }
 
 export function isMassDestructiveRequest(content) {

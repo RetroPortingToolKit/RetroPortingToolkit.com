@@ -3,7 +3,7 @@ import path from 'node:path';
 import { addUpdate } from './page-updates.mjs';
 import { teamMemberByGithub } from './authors.mjs';
 import { plainText } from './submissions.mjs';
-import { rollbackOnFailure } from './checkout.mjs';
+import { rollbackOnFailure, pushPending } from './checkout.mjs';
 
 /** A page's creator updating it from Discord:
  *   @Bot update /games/lufia2snesrecomp-1bdbebef status: Playable; news: Saves now work.
@@ -69,6 +69,7 @@ export function ownerUpdatedPage(raw, update) {
 export async function applyOwnerUpdate({ root, update, exec, siteUrl = '' }) {
   if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
   await exec('git', ['pull', '--ff-only']);
+  await pushPending(exec);
   const written = [];
   await rollbackOnFailure(exec, written, async () => {
     const target = path.join(root, update.path);

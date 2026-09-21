@@ -26,3 +26,17 @@ export async function rollbackOnFailure(exec, written, run) {
     throw error;
   }
 }
+
+/** A push rejected after a successful commit leaves work the dirty-tree check
+ * cannot see: the tree is clean, but the site never rebuilds. Carried along by
+ * the next job that touches the checkout. Failure here is not fatal — the job
+ * about to run will push again. */
+export async function pushPending(exec) {
+  try {
+    const ahead = await exec("git", ["rev-list", "--count", "@{u}..HEAD"]);
+    const count = Number(String(ahead?.stdout ?? "").trim());
+    if (Number.isFinite(count) && count > 0) await exec("git", ["push", "origin", "main"]);
+  } catch {
+    /* no upstream configured, or the push is retried by the job that follows */
+  }
+}

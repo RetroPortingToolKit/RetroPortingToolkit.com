@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { discordSubmission, moderationPage, SUBMISSIONS_PATH, plainText } from './submissions.mjs';
-import { rollbackOnFailure } from './checkout.mjs';
+import { rollbackOnFailure, pushPending } from './checkout.mjs';
 
 /** Public intake never invokes an agent or writes arbitrary paths. */
 export function submissionBridge({ client, endpoint, adminChannelId, stateDir, authorized, moderateAuthorized = authorized, enqueue, send, siteUrl }) {
@@ -177,6 +177,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
 export async function moderateSubmission({ root, action, exec, siteUrl = '' }) {
   if (!/^[a-f0-9]{16}$/.test(action.id) || !['confirmed', 'removed'].includes(action.decision)) throw new Error('Invalid moderation action.');
   await exec('git', ['pull', '--ff-only']);
+  await pushPending(exec);
   const records = JSON.parse(await fs.readFile(path.join(root, SUBMISSIONS_PATH), 'utf8'));
   const record = records.find(r => r.id === action.id);
   if (!record) throw new Error('Submission not found.');
