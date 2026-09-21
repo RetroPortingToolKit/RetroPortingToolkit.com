@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { latestReleaseFromFeed } from './github-web.mjs';
+import { rollbackOnFailure } from './checkout.mjs';
 
 /** Keeps game pages current with their repositories. Each tick checks a
  * slice of the pages for a new release on GitHub or GitLab; a change becomes
@@ -35,11 +36,19 @@ export function repoUpdateWatcher({ root, stateDir, enqueue, enqueueBatch, fetch
         if (release === undefined) continue; // host unavailable: try again next round
         const key = page.repo.toLowerCase();
         const before = state.seen[key];
-        if (!release) { state.seen[key] = { tag: '' }; continue; }
-        state.seen[key] = { tag: release.tag, at: release.date };
-        if (before?.tag === release.tag) continue;
-        if (page.release === release.tag && page.download === release.url) continue;
-        const update = { path: page.path, url: page.url, title: page.title, tag: release.tag, name: release.name, releaseUrl: release.url, date: release.date, announce: Boolean(before && before.tag !== release.tag) };
+        // An empty feed is usually a repository that has published nothing
+        // yet, but it is also what a transient blank response looks like:
+        // forgetting a tag we already recorded would announce it twice.
+        if (!release) { state.seen[key] ??= { tag: '' }; continue; }
+        // The page, not our memory, decides whether there is work left. The
+        // watcher used to mark a release seen the moment it noticed one, so a
+        // job that then failed lost that release for good: Starfox Enhanced
+        // sat without its v0.0.6.7 download link and was never retried.
+        if (page.release === release.tag && page.download === release.url) {
+          state.seen[key] = { tag: release.tag, at: release.date };
+          continue;
+        }
+        const update = { path: page.path, url: page.url, title: page.title, tag: release.tag, name: release.name, releaseUrl: release.url, date: release.date, announce: Boolean(before?.tag && before.tag !== release.tag) };
         queued.push(update);
         if (enqueue) await enqueue(update);
       }
@@ -109,22 +118,27 @@ export function releasePage(raw, update) {
 export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
   for (const update of updates) if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
   await exec('git', ['pull', '--ff-only']);
-  const changed = [];
-  for (const update of updates) {
-    const target = path.join(root, update.path);
-    const raw = await fs.readFile(target, 'utf8');
-    const next = releasePage(raw, update);
-    if (next === raw) continue;
-    await fs.writeFile(target, next);
-    changed.push(update);
-  }
-  if (!changed.length) return `${updates.map((u) => `${u.title} already lists ${u.tag}`).join('; ')}.`;
-  for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
-  await exec('git', ['add', '--', ...changed.map((u) => u.path)]);
-  const message = changed.length === 1 ? `Record ${changed[0].tag} for ${changed[0].title}` : `Record ${changed.length} releases\n\n${changed.map((u) => `- ${u.title}: ${u.tag}`).join('\n')}`;
-  await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', message]);
-  await exec('git', ['push', 'origin', 'main']);
-  return changed.map((u) => `${u.title}: release ${u.tag} recorded. ${siteUrl}${u.url}`).join('\n');
+  const written = [];
+  return rollbackOnFailure(exec, written, async () => {
+    const changed = [];
+    for (const update of updates) {
+      const target = path.join(root, update.path);
+      const raw = await fs.readFile(target, 'utf8');
+      const next = releasePage(raw, update);
+      if (next === raw) continue;
+      await fs.writeFile(target, next);
+      written.push(update.path);
+      changed.push(update);
+    }
+    if (!changed.length) return `${updates.map((u) => `${u.title} already lists ${u.tag}`).join('; ')}.`;
+    for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
+    await exec('git', ['add', '--', ...changed.map((u) => u.path)]);
+    const message = changed.length === 1 ? `Record ${changed[0].tag} for ${changed[0].title}` : `Record ${changed.length} releases\n\n${changed.map((u) => `- ${u.title}: ${u.tag}`).join('\n')}`;
+    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', message]);
+    written.length = 0; // committed: a failed push must not undo the work
+    await exec('git', ['push', 'origin', 'main']);
+    return changed.map((u) => `${u.title}: release ${u.tag} recorded. ${siteUrl}${u.url}`).join('\n');
+  });
 }
 export const applyRepoUpdate = ({ update, ...rest }) => applyRepoUpdates({ updates: [update], ...rest });
 

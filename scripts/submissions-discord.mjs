@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { discordSubmission, moderationPage, SUBMISSIONS_PATH, plainText } from './submissions.mjs';
+import { rollbackOnFailure } from './checkout.mjs';
 
 /** Public intake never invokes an agent or writes arbitrary paths. */
 export function submissionBridge({ client, endpoint, adminChannelId, stateDir, authorized, moderateAuthorized = authorized, enqueue, send, siteUrl }) {
@@ -31,7 +32,10 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     const auto = intake.trusted && !result.duplicate;
     await send({ ...intake.ref, content: `<@${intake.ref.authorId}> ${result.message}${auto ? ' As a team submission it is confirmed without review.' : ''}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true, mentionUsers: [intake.ref.authorId] });
     await poll();
-    if (auto) await enqueue({ ref: null, request: `Publish auto-approved submission ${record.id}`, messageUrl: intake.url,
+    // The submitter's own message, not null: a job with no ref crashed the
+    // restart recovery after it had already emptied jobs.json, silently
+    // losing every other queued request with it.
+    if (auto) await enqueue({ ref: intake.ref, request: `Publish auto-approved submission ${record.id}`, messageUrl: intake.url,
       submissionModeration: { id: record.id, decision: 'confirmed', moderator: intake.ref.authorId } });
   }
   async function intake(message, ref, request, trusted = false) {
@@ -179,16 +183,21 @@ export async function moderateSubmission({ root, action, exec, siteUrl = '' }) {
   if (record.status !== 'pending') return `This submission is already ${record.status}.`;
   if (!/^data\/games\/\d+_[a-z0-9-]+\/index\.md$/.test(record.path)) throw new Error('Invalid submission path.');
   const target = path.join(root, record.path);
-  const raw = await fs.readFile(target, 'utf8');
-  const updated = moderationPage(raw, record, action.decision);
-  record.status = action.decision;
-  record.moderatedBy = action.moderator;
-  record.moderatedAt = new Date().toISOString();
-  await fs.writeFile(target, updated);
-  await fs.writeFile(path.join(root, SUBMISSIONS_PATH), JSON.stringify(records, null, 2) + '\n');
-  for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
-  await exec('git', ['add', '--', record.path, SUBMISSIONS_PATH]);
-  await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `${action.decision === 'confirmed' ? 'Confirm' : 'Unlist'} community submission ${record.id}`]);
-  await exec('git', ['push', 'origin', 'main']);
+  const written = [];
+  await rollbackOnFailure(exec, written, async () => {
+    const raw = await fs.readFile(target, 'utf8');
+    const updated = moderationPage(raw, record, action.decision);
+    record.status = action.decision;
+    record.moderatedBy = action.moderator;
+    record.moderatedAt = new Date().toISOString();
+    await fs.writeFile(target, updated);
+    await fs.writeFile(path.join(root, SUBMISSIONS_PATH), JSON.stringify(records, null, 2) + '\n');
+    written.push(record.path, SUBMISSIONS_PATH);
+    for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
+    await exec('git', ['add', '--', record.path, SUBMISSIONS_PATH]);
+    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `${action.decision === 'confirmed' ? 'Confirm' : 'Unlist'} community submission ${record.id}`]);
+    written.length = 0; // committed: a failed push must not undo the work
+    await exec('git', ['push', 'origin', 'main']);
+  });
   return action.decision === 'confirmed' ? `Submission confirmed. ${siteUrl}${record.url}` : `Submission removed from listings. Its unlisted URL is retained: ${siteUrl}${record.url}`;
 }

@@ -164,7 +164,11 @@ const CHECKOUT_WAIT_MS = envMs("DISCORD_AGENT_WAIT_MS", 5 * 60 * 1_000);
 // the repository stays busy and starts itself when it goes quiet; the cap only
 // exists so a tree left dirty overnight eventually reports something instead of
 // sitting silently forever.
-const CHECKOUT_PATIENCE_MS = envMs("DISCORD_AGENT_PATIENCE_MS", 5 * 60 * 1_000);
+// Parking only works when the cap is larger than one wait window: set equal
+// to it, a job times out and reports "Blocked." on its very first attempt and
+// never retries, which is how twelve of those went into the bot channel over
+// two days. The floor keeps that from being configurable by accident.
+const CHECKOUT_PATIENCE_MS = Math.max(envMs("DISCORD_AGENT_PATIENCE_MS", 30 * 60 * 1_000), CHECKOUT_WAIT_MS * 3);
 // A reply that could not be delivered is spooled; this is how often the spool
 // is retried while the process lives, so a Discord blip does not hold replies
 // until the next restart.
@@ -411,10 +415,15 @@ async function notifyAdminChannel(job, summary) {
 }
 
 async function notifyPendingAdminChannel(job) {
-  if (!config.adminChannelId || job.pendingNotice) return;
+  // Waiting is bot activity, so it belongs in the bot channel; the website
+  // channel carries changes to the site and nothing else. A scheduled job has
+  // nobody waiting on it and must never post, and a request made in the bot
+  // channel already shows its own status line there.
+  if (!config.botChannelId || job.pendingNotice) return;
+  if (!job.ref?.messageId || job.ref.channelId === config.botChannelId) return;
   const requester = job.requester?.display || job.requester?.username || `Discord user ${job.ref.authorId}`;
   job.pendingNotice = await safeSend({
-    channelId: config.adminChannelId,
+    channelId: config.botChannelId,
     content: `⏳ Task pending for ${requester}: the shared checkout is busy, so this request is waiting to start.\nRequest: ${job.messageUrl}`,
     suppressMentions: true,
   });
@@ -1235,7 +1244,10 @@ async function drainQueue() {
     }
   } finally {
     if (!parked) await clearStatus(job);
-    if (!parked && outcome) await markOutcome(job.ref, "🔍", outcome);
+    // A submission notice's ✅ and ❌ are the moderators' votes. Adding the
+    // job's own outcome there puts a bot ❌ beside a human one and reads as a
+    // second vote; the page is the result, and failures go to the log.
+    if (!parked && outcome && !job.submissionModeration) await markOutcome(job.ref, "🔍", outcome);
     // After the outcome reaction: a confirmed submission deletes its notice.
     if (!parked && job.submissionModeration) await submissions.completed(job.submissionModeration.id, outcome === "✅", job.submissionModeration.decision).catch(() => console.error("[discord-agent] could not persist moderation outcome"));
     running = null;
@@ -1258,6 +1270,10 @@ async function recoverInterruptedJobs() {
   await writeJson(JOBS_FILE, { active: null, queued: [], askActive: null, askQueued: [] });
   // The previous process's status lines are stale the moment it died.
   for (const job of [saved.active, ...(saved.queued ?? [])].filter(Boolean)) {
+    // jobs.json has already been emptied above, so anything that throws here
+    // loses the whole queue. A job without a channel simply has no stale
+    // status line to tidy.
+    if (!job.ref?.channelId) continue;
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
@@ -1269,7 +1285,11 @@ async function recoverInterruptedJobs() {
     // means it died mid-edit, and that needs eyes before anything else runs.
     const pulse = await gitSnapshot().catch(() => null);
     const scheduledPages = saved.active.repoUpdate?.updates?.map((u) => u.path) ?? (saved.active.repoUpdate?.path ? [saved.active.repoUpdate.path] : []);
-    if (pulse && scheduledPages.length && pulse.status.trim().split("\n").every((line) => scheduledPages.some((p) => line.trim() === `M ${p}`))) {
+    // Porcelain puts the two status columns first, so a staged edit reads
+    // "M  path" and an unstaged one " M path". Matching the unstaged spelling
+    // alone meant a kill after `git add` was never recognised as our own.
+    const dirtyPaths = pulse ? pulse.status.split("\n").filter(Boolean).map((line) => line.slice(3).trim()) : [];
+    if (scheduledPages.length && dirtyPaths.length && dirtyPaths.every((p) => scheduledPages.includes(p))) {
       // A scheduled edit is deterministic: drop the half-written page and
       // let the job redo it from the start, with nobody to tell.
       await execFileAsync("git", ["checkout", "--", ...scheduledPages], { cwd: ROOT }).catch(() => undefined);
@@ -1309,7 +1329,7 @@ const taskContext = createTaskContext({
 
 const submissions = submissionBridge({
   client, endpoint: process.env.DISCORD_SUBMISSIONS_URL ?? (process.env.DISCORD_AGENT_REPO ? "" : `${SITE.url}/api/submissions`),
-  adminChannelId: config.adminChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
+  adminChannelId: config.botChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
   authorized: (message) => isAuthorized(message, { ...config, channelIds: new Set() }),
   moderateAuthorized: (message) => canRequestDestructive(message, config),
   send: safeSend,
@@ -1423,7 +1443,12 @@ client.on("messageCreate", async (message) => {
   }
   if (isClearQueueRequest(request)) {
     const cleared = queue.splice(0, queue.length);
-    for (const job of cleared) await clearStatus(job);
+    for (const job of cleared) {
+      await clearStatus(job);
+      // Without this the bridge still believes the moderation is in flight,
+      // and no later reaction on that notice is ever queued again.
+      if (job.submissionModeration) await submissions.completed(job.submissionModeration.id, false).catch(() => {});
+    }
     await persistJobs();
     await safeSend({
       ...ref,
@@ -1560,7 +1585,7 @@ client.once(Events.ClientReady, async () => {
   // it found: every commit to main is a production build.
   const repoUpdates = repoUpdateWatcher({ root: ROOT, stateDir: STATE_DIR, passTicks: 4, enqueueBatch: async (updates) => {
     if (scheduledJobsPaused() || !updates.length) return;
-    const pending = new Set([...queue, running].filter(Boolean).flatMap((item) => item.repoUpdate?.updates?.map((u) => u.path) ?? []));
+    const pending = new Set([...queue, running].filter(Boolean).flatMap((item) => item.repoUpdate?.updates?.map((u) => u.path) ?? (item.repoUpdate?.path ? [item.repoUpdate.path] : [])));
     const fresh = updates.filter((u) => !pending.has(u.path));
     if (!fresh.length) return;
     const label = fresh.length === 1 ? `Record release ${fresh[0].tag} for ${fresh[0].title}` : `Record ${fresh.length} releases`;

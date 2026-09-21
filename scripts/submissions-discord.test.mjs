@@ -44,7 +44,9 @@ describe('Discord submission moderation', () => {
     const f = await fixture();
     const message = { author: { username: 'lead' }, url: 'https://discord.com/channels/g/c/m', react: async () => {} };
     await f.bridge.intake(message, { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, `submit ${record.repo}`, true);
-    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ ref: null, submissionModeration: { id: record.id, decision: 'confirmed', moderator: 'LEAD' } }));
+    // The submitter's own message, not null: a job with no ref crashed restart
+    // recovery after it had already emptied jobs.json, losing the whole queue.
+    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ ref: { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, submissionModeration: { id: record.id, decision: 'confirmed', moderator: 'LEAD' } }));
     expect(f.send.mock.calls[0][0].content).toContain('confirmed without review');
     expect(f.send.mock.calls[0][0]).toMatchObject({ content: expect.stringMatching(/^<@LEAD> /), mentionUsers: ['LEAD'] });
     expect(f.message.react).not.toHaveBeenCalled();

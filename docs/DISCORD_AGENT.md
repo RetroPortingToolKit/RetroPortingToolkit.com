@@ -272,6 +272,23 @@ revoked login, a missing key), a question still gets a model-free answer: the
 pages whose titles and descriptions best match it, as links
 (`fallbackAnswer`). Publishing requests report that no runner is available.
 
+## A job cleans up after itself
+
+Every publishing job writes its pages into the shared checkout and only then
+runs typecheck, build and test, so a failing check throws with the edit already
+on disk. `rollbackOnFailure` (`scripts/checkout.mjs`) restores those paths on
+any throw, and stops doing so once a commit has captured them, so a rejected
+push never undoes real work. Without it one dirty file parks every later job:
+on 2026-09-19 a timezone-dependent test failed after this Mac moved from CEST
+to PDT, a release edit was left behind, and the bridge was deadlocked for two
+days. Tests that depend on the machine's timezone, clock or locale are
+therefore production risks, not just test smells.
+
+Waiting is bot activity and is reported in `DISCORD_BOT_CHANNEL_ID`, never in
+the website channel, and never for a scheduled job. `CHECKOUT_PATIENCE_MS`
+is held to at least three times `CHECKOUT_WAIT_MS`: set equal to it, a job
+reports "Blocked." on its first timeout and never parks at all.
+
 ## Admin actions are never chat-driven
 
 The bot's server role carries Administrator. Nothing in the bridge's message,

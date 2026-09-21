@@ -23,7 +23,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BRIDGE = path.join(HERE, "discord-agent.mjs");
 const HOOKS = path.join(HERE, "discord-agent-harness", "hooks.mjs");
 const FAKE_BIN = path.join(HERE, "discord-agent-harness", "bin");
-const ADMIN = "admin", PUBLIC = "public", MODERATION = "moderation";
+const ADMIN = "admin", PUBLIC = "public", MODERATION = "moderation", BOTCHAN = "botchan";
 
 function makeRepo() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "rpt-harness-repo-"));
@@ -50,6 +50,7 @@ function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdi
       DISCORD_ALLOWED_CHANNEL_IDS: ADMIN,
       DISCORD_PUBLIC_CHANNEL_IDS: PUBLIC,
       DISCORD_ADMIN_CHANNEL_ID: MODERATION,
+      DISCORD_BOT_CHANNEL_ID: BOTCHAN,
       DISCORD_ALLOWED_USER_IDS: "U1,U2,U3",
       DISCORD_AGENT_STATE_DIR: state,
       DISCORD_AGENT_REPO: repo.dir,
@@ -161,7 +162,10 @@ describe("bridge harness: queueing and the shared checkout", () => {
     fs.writeFileSync(path.join(b.repo.dir, "someone-elses-edit.txt"), "wip\n");
     const id = b.send(ADMIN, "U1", "please wait for me [[sleep=1]]");
     await b.waitFor(parkedFor(id), 8000, "busy notice");
-    await b.waitFor((e) => e.kind === "send" && e.channelId === MODERATION && /Task pending/.test(e.content), 8000, "#website pending reminder");
+    // The bot channel, not the website one: waiting is bot activity, and the
+    // website channel carries changes to the site and nothing else.
+    await b.waitFor((e) => e.kind === "send" && e.channelId === BOTCHAN && /Task pending/.test(e.content), 8000, "pending reminder in the bot channel");
+    expect(b.events.some((e) => e.channelId === MODERATION && /Task pending/.test(e.content))).toBe(false);
     expect(b.events.some((e) => e.messageId === id && e.content.includes("OK:"))).toBe(false);
     fs.rmSync(path.join(b.repo.dir, "someone-elses-edit.txt"));
     const done = await b.waitFor(forMsg(id, "OK: please wait"), 20000, "started on its own after the tree cleared");
@@ -418,7 +422,10 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const reply = await b.waitFor(forMsg(id, "could not verify completion"));
     expect(reply.content).not.toContain("Yes.");
     await b.waitFor(e => e.messageId === id && e.kind === "react" && e.content === "⚠️");
-    expect(b.events.filter(e => e.channelId === MODERATION).some(e => /published changes/.test(e.content))).toBe(false);
+    // Nothing at all reaches the website channel from a task: it carries
+    // changes to the site and nothing else. This assertion was weakened twice
+    // to let pending notices through; they belong in the bot channel.
+    expect(b.events.some(e => e.channelId === MODERATION)).toBe(false);
     expect(b.events.some(e => e.messageId === id && e.kind === "react" && e.content === "✅")).toBe(false);
   });
 

@@ -38,22 +38,71 @@ describe('repository update watcher', () => {
     expect(f.fetcher).toHaveBeenCalledTimes(2);
     expect(new Set(f.fetcher.mock.calls.map(c => c[0].includes('github') ? 'alpha' : 'beta')).size).toBe(2);
   });
-  it('records a first-seen release quietly and announces the next one', async () => {
+  it('retries until the page actually has the release, then remembers it', async () => {
     const f = await fixture({ alpha: 'v1', beta: null });
+    const applyToPage = (tag) => fs.writeFile(
+      path.join(f.dir, 'data/games/01_alpha/index.md'),
+      page('Alpha', 'https://github.com/a/alpha', `release: "${tag}"\ndownload: "https://github.com/a/alpha/releases/tag/${tag}"\n`));
+
     await f.watcher.start();
     expect(f.enqueue).toHaveBeenCalledOnce();
     expect(f.enqueue.mock.calls[0][0]).toMatchObject({ path: 'data/games/01_alpha/index.md', tag: 'v1', announce: false, releaseUrl: 'https://github.com/a/alpha/releases/tag/v1' });
+
+    // The job failed, so the page still lacks the release. The watcher used to
+    // record it as seen the moment it noticed it and never look again, which
+    // left Starfox Enhanced without its download link for good.
     await f.watcher.tick();
-    expect(f.enqueue).toHaveBeenCalledOnce(); // unchanged
+    expect(f.enqueue).toHaveBeenCalledTimes(2);
+    let state = JSON.parse(await fs.readFile(path.join(f.dir, 'state/repo-updates.json'), 'utf8'));
+    expect(state.seen['https://github.com/a/alpha']).toBeUndefined();
+
+    await applyToPage('v1');
+    await f.watcher.tick();
+    expect(f.enqueue).toHaveBeenCalledTimes(2); // nothing left to do
+    state = JSON.parse(await fs.readFile(path.join(f.dir, 'state/repo-updates.json'), 'utf8'));
+    expect(state.seen['https://github.com/a/alpha'].tag).toBe('v1');
+
     f.releases.alpha = 'v2';
     await f.watcher.tick();
     expect(f.enqueue).toHaveBeenLastCalledWith(expect.objectContaining({ tag: 'v2', announce: true, date: '2026-09-16' }));
+
     f.releases.alpha = undefined; // host down: nothing forgotten
     await f.watcher.tick();
-    expect(f.enqueue).toHaveBeenCalledTimes(2);
-    const state = JSON.parse(await fs.readFile(path.join(f.dir, 'state/repo-updates.json'), 'utf8'));
-    expect(state.seen['https://github.com/a/alpha'].tag).toBe('v2');
+    expect(f.enqueue).toHaveBeenCalledTimes(3);
+    state = JSON.parse(await fs.readFile(path.join(f.dir, 'state/repo-updates.json'), 'utf8'));
+    expect(state.seen['https://github.com/a/alpha'].tag).toBe('v1');
   });
+
+  it('an empty feed never forgets a tag the page already carries', async () => {
+    const f = await fixture({ alpha: 'v1', beta: null });
+    await fs.writeFile(path.join(f.dir, 'data/games/01_alpha/index.md'),
+      page('Alpha', 'https://github.com/a/alpha', 'release: "v1"\ndownload: "https://github.com/a/alpha/releases/tag/v1"\n'));
+    await f.watcher.start();
+    f.releases.alpha = null; // a blank feed, which is also what a blip looks like
+    await f.watcher.tick();
+    const state = JSON.parse(await fs.readFile(path.join(f.dir, 'state/repo-updates.json'), 'utf8'));
+    expect(state.seen['https://github.com/a/alpha'].tag).toBe('v1');
+    expect(f.enqueue).not.toHaveBeenCalled();
+  });
+
+  it('restores the pages it wrote when a check fails, and keeps them once committed', async () => {
+    const f = await fixture({ alpha: 'v1', beta: null });
+    const update = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'v1', name: 'Alpha v1', releaseUrl: 'https://github.com/a/alpha/releases/tag/v1', date: '2026-09-16', announce: false };
+
+    const failing = vi.fn(async (_cmd, args) => { if (args[0] === 'run' && args[1] === 'test') throw new Error('Command failed: npm run test'); });
+    await expect(applyRepoUpdates({ root: f.dir, updates: [update], exec: failing })).rejects.toThrow('npm run test');
+    expect(failing.mock.calls.map(c => c[1].join(' '))).toContain('checkout HEAD -- data/games/01_alpha/index.md');
+    expect(failing.mock.calls.some(c => c[1].includes('commit'))).toBe(false);
+
+    // A push that fails after the commit must not undo the commit. A fresh
+    // checkout, because the mock exec above could not really restore the page.
+    const g = await fixture({ alpha: 'v1', beta: null });
+    const pushFails = vi.fn(async (_cmd, args) => { if (args[0] === 'push') throw new Error('rejected'); });
+    await expect(applyRepoUpdates({ root: g.dir, updates: [update], exec: pushFails })).rejects.toThrow('rejected');
+    expect(pushFails.mock.calls.some(c => c[1][0] === 'checkout')).toBe(false);
+    expect(pushFails.mock.calls.some(c => c[1].includes('commit'))).toBe(true);
+  });
+
   it('batches a tick into one job and one commit', async () => {
     const f = await fixture({ alpha: 'v1', beta: '2.0' });
     const enqueueBatch = vi.fn(async () => {});

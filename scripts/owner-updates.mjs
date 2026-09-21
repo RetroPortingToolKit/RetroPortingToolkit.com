@@ -3,6 +3,7 @@ import path from 'node:path';
 import { addUpdate } from './page-updates.mjs';
 import { teamMemberByGithub } from './authors.mjs';
 import { plainText } from './submissions.mjs';
+import { rollbackOnFailure } from './checkout.mjs';
 
 /** A page's creator updating it from Discord:
  *   @Bot update /games/lufia2snesrecomp-1bdbebef status: Playable; news: Saves now work.
@@ -68,14 +69,19 @@ export function ownerUpdatedPage(raw, update) {
 export async function applyOwnerUpdate({ root, update, exec, siteUrl = '' }) {
   if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
   await exec('git', ['pull', '--ff-only']);
-  const target = path.join(root, update.path);
-  const raw = await fs.readFile(target, 'utf8');
-  const next = ownerUpdatedPage(raw, update);
-  await fs.writeFile(target, next);
-  for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
-  await exec('git', ['add', '--', update.path]);
-  await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `Update ${update.title} from its creator on Discord`]);
-  await exec('git', ['push', 'origin', 'main']);
+  const written = [];
+  await rollbackOnFailure(exec, written, async () => {
+    const target = path.join(root, update.path);
+    const raw = await fs.readFile(target, 'utf8');
+    const next = ownerUpdatedPage(raw, update);
+    await fs.writeFile(target, next);
+    written.push(update.path);
+    for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
+    await exec('git', ['add', '--', update.path]);
+    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `Update ${update.title} from its creator on Discord`]);
+    written.length = 0; // committed: a failed push must not undo the work
+    await exec('git', ['push', 'origin', 'main']);
+  });
   const changed = [update.status && `status: ${update.status}`, update.description && 'description', update.note && `note: “${update.note}”`].filter(Boolean).join(', ');
   return `${update.title} updated (${changed}). Live within a couple of minutes: ${siteUrl}/games/${update.slug}`;
 }
