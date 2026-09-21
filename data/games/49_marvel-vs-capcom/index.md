@@ -12,9 +12,11 @@ platform: "playstation"
 repo: "https://github.com/TechnicallyComputers/Marvel-vs.-Capcom-Clash-of-Super-Heroes-Recomp"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-08-18"
+updated: "2026-08-26"
 added: "2026-08-07"
 cover: "./boxart.png"
+release: "v0.3.18"
+download: "https://github.com/TechnicallyComputers/Marvel-vs.-Capcom-Clash-of-Super-Heroes-Recomp/releases/tag/v0.3.18"
 ---
 
 Marvel vs. Capcom has a community [PSXRecomp](/hardware/playstation) build by TechnicallyComputers.
