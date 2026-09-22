@@ -48,7 +48,7 @@ import { createTaskContext } from "./discord-task-context.mjs";
 import { verifyCompletion, outcomeReaction } from "./discord-completion.mjs";
 import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs";
 import { siteChangeWatcher } from "./site-changes.mjs";
-import { repoUpdateWatcher, applyRepoUpdates, releaseAnnouncement } from "./repo-updates.mjs";
+import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from "./repo-updates.mjs";
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
 import { failedCheck, failureSummary } from "./health.mjs";
@@ -1234,7 +1234,12 @@ async function drainQueue() {
       const summary = await applyRepoUpdates({ root: ROOT, updates, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
       // A release people have not seen is news for the website channel.
-      for (const update of updates) if (update.announce && config.adminChannelId) await safeSend({ channelId: config.adminChannelId, content: releaseAnnouncement(update, SITE.url), suppressMentions: true });
+      // One message for the whole job. An owner shipping their catalogue at
+      // once is one commit; it should be one post, not one per title.
+      const announce = updates.filter((update) => update.announce);
+      if (announce.length && config.adminChannelId) {
+        await safeSend({ channelId: config.adminChannelId, content: releasesAnnouncement(announce, SITE.url), suppressMentions: true });
+      }
     } else report = await runPublish(job);
     if (scheduled) console.log(`[discord-agent] ${job.request}: ${report.body}`);
     else await replyChunks(job.ref, report.heading, report.body, { suppressMentions: true });

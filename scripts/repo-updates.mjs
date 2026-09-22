@@ -148,3 +148,19 @@ export function releaseAnnouncement(update, siteUrl = '') {
   const label = update.name && update.name !== update.tag ? `${update.name} (${update.tag})` : update.tag;
   return `🎉 ${update.title}: new release ${label}\n${update.releaseUrl}\n${siteUrl}${update.url}`;
 }
+
+/** One message for however many releases a single job recorded.
+ *
+ * An owner who ships their whole catalogue at once is one commit and one
+ * deployment, but it used to be one channel message per title: nine for
+ * CobaltCryptid's PSX titles, forty-two for mstan's. The list is capped
+ * because Discord's limit is 2000 characters and a wall that long is the
+ * same problem in one message. */
+export function releasesAnnouncement(updates, siteUrl = '', limit = 12) {
+  if (updates.length === 1) return releaseAnnouncement(updates[0], siteUrl);
+  const shown = updates.slice(0, limit);
+  const lines = shown.map((u) => `• ${u.title} ${u.tag} <${siteUrl}${u.url}>`);
+  const rest = updates.length - shown.length;
+  if (rest > 0) lines.push(`• and ${rest} more <${siteUrl}/games>`);
+  return `🎉 ${updates.length} new releases\n${lines.join('\n')}`;
+}

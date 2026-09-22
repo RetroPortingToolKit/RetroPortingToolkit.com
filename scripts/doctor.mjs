@@ -61,7 +61,10 @@ export async function staleReleases(root = ROOT, stateDir = STATE_DIR) {
     const fm = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? '';
     if (/^draft:\s*true/m.test(fm)) continue;
     const field = (name) => fm.match(new RegExp(`^${name}:\\s*["']?(.*?)["']?\\s*$`, 'm'))?.[1] ?? '';
-    const repo = field('repo').replace(/\/$/, '');
+    // The watcher keys its memory by the lowercased URL, so looking it up with
+    // the page's own casing quietly found nothing and reported every page
+    // clean: 19 of 61 pages were invisible to this check.
+    const repo = field('repo').replace(/\/$/, '').toLowerCase();
     const recorded = seen[repo]?.tag;
     if (repo && recorded && recorded !== field('release')) {
       out.push(`${field('title') || folder}: page has ${field('release') || '(none)'}, watcher saw ${recorded}`);
