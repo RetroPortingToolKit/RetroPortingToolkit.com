@@ -5,7 +5,19 @@ import path from 'node:path';
 import { siteChangeWatcher, changeReport, pageChanges } from './site-changes.mjs';
 
 const dirs = [];
-afterEach(async () => { await Promise.all(dirs.splice(0).map(d => fs.rm(d, { recursive: true, force: true }))); });
+afterEach(async () => { await Promise.all(dirs.splice(0).map(removeTemp)); });
+
+/** A test that timed out may still have an async write in flight, so removing
+ * its directory races and throws ENOTEMPTY — which then fails the NEXT test's
+ * hook and turns one slow test into several red ones. Retry, then give up
+ * quietly: a leftover temp directory is the operating system's problem. */
+async function removeTemp(dir) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { return await fs.rm(dir, { recursive: true, force: true }); } catch { /* retried below */ }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
 const T0 = Date.parse('2026-09-16T10:00:00Z');
 const head = (sha, minutesAgo) => ({ sha, date: new Date(T0 - minutesAgo * 60_000).toISOString() });
 const atom = (h) => `<feed><entry><id>tag:github.com,2008:Grit::Commit/${h.sha.padEnd(40, '0')}</id><updated>${h.date}</updated><title>t</title></entry></feed>`;

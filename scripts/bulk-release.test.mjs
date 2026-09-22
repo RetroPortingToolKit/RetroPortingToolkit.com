@@ -10,7 +10,19 @@ import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from './rep
 // the watcher exactly as the bridge configures it and counts what the
 // community would actually see.
 const dirs = [];
-afterEach(async () => { await Promise.all(dirs.splice(0).map(d => fs.rm(d, { recursive: true, force: true }))); });
+afterEach(async () => { await Promise.all(dirs.splice(0).map(removeTemp)); });
+
+/** A test that timed out may still have an async write in flight, so removing
+ * its directory races and throws ENOTEMPTY — which then fails the NEXT test's
+ * hook and turns one slow test into several red ones. Retry, then give up
+ * quietly: a leftover temp directory is the operating system's problem. */
+async function removeTemp(dir) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try { return await fs.rm(dir, { recursive: true, force: true }); } catch { /* retried below */ }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+}
+
 
 const PASS_TICKS = 4; // scripts/discord-agent.mjs passes this to the watcher
 

@@ -338,6 +338,16 @@ it before diagnosing anything by hand. `--quick` skips the checks, and they
 are skipped automatically while the bridge is mid-job, because two builds in
 one checkout collide.
 
+Tests run with a 30-second timeout, not vitest's 5-second default. Much of
+this suite is integration work — real files, real git, real child processes,
+one renderer comparison that takes twenty seconds — running in parallel on a
+machine that is also running the bridge and its builds. At 5 seconds a loaded
+Mac read as a broken site: on 2026-09-22 three timed-out tests stopped
+publishing and the suite passed on its own a minute later. A test that times
+out can also still be writing into its temp directory, so removing it throws
+ENOTEMPTY and fails the *next* test's hook; those removals now retry and give
+up quietly, so one slow test stays one slow test.
+
 Tests run under `TZ=UTC` (`npm test`). They used to run in whatever zone the
 machine was in, and an assertion that pinned the UTC instant of a local-time
 string began failing the day this Mac moved from CEST to PDT.

@@ -33,5 +33,15 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"],
+    // Much of this suite is integration work: real files, real git, real child
+    // processes, and one renderer comparison that takes twenty seconds on its
+    // own. Vitest runs those files in parallel on a machine that is also
+    // running the Discord bridge and its builds, so a test that normally takes
+    // milliseconds can take seconds. At the 5s default that read as a broken
+    // site: on 2026-09-22 three timed-out tests stopped publishing, and the
+    // suite passed on its own a minute later. The bar is "is the code right",
+    // not "how loaded was the Mac".
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
 });
