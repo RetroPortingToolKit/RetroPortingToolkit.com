@@ -12,11 +12,11 @@ platform: "super-nintendo"
 repo: "https://github.com/mstan/ZeldaAlttPSNESRecomp"
 group: "Super Nintendo"
 verified: "2026-08-18"
-updated: "2026-08-06"
+updated: "2026-09-22"
 added: "2026-05-19"
 cover: "./alttp-adaptive.png"
-release: "v0.6.1"
-download: "https://github.com/mstan/ZeldaAlttPSNESRecomp/releases/tag/v0.6.1"
+release: "v0.6.4"
+download: "https://github.com/mstan/ZeldaAlttPSNESRecomp/releases/tag/v0.6.4"
 ---
 
 A Link to the Past is an early [SNESRecomp](/hardware/super-nintendo) core project. Its standout feature is adaptive widescreen: make the window wider and you see more of Hyrule.
