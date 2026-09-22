@@ -83,8 +83,15 @@ async function main() {
   else ok('origin', 'in sync');
 
   // --- the checks, which every publishing job must pass before it can commit
+  const busy = (await readJson(path.join(STATE_DIR, 'jobs.json'), null))?.active?.request;
   if (quick) warn('checks', 'skipped (--quick)', 'Run npm run doctor without --quick before trusting a green report.');
-  else {
+  else if (busy) {
+    // Two builds in one checkout collide, and the bridge reads that as a
+    // broken site: running the doctor during a job is what triggered the
+    // false "publishing is stopped" alert on 2026-09-21.
+    warn('checks', `skipped: the bridge is running "${busy}"`,
+      'Running them now would collide with it in the same checkout. Wait for the queue to be idle, then run again.');
+  } else {
     for (const check of ['typecheck', 'build', 'test']) {
       const result = await run('npm', ['run', check]);
       if (result.ok) { ok(`npm run ${check}`, 'passes'); continue; }

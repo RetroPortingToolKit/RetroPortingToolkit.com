@@ -51,6 +51,7 @@ import { siteChangeWatcher } from "./site-changes.mjs";
 import { repoUpdateWatcher, applyRepoUpdates, releaseAnnouncement } from "./repo-updates.mjs";
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
+import { failedCheck, failureSummary } from "./health.mjs";
 import { plainText } from "./submissions.mjs";
 import fsp from "node:fs/promises";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
@@ -1111,7 +1112,10 @@ async function deleteById(channelId, messageId) {
 // A scheduled job that fails on the checkout or its tooling will fail the
 // same way for every other scheduled job until someone fixes the machine.
 // One failure pauses scheduling for a while and tells the maintainers once.
-const SCHEDULED_PAUSE_MS = envMs("DISCORD_SCHEDULED_PAUSE_MS", 6 * 60 * 60 * 1_000);
+// Short, because it clears itself: the next tick re-runs the checks, and a
+// failure that is still there quietly pauses again. Six hours meant one
+// transient failure stopped every release for the rest of the day.
+const SCHEDULED_PAUSE_MS = envMs("DISCORD_SCHEDULED_PAUSE_MS", 30 * 60 * 1_000);
 let scheduledPausedUntil = 0;
 let lastScheduledAlertAt = 0;
 function scheduledJobsPaused() { return Date.now() < scheduledPausedUntil; }
@@ -1123,26 +1127,54 @@ function scheduledJobsPaused() { return Date.now() < scheduledPausedUntil; }
  * that cannot publish routes here, so the count of failing jobs never becomes
  * the count of messages.
  */
-async function alertPublishingBroken(error) {
+/**
+ * Ask the failing check again before believing it.
+ *
+ * A check can fail because something else had the checkout at that moment:
+ * another job, a person running the suite, `npm run doctor`. Concluding the
+ * site is broken from one result stopped every release for six hours on
+ * 2026-09-21 over a failure that was gone a minute later. Returns the
+ * confirmed output, or null when it passes on the second ask.
+ */
+async function confirmBroken(error) {
   const detail = error instanceof Error ? error.message : String(error);
-  console.error(`[discord-agent] publishing is blocked: ${detail.split("\n").slice(0, 3).join(" | ")}`);
-  if (Date.now() - lastScheduledAlertAt < 24 * 60 * 60 * 1_000) return;
+  const check = failedCheck(detail);
+  if (!check) return { check: null, output: detail };
+  try {
+    await execFileAsync("npm", ["run", check], { cwd: ROOT, env: safeAgentEnv("codex"), maxBuffer: 16 * 1024 * 1024, timeout: 15 * 60 * 1_000 });
+    console.warn(`[discord-agent] npm run ${check} failed once and passed on the retry; not pausing`);
+    return null;
+  } catch (again) {
+    return { check, output: `${again.stdout ?? ""}${again.stderr ?? ""}${again.message ?? ""}` };
+  }
+}
+
+async function alertPublishingBroken(error) {
+  const confirmed = await confirmBroken(error);
+  if (!confirmed) return false;
+  const { check, output } = confirmed;
+  const summary = failureSummary(output);
+  console.error(`[discord-agent] publishing is blocked by npm run ${check ?? "?"}: ${summary.split("\n").join(" | ")}`);
+  // The whole output, for whoever has to fix it: the alert is a summary, and
+  // a summary is never the whole story.
+  const logFile = path.join(STATE_DIR, "publishing-failure.log");
+  await fs.writeFile(logFile, `${new Date().toISOString()}\nnpm run ${check ?? "?"}\n\n${output}`).catch(() => {});
+  if (Date.now() - lastScheduledAlertAt < 24 * 60 * 60 * 1_000) return true;
   lastScheduledAlertAt = Date.now();
-  const check = detail.match(/Command failed: npm run (\w+)/)?.[1];
-  const head = detail.split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 4).join("\n");
   await safeSend({
     channelId: config.adminChannelId || config.botChannelId,
-    content: `⚠️ Publishing is stopped${check ? `: \`npm run ${check}\` is failing` : ""}. Nothing reaches the site until it passes.\nRun \`npm run doctor\` in the checkout for the full picture.\n\`\`\`\n${head.slice(0, 1200)}\n\`\`\``,
+    content: `⚠️ Publishing is stopped${check ? `: \`npm run ${check}\` is failing` : ""}. Nothing reaches the site until it passes.\nRun \`npm run doctor\` in the checkout; the full output is in \`${logFile}\`.\n\`\`\`\n${summary.slice(0, 1200)}\n\`\`\``,
     suppressMentions: true,
   });
+  return true;
 }
 
 async function pauseScheduledJobs(error) {
+  if (!(await alertPublishingBroken(error))) return; // it passed on the retry
   scheduledPausedUntil = Date.now() + SCHEDULED_PAUSE_MS;
   // Nothing already queued should run into the same wall.
   for (let i = queue.length - 1; i >= 0; i--) if (!queue[i].ref?.messageId) queue.splice(i, 1);
   await persistJobs();
-  await alertPublishingBroken(error);
 }
 
 /** Runs a checkout command for a queued job, stoppable like an agent task. */

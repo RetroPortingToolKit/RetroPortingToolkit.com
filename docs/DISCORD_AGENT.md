@@ -293,10 +293,20 @@ broken check became twelve "Blocked." replies on a single notice. Instead:
 
 - A scheduled job never posts. A moderation job never posts per attempt. The
   same text never goes to the same channel twice within an hour.
-- `alertPublishingBroken` posts once a day, to `DISCORD_ADMIN_CHANNEL_ID`,
-  naming the check that is failing and pointing at `npm run doctor`. Every
-  path that cannot publish routes through it, so the number of failing jobs
-  never becomes the number of messages.
+- `alertPublishingBroken` re-runs the failing check before believing it. A
+  check fails when something else has the checkout at that moment (another
+  job, a person running the suite, `npm run doctor` itself), and treating one
+  result as proof stopped every release for six hours on 2026-09-21 over a
+  failure that was gone a minute later. Only a reproducible failure pauses
+  anything.
+- A confirmed failure posts once a day to `DISCORD_ADMIN_CHANNEL_ID`, naming
+  the check and summarising the lines that actually name a failure
+  (`scripts/health.mjs`), not the first lines of output: `cms-git.test.mjs`
+  deliberately prints a rebase conflict on every run, and reporting that as
+  the cause is how the first version of this alert misled everyone. The full
+  output is written to `publishing-failure.log` in the state directory.
+- The pause is thirty minutes and clears itself: the next tick re-runs the
+  checks, and a failure still present pauses again, silently.
 - `CHECKOUT_PATIENCE_MS` is held to at least three times `CHECKOUT_WAIT_MS`:
   set equal to it, a job reports "Blocked." on its first timeout and never
   parks at all.
@@ -307,7 +317,9 @@ One command that says why the bridge is not publishing: the state of the
 checkout, whether each check passes and which one fails first, whether the
 process is alive and what its queue holds, any release a page never received,
 and the last errors in the log. Each failure prints what to do about it. Run
-it before diagnosing anything by hand. `--quick` skips the checks.
+it before diagnosing anything by hand. `--quick` skips the checks, and they
+are skipped automatically while the bridge is mid-job, because two builds in
+one checkout collide.
 
 Tests run under `TZ=UTC` (`npm test`). They used to run in whatever zone the
 machine was in, and an assertion that pinned the UTC instant of a local-time
