@@ -42,6 +42,14 @@ Two channels: `DISCORD_ADMIN_CHANNEL_ID` (#website) carries site changes and
 submission notices for admins; `DISCORD_BOT_CHANNEL_ID` (#rptk-bot, the
 default) carries task reports and hand-written notes on the bot's own changes.
 
+A bulk release is one commit and one message. An owner shipping their whole
+catalogue at once is the case CobaltCryptid raised on 2026-09-21;
+`scripts/bulk-release.test.mjs` runs it at their scale and at the largest
+catalogue on the site. Nine titles become one job, one commit and one message;
+forty-two become three of each, every message inside Discord's 2000 characters
+with the remainder linked rather than listed. It used to be one message per
+title.
+
 Changes to the site's pages are announced in `DISCORD_ADMIN_CHANNEL_ID`: one
 line per page that was created, removed, published, unlisted, given a new
 cover or images, or had its text substantially edited, with the page link.
