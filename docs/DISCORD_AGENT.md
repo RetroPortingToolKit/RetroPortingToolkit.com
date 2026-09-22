@@ -20,7 +20,16 @@ Discord messages as style examples and then the operating rules; it replaces
 the CLI's default assistant prompt so nothing generic sits above the voice.
 The examples live in the state directory as `voice-examples.json`, written by
 `scripts/discord-voice-examples.mjs` (chat stays out of the repository); rerun
-it now and then to refresh them. The answer lane sees the ten messages before the question, fenced as
+it now and then to refresh them. A bare mention is treated as a follow-up, not as a request for a menu:
+someone asks something and tags the bot on the next line, so the conversation
+is read and that question is answered. Only a tag with no readable history at
+all gets "what do you want to know?". A question about the wider scene ("has
+anyone ever recompiled a GBC game") is answered from general knowledge rather
+than with a list of what this site happens to publish, hedged where the
+specifics are uncertain, because this community knows the scene better than
+the bot does.
+
+The answer lane sees the ten messages before the question, fenced as
 untrusted data, so follow-ups like "ok but I want to do that recomp" resolve.
 A game with no page is answered from its platform page, the docs, and general
 console knowledge, with a note that anyone can submit a page. The answer lane can also read GitHub, and only GitHub (`WebFetch` fenced to

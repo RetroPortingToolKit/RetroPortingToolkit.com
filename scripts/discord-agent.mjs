@@ -993,12 +993,13 @@ async function recentChannelContext(message, limit = 10) {
 }
 
 async function handleAsk(message, ref, question) {
-  if (!question) {
-    await safeSend({
-      ...ref,
-      content: "Ask me anything about the project and the consoles and games it covers, and I’ll answer from the site.",
-      ping: true,
-    });
+  // A bare mention is nearly always a follow-up: someone asks something, then
+  // tags the bot on the next line. Answering "ask me anything" to a person who
+  // just did exactly that is the most annoying thing this bot can do, so the
+  // conversation above is read first and only a genuinely cold tag falls back.
+  const context = await recentChannelContext(message);
+  if (!question && !context) {
+    await safeSend({ ...ref, content: "what do you want to know?", ping: true, suppressMentions: true });
     return;
   }
   const waitMs = cooldownRemaining(lastAskAt.get(ref.authorId), Date.now(), ASK_COOLDOWN_MS);
@@ -1018,7 +1019,7 @@ async function handleAsk(message, ref, question) {
   // One entry per person who ever asked, forever, is a slow leak; anything
   // past the window is irrelevant and can go.
   for (const [who, at] of lastAskAt) if (Date.now() - at > ASK_COOLDOWN_MS) lastAskAt.delete(who);
-  askQueue.push({ ref, request: question, context: await recentChannelContext(message), asker: { username: plainText(message.author.username, 40), display: plainText(message.member?.displayName || message.author.globalName || message.author.username, 40) } });
+  askQueue.push({ ref, request: question, context, asker: { username: plainText(message.author.username, 40), display: plainText(message.member?.displayName || message.author.globalName || message.author.username, 40) } });
   await persistJobs();
   void drainAskQueue().catch((error) =>
     console.error("[discord-agent] ask drain failed", error),

@@ -654,6 +654,28 @@ describe("fallback answer without a model", () => {
   });
 });
 
+describe("a bare mention", () => {
+  it("asks the conversation instead of reciting what the bot can do", () => {
+    // Someone asks a question, then tags the bot on the next line. Replying
+    // "ask me anything" to a person who just did exactly that is the most
+    // annoying thing this bot can do.
+    const prompt = askPrompt({ question: "", authorId: "u", channelId: "c", context: "bree: has there ever been a gbc game recompiled before?" });
+    expect(prompt).toContain("tagged the bot with no text");
+    expect(prompt).toContain("their own most recent message");
+    expect(prompt).toContain("gbc game recompiled");
+    expect(prompt).toContain("the question the conversation is plainly asking");
+    expect(prompt).not.toContain("BEGIN COMMUNITY MESSAGE"); // nothing to fence
+  });
+
+  it("still fences and answers a message that has text", () => {
+    const prompt = askPrompt({ question: "is tomba playable?", authorId: "u", channelId: "c", context: "shokunin: pushing releases" });
+    expect(prompt).toContain("BEGIN COMMUNITY MESSAGE");
+    expect(prompt).toContain("is tomba playable?");
+    expect(prompt).toContain("the COMMUNITY MESSAGE itself");
+    expect(prompt).not.toContain("tagged the bot with no text");
+  });
+});
+
 describe("question or chat vs work, for a trusted developer", () => {
   it("only leaves the publishing lane for plain questions and chat", () => {
     for (const text of ["first", "long task", "update the Lufia page status to playable", "add a blog post about the new release", "can you fix the typo on the NES page", "please remove the ActRaiser cover", "Write a draft about co-simulation", "the page needs a new cover", "did you do the work on the footer, CTA on games page, modal etc?", "have you pushed it yet?"]) expect(isConversational(text), text).toBe(false);
