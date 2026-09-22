@@ -14,11 +14,11 @@ group: "Sega Genesis"
 links:
   - { label: "SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2 (1379.tech)", href: "https://1379.tech/segagenesisrecomp-gets-game-2-sonic-the-hedgehog-2/" }
 verified: "2026-08-18"
-updated: "2026-09-20"
+updated: "2026-09-22"
 added: "2026-05-05"
 cover: "/data/blog/19_journey-with-ai-and-recompilation/SonicTheHedgehog2Recomp_5jt992tJom.png"
-release: "v0.6.1"
-download: "https://github.com/mstan/SonicTheHedgehog2Recomp/releases/tag/v0.6.1"
+release: "v0.7.0"
+download: "https://github.com/mstan/SonicTheHedgehog2Recomp/releases/tag/v0.7.0"
 ---
 
 Sonic the Hedgehog 2 runs through [SegaGenesisRecomp](/hardware/sega-genesis).
