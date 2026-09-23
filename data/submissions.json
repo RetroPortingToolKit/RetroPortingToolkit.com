@@ -157,5 +157,44 @@
     "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
     "moderatedBy": "398336732287991808",
     "moderatedAt": "2026-09-21T12:50:07.985Z"
+  },
+  {
+    "id": "6c3e20b3754cdcc3",
+    "repo": "https://github.com/sernikigierki-commits/Mickeywildadventurerecomp",
+    "title": "Mickey Wild Adventure",
+    "description": "🐭 MICKEY'S WILD ADVENTURE — RECOMPILED It all started with a mouse... Mickey's Wild Adventure Recompiled is a native PC recompilation of the original PlayStation release of Mickey's Wild Adventure, powered by PSXRecomp. This is NOT an emulator and NOT a remake. The original PS1 game code is statically recompiled into native code, with additional modern features built around the original game. ✨ FEATURES • Native Windows & Linux builds • Custom frontend and main menu • Story profiles & Cont",
+    "owner": "sernikigierki-commits",
+    "discord": "kochanekslawomira",
+    "path": "data/games/78_mickeywildadventurerecomp-6c3e20b3/index.md",
+    "url": "/games/mickeywildadventurerecomp-6c3e20b3",
+    "createdAt": "2026-09-23T14:37:58.920Z",
+    "status": "pending",
+    "images": [
+      {
+        "path": "./submission-1.webp",
+        "alt": "Project banner"
+      },
+      {
+        "path": "./submission-2.png",
+        "alt": "Mickey's Wild Adventure Recompiled gameplay"
+      }
+    ],
+    "summary": [
+      "Native recompilation of Mickey's Wild Adventure (PlayStation) for modern PCs, powered by PSXRecomp.",
+      "This project aims to preserve the original game while making it easier and more enjoyable to play on modern hardware with quality-of-life improvements, a custom frontend, modern display options and extra features.",
+      "- Native Windows and Linux builds",
+      "- Powered by PSXRecomp",
+      "- Custom frontend and startup flow",
+      "- Custom main menu",
+      "- Story profiles and continue system",
+      "- Improved save handling",
+      "The project includes several modern display options:",
+      "- multiple resolutions",
+      "- windowed mode",
+      "- borderless fullscreen",
+      "- exclusive fullscreen",
+      "- CRT filter presets"
+    ],
+    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork."
   }
 ]
