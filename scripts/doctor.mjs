@@ -15,6 +15,8 @@ import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { gamePages, latestRelease } from './repo-updates.mjs';
+import { withChecksLock } from './checkout.mjs';
 
 const execFileAsync = promisify(execFile);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,6 +49,28 @@ export async function checkoutState() {
   const ahead = (await run('git', ['rev-list', '--count', '@{u}..HEAD'])).out.trim();
   const behind = (await run('git', ['rev-list', '--count', 'HEAD..@{u}'])).out.trim();
   return { dirty: status.out.split('\n').filter(Boolean), branch, ahead: Number(ahead) || 0, behind: Number(behind) || 0 };
+}
+
+/** Pages whose repository has published a release the page does not carry.
+ *
+ * The check below this one compares a page against the watcher's own memory,
+ * which misses the case that matters most: a release the watcher never
+ * managed to record at all, where page and memory agree and both are behind.
+ * Xenogears sat at v0.7.1 that way while v0.8.0 was out. This asks the
+ * repositories instead, through the same feeds the watcher reads. */
+export async function behindUpstream(root = ROOT, concurrency = 8) {
+  const pages = await gamePages(root);
+  const behind = [];
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(concurrency, pages.length) }, async () => {
+    for (let i = next++; i < pages.length; i = next++) {
+      const page = pages[i];
+      const release = await latestRelease(page.repo).catch(() => undefined);
+      if (!release || release.tag === page.release) continue;
+      behind.push(`${page.title}: page has ${page.release || '(none)'}, ${page.repo.replace(/^https:\/\/(github|gitlab)\.com\//, '')} has ${release.tag}`);
+    }
+  }));
+  return behind;
 }
 
 /** Releases the watcher has published that a page never received. */
@@ -95,14 +119,17 @@ async function main() {
     warn('checks', `skipped: the bridge is running "${busy}"`,
       'Running them now would collide with it in the same checkout. Wait for the queue to be idle, then run again.');
   } else {
-    for (const check of ['typecheck', 'build', 'test']) {
-      const result = await run('npm', ['run', check]);
-      if (result.ok) { ok(`npm run ${check}`, 'passes'); continue; }
-      const failing = result.out.split('\n').filter((l) => /FAIL|error|✕|×/.test(l)).slice(0, 6).join('\n    ');
-      bad(`npm run ${check}`, failing || 'failed',
-        'No bot job can commit while this fails, and each one dies holding the page it wrote. Fix this first.');
-      break; // the first failing check is the one to fix
-    }
+    // Held so the bridge waits instead of starting its own run alongside.
+    await withChecksLock(STATE_DIR, 'npm run doctor', async () => {
+      for (const check of ['typecheck', 'build', 'test']) {
+        const result = await run('npm', ['run', check]);
+        if (result.ok) { ok(`npm run ${check}`, 'passes'); continue; }
+        const failing = result.out.split('\n').filter((l) => /FAIL|error|✕|×/.test(l)).slice(0, 6).join('\n    ');
+        bad(`npm run ${check}`, failing || 'failed',
+          'No bot job can commit while this fails, and each one dies holding the page it wrote. Fix this first.');
+        break; // the first failing check is the one to fix
+      }
+    });
   }
 
   // --- the bridge process and its queue
@@ -123,8 +150,17 @@ async function main() {
   // --- releases the watcher believes it has delivered but no page carries
   const stale = await staleReleases();
   if (stale.length) warn('release pages', stale.join('\n    '),
-    'These are re-detected on the next tick now. If they persist, the release job is failing: check npm run test.');
+    'The watcher recorded these but no page carries them. They are re-detected on the next tick.');
   else ok('release pages', 'every page matches what the watcher recorded');
+
+  // --- and the question that actually matters: is anything out of date?
+  if (quick) warn('upstream releases', 'skipped (--quick)', 'Run without --quick to ask every repository what it has published.');
+  else {
+    const behind = await behindUpstream();
+    if (behind.length) warn('upstream releases', behind.join('\n    '),
+      'The watcher checks a quarter of the pages every 15 minutes, so a recent one is simply not its turn yet. If it is still here in an hour, the release job is failing.');
+    else ok('upstream releases', 'every page carries its repository\'s latest release');
+  }
 
   // --- recent trouble in the log
   const stderr = await fs.readFile(path.join(LOG_DIR, 'stderr.log'), 'utf8').catch(() => '');

@@ -52,6 +52,7 @@ import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from "./rep
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
 import { failedCheck, failureSummary } from "./health.mjs";
+import { checksLockHolder } from "./checkout.mjs";
 import { plainText } from "./submissions.mjs";
 import fsp from "node:fs/promises";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
@@ -462,7 +463,11 @@ async function waitForQuietCheckout(timeoutMs, onWait) {
   let previous = null;
   while (true) {
     const pulse = await gitSnapshot();
-    const reason = checkoutBusyReason(pulse, Date.now(), QUIET_PERIOD_MS);
+    // Two check runs in one checkout fail each other for no reason, and the
+    // bridge reads that as a broken site. A held lock is as good a reason to
+    // wait as uncommitted work.
+    const holder = await checksLockHolder(STATE_DIR);
+    const reason = holder ? `${holder} is running the checks` : checkoutBusyReason(pulse, Date.now(), QUIET_PERIOD_MS);
     if (!reason && !pulseChanged(previous, pulse)) return pulse;
     if (Date.now() >= deadline) return { ...pulse, busyReason: reason ?? "the tree kept changing" };
     if (reason) {

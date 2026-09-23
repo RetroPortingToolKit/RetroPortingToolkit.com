@@ -34,3 +34,25 @@ describe('checkout rollback', () => {
     })).rejects.toThrow('the real failure');
   });
 });
+
+describe('the checks lock', () => {
+  it('is visible to another process while held, and gone afterwards', async () => {
+    const fs = await import('node:fs/promises');
+    const os = await import('node:os');
+    const path = await import('node:path');
+    const { withChecksLock, checksLockHolder } = await import('./checkout.mjs');
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'rpt-lock-'));
+    expect(await checksLockHolder(dir)).toBeNull();
+    await withChecksLock(dir, 'npm run doctor', async () => {
+      expect(await checksLockHolder(dir)).toBe('npm run doctor');
+    });
+    expect(await checksLockHolder(dir)).toBeNull();
+    // Released even when the work throws, or a crash would park the bridge.
+    await expect(withChecksLock(dir, 'x', async () => { throw new Error('boom'); })).rejects.toThrow('boom');
+    expect(await checksLockHolder(dir)).toBeNull();
+    // A lock left behind by a killed run goes stale rather than parking it forever.
+    await fs.writeFile(path.join(dir, 'checks-running.lock'), JSON.stringify({ who: 'ghost', at: Date.now() - 60 * 60 * 1000 }));
+    expect(await checksLockHolder(dir)).toBeNull();
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+});

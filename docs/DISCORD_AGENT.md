@@ -330,10 +330,18 @@ broken check became twelve "Blocked." replies on a single notice. Instead:
 
 ## npm run doctor
 
+Two check runs in one checkout fail each other for no reason, and the bridge
+reads that as a broken site. `npm run doctor` holds a lock in the state
+directory while it runs the checks and the bridge waits on it like any other
+busy checkout; the lock goes stale after twenty minutes so a killed run cannot
+park publishing. The doctor also skips the checks entirely while a job is
+already running.
+
 One command that says why the bridge is not publishing: the state of the
 checkout, whether each check passes and which one fails first, whether the
 process is alive and what its queue holds, any release a page never received,
-and the last errors in the log. Each failure prints what to do about it. Run
+any release its repository has published that the page does not carry, and the
+last errors in the log. Each failure prints what to do about it. Run
 it before diagnosing anything by hand. `--quick` skips the checks, and they
 are skipped automatically while the bridge is mid-job, because two builds in
 one checkout collide.
