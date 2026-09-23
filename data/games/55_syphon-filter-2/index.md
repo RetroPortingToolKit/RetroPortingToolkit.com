@@ -12,11 +12,11 @@ platform: "playstation"
 repo: "https://github.com/Alexbeav/syphon-filter-2-recompiled"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-09-15"
+updated: "2026-09-23"
 added: "2026-08-06"
 cover: "./sf2-banner.jpg"
-release: "v0.1.3-alpha"
-download: "https://github.com/alexbeavs-ps1-ports/syphon-filter-2-recomp/releases/tag/v0.1.3-alpha"
+release: "v0.2.0"
+download: "https://github.com/alexbeavs-ps1-ports/syphon-filter-2-recomp/releases/tag/v0.2.0"
 ---
 
 Syphon Filter 2 Recompiled is a community project by Alexbeav.
