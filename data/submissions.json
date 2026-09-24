@@ -206,7 +206,7 @@
     "path": "data/games/79_urbanrecomp-db227f9c/index.md",
     "url": "/games/urbanrecomp-db227f9c",
     "createdAt": "2026-09-24T18:38:15.546Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [
       {
         "path": "./submission-1.png",
@@ -218,6 +218,8 @@
       "Adaptive Widescreen, the default renderer: the shared Mods launcher offers Fit to window, Fit height, Fit width, and 4:3 through 32:9 presets (21:9 out of the box) while keeping the full original view visible; switching it off there returns to the classic widescreen. See build/run instructions and renderer scope and the dependency audit. The branch retains current main's engine pin and host fixes; controls default to the top left.",
       "Just want to build and play it? See SETUP.md for a Windows/Linux quick-start. Contributors should read CONTRIBUTING.md instead. For a consolidated map of everything reverse-engineered about this ROM so far (WRAM variables, named routines, patch sites, compressed data regions), see docs/ROMMAP.md."
     ],
-    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
+    "moderatedBy": "71388029540900864",
+    "moderatedAt": "2026-09-24T18:54:40.431Z"
   }
 ]
