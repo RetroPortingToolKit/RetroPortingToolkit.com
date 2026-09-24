@@ -9,11 +9,13 @@ status: "Community submission"
 platform: "super-nintendo"
 links: [{"label":"Project on GitHub","href":"https://github.com/blackerking/UrbanRecomp"}]
 added: "2026-09-24"
-updated: "2026-09-24"
+updated: "2026-09-23"
 submissionId: "db227f9cc77f609d"
 draft: false
 creator: {"github":"blackerking"}
 cover: "./submission-1.png"
+release: "v1.1.1"
+download: "https://github.com/blackerking/UrbanRecomp/releases/tag/v1.1.1"
 ---
 
 A faithful recomp project of SimCity for the SNES. Adding widescreen, a new scenario, cheatmenu, freeplay of all scenarios. Fixing several small bugs, speeding up ma generation etc.
