@@ -57,6 +57,9 @@ export interface LabMedia {
 const colorFor = (p: Item, i: number): string =>
   p.kickerColor ?? chipColorFor(p.kicker) ?? CHIP_PALETTE[i % CHIP_PALETTE.length];
 
+const gameGroup = (p: Item): string | undefined =>
+  p.platform ? HARDWARE.find((platform) => platform.slug === p.platform)?.title ?? p.group : p.group;
+
 // Generated cover art: a vibrant diagonal gradient with oversized initials and
 // a scanline sheen, built as an inline SVG data URI. Every card gets real cover
 // art this way even before a screenshot or capture exists; an authored `cover:`
@@ -131,7 +134,7 @@ function staticMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia {
     color,
     kind,
     video: false,
-    group: p.group,
+    group: kind === "game" ? gameGroup(p) : p.group,
     chips: kind === "game" ? [{ label: p.kicker, color }] : undefined,
     added: p.added,
     updated: p.updated,
@@ -156,7 +159,7 @@ function projectMedia(p: Item, i: number, kind: LabKind, dir: string): LabMedia 
     color: colorFor(p, i),
     kind,
     video: true,
-    group: p.group,
+    group: kind === "game" ? gameGroup(p) : p.group,
     chips: kind === "game" ? [{ label: p.kicker, color: colorFor(p, i) }] : undefined,
     added: p.added,
     updated: p.updated,
