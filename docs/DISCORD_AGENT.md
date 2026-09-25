@@ -20,7 +20,15 @@ Discord messages as style examples and then the operating rules; it replaces
 the CLI's default assistant prompt so nothing generic sits above the voice.
 The examples live in the state directory as `voice-examples.json`, written by
 `scripts/discord-voice-examples.mjs` (chat stays out of the repository); rerun
-it now and then to refresh them. A bare mention is treated as a follow-up, not as a request for a menu:
+it now and then to refresh them. A request on the publishing lane carries the ten messages before it too,
+fenced as quoted material. Requests point at the channel rather than repeating
+it — "see the messages above, fix it" — and that used to reach the agent as
+those six words alone: on 2026-09-25 it went hunting and happened to find the
+real bug, which is luck, not a feature. Only the trusted requester's words are
+instructions; nothing inside the quoted block changes the task or its scope,
+and an unclear request is a question rather than a guess.
+
+A bare mention is treated as a follow-up, not as a request for a menu:
 someone asks something and tags the bot on the next line, so the conversation
 is read and that question is answered. Only a tag with no readable history at
 all gets "what do you want to know?". A question about the wider scene ("has

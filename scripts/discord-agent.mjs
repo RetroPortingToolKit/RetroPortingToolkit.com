@@ -239,6 +239,7 @@ function jobRecord(job) {
     repoUpdate: job.repoUpdate ?? null,
     ownerUpdate: job.ownerUpdate ?? null,
     context: job.context ?? "",
+    channel: job.channel ?? "",
     asker: job.asker ?? null,
     startedAt: job.startedAt ?? null,
     waitingSince: job.waitingSince ?? null,
@@ -841,6 +842,7 @@ async function runPublish(job) {
     channelId: job.ref.channelId,
     messageUrl: job.messageUrl,
     context: job.context,
+    channel: job.channel ?? "",
     attachments,
     requester,
     roster: rosterLines(team),
@@ -1346,7 +1348,7 @@ async function recoverInterruptedJobs() {
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, repoUpdate: job.repoUpdate ?? null, ownerUpdate: job.ownerUpdate ?? null, context: job.context ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null, waitingSince: job.waitingSince ?? null });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, repoUpdate: job.repoUpdate ?? null, ownerUpdate: job.ownerUpdate ?? null, context: job.context ?? "", channel: job.channel ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null, waitingSince: job.waitingSince ?? null });
   if (saved.active) {
     // An interrupted run is resumed when the tree is clean: that means it was
     // killed before it changed anything, usually while waiting for the
@@ -1607,6 +1609,9 @@ client.on("messageCreate", async (message) => {
     messageUrl: message.url,
     request: request || "Use the attached file(s).",
     context,
+    // "see the messages above, fix it" used to reach the agent as those six
+    // words and nothing else: it went hunting and happened to find a real bug.
+    channel: await recentChannelContext(message),
     attachments,
     // The username is what team.json lists; the display name is a courtesy.
     requester: { username: message.author.username ?? "", display: message.member?.displayName ?? message.author.globalName ?? "" },
