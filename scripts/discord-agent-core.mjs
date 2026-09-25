@@ -371,6 +371,46 @@ export function parseStreamResult(stdout) {
  * One short line per stream event for the task log, so "what did it do for
  * eleven minutes" has an answer. Returns null for events not worth a line.
  */
+/** Codex prints a human transcript, not a JSON stream.
+ *
+ * Its shape is a bare `exec` line then the command, a bare `codex` line then
+ * the model's narration, `mcp: server/tool started`, and ` succeeded in 400ms:`
+ * — with whole files, diffs and command output dumped in between. The generic
+ * parser treated every one of those lines as progress, so the status line
+ * quoted a random line of source, and in practice showed nothing useful at
+ * all: on 2026-09-25 a ten-minute task said only "Still working — 6m 30s
+ * elapsed" and the requester gave up on it. Stateful, because the interesting
+ * text is always on the line after the marker.
+ */
+export function createCodexTrace() {
+  let expecting = null;
+  return (line, at = new Date()) => {
+    const trimmed = String(line).trim();
+    const stamp = at.toISOString().slice(11, 19);
+    const clip = (value, n = 150) => String(value).replace(/\s+/g, " ").trim().slice(0, n);
+    if (expecting) {
+      const kind = expecting;
+      expecting = null;
+      if (!trimmed) return null;
+      if (kind !== "exec") return `${stamp} says: ${clip(trimmed)}`;
+      // "/bin/zsh -lc 'npm run typecheck' in /path" is the shell, not the work.
+      const command = trimmed
+        .replace(/^\/\S*?\b(?:ba|z|da)?sh\s+-[a-z]*c\s+/, "")
+        .replace(/\s+in\s+\/\S+$/, "")
+        .replace(/^["']|["']$/g, "");
+      return `${stamp} Bash: ${clip(command, 120)}`;
+    }
+    if (trimmed === "exec") { expecting = "exec"; return null; }
+    if (trimmed === "codex" || trimmed === "thinking") { expecting = "codex"; return null; }
+    const mcp = trimmed.match(/^mcp: (\S+) started$/);
+    if (mcp) return `${stamp} ${mcp[1]}`;
+    const failed = trimmed.match(/^(?:exited|failed) (?:in |with )?(\S+)/);
+    if (failed) return `${stamp} FAILED: ${clip(trimmed)}`;
+    // Everything else is file contents, diffs and command output: not progress.
+    return null;
+  };
+}
+
 export function traceStreamLine(line, at = new Date()) {
   const trimmed = String(line).trim();
   if (!trimmed.startsWith("{")) return trimmed ? `      ${trimmed.slice(0, 200)}` : null;

@@ -39,6 +39,7 @@ import {
   runnerCooldownUntil,
   parseStreamResult,
   traceStreamLine,
+  createCodexTrace,
   statusMessage,
   stripBotMention,
   resumedMessage,
@@ -528,6 +529,9 @@ function runAgentOnce({ runner, mode, prompt, systemPrompt = "", outputFile, tas
       );
       idle.unref();
     };
+    // Each runner narrates differently; the parser is per-run because Codex's
+    // needs to remember the marker it just saw.
+    const traceLine = runner === "codex" ? createCodexTrace() : traceStreamLine;
     const trace = (chunk) => {
       pending += chunk;
       const lines = pending.split("\n");
@@ -538,10 +542,16 @@ function runAgentOnce({ runner, mode, prompt, systemPrompt = "", outputFile, tas
         // these events and a long run can be many megabytes of it.
         const result = parseStreamResult(line);
         if (result) streamResult = result;
-        const entry = traceStreamLine(line);
-        if (!entry) continue;
-        taskLog.write(entry + "\n");
-        onActivity?.(entry);
+        const entry = traceLine(line);
+        if (entry) {
+          taskLog.write(entry + "\n");
+          onActivity?.(entry);
+        } else if (!line.trimStart().startsWith("{")) {
+          // The log keeps the runner's own transcript so a finished run can
+          // still be read; only recognised progress reaches the status line.
+          // JSON events are skipped: they are megabytes of tool output.
+          taskLog.write(`      ${line.slice(0, 500)}\n`);
+        }
       }
     };
     const note = (text) => {

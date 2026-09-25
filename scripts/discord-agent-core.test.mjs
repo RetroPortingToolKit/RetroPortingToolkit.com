@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createCodexTrace,
   isConversational,
   askSystemPrompt,
   agentCommand,
@@ -651,6 +652,42 @@ describe("fallback answer without a model", () => {
     expect(fallbackAnswer("how is the lufia port going?", root, "https://site")).toBe("I can't reach my answer model right now, but these pages look relevant:\n- Lufia II <https://site/games/lufia-ii>");
     expect(fallbackAnswer("what do I need?", root, "https://site")).toContain("The site is at <https://site>");
     fs.rmSync(root, { recursive: true, force: true });
+  });
+});
+
+describe("codex progress", () => {
+  it("reports the command and the narration, and ignores the file dumps between them", () => {
+    // Verbatim shape from the run on 2026-09-25 that showed no progress at all.
+    const lines = [
+      "codex",
+      "I\u2019ll inspect the current checkout and the referenced Discord thread.",
+      "exec",
+      "/bin/zsh -lc 'npm run typecheck' in /Users/shokunin/dev/retroportingtoolkit.com",
+      " succeeded in 400ms:",
+      "---data/submissions.json",
+      "[",
+      '  { "id": "1bdbebefc9dd9af5",',
+      "mcp: cua_repl/js started",
+      "exec",
+      '/bin/zsh -lc "git pull --ff-only origin main"',
+    ];
+    const trace = createCodexTrace();
+    const at = new Date("2026-09-25T20:49:01Z");
+    const entries = lines.map((line) => trace(line, at)).filter(Boolean);
+    expect(entries).toEqual([
+      "20:49:01 says: I\u2019ll inspect the current checkout and the referenced Discord thread.",
+      "20:49:01 Bash: npm run typecheck",
+      "20:49:01 cua_repl/js",
+      "20:49:01 Bash: git pull --ff-only origin main",
+    ]);
+  });
+
+  it("keeps its own state, so two runs do not read each other's markers", () => {
+    const one = createCodexTrace();
+    const two = createCodexTrace();
+    expect(one("exec")).toBeNull();
+    expect(two("some stray output")).toBeNull(); // not the command `one` is waiting for
+    expect(one("/bin/zsh -lc 'npm run test'", new Date("2026-09-25T20:49:01Z"))).toBe("20:49:01 Bash: npm run test");
   });
 });
 

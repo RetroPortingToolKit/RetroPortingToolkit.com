@@ -354,6 +354,16 @@ it before diagnosing anything by hand. `--quick` skips the checks, and they
 are skipped automatically while the bridge is mid-job, because two builds in
 one checkout collide.
 
+Each runner narrates differently, so the progress line has a parser per
+runner. Claude emits `stream-json`; Codex prints a human transcript — a bare
+`exec` line then the command, a bare `codex` line then its narration, with
+whole files and diffs dumped in between. Reading every line of that as
+progress quoted a random line of source, and in practice showed nothing: on
+2026-09-25 a ten-minute task said only "Still working" and the requester gave
+up. `createCodexTrace` turns those 2176 lines into the 33 that are actually
+progress. The task log still keeps the runner's own transcript, so a finished
+run can be read afterwards.
+
 Tests run with a 30-second timeout, not vitest's 5-second default. Much of
 this suite is integration work — real files, real git, real child processes,
 one renderer comparison that takes twenty seconds — running in parallel on a
