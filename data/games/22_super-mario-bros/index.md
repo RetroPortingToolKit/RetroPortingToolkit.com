@@ -14,11 +14,11 @@ group: "NES"
 links:
   - { label: "NESRecomp progress article (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-09-25"
+updated: "2026-09-26"
 added: "2026-03-15"
 cover: "./char-sonic.png"
-release: "v1.11.0"
-download: "https://github.com/mstan/SuperMarioBrosNESRecomp/releases/tag/v1.11.0"
+release: "v1.12.0-rc1"
+download: "https://github.com/mstan/SuperMarioBrosNESRecomp/releases/tag/v1.12.0-rc1"
 ---
 
 Super Mario Bros. runs here as a native PC program, rebuilt from the original game by [NESRecomp](/hardware/nes).
