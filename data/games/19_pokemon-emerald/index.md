@@ -13,11 +13,11 @@ showOnPlatform: false
 repo: "https://github.com/mstan/EmeraldRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
-updated: "2026-09-24"
+updated: "2026-09-27"
 added: "2026-06-22"
 cover: "./pokemon-emerald-gameplay.webp"
-release: "v0.0.7"
-download: "https://github.com/mstan/EmeraldRecomp/releases/tag/v0.0.7"
+release: "v0.1.0"
+download: "https://github.com/mstan/EmeraldRecomp/releases/tag/v0.1.0"
 ---
 
 Pokemon Emerald joins the Gen 3 [GBARecomp](/hardware/game-boy-advance) work alongside [Ruby & Sapphire](/games/pokemon-ruby-sapphire) and [FireRed & LeafGreen](/games/pokemon-firered-leafgreen).
