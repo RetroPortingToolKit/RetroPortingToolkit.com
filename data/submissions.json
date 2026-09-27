@@ -221,5 +221,44 @@
     "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
     "moderatedBy": "71388029540900864",
     "moderatedAt": "2026-09-24T18:54:40.431Z"
+  },
+  {
+    "id": "e160569f703bb25b",
+    "repo": "https://github.com/mstan/FZeroSNESRecomp",
+    "title": "FZeroSNESRecomp",
+    "description": "A community game project. See the source repository for details and current progress.",
+    "owner": "mstan",
+    "path": "data/games/80_fzerosnesrecomp-e160569f/index.md",
+    "url": "/games/fzerosnesrecomp-e160569f",
+    "createdAt": "2026-09-27T22:06:07.481Z",
+    "status": "pending",
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "BS F-Zero Deluxe Forest III race in 21:9"
+      },
+      {
+        "path": "./submission-2.png",
+        "alt": "F-Zero title screen in widescreen"
+      },
+      {
+        "path": "./submission-3.png",
+        "alt": "BS F-Zero Deluxe Blue Thunder machine select"
+      },
+      {
+        "path": "./submission-4.png",
+        "alt": "BS F-Zero Deluxe Forest III race in 16:9"
+      }
+    ],
+    "summary": [
+      "You bring your own legally dumped F-Zero (USA) ROM. No ROM is included.",
+      "- Play F-Zero as a native app.",
+      "- Widescreen modes: 16:9, 21:9, 32:9, and Fit.",
+      "- Optional HD Mode 7: 2x through 10x track rendering, independent of widescreen and presentation FPS.",
+      "- High refresh presentation: 60, 90, 120, 144, 165, 240, or 360 FPS.",
+      "- Display shaders: CRT Soft, LCD Grid, Sharp, Warm Composite, or your own GLSL shader.",
+      "- Save states with a slot browser and thumbnails, opened with F7 or Select + R."
+    ],
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
   }
 ]
