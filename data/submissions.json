@@ -260,5 +260,31 @@
       "- Save states with a slot browser and thumbnails, opened with F7 or Select + R."
     ],
     "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "ec26233d01dd8271",
+    "repo": "https://github.com/mstan/Megaman3NESRecomp",
+    "title": "Megaman3NESRecomp",
+    "description": "Mega Man 3 recompiled for the NES using nesrecomp · Part of the R.A.I.D. community",
+    "owner": "mstan",
+    "path": "data/games/81_megaman3nesrecomp-ec26233d/index.md",
+    "url": "/games/megaman3nesrecomp-ec26233d",
+    "createdAt": "2026-09-27T22:23:49.595Z",
+    "status": "pending",
+    "images": [],
+    "summary": [
+      "Static recompilation of Mega Man 3 (NES) for native PC. Built with the NESRecomp framework.",
+      "- Title screen",
+      "- Main menu (GAME START / PASS WORD selection)",
+      "- Robot master stage select screen and navigation",
+      "- Loading into stages with background scrolling and basic enemies",
+      "- Player movement, jumping, and the Mega Buster",
+      "- Boss fights are untested and likely to stall or softlock",
+      "- Special weapons are untested",
+      "- Passwords are untested",
+      "- Visual elements may have minor glitches or missing sprites in some areas",
+      "- Audio is basic (APU register writes are captured but full audio mixing is work-in-progress)"
+    ],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
