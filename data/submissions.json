@@ -320,5 +320,25 @@
       "One executable, two recompiled bodies of that one cart: the faithful V1.0 build, and Super Mario Land 2 DX v1.8.1 derived from the same ROM in memory at boot. The launcher's Mods page picks between them — see DX.md."
     ],
     "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "e10e1ad7c15cb3d8",
+    "repo": "https://github.com/mstan/TetrisGBRecomp",
+    "title": "TetrisGBRecomp",
+    "description": "Tetris recompiled for the Game Boy using a fork of gb-recompiled · Part of the R.A.I.D. community",
+    "owner": "mstan",
+    "path": "data/games/83_tetrisgbrecomp-e10e1ad7/index.md",
+    "url": "/games/tetrisgbrecomp-e10e1ad7",
+    "createdAt": "2026-09-28T01:06:01.672Z",
+    "status": "pending",
+    "images": [],
+    "summary": [
+      "Static recompilation of Tetris (Game Boy) for native PC. Built with the gb-recompiled engine and the shared recomp-ui launcher.",
+      "- All game modes (A-Type, B-Type)",
+      "- Title screen, menus, demo/attract mode",
+      "- Music and sound effects",
+      "- recomp-ui launcher: ROM picker with CRC gate, settings/video/input overlay (F1)"
+    ],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
