@@ -340,5 +340,22 @@
       "- recomp-ui launcher: ROM picker with CRC gate, settings/video/input overlay (F1)"
     ],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "77d3c638dbbda74e",
+    "repo": "https://github.com/mstan/PokemonYellowRecomp",
+    "title": "PokemonYellowRecomp",
+    "description": "Pokémon Yellow recompiled for the Game Boy using a fork of gb-recompiled (extended with the full National Dex #1–251) · Part of the R.A.I.D. community",
+    "owner": "mstan",
+    "path": "data/games/84_pokemonyellowrecomp-77d3c638/index.md",
+    "url": "/games/pokemonyellowrecomp-77d3c638",
+    "createdAt": "2026-09-28T01:07:15.730Z",
+    "status": "pending",
+    "images": [],
+    "summary": [
+      "An extended Pokémon Yellow built from the pret/pokeyellow decompilation, then run natively through our gbrecomp static recompiler and SDL/ANGLE runner.",
+      "Everything is done by editing the decomp source (assembly + data + PNG sprites) and reassembling a real ROM — not by binary-patching a .gbc. The Gen-2 content is pulled from pokecrystal's source at build time (no Crystal ROM needed), so the repo ships source only — no ROM, binary, or patch."
+    ],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
