@@ -385,5 +385,31 @@
       "- Only tested with US/Europe ROM versions"
     ],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "87d17311e2cec2ce",
+    "repo": "https://github.com/mstan/ZeroRacersVirtualBoyRecomp",
+    "title": "ZeroRacersVirtualBoyRecomp",
+    "description": "Zero Racers Virtual Boy native recompilation with recomp-ui and independent cosimulation",
+    "owner": "mstan",
+    "path": "data/games/86_zeroracersvirtualboyrecomp-87d17311/index.md",
+    "url": "/games/zeroracersvirtualboyrecomp-87d17311",
+    "createdAt": "2026-09-28T01:10:42.680Z",
+    "status": "pending",
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "Colored machines on the Zero Racers starting grid"
+      },
+      {
+        "path": "./submission-2.png",
+        "alt": "Yellow repair lanes and beams inside the silver tunnel"
+      }
+    ],
+    "summary": [
+      "A recompilation of Zero Racers for Virtual Boy, playable on Windows. Built with vbrecomp and recomp-ui.",
+      "Screenshots show the optional color mod. Original red graphics are the default."
+    ],
+    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork."
   }
 ]
