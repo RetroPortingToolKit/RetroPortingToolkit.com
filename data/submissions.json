@@ -357,5 +357,33 @@
       "Everything is done by editing the decomp source (assembly + data + PNG sprites) and reassembling a real ROM — not by binary-patching a .gbc. The Gen-2 content is pulled from pokecrystal's source at build time (no Crystal ROM needed), so the repo ships source only — no ROM, binary, or patch."
     ],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "f21ce565d82554d4",
+    "repo": "https://github.com/mstan/PokemonRedAndBlueRecomp",
+    "title": "PokemonRedAndBlueRecomp",
+    "description": "Pokémon Red & Blue recompiled for the Game Boy using a fork of gb-recompiled · Part of the R.A.I.D. community",
+    "owner": "mstan",
+    "path": "data/games/85_pokemonredandbluerecomp-f21ce565/index.md",
+    "url": "/games/pokemonredandbluerecomp-f21ce565",
+    "createdAt": "2026-09-28T01:09:27.240Z",
+    "status": "pending",
+    "images": [],
+    "summary": [
+      "A static recompilation of Pokemon Red and Pokemon Blue (Game Boy) for native PC.",
+      "This project uses gb-recompiled (forked from arcanite24/gb-recompiled) to translate the original Game Boy machine code into C, which is then compiled to a native x64 executable. The Game Boy's PPU, APU, and memory mapper are handled by the gb-recompiled runtime library.",
+      "Early working prototype. The game is playable from the title screen through the Elite Four, but this is not a finished product.",
+      "- The game runs and is playable with both Red and Blue ROMs",
+      "- Some animations may lag or chug slightly (e.g., certain battle intro spirals)",
+      "- Minor visual glitches may occur in edge cases",
+      "- Code paths not yet discovered by the static analyzer will fall back to an interpreter — this works but is slower than recompiled code",
+      "- Audio works but may stutter briefly during animation-heavy scenes",
+      "- Some animation-heavy scenes (e.g., certain battle intro effects) may experience frame drops",
+      "- Audio may stutter briefly during heavy rendering",
+      "- Undiscovered code paths fall back to interpreter (logged to console)",
+      "- No link cable or printer support",
+      "- Only tested with US/Europe ROM versions"
+    ],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
