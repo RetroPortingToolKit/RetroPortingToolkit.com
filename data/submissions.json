@@ -286,5 +286,39 @@
       "- Audio is basic (APU register writes are captured but full audio mixing is work-in-progress)"
     ],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "57709e656a9ec54a",
+    "repo": "https://github.com/mstan/SuperMarioLand2Recomp",
+    "title": "SuperMarioLand2Recomp",
+    "description": "Super Mario Land 2: 6 Golden Coins (Game Boy) static recompilation with adaptive widescreen and DX mods",
+    "owner": "mstan",
+    "path": "data/games/82_supermarioland2recomp-57709e65/index.md",
+    "url": "/games/supermarioland2recomp-57709e65",
+    "createdAt": "2026-09-28T01:04:19.421Z",
+    "status": "pending",
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "Faithful, native"
+      },
+      {
+        "path": "./submission-2.png",
+        "alt": "DX color, native"
+      },
+      {
+        "path": "./submission-3.png",
+        "alt": "Faithful body, adaptive widescreen 32:9"
+      },
+      {
+        "path": "./submission-4.png",
+        "alt": "DX color, adaptive widescreen 32:9"
+      }
+    ],
+    "summary": [
+      "Static recompilation of the Game Boy title Super Mario Land 2 - 6 Golden Coins (UE) (V1.0) (CRC32 D5EC24E4) to native code via gbrecompiled, with the shared recomp-ui launcher.",
+      "One executable, two recompiled bodies of that one cart: the faithful V1.0 build, and Super Mario Land 2 DX v1.8.1 derived from the same ROM in memory at boot. The launcher's Mods page picks between them — see DX.md."
+    ],
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
   }
 ]
