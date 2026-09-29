@@ -245,6 +245,7 @@ function jobRecord(job) {
     asker: job.asker ?? null,
     startedAt: job.startedAt ?? null,
     waitingSince: job.waitingSince ?? null,
+    waitingReason: job.waitingReason ?? "",
     startedHead: job.startedHead ?? null,
     attachments: job.attachments ?? [],
     requester: job.requester ?? null,
@@ -434,8 +435,9 @@ async function notifyPendingAdminChannel(job) {
   });
 }
 
-function markWaiting(job) {
+function markWaiting(job, reason = "") {
   job.phase = "waiting";
+  job.waitingReason = reason || job.waitingReason || "";
   job.waitingSince ??= Date.now();
   if (job.ref?.messageId) void updateStatus(job);
   void notifyPendingAdminChannel(job);
@@ -815,8 +817,8 @@ async function remoteMain() {
 }
 
 async function runPublish(job) {
-  const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => {
-    if (job.phase !== "waiting") markWaiting(job);
+  const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => {
+    if (job.phase !== "waiting") markWaiting(job, reason);
   });
   // Both the dirty tree and the wait that timed out on commit churn (clean
   // tree, someone committing every few seconds) are "busy": the second used
@@ -1080,7 +1082,7 @@ function stopActiveTask() {
 
 function statusText(job) {
   if (job.phase === "waiting") {
-    return progressMessage({ elapsedMs: Date.now() - job.waitingSince, phase: "waiting" });
+    return progressMessage({ elapsedMs: Date.now() - job.waitingSince, phase: "waiting", reason: job.waitingReason ?? "" });
   }
   // The last trace line, with its timestamp trimmed off: "Still working —
   // 3m elapsed. Last: Bash: npm run build" tells a reader whether it is
@@ -1237,19 +1239,19 @@ async function drainQueue() {
     if (!scheduled) startStatusTicker(job);
     let report;
     if (job.submissionModeration) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { if (job.phase !== "waiting") markWaiting(job); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { if (job.phase !== "waiting") markWaiting(job, reason); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.ownerUpdate) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { if (job.phase !== "waiting") markWaiting(job); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { if (job.phase !== "waiting") markWaiting(job, reason); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const summary = await applyOwnerUpdate({ root: ROOT, update: job.ownerUpdate, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.repoUpdate) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, () => { if (job.phase !== "waiting") markWaiting(job); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { if (job.phase !== "waiting") markWaiting(job, reason); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const updates = job.repoUpdate.updates ?? [job.repoUpdate];
@@ -1642,7 +1644,10 @@ client.on("messageCreate", async (message) => {
   await persistJobs();
   await message.react("🔍").catch(() => undefined);
   if (ahead > 0) {
-    job.queuedNotice = await safeSend({ ...ref, content: `Queued. You are number ${ahead} waiting.`, ping: true });
+    // If the front of the queue is itself parked, the wait is not about queue
+    // depth at all, and saying so saves everyone guessing.
+    const blocked = running?.phase === "waiting" && running?.waitingReason ? ` The checkout is blocked: ${running.waitingReason}.` : "";
+    job.queuedNotice = await safeSend({ ...ref, content: `Queued. You are number ${ahead} waiting.${blocked}`, ping: true });
     await persistJobs(); // its id, for a restart to tidy
   }
   void drainQueue().catch((error) =>

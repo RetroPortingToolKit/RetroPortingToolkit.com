@@ -108,10 +108,10 @@ export function coarseElapsed(ms) {
   return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
 }
 
-export function progressMessage({ elapsedMs, queued = 0, phase = "running", last = "" }) {
+export function progressMessage({ elapsedMs, queued = 0, phase = "running", last = "", reason = "" }) {
   const t = coarseElapsed(elapsedMs);
   if (phase === "waiting") {
-    return `Waiting for the shared checkout to go quiet${t ? ` — ${t} so far` : ""}. Your request is holding its place and I will start it by myself; there is nothing for you to re-send.`;
+    return `Waiting for the shared checkout to go quiet${t ? ` — ${t} so far` : ""}${reason ? `: ${reason}` : ""}. Your request is holding its place and I will start it by myself; there is nothing for you to re-send.`;
   }
   const waiting = queued ? ` ${queued} queued behind it.` : "";
   const tail = last ? ` Last: ${last}` : "";
@@ -212,7 +212,17 @@ export function channelMode(message, config) {
  * mid-session; the tree being dirty is just the most obvious case of it.
  */
 export function checkoutBusyReason(pulse, now = Date.now(), quietMs = 90_000) {
-  if (pulse.status) return "uncommitted changes in the tree";
+  if (pulse.status) {
+    // Naming the files is the difference between "the bot is stuck" and
+    // "someone left work in the tree". On 2026-09-29 finished Codex work sat
+    // uncommitted for two days: every job parked behind it and the only thing
+    // anyone saw was "Queued. You are number 2 waiting."
+    const paths = String(pulse.status).split("\n").filter(Boolean).map((line) => line.slice(3).trim()).filter(Boolean);
+    if (!paths.length) return "uncommitted changes in the tree";
+    const shown = paths.slice(0, 3).join(", ");
+    const rest = paths.length - Math.min(paths.length, 3);
+    return `uncommitted work in the tree (${shown}${rest > 0 ? ` and ${rest} more` : ""})`;
+  }
   const sinceCommit = now - pulse.lastCommitMs;
   if (Number.isFinite(pulse.lastCommitMs) && sinceCommit < quietMs) {
     return `a commit ${Math.max(1, Math.round(sinceCommit / 1000))}s ago`;

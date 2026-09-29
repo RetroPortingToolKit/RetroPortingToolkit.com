@@ -122,7 +122,7 @@ describe("Discord agent core", () => {
     expect(checkoutBusyReason({ status: "", lastCommitMs: now - 30_000 }, now, quiet))
       .toBe("a commit 30s ago");
     expect(checkoutBusyReason({ status: " M src/App.tsx", lastCommitMs: now - 600_000 }, now, quiet))
-      .toBe("uncommitted changes in the tree");
+      .toContain("uncommitted work in the tree");
     expect(checkoutBusyReason({ status: "", lastCommitMs: now - 600_000 }, now, quiet)).toBe(null);
   });
 
@@ -652,6 +652,24 @@ describe("fallback answer without a model", () => {
     expect(fallbackAnswer("how is the lufia port going?", root, "https://site")).toBe("I can't reach my answer model right now, but these pages look relevant:\n- Lufia II <https://site/games/lufia-ii>");
     expect(fallbackAnswer("what do I need?", root, "https://site")).toContain("The site is at <https://site>");
     fs.rmSync(root, { recursive: true, force: true });
+  });
+});
+
+describe("a blocked checkout explains itself", () => {
+  it("names the files in the way, not just that something is", () => {
+    const pulse = { status: " M scripts/discord-agent.mjs\n?? scripts/discord-codex-answer.mjs\n M docs/HANDOFF.md\n M a.md\n M b.md", lastCommitMs: 0 };
+    const reason = checkoutBusyReason(pulse, 10_000_000);
+    expect(reason).toContain("scripts/discord-agent.mjs");
+    expect(reason).toContain("scripts/discord-codex-answer.mjs");
+    expect(reason).toContain("and 2 more");
+  });
+
+  it("puts that reason in the waiting line instead of a bare apology", () => {
+    const line = progressMessage({ elapsedMs: 120_000, phase: "waiting", reason: "uncommitted work in the tree (docs/HANDOFF.md)" });
+    expect(line).toContain("uncommitted work in the tree (docs/HANDOFF.md)");
+    expect(line).toContain("nothing for you to re-send");
+    // Without a reason it stays the plain message rather than an empty colon.
+    expect(progressMessage({ elapsedMs: 120_000, phase: "waiting" })).not.toContain(":");
   });
 });
 
