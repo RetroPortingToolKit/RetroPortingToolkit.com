@@ -21,6 +21,9 @@ describe('submission publishing', () => {
     const result = await submitRepository(store, { repo });
     expect(result.record).toMatchObject({ title: 'Recomp', description: 'A playable port.', owner: 'example', status: 'pending' });
     expect(result.record.path).toMatch(/^data\/games\/01_recomp-[a-f0-9]+\/index.md$/);
+    // An anonymous submission still records how it arrived. Recording nothing
+    // is what left "who submitted this?" unanswerable.
+    expect(result.record.submittedBy).toEqual({ via: 'form', verified: false });
     expect(store.create).toHaveBeenCalledOnce();
   });
   it('records the Discord name and puts a chosen cover ahead of README artwork', async () => {
@@ -31,6 +34,9 @@ describe('submission publishing', () => {
     const result = await submitRepository(store, { repo, discord: ' maker ', cover: 'https://raw.githubusercontent.com/example/recomp/main/banner.png' });
     expect(result.record.discord).toBe('maker');
     expect(result.record.images?.map(i => i.alt)).toEqual(['Project banner', 'Shot']);
+    // This endpoint is public and unauthenticated, so a handle typed into the
+    // form is a claim. It is recorded, and recorded as unverified.
+    expect(result.record.submittedBy).toEqual({ via: 'form', verified: false, discord: 'maker' });
   });
   it('rechecks duplicates after a concurrent update instead of overwriting', async () => {
     const { store, snapshot } = fixture();

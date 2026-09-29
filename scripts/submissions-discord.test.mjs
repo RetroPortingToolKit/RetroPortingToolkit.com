@@ -46,7 +46,10 @@ describe('Discord submission moderation', () => {
     await f.bridge.intake(message, { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, `submit ${record.repo}`, true);
     // The submitter's own message, not null: a job with no ref crashed restart
     // recovery after it had already emptied jobs.json, losing the whole queue.
-    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ ref: { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, submissionModeration: { id: record.id, decision: 'confirmed', moderator: 'LEAD' } }));
+    // No moderator: nobody reviewed it. Recording the submitter as the person
+    // who approved it is how a submission came to name someone who had never
+    // clicked anything.
+    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ ref: { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, submissionModeration: { id: record.id, decision: 'confirmed', autoApproved: true, submitter: { via: 'discord', verified: true, discord: 'lead', discordId: 'LEAD' } } }));
     expect(f.send.mock.calls[0][0].content).toContain('confirmed without review');
     expect(f.send.mock.calls[0][0]).toMatchObject({ content: expect.stringMatching(/^<@LEAD> /), mentionUsers: ['LEAD'] });
     expect(f.message.react).not.toHaveBeenCalled();
@@ -93,4 +96,53 @@ describe('Discord submission moderation', () => {
     expect(JSON.parse(post[1].body).images).toEqual([{url:'https://cdn.discordapp.com/attachments/1/2/banner.png',alt:'Project banner'}]);
   });
 
+});
+
+/** Nobody could say who submitted the F-Zero page on 2026-09-29: the form
+ * recorded no submitter, and the record named an approver who had never
+ * clicked anything, because an auto-approval wrote the submitter into
+ * moderatedBy. */
+describe('who submitted it, and who approved it', () => {
+  const seed = async (dir) => {
+    await fs.mkdir(path.join(dir, 'data/games/01_game'), { recursive: true });
+    await fs.writeFile(path.join(dir, record.path), submissionPage(record));
+    await fs.writeFile(path.join(dir, 'data/submissions.json'), JSON.stringify([record]));
+  };
+  const stored = async (dir) => JSON.parse(await fs.readFile(path.join(dir, 'data/submissions.json'), 'utf8'))[0];
+
+  it('records a human approver, and says so in the message that survives', async () => {
+    const f = await fixture(); await seed(f.dir);
+    const summary = await moderateSubmission({ root: f.dir, action: { id: record.id, decision: 'confirmed', moderator: 'EDITOR' }, exec: vi.fn(async () => {}) });
+    const saved = await stored(f.dir);
+    expect(saved.moderatedBy).toBe('EDITOR');
+    expect(saved.autoApproved).toBeUndefined();
+    // The notice it was clicked on is deleted, so the reply is the only record.
+    expect(summary).toContain('Confirmed by <@EDITOR>.');
+  });
+
+  it('never names a moderator for an auto-approved team submission', async () => {
+    const f = await fixture(); await seed(f.dir);
+    const submitter = { via: 'discord', verified: true, discord: 'lead', discordId: 'LEAD' };
+    const summary = await moderateSubmission({ root: f.dir, action: { id: record.id, decision: 'confirmed', autoApproved: true, submitter }, exec: vi.fn(async () => {}) });
+    const saved = await stored(f.dir);
+    expect(saved.moderatedBy).toBeUndefined();
+    expect(saved.autoApproved).toBe(true);
+    expect(saved.submittedBy).toEqual(submitter);
+    expect(summary).toContain('Confirmed automatically as a team submission from <@LEAD>.');
+    expect(summary).not.toContain('Confirmed by');
+  });
+
+  it('keeps a removal attributable too', async () => {
+    const f = await fixture(); await seed(f.dir);
+    const summary = await moderateSubmission({ root: f.dir, action: { id: record.id, decision: 'removed', moderator: 'EDITOR' }, exec: vi.fn(async () => {}) });
+    expect(summary).toContain('Removed by <@EDITOR>.');
+    expect((await stored(f.dir)).moderatedBy).toBe('EDITOR');
+  });
+
+  it('does not upgrade an unverified form claim to a verified identity', async () => {
+    const f = await fixture(); await seed(f.dir);
+    // A submitter with no Discord id is a claim typed into the public form.
+    await moderateSubmission({ root: f.dir, action: { id: record.id, decision: 'confirmed', moderator: 'EDITOR', submitter: { via: 'form', verified: false, discord: 'someone' } }, exec: vi.fn(async () => {}) });
+    expect((await stored(f.dir)).submittedBy).toBeUndefined();
+  });
 });

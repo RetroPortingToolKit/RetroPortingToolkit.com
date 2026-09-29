@@ -2,7 +2,12 @@ export interface Submission {
   id: string; repo: string; title: string; description: string; owner: string;
   path: string; url: string; createdAt: string; status: 'pending' | 'confirmed' | 'removed';
   images?: {path: string; alt: string}[]; mediaNote?: string; summary?: string[]; discord?: string;
-  moderatedBy?: string; moderatedAt?: string;
+  /** How the submission arrived. `verified` is true only when the bridge
+   * itself saw the Discord message, never from the public form. */
+  submittedBy?: { via: 'form' | 'discord'; verified: boolean; discord?: string; discordId?: string };
+  /** Set only when a person clicked ✅ or ❌. An auto-approved team submission
+   * sets `autoApproved` instead, so the two are never confused. */
+  moderatedBy?: string; moderatedAt?: string; autoApproved?: boolean;
 }
 export const SUBMISSIONS_PATH: string;
 export function repositoryUrl(value: unknown): string;

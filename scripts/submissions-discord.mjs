@@ -26,7 +26,10 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     if (!response.ok) throw new Error(result.error || 'The submission could not be published.');
     const record = result.record;
     if (!record?.id || !/^\/games\/[a-z0-9-]+$/.test(record.url)) throw new Error('The submission returned an incomplete result.');
-    state.sources[record.id] ??= { ref: intake.ref, username: intake.username, url: intake.url, autoApproved: intake.trusted && !result.duplicate };
+    state.sources[record.id] ??= { ref: intake.ref, username: intake.username, url: intake.url, autoApproved: intake.trusted && !result.duplicate,
+      // The bridge saw this message itself, so unlike anything the public form
+      // reports, this identity is evidence.
+      submitter: { via: 'discord', verified: true, discord: intake.username, discordId: intake.ref.authorId } };
     delete state.intake[key];
     await save();
     const auto = intake.trusted && !result.duplicate;
@@ -35,8 +38,11 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     // The submitter's own message, not null: a job with no ref crashed the
     // restart recovery after it had already emptied jobs.json, silently
     // losing every other queued request with it.
+    // Not `moderator`: nobody reviewed this. Recording the submitter as the
+    // moderator is how F-Zero came to say it was approved by someone who had
+    // never clicked anything.
     if (auto) await enqueue({ ref: intake.ref, request: `Publish auto-approved submission ${record.id}`, messageUrl: intake.url,
-      submissionModeration: { id: record.id, decision: 'confirmed', moderator: intake.ref.authorId } });
+      submissionModeration: { id: record.id, decision: 'confirmed', autoApproved: true, submitter: state.sources[record.id]?.submitter } });
   }
   async function intake(message, ref, request, trusted = false) {
     if (!endpoint) return false;
@@ -71,7 +77,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     try {
       await enqueue({ ref: { channelId: message.channelId, messageId: message.id, authorId: user.id },
         request: `Moderate submission ${id}`, messageUrl: message.url,
-        submissionModeration: { id, decision: emoji === '✅' ? 'confirmed' : 'removed', moderator: user.id } });
+        submissionModeration: { id, decision: emoji === '✅' ? 'confirmed' : 'removed', moderator: user.id, submitter: state.sources[id]?.submitter } });
     } catch (error) { pending.delete(id); throw error; }
   }
   async function poll() {
@@ -113,7 +119,13 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
               { name: 'Repository', value: record.repo },
               { name: 'Artwork', value: record.mediaNote || 'No imported artwork recorded.' },
               { name: 'Repository owner', value: record.owner || source?.username || 'Not available' },
-              { name: 'Submitted through', value: source ? `Discord: ${source.username}\n${source.url}` : 'Website form' },
+              // The record outlives this bot's memory of the submission, so it
+              // is the better witness. A handle typed into the public form is
+              // a claim, and says so.
+              { name: 'Submitted through', value: source ? `Discord: ${source.username}\n${source.url}`
+                : record.submittedBy?.via === 'discord' ? `Discord: ${record.submittedBy.discord ?? 'unknown'}`
+                : record.submittedBy?.discord ? `Website form, claiming to be ${record.submittedBy.discord} on Discord (unverified)`
+                : 'Website form, with no submitter given' },
               { name: 'Moderation', value: source?.autoApproved
                 ? 'Auto-approved team submission. No review action is required.'
                 : 'The game page publishes automatically. ✅ confirms it; ❌ removes it from listings (keeps its unlisted URL). Only approved site editors can moderate.' },
@@ -189,8 +201,15 @@ export async function moderateSubmission({ root, action, exec, siteUrl = '' }) {
     const raw = await fs.readFile(target, 'utf8');
     const updated = moderationPage(raw, record, action.decision);
     record.status = action.decision;
-    record.moderatedBy = action.moderator;
+    // A person clicking ✅ and a team submission skipping review are different
+    // events, and writing both into moderatedBy made the second look like the
+    // first. Only a real click sets it.
+    if (action.autoApproved) record.autoApproved = true;
+    else record.moderatedBy = action.moderator;
     record.moderatedAt = new Date().toISOString();
+    // The notice is deleted once it is acted on, so provenance has to live on
+    // the record or it is gone. Only the bridge's own intake is verified.
+    if (action.submitter?.discordId) record.submittedBy = { ...action.submitter };
     await fs.writeFile(target, updated);
     await fs.writeFile(path.join(root, SUBMISSIONS_PATH), JSON.stringify(records, null, 2) + '\n');
     written.push(record.path, SUBMISSIONS_PATH);
@@ -200,5 +219,12 @@ export async function moderateSubmission({ root, action, exec, siteUrl = '' }) {
     written.length = 0; // committed: a failed push must not undo the work
     await exec('git', ['push', 'origin', 'main']);
   });
-  return action.decision === 'confirmed' ? `Submission confirmed. ${siteUrl}${record.url}` : `Submission removed from listings. Its unlisted URL is retained: ${siteUrl}${record.url}`;
+  // Who did this, in the message that survives: the notice it was clicked on
+  // is deleted, so without this line nothing on Discord records the decision.
+  const who = action.autoApproved
+    ? `Confirmed automatically${record.submittedBy?.discordId ? ` as a team submission from <@${record.submittedBy.discordId}>` : ' as a team submission'}.`
+    : `${action.decision === 'confirmed' ? 'Confirmed' : 'Removed'} by <@${action.moderator}>.`;
+  return action.decision === 'confirmed'
+    ? `Submission confirmed. ${siteUrl}${record.url}\n${who}`
+    : `Submission removed from listings. Its unlisted URL is retained: ${siteUrl}${record.url}\n${who}`;
 }

@@ -122,6 +122,12 @@ export async function submitRepository(store: SubmissionStore, input: Record<str
     const record: Submission = { id, repo, title: plainText(input.name, 100) || metadata.title,
       description: plainText(input.description, 500) || metadata.description || 'A community game project. See the source repository for details and current progress.',
       owner: metadata.owner, ...(plainText(input.discord, 80) ? { discord: plainText(input.discord, 80) } : {}), path: `data/games/${String(order).padStart(2, '0')}_${slug}/index.md`, url: `/games/${slug}`, createdAt: now.toISOString(), status: 'pending',
+      // Who sent this, as far as this endpoint can honestly tell: it is public
+      // and unauthenticated, so a handle typed into the form is a claim and
+      // nothing more. The bridge replaces this with a verified identity when
+      // the submission came through its own Discord intake. Until 2026-09-29
+      // nothing was recorded at all, and "who submitted F-Zero?" had no answer.
+      submittedBy: { via: 'form', verified: false, ...(plainText(input.discord, 80) ? { discord: plainText(input.discord, 80) } : {}) },
       images: assets.map(asset => ({ path: `./${asset.name}`, alt: asset.alt })), summary: summary ?? [],
       mediaNote: assets.length ? `Imported ${assets.length} image${assets.length === 1 ? '' : 's'}. The first is the cover; check the page for any missing artwork.` : 'No supported images could be imported. The page is publishing without artwork.' };
     try { await store.create(snapshot, record, assets); return { record, duplicate: false }; }
