@@ -231,7 +231,7 @@
     "path": "data/games/80_fzerosnesrecomp-e160569f/index.md",
     "url": "/games/fzerosnesrecomp-e160569f",
     "createdAt": "2026-09-27T22:06:07.481Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [
       {
         "path": "./submission-1.png",
@@ -259,7 +259,9 @@
       "- Display shaders: CRT Soft, LCD Grid, Sharp, Warm Composite, or your own GLSL shader.",
       "- Save states with a slot browser and thumbnails, opened with F7 or Select + R."
     ],
-    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork.",
+    "moderatedBy": "398336732287991808",
+    "moderatedAt": "2026-09-29T19:52:05.508Z"
   },
   {
     "id": "ec26233d01dd8271",
