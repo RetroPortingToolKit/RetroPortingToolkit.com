@@ -17,6 +17,12 @@ export async function rollbackOnFailure(exec, written, run) {
   try {
     return await run();
   } catch (error) {
+    // Which paths are the job's own, for whoever has to judge the failure. A
+    // check that fails over someone else's uncommitted edits says nothing
+    // about the site, and on 2026-09-29 it was announced as "publishing is
+    // stopped". After a commit `written` is empty, which is the right answer:
+    // the work belongs to git and the failure is the bot's own.
+    if (error && typeof error === "object") error.ownPaths = [...written];
     if (written.length) {
       // Cleanup must never replace the error the caller has to see, so a
       // failed restore is swallowed; the tree is reported dirty either way.

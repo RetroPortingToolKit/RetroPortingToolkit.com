@@ -16,6 +16,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { gamePages, latestRelease } from './repo-updates.mjs';
+import { releaseDecision } from './release-rank.mjs';
 import { withChecksLock } from './checkout.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -61,16 +62,23 @@ export async function checkoutState() {
 export async function behindUpstream(root = ROOT, concurrency = 8) {
   const pages = await gamePages(root);
   const behind = [];
+  const held = [];
   let next = 0;
   await Promise.all(Array.from({ length: Math.min(concurrency, pages.length) }, async () => {
     for (let i = next++; i < pages.length; i = next++) {
       const page = pages[i];
       const release = await latestRelease(page.repo).catch(() => undefined);
       if (!release || release.tag === page.release) continue;
-      behind.push(`${page.title}: page has ${page.release || '(none)'}, ${page.repo.replace(/^https:\/\/(github|gitlab)\.com\//, '')} has ${release.tag}`);
+      const short = page.repo.replace(/^https:\/\/(github|gitlab)\.com\//, '');
+      // The watcher will not put this on the page by itself: a downgrade, or a
+      // tag nothing can rank. Saying so here is the whole reason the watcher
+      // is allowed to refuse rather than guess.
+      const decision = releaseDecision({ recorded: page.release, recordedUrl: page.download, pick: release, feedTags: release.feedTags ?? [] });
+      if (decision === 'review') held.push(`${page.title}: page has ${page.release || '(none)'}, ${short} offers ${release.tag} — held for a person, the watcher will not change it`);
+      else behind.push(`${page.title}: page has ${page.release || '(none)'}, ${short} has ${release.tag}`);
     }
   }));
-  return behind;
+  return { behind, held };
 }
 
 /** Releases the watcher has published that a page never received. */
@@ -156,10 +164,14 @@ async function main() {
   // --- and the question that actually matters: is anything out of date?
   if (quick) warn('upstream releases', 'skipped (--quick)', 'Run without --quick to ask every repository what it has published.');
   else {
-    const behind = await behindUpstream();
+    const { behind, held } = await behindUpstream();
     if (behind.length) warn('upstream releases', behind.join('\n    '),
       'The watcher checks a quarter of the pages every 15 minutes, so a recent one is simply not its turn yet. If it is still here in an hour, the release job is failing.');
     else ok('upstream releases', 'every page carries its repository\'s latest release');
+    // These will never clear on their own, so they are reported separately
+    // from an ordinary lag: someone has to decide.
+    if (held.length) warn('releases held for review', held.join('\n    '),
+      'The repository offers a tag the watcher will not apply by itself — a lower version, or one it cannot rank, such as a mod or a platform build published from the same repository. Edit the page if the tag is right, or leave it.');
   }
 
   // --- recent trouble in the log

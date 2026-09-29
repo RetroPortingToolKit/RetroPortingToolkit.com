@@ -29,8 +29,11 @@ async function fixture(releases) {
     const r = releases[url.includes('github') ? 'alpha' : 'beta'];
     if (r === null) return url.includes('github') ? new Response('<feed></feed>') : new Response('', { status: 404 });
     if (r === undefined) return new Response('', { status: 503 });
-    return url.includes('github') ? new Response(`<feed><entry><id>tag:github.com,2008:Repository/1/${r}</id><updated>2026-09-16T00:00:00Z</updated><link rel="alternate" type="text/html" href="https://github.com/a/alpha/releases/tag/${r}"/><title>Alpha ${r}</title></entry></feed>`)
-      : Response.json([{ tag_name: r, name: r, released_at: '2026-09-15T00:00:00Z', _links: { self: `https://gitlab.com/b/beta/-/releases/${r}` } }]);
+    // A feed carries up to ten entries in an order GitHub does not document,
+    // so a release is given as an array whenever the order is the point.
+    const list = Array.isArray(r) ? r : [r];
+    return url.includes('github') ? new Response(`<feed>${list.map((t) => `<entry><id>tag:github.com,2008:Repository/1/${t}</id><updated>2026-09-16T00:00:00Z</updated><link rel="alternate" type="text/html" href="https://github.com/a/alpha/releases/tag/${t}"/><title>Alpha ${t}</title></entry>`).join('')}</feed>`)
+      : Response.json(list.map((t) => ({ tag_name: t, name: t, released_at: '2026-09-15T00:00:00Z', _links: { self: `https://gitlab.com/b/beta/-/releases/${t}` } })));
   });
   const enqueue = vi.fn(async () => {});
   return { dir, fetcher, enqueue, releases, watcher: repoUpdateWatcher({ root: dir, stateDir: path.join(dir, 'state'), enqueue, fetcher, batch: 10 }) };
@@ -140,5 +143,71 @@ describe('repository update watcher', () => {
     expect(releasePage(raw, { ...update, tag: 'v2', releaseUrl: 'u2', date: '' })).toContain('release: "v2"\ndownload: "u2"\nupdated: "2026-09-16"');
     expect(await applyRepoUpdate({ root: f.dir, update, exec })).toContain('already lists v1');
     expect(releaseAnnouncement(update, 'https://site')).toBe('🎉 Alpha: new release Alpha v1 (v1)\nhttps://github.com/a/alpha/releases/tag/v1\nhttps://site/games/alpha');
+  });
+});
+
+/** The Mega Man X page carried v1.6.6 until the watcher found zero-v0.0.1, a
+ * mod published from the same repository, first in the feed. It wrote the mod
+ * onto the page and pointed the download button at it. */
+describe('a release the page should keep', () => {
+  const withRelease = (tag, extra = '') => page('Alpha', 'https://github.com/a/alpha', `release: "${tag}"\ndownload: "https://github.com/a/alpha/releases/tag/${tag}"\n${extra}`);
+
+  it('takes the highest version in the feed, not the first entry', async () => {
+    const f = await fixture({ alpha: ['zero-v0.0.1', 'v1.6.6', 'v1.6.5'], beta: null });
+    await f.watcher.start();
+    const updates = await f.watcher.tick();
+    expect(updates.map((u) => u.tag)).toEqual(['v1.6.6']);
+  });
+
+  it('leaves the page alone when the newest tag cannot be ranked', async () => {
+    const f = await fixture({ alpha: ['nightly', 'staging-20260903'], beta: null });
+    await fs.writeFile(path.join(f.dir, 'data/games/01_alpha/index.md'), withRelease('v1.6.6'));
+    const before = await fs.readFile(path.join(f.dir, 'data/games/01_alpha/index.md'), 'utf8');
+    await f.watcher.start();
+    expect(await f.watcher.tick()).toEqual([]);
+    expect(f.enqueue).not.toHaveBeenCalled();
+    expect(await fs.readFile(path.join(f.dir, 'data/games/01_alpha/index.md'), 'utf8')).toBe(before);
+  });
+
+  it('does not accept a lower version even when the feed lists it', async () => {
+    const f = await fixture({ alpha: ['v1.5.0'], beta: null });
+    await fs.writeFile(path.join(f.dir, 'data/games/01_alpha/index.md'), withRelease('v1.6.6'));
+    await f.watcher.start();
+    expect(await f.watcher.tick()).toEqual([]);
+  });
+
+  it('repairs a tag it wrote itself without announcing an older build as new', async () => {
+    // Mega Man X4 carried shared-staging-20260903; its real release, v0.0.5,
+    // was published in August. Correcting the page must not post a 🎉 line.
+    const f = await fixture({ alpha: ['staging-20260903', 'v0.0.5'], beta: null });
+    await fs.writeFile(path.join(f.dir, 'data/games/01_alpha/index.md'), withRelease('staging-20260903'));
+    await fs.mkdir(path.join(f.dir, 'state'), { recursive: true });
+    await fs.writeFile(path.join(f.dir, 'state/repo-updates.json'), JSON.stringify({
+      cursor: 0, seen: { 'https://github.com/a/alpha': { tag: 'staging-20260903', at: '2026-09-30' } },
+    }));
+    await f.watcher.start();
+    const updates = await f.watcher.tick();
+    // The feed dates the release 2026-09-16, before the staging tag we recorded.
+    expect(updates.map((u) => [u.tag, u.announce])).toEqual([['v0.0.5', false]]);
+  });
+
+  it('never moves the updated date backwards', async () => {
+    const raw = page('Alpha', 'https://github.com/a/alpha', 'updated: "2026-09-29"\n');
+    const update = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'v1.6.6', name: 'v1.6.6', releaseUrl: 'u', date: '2026-09-25' };
+    expect(releasePage(raw, update)).toContain('updated: "2026-09-29"');
+    expect(releasePage(raw, { ...update, date: '2026-10-01' })).toContain('updated: "2026-10-01"');
+  });
+
+  it('refuses at write time an update the page has moved past', async () => {
+    const f = await fixture({ alpha: 'v1', beta: null });
+    await fs.writeFile(path.join(f.dir, 'data/games/01_alpha/index.md'), withRelease('v1.6.6'));
+    const stale = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'zero-v0.0.1', name: 'mod', releaseUrl: 'u', date: '2026-09-29' };
+    const exec = vi.fn(async () => {});
+    const summary = await applyRepoUpdate({ root: f.dir, update: stale, exec });
+    expect(summary).toContain('still lists v1.6.6');
+    expect(await fs.readFile(path.join(f.dir, 'data/games/01_alpha/index.md'), 'utf8')).toContain('release: "v1.6.6"');
+    // Nothing was written, so nothing is checked, committed or pushed.
+    expect(exec.mock.calls.filter((c) => c[1][0] === 'run')).toHaveLength(0);
+    expect(exec.mock.calls.filter((c) => c[1].includes('commit'))).toHaveLength(0);
   });
 });

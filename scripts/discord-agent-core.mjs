@@ -211,17 +211,47 @@ export function channelMode(message, config) {
  * surfaces minutes later. Recent commit activity is the signal that a person is
  * mid-session; the tree being dirty is just the most obvious case of it.
  */
+export function dirtyPaths(status) {
+  return String(status ?? "").split("\n").filter(Boolean).map((line) => line.slice(3).trim()).filter(Boolean);
+}
+
+/** "uncommitted work in the tree (a, b and N more)", or the bare phrase when
+ * the status could not be parsed into paths. */
+export function dirtyReason(paths) {
+  if (!paths.length) return "uncommitted changes in the tree";
+  const shown = paths.slice(0, 3).join(", ");
+  const rest = paths.length - Math.min(paths.length, 3);
+  return `uncommitted work in the tree (${shown}${rest > 0 ? ` and ${rest} more` : ""})`;
+}
+
+/**
+ * Whose work is in the way, ignoring the job's own writes.
+ *
+ * Checks run before the commit, so at the moment one fails the bot has
+ * committed nothing: any dirty path it did not write, and any local commit not
+ * on origin/main, belongs to someone else. A check failing over that says
+ * nothing about the website, and twice — 2026-09-26 and 2026-09-29 — it was
+ * announced to everyone as "Publishing is stopped".
+ *
+ * Deliberately not part of `checkoutBusyReason`: `pushPending` runs inside a
+ * publishing job, after the gate, so gating on unpushed commits would park the
+ * bot behind its own work.
+ */
+export function foreignWorkReason({ status, ahead = 0 }, ownPaths = []) {
+  const mine = new Set(ownPaths);
+  const theirs = dirtyPaths(status).filter((p) => !mine.has(p));
+  if (theirs.length) return dirtyReason(theirs);
+  if (ahead > 0) return `${ahead} commit${ahead === 1 ? "" : "s"} on local main that ${ahead === 1 ? "is" : "are"} not on origin/main`;
+  return null;
+}
+
 export function checkoutBusyReason(pulse, now = Date.now(), quietMs = 90_000) {
   if (pulse.status) {
     // Naming the files is the difference between "the bot is stuck" and
     // "someone left work in the tree". On 2026-09-29 finished Codex work sat
     // uncommitted for two days: every job parked behind it and the only thing
     // anyone saw was "Queued. You are number 2 waiting."
-    const paths = String(pulse.status).split("\n").filter(Boolean).map((line) => line.slice(3).trim()).filter(Boolean);
-    if (!paths.length) return "uncommitted changes in the tree";
-    const shown = paths.slice(0, 3).join(", ");
-    const rest = paths.length - Math.min(paths.length, 3);
-    return `uncommitted work in the tree (${shown}${rest > 0 ? ` and ${rest} more` : ""})`;
+    return dirtyReason(dirtyPaths(pulse.status));
   }
   const sinceCommit = now - pulse.lastCommitMs;
   if (Number.isFinite(pulse.lastCommitMs) && sinceCommit < quietMs) {

@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { latestReleaseFromFeed } from './github-web.mjs';
+import { releasesFromFeed } from './github-web.mjs';
+import { pickRelease, releaseDecision, isNewsRelease } from './release-rank.mjs';
 import { rollbackOnFailure, pushPending } from './checkout.mjs';
 
 /** Keeps game pages current with their repositories. Each tick checks a
@@ -44,11 +45,19 @@ export function repoUpdateWatcher({ root, stateDir, enqueue, enqueueBatch, fetch
         // watcher used to mark a release seen the moment it noticed one, so a
         // job that then failed lost that release for good: Starfox Enhanced
         // sat without its v0.0.6.7 download link and was never retried.
-        if (page.release === release.tag && page.download === release.url) {
+        const decision = releaseDecision({ recorded: page.release, recordedUrl: page.download, pick: release, feedTags: release.feedTags ?? [] });
+        if (decision === 'seen') {
           state.seen[key] = { tag: release.tag, at: release.date };
           continue;
         }
-        const update = { path: page.path, url: page.url, title: page.title, tag: release.tag, name: release.name, releaseUrl: release.url, date: release.date, announce: Boolean(before?.tag && before.tag !== release.tag) };
+        // Held for a person: a downgrade, or a tag nothing can rank. Recorded
+        // so `npm run doctor` can name it, and so the same tag is not asked
+        // about on every tick.
+        if (decision === 'review') {
+          state.seen[key] = { ...(before ?? { tag: '' }), asked: release.tag };
+          continue;
+        }
+        const update = { path: page.path, url: page.url, title: page.title, tag: release.tag, name: release.name, releaseUrl: release.url, date: release.date, announce: isNewsRelease(before, release) };
         queued.push(update);
         if (enqueue) await enqueue(update);
       }
@@ -83,19 +92,35 @@ export async function gamePages(root) {
   return out;
 }
 
-/** The newest release: { tag, name, url, date }, null when there is none, undefined when the host did not answer. */
+/** The release a page should carry: { tag, name, url, date, feedTags }, null
+ * when there is none, undefined when the host did not answer. `feedTags` is
+ * every tag the host listed, which is how the caller tells a tag the watcher
+ * wrote itself from one a person typed. */
 export async function latestRelease(repo, fetcher = fetch) {
   const u = new URL(repo);
   const project = u.pathname.slice(1).replace(/\.git$/, '');
   const headers = { accept: 'application/json' };
   // GitHub's releases feed is a website page, not the metered API.
-  if (u.hostname === 'github.com') return latestReleaseFromFeed(project, fetcher);
-  const r = await fetcher(`https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}/releases?per_page=1`, { headers, signal: AbortSignal.timeout(15_000) });
+  if (u.hostname === 'github.com') {
+    const list = await releasesFromFeed(project, fetcher);
+    if (!list) return list;
+    const pick = pickRelease(list);
+    return pick ? { ...pick, feedTags: list.map((e) => e.tag) } : null;
+  }
+  // per_page=1 asked GitLab for the newest and left nothing to compare.
+  const r = await fetcher(`https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}/releases?per_page=20`, { headers, signal: AbortSignal.timeout(15_000) });
   if (r.status === 404) return null;
   if (!r.ok) return undefined;
   const list = await r.json();
-  const d = Array.isArray(list) ? list[0] : null;
-  return d?.tag_name ? { tag: String(d.tag_name), name: String(d.name || d.tag_name), url: String(d._links?.self || `${repo}/-/releases/${encodeURIComponent(d.tag_name)}`), date: String(d.released_at || '').slice(0, 10) } : null;
+  if (!Array.isArray(list) || !list.length) return null;
+  const releases = list.filter((d) => d?.tag_name).map((d) => ({
+    tag: String(d.tag_name),
+    name: String(d.name || d.tag_name),
+    url: String(d._links?.self || `${repo}/-/releases/${encodeURIComponent(d.tag_name)}`),
+    date: String(d.released_at || '').slice(0, 10),
+  }));
+  const pick = pickRelease(releases);
+  return pick ? { ...pick, feedTags: releases.map((e) => e.tag) } : null;
 }
 
 /** Rewrites the page's frontmatter for the release; everything else untouched. */
@@ -109,7 +134,11 @@ export function releasePage(raw, update) {
   };
   set('release', update.tag);
   set('download', update.releaseUrl);
-  if (update.date) set('updated', update.date);
+  // Correcting a page must not move its date backwards: /games is ordered by
+  // `updated`, and repairing Mega Man X from a mod published today back to its
+  // real September release would have sent the page down the listing.
+  const was = fm.match(/^updated:\s*"?([\d-]+)"?\s*$/m)?.[1] ?? '';
+  if (update.date && update.date >= was) set('updated', update.date);
   return raw.replace(match[0], `---\n${fm}\n---`);
 }
 
@@ -122,23 +151,35 @@ export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
   const written = [];
   return rollbackOnFailure(exec, written, async () => {
     const changed = [];
+    const refused = [];
     for (const update of updates) {
       const target = path.join(root, update.path);
       const raw = await fs.readFile(target, 'utf8');
+      // The decision was made when the tick ran; the page is written now. A
+      // queue that survived a restart can carry an update the page has since
+      // moved past, and a downgrade must not reach a page through a replay.
+      const recorded = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1]?.match(/^release:\s*"?([^"\n]*)"?\s*$/m)?.[1] ?? '';
+      if (recorded && releaseDecision({ recorded, recordedUrl: '', pick: { tag: update.tag, url: update.releaseUrl }, feedTags: [recorded] }) === 'review') {
+        refused.push(`${update.title} still lists ${recorded}, so ${update.tag} was not written`);
+        continue;
+      }
       const next = releasePage(raw, update);
       if (next === raw) continue;
       await fs.writeFile(target, next);
       written.push(update.path);
       changed.push(update);
     }
-    if (!changed.length) return `${updates.map((u) => `${u.title} already lists ${u.tag}`).join('; ')}.`;
+    if (!changed.length) {
+      const already = updates.filter((u) => !refused.some((r) => r.startsWith(`${u.title} `)));
+      return [already.map((u) => `${u.title} already lists ${u.tag}`).join('; '), ...refused].filter(Boolean).join('. ') + '.';
+    }
     for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
     await exec('git', ['add', '--', ...changed.map((u) => u.path)]);
     const message = changed.length === 1 ? `Record ${changed[0].tag} for ${changed[0].title}` : `Record ${changed.length} releases\n\n${changed.map((u) => `- ${u.title}: ${u.tag}`).join('\n')}`;
     await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', message]);
     written.length = 0; // committed: a failed push must not undo the work
     await exec('git', ['push', 'origin', 'main']);
-    return changed.map((u) => `${u.title}: release ${u.tag} recorded. ${siteUrl}${u.url}`).join('\n');
+    return [...changed.map((u) => `${u.title}: release ${u.tag} recorded. ${siteUrl}${u.url}`), ...refused].join('\n');
   });
 }
 export const applyRepoUpdate = ({ update, ...rest }) => applyRepoUpdates({ updates: [update], ...rest });

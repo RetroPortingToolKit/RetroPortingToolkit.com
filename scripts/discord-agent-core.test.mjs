@@ -9,6 +9,7 @@ import {
   ASK_MODEL,
   modelFor,
   checkoutBusyReason,
+  foreignWorkReason,
   pulseChanged,
   canRequestDestructive,
   containsSensitiveContent,
@@ -756,5 +757,33 @@ describe("question or chat vs work, for a trusted developer", () => {
     for (const text of ["first", "long task", "update the Lufia page status to playable", "add a blog post about the new release", "can you fix the typo on the NES page", "please remove the ActRaiser cover", "Write a draft about co-simulation", "the page needs a new cover", "did you do the work on the footer, CTA on games page, modal etc?", "have you pushed it yet?"]) expect(isConversational(text), text).toBe(false);
     for (const text of ["who's the best guy at making recomps here", "what does the latest release fix?", "how do I set up a toolchain?", "is Lufia playable yet", "sweet", "thanks!", "fair enough", "test"]) expect(isConversational(text), text).toBe(true);
     expect(isConversational("", { hasAttachments: true })).toBe(false);
+  });
+});
+
+/** Twice — 2026-09-26 and 2026-09-29 — a check that failed over a person's
+ * unfinished work in the shared checkout was announced to the team as
+ * "Publishing is stopped. Nothing reaches the site until it passes." */
+describe("whose failure is it", () => {
+  it("ignores the job's own writes and names anyone else's", () => {
+    const own = ["data/games/09_mega-man-x/index.md"];
+    expect(foreignWorkReason({ status: " M data/games/09_mega-man-x/index.md", ahead: 0 }, own)).toBeNull();
+    expect(foreignWorkReason({ status: " M data/games/09_mega-man-x/index.md\n M src/App.tsx", ahead: 0 }, own))
+      .toBe("uncommitted work in the tree (src/App.tsx)");
+    expect(foreignWorkReason({ status: "", ahead: 0 }, [])).toBeNull();
+  });
+
+  it("sees committed work that has not been pushed, which leaves a clean tree", () => {
+    expect(foreignWorkReason({ status: "", ahead: 1 })).toBe("1 commit on local main that is not on origin/main");
+    expect(foreignWorkReason({ status: "", ahead: 3 })).toBe("3 commits on local main that are not on origin/main");
+  });
+
+  it("does not read a missing origin/main as divergence", () => {
+    // gitSnapshot defaults ahead to 0 when the ref is absent.
+    expect(foreignWorkReason({ status: "" })).toBeNull();
+  });
+
+  it("names the paths the same way a parked job does", () => {
+    const status = " M a.mjs\n?? b.mjs\n M c.md\n M d.md\n M e.md";
+    expect(foreignWorkReason({ status }, [])).toBe(checkoutBusyReason({ status, lastCommitMs: 0 }, 10_000_000));
   });
 });

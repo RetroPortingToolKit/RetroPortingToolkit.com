@@ -25,6 +25,7 @@ import {
   isCancelMineRequest,
   isClearQueueRequest,
   checkoutBusyReason,
+  foreignWorkReason,
   isAuthorized,
   isDestructiveRequest,
   isMassDestructiveRequest,
@@ -54,7 +55,7 @@ import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from "./rep
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
 import { failedCheck, failureSummary } from "./health.mjs";
-import { checksLockHolder } from "./checkout.mjs";
+import { checksLockHolder, withChecksLock } from "./checkout.mjs";
 import { plainText } from "./submissions.mjs";
 import fsp from "node:fs/promises";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
@@ -449,10 +450,17 @@ async function gitSnapshot() {
     execFileAsync("git", ["log", "-1", "--format=%H %ct"], { cwd: ROOT }),
   ]);
   const [head = "", committedAt = ""] = last.trim().split(" ");
+  // Someone's committed-but-unpushed work leaves a clean tree, so the dirty
+  // check cannot see it. A missing origin/main must read as zero, never as
+  // divergence. Only foreignWorkReason consults this.
+  const ahead = await execFileAsync("git", ["rev-list", "--count", "origin/main..HEAD"], { cwd: ROOT })
+    .then((r) => Number(String(r.stdout).trim()) || 0)
+    .catch(() => 0);
   return {
     status: status.trim(),
     head,
     lastCommitMs: Number(committedAt) * 1000,
+    ahead,
   };
 }
 
@@ -1163,20 +1171,50 @@ function scheduledJobsPaused() { return Date.now() < scheduledPausedUntil; }
  */
 async function confirmBroken(error) {
   const detail = error instanceof Error ? error.message : String(error);
+  // Whose failure is this? Asked before the retry, and before `failedCheck`,
+  // because `git pull --ff-only` failing on a diverged local main is the same
+  // false alarm without any npm check to name. A check cannot be evidence
+  // about the site while someone else's work is in the tree.
+  const foreign = await foreignWorkAtFailure(error);
+  if (foreign) return { foreign };
+  const holder = await checksLockHolder(STATE_DIR);
+  if (holder) return { foreign: `${holder} is running the checks` };
   const check = failedCheck(detail);
   if (!check) return { check: null, output: detail };
   try {
-    await execFileAsync("npm", ["run", check], { cwd: ROOT, env: safeAgentEnv("codex"), maxBuffer: 16 * 1024 * 1024, timeout: 15 * 60 * 1_000 });
+    // The retry has to honour the lock it just checked, or it becomes the
+    // collision the lock exists to prevent.
+    await withChecksLock(STATE_DIR, "discord-agent confirming a failure", () =>
+      execFileAsync("npm", ["run", check], { cwd: ROOT, env: safeAgentEnv("codex"), maxBuffer: 16 * 1024 * 1024, timeout: 15 * 60 * 1_000 }));
     console.warn(`[discord-agent] npm run ${check} failed once and passed on the retry; not pausing`);
     return null;
   } catch (again) {
+    // Someone may have started editing during the retry.
+    const now = await foreignWorkAtFailure(error);
+    if (now) return { foreign: now };
     return { check, output: `${again.stdout ?? ""}${again.stderr ?? ""}${again.message ?? ""}` };
   }
+}
+
+/** Someone else's work in the checkout at the moment a job failed, or null.
+ * `ownPaths` is attached to the error by `rollbackOnFailure`. */
+async function foreignWorkAtFailure(error) {
+  await execFileAsync("git", ["fetch", "origin", "main"], { cwd: ROOT, timeout: 20_000 }).catch(() => {});
+  const pulse = await gitSnapshot().catch(() => null);
+  if (!pulse) return null;
+  return foreignWorkReason(pulse, error?.ownPaths ?? []);
 }
 
 async function alertPublishingBroken(error) {
   const confirmed = await confirmBroken(error);
   if (!confirmed) return false;
+  // Not the site's problem. Returning false leaves scheduled jobs running and
+  // keeps "Publishing is stopped" out of the channel: the work is parked by
+  // the ordinary busy-checkout path and picked up once the tree is clear.
+  if (confirmed.foreign) {
+    console.warn(`[discord-agent] a check failed while the checkout held other work (${confirmed.foreign}); not pausing`);
+    return false;
+  }
   const { check, output } = confirmed;
   const summary = failureSummary(output);
   console.error(`[discord-agent] publishing is blocked by npm run ${check ?? "?"}: ${summary.split("\n").join(" | ")}`);
@@ -1271,6 +1309,22 @@ async function drainQueue() {
     outcome = outcomeReaction(report.outcome);
   } catch (error) {
     outcome = "❌";
+    // A failure caused by someone else's work in the checkout is a busy
+    // checkout, not a failed job: park it and try again once the tree is
+    // clear, rather than reporting it as broken to the requester.
+    //
+    // Only for the lanes that record what they wrote. A free-form agent task
+    // writes whatever it likes and keeps no list, so its own half-finished
+    // edits are indistinguishable from a person's — and treating those as a
+    // busy checkout would park a genuinely failed task instead of reporting
+    // it, which is how the watchdog stopped reporting silent agents.
+    if (Array.isArray(error?.ownPaths) && !(error instanceof CheckoutBusyError)) {
+      const foreign = await foreignWorkAtFailure(error).catch(() => null);
+      if (foreign) {
+        console.warn(`[discord-agent] treating a failure as a busy checkout: ${foreign}`);
+        error = new CheckoutBusyError(foreign);
+      }
+    }
     if (error instanceof CheckoutBusyError) {
       job.waitingSince ??= Date.now();
       const waited = Date.now() - job.waitingSince;
