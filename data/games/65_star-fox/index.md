@@ -13,7 +13,7 @@ showOnPlatform: false
 repo: "https://github.com/mstan/StarFoxSNESRecomp"
 group: "Super Nintendo"
 links:
-  - { label: "Star Fox Enhanced", href: "https://github.com/kandowontu/starfox-enhanced" }
+  - { label: "Star Fox Enhanced", href: "https://github.com/kandowontu2/starfox-enhanced" }
 verified: "2026-08-20"
 updated: "2026-09-21"
 added: "2026-07-15"
@@ -36,12 +36,12 @@ Windows and Linux packages are on the GitHub releases page.
 
 It is built from a dump you provide. Experimental 16:9 widescreen is available, but this project does not guarantee an end-to-end experience today.
 
-If you want the full Star Fox experience, [Star Fox Enhanced](https://github.com/kandowontu/starfox-enhanced) is the definitive version to play.
+If you want the full Star Fox experience, [Star Fox Enhanced](https://github.com/kandowontu2/starfox-enhanced) is the definitive version to play.
 
-Special thanks to [kandowontu](https://github.com/kandowontu) for Star Fox Enhanced, and for permission to use that work as a reference for SNESRecomp's custom renderer implementation.
+Special thanks to [kandowontu2](https://github.com/kandowontu2) for Star Fox Enhanced, and for permission to use that work as a reference for SNESRecomp's custom renderer implementation.
 
 
 ## Sources
 
 - [StarFoxSNESRecomp README and releases (GitHub)](https://github.com/mstan/StarFoxSNESRecomp)
-- [Star Fox Enhanced (GitHub)](https://github.com/kandowontu/starfox-enhanced)
+- [Star Fox Enhanced (GitHub)](https://github.com/kandowontu2/starfox-enhanced)

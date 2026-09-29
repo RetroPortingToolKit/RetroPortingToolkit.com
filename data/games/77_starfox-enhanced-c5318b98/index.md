@@ -4,16 +4,16 @@ desc: "Complete PC/Linux/Mac/Switch/IOS/Vita/VR/Android port of Starfox SNES wit
 kicker: "Community submission"
 tags: ["Community"]
 provenance: "community"
-repo: "https://github.com/kandowontu/starfox-enhanced"
+repo: "https://github.com/kandowontu2/starfox-enhanced"
 status: "Community submission"
-links: [{"label":"Project on GitHub","href":"https://github.com/kandowontu/starfox-enhanced"}]
+links: [{"label":"Project on GitHub","href":"https://github.com/kandowontu2/starfox-enhanced"}]
 added: "2026-09-20"
 updated: "2026-09-25"
 submissionId: "c5318b986728e8ef"
 draft: false
-creator: {"github":"kandowontu","discord":"kandowontu"}
+creator: {"github":"kandowontu2","discord":"kandowontu"}
 release: "v0.0.8"
-download: "https://github.com/kandowontu/starfox-enhanced/releases/tag/v0.0.8"
+download: "https://github.com/kandowontu2/starfox-enhanced/releases/tag/v0.0.8"
 ---
 
 Complete PC/Linux/Mac/Switch/IOS/Vita/VR/Android port of Starfox SNES with too many options to list, including raytracing.
