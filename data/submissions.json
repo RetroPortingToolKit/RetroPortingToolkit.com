@@ -397,7 +397,7 @@
     "path": "data/games/86_zeroracersvirtualboyrecomp-87d17311/index.md",
     "url": "/games/zeroracersvirtualboyrecomp-87d17311",
     "createdAt": "2026-09-28T01:10:42.680Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [
       {
         "path": "./submission-1.png",
@@ -412,6 +412,8 @@
       "A recompilation of Zero Racers for Virtual Boy, playable on Windows. Built with vbrecomp and recomp-ui.",
       "Screenshots show the optional color mod. Original red graphics are the default."
     ],
-    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork.",
+    "moderatedBy": "398336732287991808",
+    "moderatedAt": "2026-09-29T19:53:44.812Z"
   }
 ]
