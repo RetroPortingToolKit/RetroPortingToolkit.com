@@ -8,10 +8,12 @@ repo: "https://github.com/mstan/PokemonRedAndBlueRecomp"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/PokemonRedAndBlueRecomp"}]
 added: "2026-09-28"
-updated: "2026-09-28"
+updated: "2026-05-07"
 submissionId: "f21ce565d82554d4"
 draft: false
 creator: {"github":"mstan"}
+release: "v0.1.1"
+download: "https://github.com/mstan/PokemonRedAndBlueRecomp/releases/tag/v0.1.1"
 ---
 
 Pokémon Red & Blue recompiled for the Game Boy using a fork of gb-recompiled · Part of the R.A.I.D. community

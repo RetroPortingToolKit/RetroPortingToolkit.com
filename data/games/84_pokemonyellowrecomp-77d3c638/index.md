@@ -8,10 +8,12 @@ repo: "https://github.com/mstan/PokemonYellowRecomp"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/PokemonYellowRecomp"}]
 added: "2026-09-28"
-updated: "2026-09-28"
+updated: "2026-06-26"
 submissionId: "77d3c638dbbda74e"
 draft: false
 creator: {"github":"mstan"}
+release: "v0.0.4"
+download: "https://github.com/mstan/PokemonYellowRecomp/releases/tag/v0.0.4"
 ---
 
 Pokémon Yellow recompiled for the Game Boy using a fork of gb-recompiled \(extended with the full National Dex \#1–251\) · Part of the R.A.I.D. community

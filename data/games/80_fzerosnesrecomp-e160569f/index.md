@@ -8,11 +8,13 @@ repo: "https://github.com/mstan/FZeroSNESRecomp"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/FZeroSNESRecomp"}]
 added: "2026-09-27"
-updated: "2026-09-27"
+updated: "2026-09-22"
 submissionId: "e160569f703bb25b"
 draft: false
 creator: {"github":"mstan"}
 cover: "./submission-1.png"
+release: "v1.8.3"
+download: "https://github.com/mstan/FZeroSNESRecomp/releases/tag/v1.8.3"
 ---
 
 A community game project. See the source repository for details and current progress.

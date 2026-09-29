@@ -8,11 +8,13 @@ repo: "https://github.com/JFryy/reshadowtower"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/JFryy/reshadowtower"}]
 added: "2026-09-19"
-updated: "2026-09-19"
+updated: "2026-09-27"
 submissionId: "e088138b7a320e6a"
 draft: false
 creator: {"github":"JFryy"}
 cover: "./submission-1.png"
+release: "v0.1.0"
+download: "https://github.com/JFryy/reshadowtower/releases/tag/v0.1.0"
 ---
 
 An experimental Shadow Tower recompilation for Linux and Windows x64. Mouse look, WASD, upscaled rendering, and sharper texture filtering.

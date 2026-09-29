@@ -9,11 +9,13 @@ status: "Community submission"
 platform: "virtual-boy"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/ZeroRacersVirtualBoyRecomp"}]
 added: "2026-09-28"
-updated: "2026-09-28"
+updated: "2026-09-11"
 submissionId: "87d17311e2cec2ce"
 draft: false
 creator: {"github":"mstan"}
 cover: "./submission-1.png"
+release: "v0.0.3"
+download: "https://github.com/mstan/ZeroRacersVirtualBoyRecomp/releases/tag/v0.0.3"
 ---
 
 Zero Racers Virtual Boy native recompilation with recomp-ui and independent cosimulation
