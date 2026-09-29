@@ -92,3 +92,11 @@ releases the bridge's in-flight set and is maintainer-only, and a commit left
 unpushed is carried by the next job. Deliberate and kept: moderation is
 restricted to the destructive allowlist (58e7c1e), and "test" is treated as
 chatter (771b5dc).
+
+
+2026-09-27: Public-question outage: Claude's weekly-limit response was treated as
+an ordinary failure, and the answer chain excluded Codex. Quota recognition now
+includes weekly/daily/session limits; restricted Codex can answer from bridge-
+supplied published excerpts without local tools. See the runner section in
+[Discord agent operations](DISCORD_AGENT.md#runners) and regression tests in
+`scripts/discord-codex-answer.test.mjs` / `scripts/discord-agent.harness.test.mjs`.

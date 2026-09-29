@@ -17,6 +17,9 @@ process.stdin.on("end", async () => {
   // marker is the request, whatever surrounds it.
   const request = (prompt.split("\n").find((l) => l.includes("[[")) || prompt.split("\n")[0]).trim();
   const say = (o) => process.stdout.write(JSON.stringify(o) + "\n");
+  if (prompt.includes('[[weekly-codex]]')) {
+    say({type:'result',is_error:true,result:"You've hit your weekly limit · resets Sep 27 at 9pm (America/Los_Angeles)"}); process.exit(1);
+  }
   const answer = text => prompt.startsWith("A trusted") ? `[answer]\n${text}` : text;
   const receiptPath = prompt.match(/^Completion receipt: (.+)$/m)?.[1];
   if (/\[\[false-complete\]\]/.test(request)) {

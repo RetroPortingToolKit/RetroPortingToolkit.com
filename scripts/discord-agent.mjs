@@ -1,3 +1,4 @@
+import { codexAnswerArgs, codexAnswerPrompt, publicAnswerContext } from './discord-codex-answer.mjs';
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -509,8 +510,11 @@ class RunnerUnavailableError extends Error {
  * RunnerUnavailableError when this runner cannot serve at all (out of credits,
  * expired auth, not installed) so the caller can try the next one.
  */
-function runAgentOnce({ runner, mode, prompt, systemPrompt = "", outputFile, taskLog, timeoutMs, onSpawn, onTimeout, onActivity }) {
-  const { command, args, resultFrom } = agentCommand({ runner, mode, root: ROOT, outputFile, systemPrompt });
+function runAgentOnce({ runner, mode, prompt, systemPrompt = "", outputFile, taskLog, timeoutMs, onSpawn, onTimeout, onActivity, answerContext = "" }) {
+  const restrictedAnswer = runner === "codex" && mode === "ask";
+  const spec = agentCommand({ runner, mode, root: ROOT, outputFile, systemPrompt });
+  const { command, resultFrom } = spec;
+  const args = restrictedAnswer ? codexAnswerArgs(path.dirname(outputFile), outputFile, spec.args[spec.args.indexOf("-m") + 1]) : spec.args;
   return new Promise((resolve, reject) => {
     let stdout = ""; // only for runners that answer on plain stdout
     let streamResult = null; // the last "result" event of a stream-json run
@@ -561,8 +565,8 @@ function runAgentOnce({ runner, mode, prompt, systemPrompt = "", outputFile, tas
     let child;
     try {
       child = spawn(command, args, {
-        cwd: ROOT,
-        env: safeAgentEnv(runner),
+        cwd: restrictedAnswer ? path.dirname(outputFile) : ROOT,
+        env: restrictedAnswer ? { PATH: process.env.PATH, HOME: process.env.HOME, ...(process.env.CODEX_HOME ? { CODEX_HOME: process.env.CODEX_HOME } : {}) } : safeAgentEnv(runner),
         stdio: ["pipe", "pipe", "pipe"],
         detached: true,
       });
@@ -578,7 +582,7 @@ function runAgentOnce({ runner, mode, prompt, systemPrompt = "", outputFile, tas
     timeout.unref();
     alive();
     child.stdin.on("error", (error) => note(String(error.message)));
-    child.stdin.end(prompt);
+    child.stdin.end(restrictedAnswer ? codexAnswerPrompt(systemPrompt, prompt, answerContext) : prompt);
     child.stdout.on("data", (data) => {
       alive();
       const text = data.toString();
@@ -943,6 +947,7 @@ async function runAsk(job) {
   try {
     const { text: answer } = await runAgent({
       mode: "ask",
+      answerContext: publicAnswerContext(ROOT, job.request, SITE.url),
       prompt,
       systemPrompt,
       outputFile,

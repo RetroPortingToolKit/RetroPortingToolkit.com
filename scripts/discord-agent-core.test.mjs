@@ -506,9 +506,9 @@ describe("stream-json runs", () => {
 
 
 describe("the public lane and Codex", () => {
-  it("never sends an ask to Codex, whose read-only sandbox still reads the whole disk", () => {
-    expect(runnerChain({ hasApiKey: true, mode: "ask" })).toEqual(["claude", "claude-api"]);
-    expect(runnerChain({ hasApiKey: false, mode: "ask" })).toEqual(["claude"]);
+  it("falls back from scoped Claude to restricted Codex before using API credits", () => {
+    expect(runnerChain({ hasApiKey: true, mode: "ask" })).toEqual(["claude", "codex", "claude-api"]);
+    expect(runnerChain({ hasApiKey: false, mode: "ask" })).toEqual(["claude", "codex"]);
   });
 
   it("leaves the publishing lane's order alone", () => {
@@ -516,9 +516,9 @@ describe("the public lane and Codex", () => {
     expect(runnerChain({ hasApiKey: true })).toEqual(["codex", "claude", "claude-api"]);
   });
 
-  it("does not fall back to Codex for an ask even when Claude is cooling down", () => {
+  it("uses restricted Codex when Claude is cooling down", () => {
     const later = Date.now() + 60_000;
-    expect(runnerChain({ hasApiKey: false, mode: "ask", cooldowns: { claude: later } })).toEqual(["claude"]);
+    expect(runnerChain({ hasApiKey: false, mode: "ask", cooldowns: { claude: later } })).toEqual(["codex"]);
   });
 });
 

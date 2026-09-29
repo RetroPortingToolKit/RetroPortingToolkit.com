@@ -209,17 +209,25 @@ and "finished" can be hours away.
 
 ## Runners
 
-The bridge tries Codex first and falls back to Claude Code, per request and per
-lane. It only hands over when a runner cannot serve at all — out of credits,
+Publishing tries Codex first, then Claude subscription and the optional Claude API.
+Public questions try scoped Claude first, then restricted Codex, then the optional
+Claude API. Weekly, daily, session, and usage quota errors trigger fallback and a
+cooldown instead of terminating the request. It only hands over when a runner cannot serve at all — out of credits,
 expired or missing credentials, not installed. A request that genuinely failed
 is reported as failed rather than retried on the second runner, which would fail
 the same way and spend a second budget saying so.
 
 Each lane keeps its boundary on both runners: publishing gets Codex's
 `danger-full-access` or Claude's `--dangerously-skip-permissions`, and the
-public answer lane gets Codex's `read-only` sandbox or Claude restricted to
-`Read`, `Glob`, and `Grep`. A test asserts the answer lane can never be handed a
-writable runner.
+public answer lane uses Claude's repository-scoped read tools and GitHub WebFetch.
+Codex answers run in a temporary directory with inherited config/rules, project
+instructions, shell, local-image, browser, app, plugin, and delegation tools
+turned off. The bridge supplies bounded excerpts and an index from published
+pages only; drafts, symlinks, and operational documents are excluded. This path
+cannot check live GitHub state and must say when current evidence is unavailable.
+The existing output disclosure guard remains in place. Controls are in
+`scripts/discord-codex-answer.mjs`; see the [Codex configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference).
+The harness stubs both CLIs so tests never consume a real model session.
 
 The standby needs a durable credential, because the Claude CLI's interactive
 login expires and an unattended process cannot re-authenticate. Create an API

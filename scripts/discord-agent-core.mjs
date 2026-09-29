@@ -235,7 +235,7 @@ export function isRunnerUnavailable(output) {
   // identity-linked one the CLI cannot present a workspace for. That is a
   // credential the runner cannot use, not a failed task, so it hands over and
   // the exhausted-chain alert still reaches a maintainer.
-  return /usage limit|purchase more credits|out of credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)|access token has (?:expired|been revoked)|failed to authenticate|invalid api key|authentication_error|anthropic-workspace-id is required|401 |command not found|enoent/.test(
+  return /(?:usage|weekly|daily|session) limit|purchase more credits|out of credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)|access token has (?:expired|been revoked)|failed to authenticate|invalid api key|authentication_error|anthropic-workspace-id is required|401 |command not found|enoent/.test(
     text,
   );
 }
@@ -453,12 +453,9 @@ export function traceStreamLine(line, at = new Date()) {
  */
 export function runnerChain({ hasApiKey, cooldowns = {}, now = Date.now(), mode = "publish" }) {
   const all = hasApiKey ? ["codex", "claude", "claude-api"] : ["codex", "claude"];
-  // The public ask lane never goes to Codex. Its "read-only" sandbox bounds
-  // writes, not reads: model-run shell commands can read the whole disk, and
-  // there is no flag to fence that to the checkout. Claude's read approval can
-  // be scoped to the repository (see agentCommand), so the public lane stays
-  // there — on the subscription tier first, which is also the cheaper one.
-  const eligible = mode === "ask" ? all.filter((r) => r !== "codex") : all;
+  // Claude retains scoped GitHub tools; restricted Codex answers from supplied
+  // public excerpts when the subscription is unavailable, before paid API use.
+  const eligible = mode === "ask" ? (hasApiKey ? ["claude", "codex", "claude-api"] : ["claude", "codex"]) : all;
   const ready = eligible.filter((r) => !(Number(cooldowns[r]) > now));
   // Never hand back an empty chain. If every runner is supposedly cooling down
   // the estimate is more likely wrong than the truth, and a wasted attempt
@@ -483,7 +480,7 @@ export const DEFAULT_RUNNER_COOLDOWN_MS = 30 * 60 * 1_000;
  */
 export function runnerCooldownUntil(output, now = Date.now()) {
   const text = String(output);
-  if (!/usage limit|out of credits|purchase more credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)/i.test(text)) {
+  if (!/(?:usage|weekly|daily|session) limit|out of credits|purchase more credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)/i.test(text)) {
     return null;
   }
   const named = text.match(/try again at ([^.\n]+?)(?:\.|\n|$)/i);

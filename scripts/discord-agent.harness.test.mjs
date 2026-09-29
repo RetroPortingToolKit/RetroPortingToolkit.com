@@ -445,4 +445,13 @@ describe("bridge harness: queueing and the shared checkout", () => {
     expect(b.events.some(e => e.channelId === MODERATION)).toBe(false);
   });
 
+  it("answers through restricted Codex when Claude reports the screenshot's weekly quota error", async () => {
+    const b = await up();
+    const id = b.send(PUBLIC, 'S1', 'how do you work can any user use you? [[weekly-codex]]');
+    await b.waitFor(forMsg(id, 'Anyone can ask questions'), 15000, 'Codex answered after Claude weekly limit');
+    const cooldowns=JSON.parse(fs.readFileSync(path.join(b.state,'runner-cooldowns.json'),'utf8'));
+    expect(cooldowns.claude).toBeGreaterThan(Date.now());
+    expect(b.events.some(e=>e.messageId===id && e.content.includes("can't reach my answer model"))).toBe(false);
+  });
+
 });
