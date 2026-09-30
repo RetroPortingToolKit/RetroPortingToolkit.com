@@ -44,19 +44,21 @@ export function mailConfigured(env?: NodeJS.ProcessEnv): boolean {
 
 let cached: ReturnType<typeof nodemailer.createTransport> | null = null;
 
+// A Cloudflare Worker cannot reuse a socket opened by an earlier request, so
+// there each confirmation opens its own connection.
+const IN_WORKER = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+
 function transport(cfg: MailConfig) {
-  // One connection pool per process. A warm lambda sends its next confirmation
-  // without a fresh TLS handshake and login.
-  if (!cached) {
-    cached = nodemailer.createTransport({
-      host: cfg.host,
-      port: cfg.port,
-      secure: cfg.port === 465,
-      auth: { user: cfg.user, pass: cfg.pass },
-      pool: true,
-      maxConnections: 2,
-    });
-  }
+  const options = {
+    host: cfg.host,
+    port: cfg.port,
+    secure: cfg.port === 465,
+    auth: { user: cfg.user, pass: cfg.pass },
+  };
+  if (IN_WORKER) return nodemailer.createTransport(options);
+  // One connection pool per process, so a bulk send (scripts/newsletter-send.ts)
+  // reuses its TLS handshake and login.
+  if (!cached) cached = nodemailer.createTransport({ ...options, pool: true, maxConnections: 2 });
   return cached;
 }
 

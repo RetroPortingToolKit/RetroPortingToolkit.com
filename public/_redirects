@@ -1,0 +1,6 @@
+/about /team 308
+/rss /rss.xml 200
+/feed /rss.xml 200
+/feed.xml /rss.xml 200
+/atom /atom.xml 200
+/admin/* /admin 200

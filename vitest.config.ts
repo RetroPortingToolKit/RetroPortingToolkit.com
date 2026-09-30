@@ -32,7 +32,7 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"],
+    include: ["src/**/*.test.ts", "scripts/**/*.test.mjs", "worker/**/*.test.ts"],
     // Much of this suite is integration work: real files, real git, real child
     // processes, and one renderer comparison that takes twenty seconds on its
     // own. Vitest runs those files in parallel on a machine that is also
