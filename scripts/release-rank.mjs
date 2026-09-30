@@ -65,16 +65,37 @@ function compareCandidates(a, b) {
   return b.index - a.index;
 }
 
+/** Tags people use for builds that are not the release yet. Consulted only to
+ * decide whether replacing one is a correction or a downgrade — never to pick. */
+const PRERELEASE = /(^|[^0-9a-z])(rc|alpha|beta|pre|preview|dev|nightly|snapshot|wip|experimental|unstable|candidate)([^0-9a-z]|\d|$)/i;
+
+export function isPrerelease(tag) {
+  const rank = releaseRank(tag);
+  return Boolean(rank && PRERELEASE.test(rank.suffix));
+}
+
 /** The release to use out of every entry in the feed, or null when not one of
  * them can be ranked. Returning null holds the page as it is, which is the
- * right answer for a repository that publishes only staging artifacts. */
+ * right answer for a repository that publishes only staging artifacts.
+ *
+ * A tag with no suffix at all is the release; everything else is a variant of
+ * one — a release candidate, a platform build, a backup. So the unsuffixed
+ * tags are considered first, and the rest only when a repository has never
+ * published one. On 2026-09-30 the watcher put v1.7.0-rc.1 on the Mega Man X
+ * page and announced it, and its author had not meant to make it public yet.
+ *
+ * Asking "is this a prerelease" instead would have been worse: Tomba has
+ * published nothing but -alpha, and its next-best tag is a -bak backup.
+ */
 export function pickRelease(list) {
   const candidates = (list ?? [])
     .map((entry, index) => ({ ...entry, index, rank: releaseRank(entry.tag) }))
     .filter((c) => c.rank);
   if (!candidates.length) return null;
-  let best = candidates[0];
-  for (const c of candidates.slice(1)) if (compareCandidates(c, best) > 0) best = c;
+  const released = candidates.filter((c) => !c.rank.suffix);
+  const pool = released.length ? released : candidates;
+  let best = pool[0];
+  for (const c of pool.slice(1)) if (compareCandidates(c, best) > 0) best = c;
   const { index, rank, ...entry } = best;
   return entry;
 }
@@ -98,6 +119,13 @@ export function releaseDecision({ recorded, recordedUrl, pick, feedTags = [] }) 
   const rec = releaseRank(recorded);
   const cand = releaseRank(pick.tag);
   if (rec && cand) {
+    // Taking a release candidate back off a page is a correction, not a
+    // downgrade, even though the number goes down: the watcher published it
+    // and should be able to undo that. Only for a prerelease, and only when
+    // the tag came from this feed — a platform build like -linux, or a
+    // -build.7 series, is a real release and stays until a person says
+    // otherwise.
+    if (!cand.suffix && PRERELEASE.test(rec.suffix) && feedTags.includes(recorded)) return "write";
     const byParts = compareParts(cand.parts, rec.parts);
     if (byParts > 0) return "write";
     if (byParts === 0 && rec.suffix && cand.suffix && stem(rec.suffix) === stem(cand.suffix)) {

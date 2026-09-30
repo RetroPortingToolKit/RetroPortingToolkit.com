@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { releaseRank, compareParts, pickRelease, releaseDecision, looseVersion, isNewsRelease } from './release-rank.mjs';
+import { releaseRank, compareParts, pickRelease, releaseDecision, looseVersion, isNewsRelease, isPrerelease } from './release-rank.mjs';
 
 /** Tags below are real: taken from the live releases feeds of the tracked
  * repositories on 2026-09-29, including the mod tag that overwrote the Mega
@@ -127,5 +127,47 @@ describe('deciding what is worth announcing', () => {
     expect(isNewsRelease({ tag: 'v1', at: '2026-09-16' }, { tag: 'v2', date: '2026-09-16' })).toBe(true);
     expect(isNewsRelease({ tag: 'v1.0.0', at: '2026-01-01' }, { tag: 'v2.0.0', date: '2026-09-22' })).toBe(true);
     expect(isNewsRelease({ tag: 'v0.14.1', at: '2026-09-22' }, { tag: 'v0.14.2', date: '2026-09-22' })).toBe(true);
+  });
+});
+
+/** On 2026-09-30 the watcher put v1.7.0-rc.1 on the Mega Man X page and
+ * announced it in the channel. Its author replied "Ah shit. I didn't want to
+ * publicize that yet". A release candidate is not the release. */
+describe('a release candidate is not the release', () => {
+  it('prefers a tag with no suffix over any variant of a higher number', () => {
+    expect(pickRelease(feed('v1.7.0-rc.1', 'v1.6.6', 'v1.6.5')).tag).toBe('v1.6.6');
+    expect(pickRelease(feed('v1.12.0-rc1', 'v1.11.0')).tag).toBe('v1.11.0');
+    expect(pickRelease(feed('v1.1.1-rc1', 'v1.1.0')).tag).toBe('v1.1.0');
+  });
+
+  it('still uses a prerelease when the repository has never published anything else', () => {
+    // Tomba has only ever shipped -alpha, and its next-best tag is a backup.
+    expect(pickRelease(feed('v0.14.1-alpha', 'v0.13.0-alpha', 'v0.12.1-rbengine-bak.2')).tag).toBe('v0.14.1-alpha');
+    expect(pickRelease(feed('v0.1.0-alpha')).tag).toBe('v0.1.0-alpha');
+  });
+
+  it('knows a prerelease from a platform build or a build series', () => {
+    for (const tag of ['v1.7.0-rc.1', 'v1.12.0-rc1', 'v0.14.1-alpha', 'v1.0.0-beta2', 'v2.0.0-nightly']) expect(isPrerelease(tag), tag).toBe(true);
+    for (const tag of ['v1.6.6', 'v0.1.0-linux', 'v1.0.0-build.7', 'v0.0.10-ita.1', 'v1.7.0-hd']) expect(isPrerelease(tag), tag).toBe(false);
+  });
+
+  it('takes a release candidate back off a page, but does not touch a real build', () => {
+    const at = (tag) => ({ tag, url: `u/${tag}` });
+    const decide = (recorded, tag, feedTags = [recorded, tag]) =>
+      releaseDecision({ recorded, recordedUrl: `u/${recorded}`, pick: at(tag), feedTags });
+    // The number goes down, and that is the point: undo what the watcher did.
+    expect(decide('v1.7.0-rc.1', 'v1.6.6')).toBe('write');
+    expect(decide('v1.12.0-rc1', 'v1.11.0')).toBe('write');
+    // A platform build and a build series are real releases; a person decides.
+    expect(decide('v0.1.0-linux', 'v0.0.1')).toBe('review');
+    expect(decide('v1.0.0-build.7', 'v1.0.0')).toBe('review');
+    // And a tag the watcher never published is not its to roll back.
+    expect(decide('v1.7.0-rc.1', 'v1.6.6', ['v1.6.6'])).toBe('review');
+    // A newer candidate in the same series still tracks.
+    expect(decide('v1.7.0-rc.1', 'v1.7.0-rc.2')).toBe('write');
+  });
+
+  it('does not announce a page being put back', () => {
+    expect(isNewsRelease({ tag: 'v1.7.0-rc.1', at: '2026-09-30' }, { tag: 'v1.6.6', date: '2026-09-25' })).toBe(false);
   });
 });
