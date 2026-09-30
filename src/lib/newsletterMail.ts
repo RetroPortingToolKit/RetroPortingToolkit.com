@@ -44,22 +44,41 @@ export function mailConfigured(env?: NodeJS.ProcessEnv): boolean {
 
 let cached: ReturnType<typeof nodemailer.createTransport> | null = null;
 
-// A Cloudflare Worker cannot reuse a socket opened by an earlier request, so
-// there each confirmation opens its own connection.
-const IN_WORKER = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
-
 function transport(cfg: MailConfig) {
-  const options = {
-    host: cfg.host,
-    port: cfg.port,
-    secure: cfg.port === 465,
-    auth: { user: cfg.user, pass: cfg.pass },
-  };
-  if (IN_WORKER) return nodemailer.createTransport(options);
   // One connection pool per process, so a bulk send (scripts/newsletter-send.ts)
   // reuses its TLS handshake and login.
-  if (!cached) cached = nodemailer.createTransport({ ...options, pool: true, maxConnections: 2 });
+  if (!cached) {
+    cached = nodemailer.createTransport({
+      host: cfg.host,
+      port: cfg.port,
+      secure: cfg.port === 465,
+      auth: { user: cfg.user, pass: cfg.pass },
+      pool: true,
+      maxConnections: 2,
+    });
+  }
   return cached;
+}
+
+// The site's API runs in a Cloudflare Worker, where nodemailer's sockets fail
+// (it resolves the host to an address itself, which Workers refuse) and a
+// socket cannot outlive the request that opened it. There, each confirmation
+// goes through worker-mailer on Cloudflare's own sockets, as STARTTLS on 587:
+// MXroute accepts it and Workers cannot reach its port 465.
+const IN_WORKER = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+
+/** Splits `Name <address>` into its parts; a bare address has no name. */
+export function parseAddress(from: string): { name?: string; email: string } {
+  const m = /^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/.exec(from);
+  return m ? { ...(m[1] ? { name: m[1] } : {}), email: m[2].trim() } : { email: from.trim() };
+}
+
+async function sendFromWorker(cfg: MailConfig, message: { to: string; subject: string; html: string; text: string; headers: Record<string, string> }) {
+  const { WorkerMailer } = await import("worker-mailer");
+  await WorkerMailer.send(
+    { host: cfg.host, port: 587, secure: false, startTls: true, credentials: { username: cfg.user, password: cfg.pass }, authType: ["plain", "login"] },
+    { from: parseAddress(cfg.from), ...message },
+  );
 }
 
 export async function sendMail(
@@ -72,14 +91,9 @@ export async function sendMail(
   const cfg = mailConfig();
   if (!cfg) throw new Error("mail transport is not configured");
   try {
-    await transport(cfg).sendMail({
-      from: cfg.from,
-      to,
-      subject,
-      html,
-      text,
-      headers: extraHeaders,
-    });
+    const message = { to, subject, html, text, headers: extraHeaders };
+    if (IN_WORKER) await sendFromWorker(cfg, message);
+    else await transport(cfg).sendMail({ from: cfg.from, ...message });
   } catch (err) {
     // The provider's message can echo the recipient; keep the address out of
     // the logs and let the caller decide what the reader sees.
