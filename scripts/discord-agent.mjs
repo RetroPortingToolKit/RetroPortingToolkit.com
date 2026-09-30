@@ -26,6 +26,7 @@ import {
   isClearQueueRequest,
   checkoutBusyReason,
   foreignWorkReason,
+  isAnnouncement,
   isAuthorized,
   isDestructiveRequest,
   isMassDestructiveRequest,
@@ -1552,7 +1553,15 @@ client.on("messageCreate", async (message) => {
   // answers, is asking, not publishing. Only a change request goes on to the
   // publishing lane below (status, stop and cancel keep their own words).
   const control = isStatusRequest(request) || isCancelMineRequest(request) || isClearQueueRequest(request) || isStopRequest(request);
-  const repliedToAnswer = addressedByReply && referenced && !/^(✅|❌|⏸️|🛑|ℹ️|❓|⚠️|On it\.|Still working)/.test(referenced.content ?? "");
+  // Replying to something the bot DID — a release announcement, a site-updated
+  // note — is how someone says "that one, change it", so those fall through to
+  // the publishing lane and are judged on their words like any other request.
+  // Only a reply to something the bot SAID is chat by default. On 2026-09-30 a
+  // repo owner replied "Please remove this for now" to a release line and was
+  // told the bot could not change anything.
+  const repliedToAnnouncement = addressedByReply && referenced && isAnnouncement(referenced.content);
+  const repliedToAnswer = addressedByReply && referenced && !repliedToAnnouncement
+    && !/^(✅|❌|⏸️|🛑|ℹ️|❓|⚠️|On it\.|Still working)/.test(referenced.content ?? "");
   if (!control && (repliedToAnswer || isConversational(request, { hasAttachments: attachmentsOf(message).length > 0 }))) {
     await handleAsk(message, ref, request);
     return;

@@ -10,6 +10,7 @@ import {
   modelFor,
   checkoutBusyReason,
   foreignWorkReason,
+  isAnnouncement,
   pulseChanged,
   canRequestDestructive,
   containsSensitiveContent,
@@ -293,7 +294,11 @@ describe("Discord agent core", () => {
   it("keeps the public answer lane read-only and sourced from published pages", () => {
     expect(askPrompt({ question: "Does Tomba run yet?", authorId: "u", channelId: "c" })).toContain("Does Tomba run yet?");
     const system = askSystemPrompt({ repos: [{ repo: "https://github.com/mstan/TombaRecomp", title: "Tomba!" }], examples: ["sweet", "on it"] });
-    expect(system).toContain("You are read-only");
+    expect(system).toContain("This run is read-only");
+    // The sandbox is this run's, not the bot's. Stating it as the product's
+    // capability is how a repository owner got told to go find a maintainer.
+    expect(system).toContain("That is this run, not what the bot can do");
+    expect(system).toContain("never tell someone the bot cannot change anything");
     expect(system).toContain("draft: true");
     expect(system).toContain("AGENTS.md");
     expect(system).toContain("deliberately unpublished");
@@ -785,5 +790,52 @@ describe("whose failure is it", () => {
   it("names the paths the same way a parked job does", () => {
     const status = " M a.mjs\n?? b.mjs\n M c.md\n M d.md\n M e.md";
     expect(foreignWorkReason({ status }, [])).toBe(checkoutBusyReason({ status, lastCommitMs: 0 }, 10_000_000));
+  });
+});
+
+/** On 2026-09-30 a repository owner replied "Please remove this for now" to a
+ * 🎉 release announcement and was told the bot could not change anything. */
+describe("asking for something to be taken down", () => {
+  it("reads a removal request as a change, not as chat", () => {
+    for (const text of [
+      "Please remove this for now",
+      "remove this",
+      "take this down",
+      "can you take it down",
+      "please unlist that",
+      "revert this",
+      "roll it back",
+      "undo this please",
+    ]) expect(isConversational(text), text).toBe(false);
+  });
+
+  it("still lets people talk about an announcement without publishing", () => {
+    for (const text of [
+      "Ah shit. I didnt' want to publicize that yet",
+      "nice",
+      "haha",
+      "cool, thanks",
+      "is that the netplay one?",
+      "what does rc mean",
+    ]) expect(isConversational(text), text).toBe(true);
+  });
+});
+
+/** The routing turns on this, so a producer that stops matching would silently
+ * send owners' change requests back to the read-only answer lane. */
+describe("announcement prefixes covered", () => {
+  it("recognises every notice the bot posts about work it did", async () => {
+    const { releaseAnnouncement, releasesAnnouncement } = await import("./repo-updates.mjs");
+    const { changeReport } = await import("./site-changes.mjs");
+    const update = { title: "Mega Man X", tag: "v1.6.6", name: "Mega Man X 1.6.6", releaseUrl: "https://github.com/o/r/releases/tag/v1.6.6", url: "/games/mega-man-x" };
+    expect(isAnnouncement(releaseAnnouncement(update, "https://site"))).toBe(true);
+    expect(isAnnouncement(releasesAnnouncement([update, { ...update, title: "Yoshi" }], "https://site"))).toBe(true);
+    const report = changeReport([{ kind: "games", folder: "01_tomba", title: "Tomba!", created: true }], { siteUrl: "https://site" });
+    expect(isAnnouncement(report)).toBe(true);
+  });
+
+  it("does not claim the bot's own answers or status lines", () => {
+    for (const text of ["✅ Done.", "❌ The task did not complete.", "On it.", "Still working — 3m elapsed.", "yeah, that shipped last week", ""])
+      expect(isAnnouncement(text), JSON.stringify(text)).toBe(false);
   });
 });

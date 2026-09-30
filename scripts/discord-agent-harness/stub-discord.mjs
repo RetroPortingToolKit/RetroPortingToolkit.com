@@ -68,8 +68,14 @@ export class Client extends EventEmitter {
         member: { roles: { cache: [] }, displayName: m.display ?? "" },
         mentions: { users: { has: (uid) => content.includes(`<@${uid}>`) } },
         attachments: new Map((m.attachments ?? []).map((a, i) => [String(i), a])),
-        reference: null,
-        fetchReference: async () => null,
+        // `replyTo` makes this a Discord reply to the bot's own message, with
+        // that message's text. Routing turns on what the bot said there: a
+        // reply to an answer is chat, a reply to something it DID is a request.
+        reference: m.replyTo ? { messageId: m.replyTo.messageId ?? "BOTMSG" } : null,
+        fetchReference: async () => (m.replyTo
+          ? { id: m.replyTo.messageId ?? "BOTMSG", channelId: m.channelId, content: m.replyTo.content ?? "",
+              author: { id: m.replyTo.fromBot === false ? "SOMEONE" : "BOT", bot: m.replyTo.fromBot !== false } }
+          : null),
         react: async (emoji) => { emit({ kind: "react", channelId: m.channelId, messageId: id, content: emoji }); },
       };
       this.emit("messageCreate", message);

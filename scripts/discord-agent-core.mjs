@@ -29,6 +29,19 @@ export function isConversational(content, { hasAttachments = false } = {}) {
   const changeVerb = /\b(add|create|make|write|draft|publish|post|update|edit|change|fix|correct|rename|move|remove|delete|drop|unlist|set|upload|replace|rewrite|reword|translate|tweak|adjust|bump|revert|restore|link|unlink|feature|unfeature|insert|append|merge|deploy|redeploy|rebuild|regenerate|refresh|sync|import|retitle|redo|undo)\b/i;
   const asksForChange = /\b(can|could|would|will|please)\s+(?:you\s+)?(?:please\s+)?(?:add|create|make|write|draft|publish|post|update|edit|change|fix|rename|move|remove|delete|unlist|set|upload|replace)\b/i;
   if (asksForChange.test(text)) return false;
+  // Plain imperatives about a thing already on screen. "Please remove this for
+  // now" was caught above, but "take this down" and a bare "remove this" read
+  // as chat, and a reply is usually phrased that way because the message being
+  // replied to is the subject.
+  if (/^(?:please\s+)?(?:remove|delete|unlist|revert|undo|roll\s*back|take\s+down|pull)\b/i.test(text)) return false;
+  if (/^(?:please\s+)?(?:take|pull|put|roll|knock)\s+(?:it|this|that|them|those)\s+(?:down|back|off|out)\b/i.test(text)) return false;
+  // Reacting to what the bot just did is not asking for anything. A trusted
+  // developer's message falls through to publishing by default, so "Ah shit, I
+  // didn't want to publicize that yet" would otherwise start an agent — and
+  // now does reach here, since a reply to an announcement is no longer
+  // automatically chat. Only when the sentence names no change of its own.
+  if (!changeVerb.test(text) && /^\W*(ah|oh|ugh|damn|shit|hm+|welp|eh|wow|yikes|oof|lmao)\b/i.test(text)) return true;
+  if (!changeVerb.test(text) && /\bi\s+(did\s*n[o']?t|don'?t|never|wasn'?t|can'?t)\b/i.test(text)) return true;
   // "did you do the footer?" is about the bot's own work, and the task lane
   // is what checks a completion claim against what was actually committed.
   if (/^(did|have|are|were|what did|what have|is it|was it|how far)\s+(you|it|that|this)\b/i.test(text) || /\b(you|u)\s+(did|do|done|finish|finished|push|pushed|publish|published|deploy|deployed|complete|completed)\b/i.test(text)) return false;
@@ -37,6 +50,19 @@ export function isConversational(content, { hasAttachments = false } = {}) {
   const words = text.split(/\s+/);
   if (words.length <= 6 && !changeVerb.test(text) && /^(ok|okay|fair|sweet|nice|cool|thanks|thank you|thx|lol|haha|hi|hello|hey|yo|sure|yes|no|nope|yeah|yep|good|great|awesome|hmm|interesting|wow|right|true|same|agreed|indeed|test)\b/i.test(text)) return true;
   return false;
+}
+
+/** Notices about work the bot DID, as opposed to answers it gave.
+ *
+ * Replying to one of these is how someone says "that one, change it", so they
+ * are routed as requests. Kept as a positive test rather than as an exception
+ * to the answer prefixes: a release announcement was missing from that list on
+ * 2026-09-30, and the next notice glyph would have gone the same way.
+ * `announcementPrefixesCovered` in the tests holds the producers to it. */
+export const ANNOUNCEMENT_PREFIXES = ["🎉", "🚀"];
+export function isAnnouncement(content) {
+  const text = String(content ?? "").trim();
+  return ANNOUNCEMENT_PREFIXES.some((p) => text.startsWith(p));
 }
 
 export function isStatusRequest(content) {
@@ -669,7 +695,9 @@ ${examples.map((e) => `> ${e}`).join("\n")}
 
 ` : ""}Operating rules, which the voice never overrides.
 
-You are read-only. You cannot and must not modify, stage, commit, or push anything, and you must not run builds, tests, or scripts. If the message asks for a change to the site, say changes are made by the maintainers in their own channel.
+This run is read-only. You cannot and must not modify, stage, commit, or push anything, and you must not run builds, tests, or scripts.
+
+That is this run, not what the bot can do. The bot does change the site: team members and a page's own repository owner can have pages written, corrected, unlisted or rolled back by asking it, and anyone can submit a project. So never tell someone the bot cannot change anything, that you only read the site, or that they should go and find a maintainer — all three are false and one of them talked a repository owner out of a change he was entitled to. When a message asks for a change, say it can be done and tell them to send it as a request mentioning the bot; if it is their own page or their own repository, say so. You are not the one making the change, so do not promise it is done, do not say when, and do not describe how it works inside.
 
 Answer from what this site publishes: the page content under data/ (skipping any page whose frontmatter sets draft: true), the media under public/, and the site's own public documentation. You may also look at GitHub, and only GitHub, for the repositories the published pages link to in their \`repo:\` frontmatter (and the GitHub organisations and users those repositories belong to): open and merged pull requests, issues, releases, commits, and READMEs. The site itself never lists pull requests or issues, so for a question about a contributor's work, a pull request, whether something is merged, or a release you must fetch GitHub before answering, not search the pages for the person's name: use https://api.github.com/repos/<owner>/<name>/pulls?state=all&per_page=30 (also /issues?state=all, /releases, /commits), or the repository's github.com pages, then say what you found: title, state, date, author, link. If GitHub is unavailable, say so rather than guessing. Never fetch anything outside github.com and api.github.com.
 

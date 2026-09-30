@@ -52,6 +52,9 @@ function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdi
       DISCORD_ADMIN_CHANNEL_ID: MODERATION,
       DISCORD_BOT_CHANNEL_ID: BOTCHAN,
       DISCORD_ALLOWED_USER_IDS: "U1,U2,U3",
+      // U1 is a designated maintainer, as the real channel's repo owners are;
+      // U2 and U3 are not, so the destructive guard stays under test.
+      DISCORD_DESTRUCTIVE_USER_IDS: "U1",
       DISCORD_AGENT_STATE_DIR: state,
       DISCORD_AGENT_REPO: repo.dir,
       DISCORD_AGENT_QUIET_MS: "1000",
@@ -77,7 +80,10 @@ function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdi
   const t0 = Date.now();
   const send = (channelId, authorId, content, extra = {}) => {
     const id = `m${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    child.stdin.write(JSON.stringify({ channelId, authorId, id, content: `<@BOT> ${content}`, ...extra }) + "\n");
+    // A Discord reply carries no <@BOT> in its text — its ping is automatic —
+    // so `raw` sends the words alone, which is what a reply really looks like.
+    const { raw, ...rest } = extra;
+    child.stdin.write(JSON.stringify({ channelId, authorId, id, content: raw ? content : `<@BOT> ${content}`, ...rest }) + "\n");
     return id;
   };
   const waitFor = (pred, timeoutMs = 15000, label = "condition") => new Promise((res, rej) => {
@@ -454,4 +460,49 @@ describe("bridge harness: queueing and the shared checkout", () => {
     expect(b.events.some(e=>e.messageId===id && e.content.includes("can't reach my answer model"))).toBe(false);
   });
 
+});
+
+/** On 2026-09-30 a repository owner replied "Please remove this for now" to a
+ * 🎉 release announcement. The reply reached the read-only answer lane, which
+ * told him the bot could not change anything, and he gave up. */
+describe("bridge harness: replying to something the bot did", () => {
+  const ANNOUNCEMENT = "🎉 Mega Man X: new release Mega Man X 1.7.0-rc.1\nhttps://retroportingtoolkit.com/games/mega-man-x";
+
+  it("takes a change asked for in a reply to an announcement into the publishing lane", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U1", "Please remove this for now [[sleep=0]]", {
+      raw: true, replyTo: { messageId: "ANNOUNCE", content: ANNOUNCEMENT },
+    });
+    await b.waitFor(forMsg(id, "On it"), 10000, "publish started from a reply");
+    await b.waitFor(forMsg(id, "OK: Please remove this for now"), 15000, "publish summary");
+  });
+
+  it("tells someone who may not make destructive changes why, instead of denying it can", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U2", "Please remove this for now [[sleep=0]]", {
+      raw: true, replyTo: { messageId: "ANNOUNCE", content: ANNOUNCEMENT },
+    });
+    const blocked = await b.waitFor(forMsg(id, "Blocked"), 10000, "destructive guard");
+    expect(blocked.content).toContain("designated maintainers");
+    // Never the old answer: "I can't edit anything, go find a maintainer."
+    expect(blocked.content).not.toMatch(/can.?t (edit|change|modify)/i);
+  });
+
+  it("still treats a reply to one of its own answers as conversation", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U1", "please remove this for now [[sleep=0]]", {
+      raw: true, replyTo: { messageId: "ANSWER", content: "yeah, that one shipped last week" },
+    });
+    await b.waitFor(forMsg(id, "OK:"), 12000, "answered");
+    expect(b.events.some((e) => e.messageId === id && /On it/.test(e.content))).toBe(false);
+  });
+
+  it("does not publish because someone reacted to an announcement", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U1", "Ah shit. I didnt' want to publicize that yet [[sleep=0]]", {
+      raw: true, replyTo: { messageId: "ANNOUNCE", content: ANNOUNCEMENT },
+    });
+    await b.waitFor(forMsg(id, "OK:"), 12000, "answered");
+    expect(b.events.some((e) => e.messageId === id && /On it/.test(e.content))).toBe(false);
+  });
 });
