@@ -76,10 +76,10 @@ a trusted submitter. The edit is a frontmatter rewrite on the shared checkout
 with the usual checks, then a commit and push; a new note is announced in the
 website channel by the change watcher. Implementation: `scripts/owner-updates.mjs`.
 
-Every commit to main is a Vercel production build, so the bridge keeps them
-few: a tick's releases go into one job, one commit and one deployment, and
-`vercel.json`'s `ignoreCommand` (`scripts/vercel-ignore-build.sh`) skips the
-build for commits that touch only bot code, `docs/`, or repository notes. The
+Every commit to main is a Workers Builds production build, so the bridge keeps
+them few: a tick's releases go into one job, one commit and one deployment, and
+the build trigger's excluded paths skip the build for commits that touch only
+bot code, `docs/`, or repository notes. The
 submission notice poll, a serverless invocation that reads the catalogue from
 GitHub, runs every ten minutes (`DISCORD_SUBMISSION_POLL_MS`); intake polls
 immediately on its own.
@@ -260,7 +260,7 @@ it the bridge simply runs on Codex alone and says so when it cannot serve.
   `retroportingtoolkit-discord-bot`. It is loaded into the bridge process and
   removed from the Codex child process environment.
 - Codex is restricted by its prompt and `AGENTS.md` to this checkout. It may
-  answer, edit, test, commit, push `main`, and verify the existing Vercel
+  answer, edit, test, commit, push `main`, and verify the Workers Builds
   deployment. Requests for destructive, credential, infrastructure, account,
   or out-of-repository work stop for human approval.
 - Every task replies to the source message with a completion, failure, or
@@ -268,7 +268,7 @@ it the bridge simply runs on Codex alone and says so when it cannot serve.
 
 ## Submission operations
 
-The website endpoint uses the existing Vercel `GITHUB_TOKEN` and repository
+The website endpoint uses the Worker's `GITHUB_TOKEN` secret and repository
 identity variables. No new credentials or persistent service are required.
 It writes the page and register atomically using a non-forced GitHub ref update,
 retries concurrent edits, and caps intake at 20 new repositories per hour and

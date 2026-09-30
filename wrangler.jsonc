@@ -16,6 +16,7 @@
     "CMS_REPO_NAME": "RetroPortingToolkit.com"
   },
   "workers_dev": true,
+  "routes": [{ "pattern": "retroportingtoolkit.com", "custom_domain": true }],
   "preview_urls": false,
   "observability": { "enabled": true }
 }

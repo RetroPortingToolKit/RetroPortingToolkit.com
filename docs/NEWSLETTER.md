@@ -46,11 +46,12 @@ export GITHUB_TOKEN="$(gh auth token)"
 ```
 
 **Every secret is in the login Keychain, and that is not a convenience.**
-Vercel environment variables are write-only: `vercel env pull` returns them
-empty, so a value that exists only in Vercel is a value nobody can ever read
-again. `NEWSLETTER_SECRET` had to be rotated on 2026-09-07 for exactly that
-reason — the original was piped straight into Vercel and was gone. Anything
-added later goes into the Keychain at the same time it goes into Vercel.
+Worker secrets are write-only: Cloudflare never returns a secret's value, so a
+value that exists only in the Worker is a value nobody can ever read again.
+`NEWSLETTER_SECRET` had to be rotated on 2026-09-07 for exactly that reason:
+the original went straight into Vercel, which hosted the site then, and was
+gone. Anything added later goes into the Keychain at the same time it goes into
+the Worker.
 
 `NEWSLETTER_STORE_KEY` is the one where that rule stops being a convenience.
 `NEWSLETTER_SECRET` can be rotated at the cost of invalidating outstanding
@@ -125,8 +126,8 @@ It picks up every non-draft post in `data/blog` dated after the last send, and
 advances the last-sent mark **only** when every message succeeded, so a partial
 failure can be re-run without the same posts counting as already sent.
 
-The script needs the same env vars as the endpoint. Pull them locally with
-`vercel env pull .env.local` (git-ignored) rather than copying secrets by hand.
+The script needs the same env vars as the endpoint. Export them from the
+Keychain as shown above rather than copying secrets by hand.
 
 ## Feeds
 
@@ -146,7 +147,7 @@ envelope, self-describing so a later version can change what is inside it:
 AES-256-GCM through Web Crypto (`src/lib/newsletterStore.ts`), a fresh 96-bit
 nonce for every single write, and an authentication tag checked on every read.
 Web Crypto rather than `node:crypto` because the same file has to run in the
-Vercel function and under `node --experimental-strip-types` for the send
+Cloudflare Worker and under `node --experimental-strip-types` for the send
 script. GCM rather than CBC because it authenticates as well as conceals.
 
 The AES key is the SHA-256 of `NEWSLETTER_STORE_KEY`. That is a plain hash and
@@ -176,8 +177,8 @@ act is to write the list back, so an empty list would make itself true.
 
 ### Setting the key
 
-Generate one, put it in the login Keychain, and give Vercel the same bytes by
-reading them back out of the Keychain, so the two copies cannot drift:
+Generate one, put it in the login Keychain, and give the Worker the same bytes
+by reading them back out of the Keychain, so the two copies cannot drift:
 
 ```sh
 openssl rand -base64 32          # generate one and copy it
@@ -186,12 +187,11 @@ security add-generic-password -s retroportingtoolkit-newsletter-store-key -a "$U
                                  # paste it at the prompt
 
 security find-generic-password -s retroportingtoolkit-newsletter-store-key -w \
-  | tr -d '\n' | vercel env add NEWSLETTER_STORE_KEY production
+  | tr -d '\n' | npx wrangler secret put NEWSLETTER_STORE_KEY
 ```
 
-A Vercel environment variable only reaches the function on the **next**
-deployment, so set it before the push that ships this, or redeploy afterwards.
-Until the function has the key it keeps writing plaintext, which is the
+`wrangler secret put` deploys a new Worker version, so the key takes effect at
+once. Until the Worker has the key it keeps writing plaintext, which is the
 pre-encryption behaviour and not a failure.
 
 ### What this still does not fix
@@ -199,9 +199,9 @@ pre-encryption behaviour and not a failure.
 The plaintext that was in the gist before is still in its **revision history**,
 and anyone with the id can read that. Encrypting from here does not retract
 what has already been published. Getting rid of it means deleting the gist,
-creating a new one, and putting the new id in the Keychain and in Vercel; the
+creating a new one, and putting the new id in the Keychain and in the Worker; the
 list is small enough that this is worth doing.
 
 And losing `NEWSLETTER_STORE_KEY` loses the list. That is not a flaw in the
 scheme, it is the scheme — which is why it goes in the Keychain, where it can
-still be read, and not only into Vercel, where it cannot.
+still be read, and not only into the Worker, where it cannot.

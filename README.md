@@ -4,8 +4,8 @@ The live site at **https://retroportingtoolkit.com**. A React + TypeScript +
 Vite SPA, prerendered to static files at build time, with its content as plain
 markdown under `data/`.
 
-> **A push to `main` publishes.** The Vercel project builds on every push and
-> the site is live a minute or two later. There is no staging step and no
+> **A push to `main` publishes.** Cloudflare Workers Builds builds every push and
+> the site is live a few minutes later. There is no staging step and no
 > review. Use `draft: true` on a page you are not ready to show.
 
 ## Two ways to change the site
@@ -85,8 +85,8 @@ to an exact encoding spec; see `docs/HANDOFF.md`.
 
 ## The CMS
 
-`/admin` is `src/pages/Admin.tsx`. It talks to `api/cms.ts`, a Vercel function
-that reads and writes `data/` through the GitHub Contents and Git Data APIs, so
+`/admin` is `src/pages/Admin.tsx`. It talks to `api/cms.ts`, served by the Cloudflare Worker,
+which reads and writes `data/` through the GitHub Contents and Git Data APIs, so
 every edit is a commit. `scripts/cms-dev.mjs` serves the same routes against the
 working tree for local development, and the two must agree: naming one thing
 differently in each has caused three separate bugs.

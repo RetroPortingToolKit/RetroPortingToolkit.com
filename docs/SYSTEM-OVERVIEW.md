@@ -8,7 +8,7 @@ the documents it links; this file does not repeat it.
 
 ## One paragraph
 
-A static site (React, Vite, prerendered, hosted on Vercel) whose content is
+A static site (React, Vite, prerendered, served by a Cloudflare Worker) whose content is
 Markdown in a Git repository. Every change to the site is a commit to `main`,
 whether it comes from a person in the web editor, an agent with an API key, a
 public submission form, a reaction in Discord, or the bot's own watchers.
@@ -146,7 +146,7 @@ the repository, not who typed the submission.
 - The README summariser's section heuristics and toolkit name list.
 - GitHub as the code host for both content and contributor identity; GitLab
   is supported for submitted repositories but not for editor sign-in.
-- Vercel serverless functions and a Mac under launchd as the two runtimes.
+- A Cloudflare Worker and a Mac under launchd as the two runtimes.
 - Discord as the community surface and the channel split.
 
 ## Evaluation questions for another project

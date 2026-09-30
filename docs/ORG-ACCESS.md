@@ -40,7 +40,7 @@ The ferry:
    patch into this repo's `public/`, commit and push it (that publishes it at
    `https://retroportingtoolkit.com/name.patch` about a minute later).
 4. **Wait until the URL serves the real bytes before telling the owner to
-   fetch.** vercel.json rewrites every unmatched path to the SPA with a 200,
+   fetch.** Until the deploy lands, the URL answers with an HTML error page,
    so an early `curl` downloads HTML and `git am` fails with "Patch format
    detection failed". Poll until the first bytes are `From <sha>`.
 5. Hand the owner this block, with the paths filled in:
