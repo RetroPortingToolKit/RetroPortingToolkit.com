@@ -171,7 +171,7 @@ function agentSurfacesPlugin(): Plugin {
 //   virtual:docs-search-index   every published documentation page reduced to
 //                               plain text (table cells included) plus its
 //                               headings. src/components/DocsSearch.tsx reaches
-//                               it through a DYNAMIC import, so rollup gives it
+//                               it through a DYNAMIC import, so Rolldown gives it
 //                               its own chunk and a reader downloads it the
 //                               first time they open search, never on load.
 //   virtual:docs-updated        slug -> { date, source } for the "last updated"
@@ -193,9 +193,9 @@ const DOCS_UPDATED_ID = "virtual:docs-updated";
 const DOCS_MANIFEST_ID = "virtual:docs-manifest";
 
 function docsDataPlugin(): Plugin {
-  // The "\0" prefix is rollup's convention for a module that is not on disk;
-  // it stops other plugins (and the dev server's file middleware) from trying
-  // to resolve it as a path.
+  // The "\0" prefix is the Rollup/Rolldown convention for a module that is
+  // not on disk; it stops other plugins (and the dev server's file
+  // middleware) from trying to resolve it as a path.
   const resolved = (id: string) => `\0${id}`;
   let cache: { search?: string; updated?: string; manifest?: string } = {};
   let snapshot: ReturnType<typeof collectDocs> | undefined;
@@ -282,7 +282,7 @@ function docsDataPlugin(): Plugin {
 // A route split can regress without a type error: one convenience import from
 // content.ts is enough to reconnect every documentation body to main.tsx, and
 // Vite will then faithfully modulepreload those chunks on every generated
-// route. Assert the property on Rollup's final graph rather than trusting file
+// route. Assert the property on Rolldown's final graph rather than trusting file
 // names or a source-level convention.
 function docsBodyBoundaryPlugin(): Plugin {
   const isDocsBodyModule = (id: string) => {
@@ -465,22 +465,32 @@ export default defineConfig({
     // (~809 kB minified); keep the warning focused on bootstrap code and
     // content chunks rather than flagging that one deferred payload.
     chunkSizeWarningLimit: 900,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         // Content is build-time data, not application code. Keep the large
         // markdown collections out of the bootstrap chunk so the warning is
         // actionable and the browser can cache each collection independently.
-        manualChunks(id) {
-          if (id.includes("/data/docs/")) {
-            const section = id.match(/\/data\/docs\/(\d+_[^/]+)\//)?.[1];
-            return section ? `content-docs-${section.replace(/^\d+_/, "")}` : "content-docs";
-          }
-          if (id.includes("/data/blog/")) return "content-blog";
-          if (id.includes("/data/games/") || id.includes("/data/hardware/")) {
-            return "content-catalog";
-          }
-          if (id.includes("/node_modules/js-yaml/")) return "yaml";
-          return undefined;
+        // One naming group is exactly what Rolldown made of the former
+        // manualChunks function, which Vite 8 deprecates.
+        codeSplitting: {
+          groups: [
+            {
+              name(id) {
+                if (id.includes("/data/docs/")) {
+                  const section = id.match(/\/data\/docs\/(\d+_[^/]+)\//)?.[1];
+                  return section
+                    ? `content-docs-${section.replace(/^\d+_/, "")}`
+                    : "content-docs";
+                }
+                if (id.includes("/data/blog/")) return "content-blog";
+                if (id.includes("/data/games/") || id.includes("/data/hardware/")) {
+                  return "content-catalog";
+                }
+                if (id.includes("/node_modules/js-yaml/")) return "yaml";
+                return null;
+              },
+            },
+          ],
         },
       },
     },
