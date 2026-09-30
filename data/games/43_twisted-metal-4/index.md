@@ -14,11 +14,11 @@ group: "PlayStation"
 links:
   - { label: "PS1 Twisted Metal 4 comes to PC/Mac/Linux (retro-gamer.jp)", href: "https://retro-gamer.jp/?p=45562" }
 verified: "2026-08-18"
-updated: "2026-09-08"
+updated: "2026-09-30"
 added: "2026-08-07"
 cover: "./boxart.png"
-release: "v0.3.30"
-download: "https://github.com/TechnicallyComputers/TwistedMetal4Recomp/releases/tag/v0.3.30"
+release: "v0.3.32"
+download: "https://github.com/TechnicallyComputers/TwistedMetal4Recomp/releases/tag/v0.3.32"
 ---
 
 TwistedMetal4 Recompiled is a community project by TechnicallyComputers.
