@@ -61,7 +61,7 @@ const PENDING_MAX_AGE_MS = 14 * 24 * 3600_000;
 
 async function readList(): Promise<Subscriber[]> {
   const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { authorization: `Bearer ${TOKEN}`, accept: "application/vnd.github+json" },
+    headers: { authorization: `Bearer ${TOKEN}`, accept: "application/vnd.github+json", "user-agent": "retroportingtoolkit.com" },
     cache: "no-store",
   });
   if (!r.ok) throw new Error(`gist read failed: ${r.status}`);
@@ -88,6 +88,7 @@ async function writeList(list: Subscriber[]): Promise<void> {
       authorization: `Bearer ${TOKEN}`,
       accept: "application/vnd.github+json",
       "content-type": "application/json",
+      "user-agent": "retroportingtoolkit.com",
     },
     body: JSON.stringify({ files: { [GIST_FILE]: { content } } }),
   });

@@ -11,7 +11,7 @@ export class SubmissionStore {
   constructor(private base: string, private token: string, private branch = 'main') {}
   async gh(route: string, init: RequestInit = {}) {
     const response = await fetch(`${this.base}${route}`, { ...init, signal: AbortSignal.timeout(15_000), headers: {
-      authorization: `Bearer ${this.token}`, accept: 'application/vnd.github+json', 'content-type': 'application/json',
+      authorization: `Bearer ${this.token}`, accept: 'application/vnd.github+json', 'content-type': 'application/json', 'user-agent': 'retroportingtoolkit.com',
     } });
     if (!response.ok) throw new SubmissionError('Publishing is temporarily unavailable. Please try again.', response.status === 409 || response.status === 422 ? 409 : 503);
     return response.json();
@@ -55,7 +55,7 @@ export async function repositoryMetadata(repo: string) {
   const project = url.pathname.slice(1);
   const endpoint = url.hostname === 'github.com' ? `https://api.github.com/repos/${project}` : `https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}`;
   // No site credential is ever sent while inspecting a submitted repository.
-  const response = await fetch(endpoint, { redirect: 'error', signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json' } });
+  const response = await fetch(endpoint, { redirect: 'error', signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json', 'user-agent': 'retroportingtoolkit.com' } });
   if (response.status === 404) throw new SubmissionError('That repository could not be found publicly. Check the link and visibility.');
   if (!response.ok) throw new SubmissionError('The repository host is unavailable. Please try again shortly.', 503);
   const data = await response.json();

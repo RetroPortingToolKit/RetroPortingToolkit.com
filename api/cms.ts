@@ -1157,7 +1157,7 @@ async function githubCallback(req: Request): Promise<Response> {
 
   const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
     method: "POST",
-    headers: { accept: "application/json", "content-type": "application/json" },
+    headers: { accept: "application/json", "content-type": "application/json", "user-agent": "cms" },
     body: JSON.stringify({
       client_id: GH_CLIENT_ID,
       client_secret: GH_CLIENT_SECRET,
