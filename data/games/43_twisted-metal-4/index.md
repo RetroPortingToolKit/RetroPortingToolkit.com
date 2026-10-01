@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-09-30"
 added: "2026-08-07"
 cover: "./boxart.png"
-release: "v0.3.32"
-download: "https://github.com/TechnicallyComputers/TwistedMetal4Recomp/releases/tag/v0.3.32"
+release: "v0.3.33"
+download: "https://github.com/TechnicallyComputers/TwistedMetal4Recomp/releases/tag/v0.3.33"
 ---
 
 TwistedMetal4 Recompiled is a community project by TechnicallyComputers.
