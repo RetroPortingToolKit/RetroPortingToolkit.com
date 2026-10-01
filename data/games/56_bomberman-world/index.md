@@ -13,10 +13,10 @@ repo: "https://github.com/TechnicallyComputers/Bomberman-World-Recomp"
 group: "PlayStation"
 cover: "./boxart.png"
 verified: "2026-08-20"
-updated: "2026-08-26"
+updated: "2026-10-01"
 added: "2026-08-08"
-release: "v0.1.20"
-download: "https://github.com/TechnicallyComputers/Bomberman-World-Recomp/releases/tag/v0.1.20"
+release: "v0.1.21"
+download: "https://github.com/TechnicallyComputers/Bomberman-World-Recomp/releases/tag/v0.1.21"
 ---
 
 Bomberman World has a community [PSXRecomp](/hardware/playstation) build by TechnicallyComputers.

@@ -13,10 +13,10 @@ repo: "https://github.com/TechnicallyComputers/Bomberman-Fantasy-Race-Recomp"
 group: "PlayStation"
 cover: "./boxart.png"
 verified: "2026-08-20"
-updated: "2026-08-26"
+updated: "2026-10-01"
 added: "2026-08-07"
-release: "v0.1.2"
-download: "https://github.com/TechnicallyComputers/Bomberman-Fantasy-Race-Recomp/releases/tag/v0.1.2"
+release: "v0.1.3"
+download: "https://github.com/TechnicallyComputers/Bomberman-Fantasy-Race-Recomp/releases/tag/v0.1.3"
 ---
 
 Bomberman Fantasy Race has a community [PSXRecomp](/hardware/playstation) build by TechnicallyComputers.
