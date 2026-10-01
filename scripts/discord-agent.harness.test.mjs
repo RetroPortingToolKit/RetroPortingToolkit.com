@@ -59,7 +59,12 @@ function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdi
       DISCORD_AGENT_REPO: repo.dir,
       DISCORD_AGENT_QUIET_MS: "1000",
       DISCORD_AGENT_SETTLE_MS: "200",
-      DISCORD_AGENT_IDLE_MS: "2000",
+      // The watchdog budget. 2s was enough to kill the fake agent whenever the
+      // Mac was loaded — the whole suite running in parallel starved it past
+      // the limit, the bridge reported it as silent, and the resulting red run
+      // stopped publishing for everyone. Only the watchdog's own test wants a
+      // tight one, and it asks for it.
+      DISCORD_AGENT_IDLE_MS: "20000",
       DISCORD_AGENT_TIMEOUT_MS: "30000",
       DISCORD_AGENT_ASK_TIMEOUT_MS: "30000",
       DISCORD_AGENT_PROGRESS_MS: "300",
@@ -196,7 +201,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
   });
 
   it("stops an agent that goes silent, reports it, and moves on to the next request", async () => {
-    const b = await up();
+    const b = await up({ env: { DISCORD_AGENT_IDLE_MS: "2000" } });
     const dead = b.send(ADMIN, "U1", "hang forever [[dirty]] [[silent]]");
     const next = b.send(ADMIN, "U2", "after the hang [[sleep=0]]");
     const failed = await b.waitFor(forMsg(dead, "went silent"), 12000, "watchdog report");
@@ -488,9 +493,19 @@ describe("bridge harness: replying to something the bot did", () => {
     expect(blocked.content).not.toMatch(/can.?t (edit|change|modify)/i);
   });
 
-  it("still treats a reply to one of its own answers as conversation", async () => {
+  it("takes an instruction replying to one of its own answers into the publishing lane", async () => {
+    // "Do it", then "Raise the harness idle budget", were both replies to an
+    // answer, and both were told the bot could not touch anything.
     const b = await up();
-    const id = b.send(ADMIN, "U1", "please remove this for now [[sleep=0]]", {
+    const id = b.send(ADMIN, "U1", "Raise the harness idle budget [[sleep=0]]", {
+      raw: true, replyTo: { messageId: "ANSWER", content: "the harness watchdog is tighter than the real one" },
+    });
+    await b.waitFor(forMsg(id, "On it"), 10000, "publish started from a reply to an answer");
+  });
+
+  it("still treats a reaction replying to one of its own answers as conversation", async () => {
+    const b = await up();
+    const id = b.send(ADMIN, "U1", "huh [[sleep=0]]", {
       raw: true, replyTo: { messageId: "ANSWER", content: "yeah, that one shipped last week" },
     });
     await b.waitFor(forMsg(id, "OK:"), 12000, "answered");

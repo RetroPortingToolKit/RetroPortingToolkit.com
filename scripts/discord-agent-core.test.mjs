@@ -10,7 +10,6 @@ import {
   modelFor,
   checkoutBusyReason,
   foreignWorkReason,
-  isAnnouncement,
   pulseChanged,
   canRequestDestructive,
   containsSensitiveContent,
@@ -821,21 +820,31 @@ describe("asking for something to be taken down", () => {
   });
 });
 
-/** The routing turns on this, so a producer that stops matching would silently
- * send owners' change requests back to the read-only answer lane. */
-describe("announcement prefixes covered", () => {
-  it("recognises every notice the bot posts about work it did", async () => {
-    const { releaseAnnouncement, releasesAnnouncement } = await import("./repo-updates.mjs");
-    const { changeReport } = await import("./site-changes.mjs");
-    const update = { title: "Mega Man X", tag: "v1.6.6", name: "Mega Man X 1.6.6", releaseUrl: "https://github.com/o/r/releases/tag/v1.6.6", url: "/games/mega-man-x" };
-    expect(isAnnouncement(releaseAnnouncement(update, "https://site"))).toBe(true);
-    expect(isAnnouncement(releasesAnnouncement([update, { ...update, title: "Yoshi" }], "https://site"))).toBe(true);
-    const report = changeReport([{ kind: "games", folder: "01_tomba", title: "Tomba!", created: true }], { siteUrl: "https://site" });
-    expect(isAnnouncement(report)).toBe(true);
+
+/** 2026-10-01: "Do it" and then "Raise the harness idle budget" were replies to
+ * one of the bot's own answers, so both went to the read-only lane — the first
+ * came back asking what "it" meant, the second that it could not touch
+ * anything. Replying is not a decision; the words are. */
+describe("an instruction in a reply", () => {
+  it("reads a maintainer's follow-up instruction as work", () => {
+    for (const text of [
+      "Do it",
+      "do this",
+      "Raise the harness idle budget. And have a deep think about how to prevent this again",
+      "make it serial instead",
+      "bump the timeout",
+    ]) expect(isConversational(text), text).toBe(false);
   });
 
-  it("does not claim the bot's own answers or status lines", () => {
-    for (const text of ["✅ Done.", "❌ The task did not complete.", "On it.", "Still working — 3m elapsed.", "yeah, that shipped last week", ""])
-      expect(isAnnouncement(text), JSON.stringify(text)).toBe(false);
+  it("still reads a reaction as a reaction", () => {
+    for (const text of [
+      "Tf happened",
+      "huh",
+      "welp",
+      "yeah do that",
+      "ok cool thanks",
+      "does that include zero?",
+      "Do you have the logs?",
+    ]) expect(isConversational(text), text).toBe(true);
   });
 });

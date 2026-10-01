@@ -26,7 +26,6 @@ import {
   isClearQueueRequest,
   checkoutBusyReason,
   foreignWorkReason,
-  isAnnouncement,
   isAuthorized,
   isDestructiveRequest,
   isMassDestructiveRequest,
@@ -1549,20 +1548,19 @@ client.on("messageCreate", async (message) => {
     await handleAsk(message, ref, request);
     return;
   }
-  // A trusted developer chatting with the bot, or replying to one of its
-  // answers, is asking, not publishing. Only a change request goes on to the
-  // publishing lane below (status, stop and cancel keep their own words).
+  // A trusted developer chatting with the bot is asking, not publishing. Only
+  // a change request goes on to the publishing lane below (status, stop and
+  // cancel keep their own words).
   const control = isStatusRequest(request) || isCancelMineRequest(request) || isClearQueueRequest(request) || isStopRequest(request);
-  // Replying to something the bot DID — a release announcement, a site-updated
-  // note — is how someone says "that one, change it", so those fall through to
-  // the publishing lane and are judged on their words like any other request.
-  // Only a reply to something the bot SAID is chat by default. On 2026-09-30 a
-  // repo owner replied "Please remove this for now" to a release line and was
-  // told the bot could not change anything.
-  const repliedToAnnouncement = addressedByReply && referenced && isAnnouncement(referenced.content);
-  const repliedToAnswer = addressedByReply && referenced && !repliedToAnnouncement
-    && !/^(✅|❌|⏸️|🛑|ℹ️|❓|⚠️|On it\.|Still working)/.test(referenced.content ?? "");
-  if (!control && (repliedToAnswer || isConversational(request, { hasAttachments: attachmentsOf(message).length > 0 }))) {
+  // What the words say decides, in a reply as much as anywhere else.
+  //
+  // Replying used to mean chat on its own, whatever was written. That told a
+  // repository owner the bot could not take his release announcement down
+  // (2026-09-30), and then sent "Raise the harness idle budget" to the
+  // read-only lane, which answered that it could not touch anything
+  // (2026-10-01). Both were change requests, and isConversational read both
+  // correctly — it was simply never asked.
+  if (!control && isConversational(request, { hasAttachments: attachmentsOf(message).length > 0 })) {
     await handleAsk(message, ref, request);
     return;
   }

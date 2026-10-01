@@ -35,6 +35,10 @@ export function isConversational(content, { hasAttachments = false } = {}) {
   // replied to is the subject.
   if (/^(?:please\s+)?(?:remove|delete|unlist|revert|undo|roll\s*back|take\s+down|pull)\b/i.test(text)) return false;
   if (/^(?:please\s+)?(?:take|pull|put|roll|knock)\s+(?:it|this|that|them|those)\s+(?:down|back|off|out)\b/i.test(text)) return false;
+  // "Do it" is an instruction; the question rule below reads a leading "do" as
+  // interrogative and sent it to the answer lane, which replied asking what
+  // "it" meant. "Do you have…" is still a question.
+  if (/^(?:please\s+)?(?:do|make|get)\s+(?:it|this|that|them|those)\b/i.test(text)) return false;
   // Reacting to what the bot just did is not asking for anything. A trusted
   // developer's message falls through to publishing by default, so "Ah shit, I
   // didn't want to publicize that yet" would otherwise start an agent — and
@@ -48,21 +52,8 @@ export function isConversational(content, { hasAttachments = false } = {}) {
   if (/^(who|whom|whose|what|when|where|why|how|which|is|are|was|were|does|do|did|has|have|any|got)\b/i.test(text)) return true;
   if (/\?\s*$/.test(text) && !changeVerb.test(text)) return true;
   const words = text.split(/\s+/);
-  if (words.length <= 6 && !changeVerb.test(text) && /^(ok|okay|fair|sweet|nice|cool|thanks|thank you|thx|lol|haha|hi|hello|hey|yo|sure|yes|no|nope|yeah|yep|good|great|awesome|hmm|interesting|wow|right|true|same|agreed|indeed|test)\b/i.test(text)) return true;
+  if (words.length <= 6 && !changeVerb.test(text) && /^(ok|okay|k|fair|sweet|nice|cool|thanks|thank you|thx|lol|lmao|haha|hi|hello|hey|yo|sure|yes|no|nope|yeah|yep|good|great|awesome|hmm+|huh|uh|um+|meh|welp|oof|yikes|damn|wtf|tf|ah|oh|interesting|wow|right|true|same|agreed|indeed|test)\b/i.test(text)) return true;
   return false;
-}
-
-/** Notices about work the bot DID, as opposed to answers it gave.
- *
- * Replying to one of these is how someone says "that one, change it", so they
- * are routed as requests. Kept as a positive test rather than as an exception
- * to the answer prefixes: a release announcement was missing from that list on
- * 2026-09-30, and the next notice glyph would have gone the same way.
- * `announcementPrefixesCovered` in the tests holds the producers to it. */
-export const ANNOUNCEMENT_PREFIXES = ["🎉", "🚀"];
-export function isAnnouncement(content) {
-  const text = String(content ?? "").trim();
-  return ANNOUNCEMENT_PREFIXES.some((p) => text.startsWith(p));
 }
 
 export function isStatusRequest(content) {
