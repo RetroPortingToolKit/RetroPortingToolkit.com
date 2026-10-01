@@ -55,6 +55,12 @@ import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from "./rep
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
 import { failedCheck, failureSummary, onlySlowness } from "./health.mjs";
+import { classifyIntent, apiIntentCall } from "./intent.mjs";
+
+/** The intent classifier's model call, when there is a key to make one with.
+ * Without one every message is routed by the heuristic, as before. The key
+ * is read here and handed to nothing else. */
+const intentCall = apiIntentCall(process.env.ANTHROPIC_API_KEY);
 import { checksLockHolder, withChecksLock } from "./checkout.mjs";
 import { plainText } from "./submissions.mjs";
 import fsp from "node:fs/promises";
@@ -1569,7 +1575,15 @@ client.on("messageCreate", async (message) => {
   // read-only lane, which answered that it could not touch anything
   // (2026-10-01). Both were change requests, and isConversational read both
   // correctly — it was simply never asked.
-  if (!control && isConversational(request, { hasAttachments: attachmentsOf(message).length > 0 })) {
+  // A model reads the message; the regex heuristic is only its fallback. See
+  // intent.mjs for the weeks of patterns that each missed the next sentence.
+  // Attachments are structural, not textual: a file is there to be published.
+  const hasAttachments = attachmentsOf(message).length > 0;
+  const intent = hasAttachments ? "request" : await classifyIntent(
+    { text: request, replyTo: addressedByReply ? referenced?.content ?? "" : "", channel: await recentChannelContext(message, 6) },
+    { call: intentCall, fallback: (t) => (isConversational(t) ? "chat" : "request"), log: (line) => console.log(`[discord-agent] intent ${line}`) },
+  );
+  if (!control && intent === "chat") {
     await handleAsk(message, ref, request);
     return;
   }
