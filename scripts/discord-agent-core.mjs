@@ -46,6 +46,17 @@ export function isConversational(content, { hasAttachments = false } = {}) {
   // automatically chat. Only when the sentence names no change of its own.
   if (!changeVerb.test(text) && /^\W*(ah|oh|ugh|damn|shit|hm+|welp|eh|wow|yikes|oof|lmao)\b/i.test(text)) return true;
   if (!changeVerb.test(text) && /\bi\s+(did\s*n[o']?t|don'?t|never|wasn'?t|can'?t)\b/i.test(text)) return true;
+  // Telling the bot something is not asking it for anything. A trusted
+  // developer's message publishes by default, so "It seems bomberman world and
+  // many others got updated" started an agent, which found nothing to do and
+  // was reported as an unverified completion (2026-10-01). Only when the
+  // sentence names no change of its own: "I think we should add a download
+  // button" still carries "add" and still publishes.
+  if (!changeVerb.test(text) && /^(?:it|that|this)\s+(?:seems|looks|appears|is|was|are|were|got|has|have|had)\b/i.test(text)) return true;
+  if (!changeVerb.test(text) && /^(?:looks|seems|sounds)\s+like\b/i.test(text)) return true;
+  if (!changeVerb.test(text) && /^i\s+(?:think|guess|see|notice|noticed|assume|believe|reckon|wonder|suspect)\b/i.test(text)) return true;
+  if (!changeVerb.test(text) && /^(?:apparently|fyi|btw|heads\s*up|note|also|and)\b/i.test(text)) return true;
+  if (!changeVerb.test(text) && /^there\s+(?:are|is|were|was)\b/i.test(text)) return true;
   // "did you do the footer?" is about the bot's own work, and the task lane
   // is what checks a completion claim against what was actually committed.
   if (/^(did|have|are|were|what did|what have|is it|was it|how far)\s+(you|it|that|this)\b/i.test(text) || /\b(you|u)\s+(did|do|done|finish|finished|push|pushed|publish|published|deploy|deployed|complete|completed)\b/i.test(text)) return false;

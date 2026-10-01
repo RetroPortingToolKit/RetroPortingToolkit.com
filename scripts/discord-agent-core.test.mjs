@@ -848,3 +848,31 @@ describe("an instruction in a reply", () => {
     ]) expect(isConversational(text), text).toBe(true);
   });
 });
+
+/** 2026-10-01: "It seems bomberman world and many others got updated" was an
+ * observation, and it started a publishing agent that found nothing to do and
+ * was reported as an unverified completion. A trusted developer's message
+ * publishes by default, so telling the bot something has to be recognised. */
+describe("telling the bot something", () => {
+  it("reads an observation as conversation", () => {
+    for (const text of [
+      "It seems bomberman world and many others got updated",
+      "looks like twisted metal went up three times",
+      "that looks wrong",
+      "I think the lufia page is out of date",
+      "I noticed star fox is still on alpha",
+      "there are a few pages still showing rc builds",
+      "fyi mstan pushed a new build",
+      "apparently the feed lists the mod first",
+    ]) expect(isConversational(text), text).toBe(true);
+  });
+
+  it("still publishes when the sentence names a change of its own", () => {
+    for (const text of [
+      "I think we should add a download button",
+      "it looks wrong, fix the lufia page",
+      "there are a few pages still on rc, revert them",
+      "fyi mstan pushed a new build, update the page",
+    ]) expect(isConversational(text), text).toBe(false);
+  });
+});
