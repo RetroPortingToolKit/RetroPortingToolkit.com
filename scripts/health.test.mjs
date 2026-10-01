@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { failedCheck, failureSummary } from './health.mjs';
+import { failedCheck, failureSummary, onlySlowness } from './health.mjs';
 
 // The real shape of a failing run: cms-git.test.mjs deliberately produces a
 // conflicting rebase on every run, and React prints render stacks. Reporting
@@ -39,5 +39,36 @@ describe('reading a failed check', () => {
     expect(failedCheck('Error: Command failed: npm run test')).toBe('test');
     expect(failedCheck('Command failed: npm run typecheck\n...')).toBe('typecheck');
     expect(failedCheck('git push rejected')).toBeNull();
+  });
+});
+
+/** Twice overnight on 2026-10-01 a suite whose only failures were timeouts
+ * stopped publishing, with nothing wrong with the site. The retry ran on the
+ * same loaded Mac, so asking again proved nothing. */
+describe("load is not a breakage", () => {
+  it("recognises a run that only timed out", () => {
+    expect(onlySlowness([
+      "× does not fetch a stranger's attachment in a public channel 21241ms",
+      "→ timed out waiting for the answer",
+      "× does not publish because someone reacted to an announcement 18370ms",
+      "→ The claude agent went silent for 0 minutes and was stopped.",
+      "Tests  2 failed | 1079 passed (1081)",
+    ].join("\n"))).toBe(true);
+    expect(onlySlowness("× a slow one 9000ms\n→ Test timed out in 5000ms.")).toBe(true);
+  });
+
+  it("never explains away a real failure", () => {
+    // One genuine assertion among the timeouts is still a breakage.
+    expect(onlySlowness([
+      "× flaky one 21241ms",
+      "→ timed out waiting for the answer",
+      "× a real one 12ms",
+      "AssertionError: expected 'v1.7.0-rc.1' to be 'v1.6.6'",
+    ].join("\n"))).toBe(false);
+    expect(onlySlowness("error TS2345: Argument of type 'string' is not assignable")).toBe(false);
+    expect(onlySlowness("× broke 3ms\n→ expected true to be false")).toBe(false);
+    // Nothing recognisable is not an excuse either.
+    expect(onlySlowness("Command failed: npm run test")).toBe(false);
+    expect(onlySlowness("")).toBe(false);
   });
 });

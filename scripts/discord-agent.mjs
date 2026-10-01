@@ -54,7 +54,7 @@ import { siteChangeWatcher } from "./site-changes.mjs";
 import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from "./repo-updates.mjs";
 import { parseOwnerRequest, findGamePage, isPageOwner, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
-import { failedCheck, failureSummary } from "./health.mjs";
+import { failedCheck, failureSummary, onlySlowness } from "./health.mjs";
 import { checksLockHolder, withChecksLock } from "./checkout.mjs";
 import { plainText } from "./submissions.mjs";
 import fsp from "node:fs/promises";
@@ -1192,7 +1192,16 @@ async function confirmBroken(error) {
     // Someone may have started editing during the retry.
     const now = await foreignWorkAtFailure(error);
     if (now) return { foreign: now };
-    return { check, output: `${again.stdout ?? ""}${again.stderr ?? ""}${again.message ?? ""}` };
+    const output = `${again.stdout ?? ""}${again.stderr ?? ""}${again.message ?? ""}`;
+    // Twice overnight, failures that were all timeouts stopped publishing with
+    // nothing wrong with the site: the retry ran on the same loaded machine
+    // that caused the first one, so asking again proved nothing. A run with no
+    // real assertion in it is left for the next tick instead.
+    if (onlySlowness(output)) {
+      console.warn(`[discord-agent] npm run ${check} failed on timeouts only, twice; treating as load, not a breakage`);
+      return { foreign: "the checks timed out under load rather than failing" };
+    }
+    return { check, output };
   }
 }
 

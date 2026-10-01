@@ -13,6 +13,27 @@ export function failedCheck(message) {
   return String(message ?? "").match(/Command failed: npm run ([\w:-]+)/)?.[1] ?? null;
 }
 
+/** Does this failure say the site is broken, or only that the machine was busy?
+ *
+ * A test that timed out, or a bridge agent reported as having gone silent, is
+ * evidence about load, not about main. The suite runs on the same Mac as the
+ * bot, the builds and whoever is working, and on 2026-10-01 a starved fake
+ * agent stopped publishing for everyone twice overnight — with the site
+ * perfectly fine both times. A run whose every named failure looks like that
+ * is retried rather than believed; one real assertion among them, and it
+ * counts as a breakage like any other.
+ */
+const SLOW = /Test timed out in \d+|timed out waiting for|went silent for|ETIMEDOUT|ENOTEMPTY|hook timed out/i;
+const REAL = /^AssertionError\b|error TS\d+|\bexpected\b.*\bto (be|equal|contain|match)\b|SyntaxError|ReferenceError|TypeError|Cannot find module/i;
+
+export function onlySlowness(output) {
+  const lines = String(output ?? "").replace(STRIP_ANSI, "").split("\n").map((l) => l.trim()).filter(Boolean);
+  const failures = lines.filter((line) => /^[✕×]\s/.test(line) || /^→\s/.test(line) || /^AssertionError\b/.test(line) || /error TS\d+/.test(line));
+  if (!failures.length) return false; // nothing recognisable: do not explain it away
+  if (failures.some((line) => REAL.test(line))) return false;
+  return failures.some((line) => SLOW.test(line));
+}
+
 /** The handful of lines worth showing a maintainer. */
 export function failureSummary(output, limit = 6) {
   const lines = String(output ?? "")
