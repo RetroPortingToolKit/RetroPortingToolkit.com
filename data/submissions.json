@@ -415,5 +415,23 @@
     "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork.",
     "moderatedBy": "398336732287991808",
     "moderatedAt": "2026-09-29T19:53:44.812Z"
+  },
+  {
+    "id": "d9c24850b61b37f6",
+    "repo": "https://github.com/vibecodekun/shantaerecomp",
+    "title": "ShantaeRecomp",
+    "description": "Shantae, but it's a little more enjoyable to play.",
+    "owner": "vibecodekun",
+    "path": "data/games/87_shantaerecomp-d9c24850/index.md",
+    "url": "/games/shantaerecomp-d9c24850",
+    "createdAt": "2026-10-02T23:14:01.616Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
