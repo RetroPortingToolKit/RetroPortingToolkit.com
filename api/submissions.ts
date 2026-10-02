@@ -35,6 +35,13 @@ export async function handler(req: Request): Promise<Response> {
     const result = await submitRepository(store, input);
     return json({ ...result, message: result.duplicate ? `This project has already been submitted. ${editNote(result.record, new URL(req.url).origin)}` : `Your game page is publishing. It usually appears within a couple of minutes. ${result.record.mediaNote || ''} ${editNote(result.record, new URL(req.url).origin)}` }, result.duplicate ? 200 : 201);
   } catch (error) {
+    // A SubmissionError is a decision and its message is the whole story.
+    // Anything else is a fault, and swallowing it is why a TypeError from the
+    // Cloudflare migration sat behind "temporarily unavailable" for two days
+    // with nothing anywhere saying what had gone wrong.
+    if (!(error instanceof SubmissionError)) {
+      console.error('[submissions] unhandled', error instanceof Error ? `${error.name}: ${error.message}` : String(error));
+    }
     return json({ error: error instanceof SubmissionError ? error.message : 'Submissions are temporarily unavailable. Please try again.' }, error instanceof SubmissionError ? error.status : 503);
   }
 }

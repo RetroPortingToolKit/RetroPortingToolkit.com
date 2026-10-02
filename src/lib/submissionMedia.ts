@@ -1,7 +1,9 @@
 import { mediaUrl, readmeImages, type MediaCandidate } from '../../scripts/submission-media.mjs';
 export type ImportedAsset = { name: string; content: string; alt: string };
 async function publicBytes(url: string, limit: number): Promise<Buffer> {
-  const response = await fetch(url, { redirect: 'error', signal: AbortSignal.timeout(6000), headers: { accept: '*/*', 'user-agent': 'retroportingtoolkit.com' } });
+  // 'manual' rather than 'error', which the Workers runtime refuses. A
+  // redirect is still not followed: !response.ok covers a 3xx here.
+  const response = await fetch(url, { redirect: 'manual', signal: AbortSignal.timeout(6000), headers: { accept: '*/*', 'user-agent': 'retroportingtoolkit.com' } });
   if (!response.ok || !response.body || Number(response.headers.get('content-length')) > limit) throw new Error('Media unavailable');
   const reader = response.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
   try {

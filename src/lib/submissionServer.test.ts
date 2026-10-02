@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SubmissionStore, SubmissionError, submitRepository } from './submissionServer';
+import { SubmissionStore, SubmissionError, submitRepository, repositoryMetadata } from './submissionServer';
 import { submissionId } from '../../scripts/submissions.mjs';
 const repo = 'https://github.com/example/recomp';
 function fixture() {
@@ -92,4 +92,35 @@ describe('submission publishing', () => {
     expect(calls.at(-1)!.body.force).toBe(false);
   });
 
+});
+
+/** Every submission failed from the day the site moved to Cloudflare. The
+ * Workers runtime refuses `redirect: "error"` — "won't be implemented since it
+ * does not make sense at the edge" — so inspecting the submitted repository
+ * threw a TypeError, which the handler turned into "Submissions are
+ * temporarily unavailable. Please try again." */
+describe('inspecting a submitted repository at the edge', () => {
+  const repo = 'https://github.com/vibecodekun/shantaerecomp';
+
+  it('never asks for a redirect mode the Workers runtime refuses', async () => {
+    const fetcher = vi.fn(async (_url: string, _init: RequestInit) => Response.json({ html_url: repo, name: 'Shantae', description: 'A port.', private: false, owner: { login: 'vibecodekun' }, default_branch: 'main' }));
+    vi.stubGlobal('fetch', fetcher);
+    await repositoryMetadata(repo);
+    const init = fetcher.mock.calls[0][1];
+    // workerd accepts only "follow" and "manual".
+    expect(init.redirect).toBe('manual');
+    expect(['follow', 'manual']).toContain(init.redirect);
+  });
+
+  it('refuses a redirect rather than following it somewhere else', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 301, headers: { location: 'https://api.github.com/repos/someone/else' } })));
+    await expect(repositoryMetadata(repo)).rejects.toThrow(/redirects elsewhere/);
+    // A refusal, not a fault: the submitter gets told, publishing is not down.
+    await expect(repositoryMetadata(repo)).rejects.toBeInstanceOf(SubmissionError);
+  });
+
+  it('still reports a missing repository as missing', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })));
+    await expect(repositoryMetadata(repo)).rejects.toThrow(/could not be found publicly/);
+  });
 });

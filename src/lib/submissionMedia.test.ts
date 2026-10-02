@@ -8,7 +8,9 @@ describe('media importing',()=>{
     const fetcher=vi.fn(async (_url: string, _init: RequestInit)=>new Response(png));vi.stubGlobal('fetch',fetcher);
     const assets=await importSubmissionImages([{url,alt:'Screenshot'},{url:url+'?banner',alt:'Banner'}],[{url:url+'?readme',alt:'Readme banner'}]);
     expect(assets.map(a=>a.alt)).toEqual(['Banner','Screenshot','Readme banner']);expect(assets[0].content).toBe(png.toString('base64'));
-    expect(fetcher.mock.calls[0][1]).toMatchObject({redirect:'error',headers:{accept:'*/*'}});
+    // 'manual', never 'error': the Workers runtime refuses 'error' outright,
+    // and pinning it here is how it survived the move to Cloudflare.
+    expect(fetcher.mock.calls[0][1]).toMatchObject({redirect:'manual',headers:{accept:'*/*'}});
   });
   it('skips SVG, over-limit bodies, unavailable files, and forbidden hosts',async()=>{
     vi.stubGlobal('fetch',vi.fn(async (u:string)=>u.endsWith('large')?new Response(png,{headers:{'content-length':'5000000'}}):u.endsWith('bad')?new Response('<svg/>'):new Response('',{status:404})));

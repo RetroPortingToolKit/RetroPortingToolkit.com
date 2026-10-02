@@ -55,7 +55,15 @@ export async function repositoryMetadata(repo: string) {
   const project = url.pathname.slice(1);
   const endpoint = url.hostname === 'github.com' ? `https://api.github.com/repos/${project}` : `https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}`;
   // No site credential is ever sent while inspecting a submitted repository.
-  const response = await fetch(endpoint, { redirect: 'error', signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json', 'user-agent': 'retroportingtoolkit.com' } });
+  //
+  // `redirect: 'manual'`, not 'error': the Workers runtime refuses 'error'
+  // outright ("won't be implemented since it does not make sense at the edge"),
+  // so every submission threw a TypeError from the day this moved to
+  // Cloudflare. The intent is unchanged — a redirect is still refused rather
+  // than followed, since where a submitted link points is the submitter's
+  // claim and not something to chase.
+  const response = await fetch(endpoint, { redirect: 'manual', signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json', 'user-agent': 'retroportingtoolkit.com' } });
+  if (response.status >= 300 && response.status < 400) throw new SubmissionError('That repository link redirects elsewhere. Submit the address it now lives at.');
   if (response.status === 404) throw new SubmissionError('That repository could not be found publicly. Check the link and visibility.');
   if (!response.ok) throw new SubmissionError('The repository host is unavailable. Please try again shortly.', 503);
   const data = await response.json();
