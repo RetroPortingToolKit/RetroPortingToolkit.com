@@ -4,7 +4,11 @@ import { submissionId } from '../../scripts/submissions.mjs';
 const repo = 'https://github.com/example/recomp';
 function fixture() {
   vi.stubGlobal('fetch', vi.fn(async (_url, options) => {
-    expect(options.headers.authorization).toBeUndefined();
+    // The site token identifies this caller to GitHub, and goes nowhere else.
+    // It used to go unauthenticated, which GitHub rate-limits to 60 an hour per
+    // IP — a budget the edge's shared addresses have always spent.
+    if (String(_url).startsWith('https://api.github.com/')) expect(options.headers.authorization).toBe('Bearer fake');
+    else expect(options.headers.authorization).toBeUndefined();
     return Response.json({ html_url: repo, name: 'Recomp', description: 'A playable port.', private: false, owner: { login: 'example' } });
   }));
   const store = new SubmissionStore('https://api.github.com/repos/site/site', 'fake');
@@ -122,5 +126,43 @@ describe('inspecting a submitted repository at the edge', () => {
   it('still reports a missing repository as missing', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })));
     await expect(repositoryMetadata(repo)).rejects.toThrow(/could not be found publicly/);
+  });
+});
+
+/** Unauthenticated, GitHub allows 60 requests an hour per IP, and the edge
+ * shares its addresses with the whole platform, so every lookup came back 403
+ * and no submission could get past it. */
+describe('identifying this caller to GitHub', () => {
+  const repo = 'https://github.com/vibecodekun/shantaerecomp';
+  const ok = () => Response.json({ html_url: repo, name: 'Shantae', description: 'A port.', private: false, owner: { login: 'vibecodekun' }, default_branch: 'main' });
+
+  it('sends the site token to GitHub, and only to GitHub', async () => {
+    const fetcher = vi.fn(async (_url: string, _init: RequestInit) => ok());
+    vi.stubGlobal('fetch', fetcher);
+    await repositoryMetadata(repo, 'site-token');
+    expect((fetcher.mock.calls[0][1].headers as Record<string, string>).authorization).toBe('Bearer site-token');
+    expect(fetcher.mock.calls[0][0]).toMatch(/^https:\/\/api\.github\.com\//);
+  });
+
+  it('sends nothing to GitLab, and nothing when there is no token', async () => {
+    const fetcher = vi.fn(async (_url: string, _init: RequestInit) => Response.json({ web_url: 'https://gitlab.com/a/b', name: 'B', visibility: 'public' }));
+    vi.stubGlobal('fetch', fetcher);
+    await repositoryMetadata('https://gitlab.com/a/b', 'site-token');
+    expect((fetcher.mock.calls[0][1].headers as Record<string, string>).authorization).toBeUndefined();
+
+    const bare = vi.fn(async (_url: string, _init: RequestInit) => ok());
+    vi.stubGlobal('fetch', bare);
+    await repositoryMetadata(repo);
+    expect((bare.mock.calls[0][1].headers as Record<string, string>).authorization).toBeUndefined();
+  });
+
+  it('still refuses a private repository the token can see', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Response.json({ html_url: repo, private: true, owner: { login: 'vibecodekun' } })));
+    await expect(repositoryMetadata(repo, 'site-token')).rejects.toThrow(/Only public repositories/);
+  });
+
+  it('names the status when the host refuses, so the next outage is readable', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 403 })));
+    await expect(repositoryMetadata(repo, 't')).rejects.toThrow(/answered 403/);
   });
 });

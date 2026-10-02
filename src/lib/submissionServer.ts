@@ -8,7 +8,7 @@ export class SubmissionError extends Error {
   constructor(message: string, public status = 400) { super(message); }
 }
 export class SubmissionStore {
-  constructor(private base: string, private token: string, private branch = 'main') {}
+  constructor(private base: string, readonly token: string, private branch = 'main') {}
   async gh(route: string, init: RequestInit = {}) {
     const response = await fetch(`${this.base}${route}`, { ...init, signal: AbortSignal.timeout(15_000), headers: {
       authorization: `Bearer ${this.token}`, accept: 'application/vnd.github+json', 'content-type': 'application/json', 'user-agent': 'retroportingtoolkit.com',
@@ -50,11 +50,19 @@ export class SubmissionStore {
     await this.gh(`/git/refs/heads/${encodeURIComponent(this.branch)}`, { method: 'PATCH', body: JSON.stringify({ sha: commit.sha, force: false }) });
   }
 }
-export async function repositoryMetadata(repo: string) {
+export async function repositoryMetadata(repo: string, token = '') {
   const url = new URL(repo);
   const project = url.pathname.slice(1);
   const endpoint = url.hostname === 'github.com' ? `https://api.github.com/repos/${project}` : `https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}`;
-  // No site credential is ever sent while inspecting a submitted repository.
+  // The site's token identifies this caller to GitHub and nothing more.
+  //
+  // It used to go unauthenticated, to keep the credential away from a stranger's
+  // repository — but the request goes to GitHub itself, not to the repository's
+  // owner, so there is nobody else to leak it to. Unauthenticated, GitHub allows
+  // 60 requests an hour per IP, and the edge shares its addresses with everyone
+  // else on the platform, so that budget is permanently spent: every lookup came
+  // back 403 and every submission failed. A private repository the token happens
+  // to be able to see is still refused below, on `private === true`.
   //
   // `redirect: 'manual'`, not 'error': the Workers runtime refuses 'error'
   // outright ("won't be implemented since it does not make sense at the edge"),
@@ -62,10 +70,13 @@ export async function repositoryMetadata(repo: string) {
   // Cloudflare. The intent is unchanged — a redirect is still refused rather
   // than followed, since where a submitted link points is the submitter's
   // claim and not something to chase.
-  const response = await fetch(endpoint, { redirect: 'manual', signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json', 'user-agent': 'retroportingtoolkit.com' } });
+  const response = await fetch(endpoint, { redirect: 'manual', signal: AbortSignal.timeout(10_000), headers: {
+    accept: 'application/json', 'user-agent': 'retroportingtoolkit.com',
+    ...(token && url.hostname === 'github.com' ? { authorization: `Bearer ${token}` } : {}),
+  } });
   if (response.status >= 300 && response.status < 400) throw new SubmissionError('That repository link redirects elsewhere. Submit the address it now lives at.');
   if (response.status === 404) throw new SubmissionError('That repository could not be found publicly. Check the link and visibility.');
-  if (!response.ok) throw new SubmissionError('The repository host is unavailable. Please try again shortly.', 503);
+  if (!response.ok) throw new SubmissionError(`The repository host answered ${response.status}. Please try again shortly.`, 503);
   const data = await response.json();
   if (data.private === true || (url.hostname === 'gitlab.com' && data.visibility !== 'public')) throw new SubmissionError('Only public repositories can be submitted.');
   const canonical = repositoryUrl(url.hostname === 'github.com' ? data.html_url : data.web_url);
@@ -96,7 +107,7 @@ export async function submitRepository(store: SubmissionStore, input: Record<str
       explicit.push({ url: mediaUrl(image.url)!, alt: plainText(image.alt, 150) || 'Project screenshot' });
     }
   }
-  const metadata = await repositoryMetadata(repo);
+  const metadata = await repositoryMetadata(repo, store.token);
   let assets: ImportedAsset[] | undefined;
   let summary: string[] | undefined;
   repo = metadata.repo;
