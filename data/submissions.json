@@ -455,5 +455,25 @@
     "images": [],
     "summary": [],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "22d030eb91b02541",
+    "repo": "https://github.com/elprogramadorloco-arch/jim2-recomp",
+    "title": "Earthworm Jim 2",
+    "description": "A community game project. See the source repository for details and current progress.",
+    "owner": "elprogramadorloco-arch",
+    "discord": "elprogramadorloco_87045",
+    "path": "data/games/89_jim2-recomp-22d030eb/index.md",
+    "url": "/games/jim2-recomp-22d030eb",
+    "createdAt": "2026-10-03T09:13:51.200Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "elprogramadorloco_87045"
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
