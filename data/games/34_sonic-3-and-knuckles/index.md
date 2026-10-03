@@ -14,11 +14,11 @@ group: "Sega Genesis"
 links:
   - { label: "SegaGenesisRecomp Gets Game #2: Sonic the Hedgehog 2 (1379.tech)", href: "https://1379.tech/segagenesisrecomp-gets-game-2-sonic-the-hedgehog-2/" }
 verified: "2026-08-18"
-updated: "2026-09-28"
+updated: "2026-10-03"
 added: "2026-05-29"
 cover: "./boxart.png"
-release: "v0.5.1"
-download: "https://github.com/mstan/Sonic3AndKnucklesRecomp/releases/tag/v0.5.1"
+release: "v0.5.2"
+download: "https://github.com/mstan/Sonic3AndKnucklesRecomp/releases/tag/v0.5.2"
 ---
 
 Sonic 3 & Knuckles is really three builds in one repository: Sonic 3 alone, Sonic & Knuckles alone, and the combined lock-on game.
