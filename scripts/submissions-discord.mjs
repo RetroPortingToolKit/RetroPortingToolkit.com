@@ -215,7 +215,10 @@ export async function moderateSubmission({ root, action, exec, siteUrl = '' }) {
     written.push(record.path, SUBMISSIONS_PATH);
     for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
     await exec('git', ['add', '--', record.path, SUBMISSIONS_PATH]);
-    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `${action.decision === 'confirmed' ? 'Confirm' : 'Unlist'} community submission ${record.id}`]);
+    // The pathspec is what bounds the commit. `git add --` bounds only the
+    // staging; a bare `git commit -m` then commits the WHOLE index, so anything
+    // anyone staged during the two minutes of checks was swept in and deployed.
+    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `${action.decision === 'confirmed' ? 'Confirm' : 'Unlist'} community submission ${record.id}`, '--', record.path, SUBMISSIONS_PATH]);
     written.length = 0; // committed: a failed push must not undo the work
     await exec('git', ['push', 'origin', 'main']);
   });

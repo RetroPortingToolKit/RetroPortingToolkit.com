@@ -79,7 +79,10 @@ export async function applyOwnerUpdate({ root, update, exec, siteUrl = '' }) {
     written.push(update.path);
     for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
     await exec('git', ['add', '--', update.path]);
-    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `Update ${update.title} from its creator on Discord`]);
+    // The pathspec is what bounds the commit. `git add --` bounds only the
+    // staging; a bare `git commit -m` then commits the WHOLE index, so anything
+    // anyone staged during the two minutes of checks was swept in and deployed.
+    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `Update ${update.title} from its creator on Discord`, '--', update.path]);
     written.length = 0; // committed: a failed push must not undo the work
     await exec('git', ['push', 'origin', 'main']);
   });

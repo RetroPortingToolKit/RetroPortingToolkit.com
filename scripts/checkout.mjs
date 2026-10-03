@@ -127,3 +127,89 @@ export function classifyStatus(status) {
   return { work, debris, unmerged };
 }
 
+
+/** Puts the checkout back into a state that can publish, without anyone.
+ *
+ * Every one of these used to need a person: the bot would wait, or park, or
+ * post, and the queue sat until someone read Discord and typed a git command.
+ * None of them is a judgement call, and all three are recoverable — an aborted
+ * rebase restores the state it started from, switching back to main changes no
+ * file, and pushing a commit the bot already made is what should have happened
+ * anyway. Returns what it fixed, for the log.
+ *
+ * It never touches a file anyone wrote. Someone's uncommitted work is the one
+ * blocker left that genuinely needs them, and it is left exactly alone.
+ */
+const exists = async (p) => { try { await fsp.stat(p); return true; } catch { return false; } };
+
+export async function selfHeal(exec, { ownCommits = [] } = {}) {
+  const fixed = [];
+  const run = async (args) => String((await exec("git", args))?.stdout ?? "").trim();
+  const quiet = async (args) => { try { return await run(args); } catch { return ""; } };
+
+  // An interrupted rebase parks every job forever — waiting cannot clear it.
+  // --git-path answers relative to the repository, so it has to be resolved
+  // against the repository and not against whatever this process's cwd is.
+  const gitDir = await quiet(["rev-parse", "--absolute-git-dir"]);
+  for (const marker of ["rebase-merge", "rebase-apply"]) {
+    const dir = gitDir ? join(gitDir, marker) : "";
+    if (!dir || !(await exists(dir))) continue;
+    await quiet(["rebase", "--abort"]);
+    // Believe it only if the marker is gone.
+    if (!(await exists(dir))) fixed.push("aborted an interrupted rebase");
+    break;
+  }
+  if (await quiet(["rev-parse", "--verify", "-q", "MERGE_HEAD"])) {
+    await quiet(["merge", "--abort"]);
+    if (!(await quiet(["rev-parse", "--verify", "-q", "MERGE_HEAD"]))) fixed.push("aborted an interrupted merge");
+  }
+
+  // A detached HEAD takes commits that advance nothing and pushes that report
+  // success while the site never changes. Safe to leave only when it is clean.
+  const branch = await quiet(["symbolic-ref", "--short", "-q", "HEAD"]);
+  if (!branch) {
+    const status = await quiet(["--no-optional-locks", "status", "--porcelain"]);
+    if (!classifyStatus(status).work.length) {
+      await quiet(["switch", "main"]);
+      if (await quiet(["symbolic-ref", "--short", "-q", "HEAD"]) === "main") fixed.push("returned to main from a detached HEAD");
+    }
+  }
+
+  // A commit the bot made that never reached origin means the site silently
+  // never rebuilt. Only the bot's own commits, by recorded id.
+  if (ownCommits.length) {
+    const ahead = (await quiet(["rev-list", "origin/main..HEAD"])).split("\n").filter(Boolean);
+    if (ahead.length && ahead.every((sha) => ownCommits.includes(sha))) {
+      await quiet(["push", "origin", "HEAD:main"]);
+      if (!(await quiet(["rev-list", "origin/main..HEAD"]))) fixed.push(`pushed ${ahead.length} commit(s) that never reached origin`);
+    }
+  }
+  return fixed;
+}
+
+/** Refuses to publish from anywhere but main/** Refuses to publish from anywhere but main, and clears the one wedged state
+ * that waiting never fixes.
+ *
+ * None of the three publishing lanes checked either. A detached HEAD — the
+ * usual leftover of an interrupted rebase — takes a commit that advances
+ * nothing, and the push then reports success while the site never changes.
+ * `cms-dev.mjs` has guarded against this for a long time; the lanes that
+ * actually publish did not.
+ */
+export async function assertPublishable(exec) {
+  await selfHeal(exec);
+  const branch = await exec("git", ["symbolic-ref", "--short", "-q", "HEAD"]).then((r) => String(r?.stdout ?? "").trim()).catch(() => "");
+  if (branch !== "main") throw new Error(`The checkout is on ${branch || "a detached HEAD"}, not main, so publishing would not reach the site.`);
+}
+
+/** Nothing but this job's own paths may be staged when it commits.
+ *
+ * The pathspec on the commit already bounds what lands, so this is the belt to
+ * that braces: if someone staged something while the checks ran, the job stops
+ * rather than committing beside them. */
+export async function assertOnlyOwnStaged(exec, ownPaths) {
+  const status = String((await exec("git", ["--no-optional-locks", "status", "--porcelain"]))?.stdout ?? "");
+  const mine = new Set(ownPaths);
+  const staged = statusLines(status).filter((l) => l.code[0] !== " " && l.code[0] !== "?" && !mine.has(l.path));
+  if (staged.length) throw new Error(`Someone has staged ${staged.map((l) => l.path).slice(0, 3).join(", ")} in the shared checkout, so this did not commit.`);
+}

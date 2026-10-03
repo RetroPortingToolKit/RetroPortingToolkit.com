@@ -129,7 +129,12 @@ describe('repository update watcher', () => {
     const exec = vi.fn(async () => {});
     await applyRepoUpdates({ root: f.dir, updates, exec });
     expect(exec.mock.calls.filter(c => c[1][0] === 'run')).toHaveLength(3);
-    expect(exec.mock.calls.find(c => c[1].includes('commit'))[1].at(-1)).toContain('Record 2 releases');
+    const commit = exec.mock.calls.find(c => c[1].includes('commit'))[1];
+    expect(commit[commit.indexOf('-m') + 1]).toContain('Record 2 releases');
+    // The pathspec is what bounds the commit: `git add --` bounds only the
+    // staging, and a bare `git commit -m` then takes the whole index, so
+    // anything anyone staged during the checks was committed and deployed.
+    expect(commit.slice(commit.indexOf('--') + 1)).toEqual(['data/games/01_alpha/index.md', 'data/games/02_beta/index.md']);
     expect(exec.mock.calls.filter(c => c[1][0] === 'push')).toHaveLength(1);
   });
   it('writes release, download, and updated into frontmatter and commits after checks', async () => {

@@ -765,7 +765,9 @@ function doPublish(dryRun) {
     }
     if (changed.length) {
       await git(["add", "--", ...changed]);
-      await git(["commit", "-m", `Publish via editor (${changed.length} file${changed.length === 1 ? "" : "s"})`]);
+      // Bounded by pathspec: a bare commit takes the whole index, including
+      // anything someone else happened to have staged.
+      await git(["commit", "-m", `Publish via editor (${changed.length} file${changed.length === 1 ? "" : "s"})`, "--", ...changed]);
       // Fold in any edits made on the live site first, so dev and prod never diverge.
       try {
         await git(["fetch", "origin", "main"]);

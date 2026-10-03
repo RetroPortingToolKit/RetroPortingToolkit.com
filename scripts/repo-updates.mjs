@@ -176,7 +176,10 @@ export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
     for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
     await exec('git', ['add', '--', ...changed.map((u) => u.path)]);
     const message = changed.length === 1 ? `Record ${changed[0].tag} for ${changed[0].title}` : `Record ${changed.length} releases\n\n${changed.map((u) => `- ${u.title}: ${u.tag}`).join('\n')}`;
-    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', message]);
+    // The pathspec is what bounds the commit. `git add --` bounds only the
+    // staging; a bare `git commit -m` then commits the WHOLE index, so anything
+    // anyone staged during the two minutes of checks was swept in and deployed.
+    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', message, '--', ...changed.map((u) => u.path)]);
     written.length = 0; // committed: a failed push must not undo the work
     await exec('git', ['push', 'origin', 'main']);
     return [...changed.map((u) => `${u.title}: release ${u.tag} recorded. ${siteUrl}${u.url}`), ...refused].join('\n');

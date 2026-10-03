@@ -61,7 +61,7 @@ import { classifyIntent, apiIntentCall } from "./intent.mjs";
  * Without one every message is routed by the heuristic, as before. The key
  * is read here and handed to nothing else. */
 const intentCall = apiIntentCall(process.env.ANTHROPIC_API_KEY);
-import { checksLockHolder, withChecksLock, classifyStatus } from "./checkout.mjs";
+import { checksLockHolder, withChecksLock, classifyStatus, selfHeal } from "./checkout.mjs";
 import { plainText } from "./submissions.mjs";
 import fsp from "node:fs/promises";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
@@ -1181,6 +1181,18 @@ async function checkoutProbe() {
   const working = running?.phase === "running";
   const pulse = await gitSnapshot().catch(() => null);
   const holder = await checksLockHolder(STATE_DIR);
+  // Fix what can be fixed, before considering whether to tell anyone. An
+  // interrupted rebase, a detached HEAD and a commit that never reached origin
+  // all used to sit until someone read Discord and typed a git command.
+  if (!working && !holder) {
+    const fixed = await selfHeal((c, a) => execFileAsync(c, a, { cwd: ROOT, timeout: 60_000 }), { ownCommits: await ownCommits() }).catch(() => []);
+    if (fixed.length) {
+      console.log(`[discord-agent] self-healed the checkout: ${fixed.join("; ")}`);
+      void drainQueue().catch(() => {});
+      return; // next tick judges the repaired state
+    }
+  }
+
   // Only a person's uncommitted work is reportable. A held checks lock clears
   // in 20 minutes, a pause clears in 30, a tool's leavings are ignored now,
   // and a running job is allowed to have written its own files — none of those
@@ -1212,6 +1224,24 @@ async function checkoutProbe() {
 }
 
 /** One standing message, edited. Never a second one, never deleted. */
+/** Commits the bot made that may not have reached origin. Only these are ever
+ * pushed unattended: every commit here carries the same author, bot or human,
+ * so identity cannot tell them apart — only a recorded id can. */
+async function rememberOwnCommits(job) {
+  if (!job?.startedHead) return;
+  const made = await execFileAsync("git", ["rev-list", `${job.startedHead}..HEAD`], { cwd: ROOT })
+    .then((r) => String(r.stdout).split("\n").filter(Boolean)).catch(() => []);
+  const unpushed = await execFileAsync("git", ["rev-list", "origin/main..HEAD"], { cwd: ROOT })
+    .then((r) => String(r.stdout).split("\n").filter(Boolean)).catch(() => []);
+  const keep = [...new Set([...(await ownCommits()), ...made])].filter((sha) => unpushed.includes(sha));
+  await fs.writeFile(path.join(STATE_DIR, "own-commits.json"), JSON.stringify(keep)).catch(() => {});
+}
+
+async function ownCommits() {
+  try { return JSON.parse(await fs.readFile(path.join(STATE_DIR, "own-commits.json"), "utf8")); }
+  catch { return []; }
+}
+
 async function editWatchNotice(messageId, content) {
   try {
     const channel = await client.channels.fetch(config.botChannelId);
@@ -1474,6 +1504,11 @@ async function drainQueue() {
     if (!parked && outcome && !job.submissionModeration) await markOutcome(job.ref, "🔍", outcome);
     // After the outcome reaction: a confirmed submission deletes its notice.
     if (!parked && job.submissionModeration) await submissions.completed(job.submissionModeration.id, outcome === "✅", job.submissionModeration.decision).catch(() => console.error("[discord-agent] could not persist moderation outcome"));
+    // Anything this job committed is the bot's, and may need pushing later if
+    // the push failed. Bounded by the head the job started from, because every
+    // commit in this repository carries the same author and identity cannot
+    // tell a bot's from a person's.
+    await rememberOwnCommits(job).catch(() => {});
     running = null;
     await persistJobs();
     void drainQueue().catch((error) =>
