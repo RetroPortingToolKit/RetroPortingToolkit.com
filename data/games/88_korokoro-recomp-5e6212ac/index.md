@@ -24,6 +24,8 @@ cover: "https://s.pacn.ws/1/p/57/pa.93575.1.png?v=ji2gy5&width=1059"
 updates:
   - date: "2026-10-03"
     text: "v0.1 released for Windows; Android alpha added with widescreen, accelerometer steering and touch controls"
+release: "v0.1"
+download: "https://github.com/elprogramadorloco-arch/korokoro-recomp/releases/tag/v0.1"
 ---
 
 KoroKoroRecomp is a native static recompilation of **KoroKoro Post nin** for the original PlayStation (Japan, SLPS-03479).

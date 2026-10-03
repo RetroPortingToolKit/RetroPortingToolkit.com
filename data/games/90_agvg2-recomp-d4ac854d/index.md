@@ -17,6 +17,8 @@ platform: "playstation"
 updates:
   - date: "2026-10-03"
     text: "v0.1 released: boot, intro FMV, menus, character select and Normal-mode battles"
+release: "v0.1"
+download: "https://github.com/elprogramadorloco-arch/agvg2-recomp/releases/tag/v0.1"
 ---
 
 Advanced V.G. 2 Recompiled is a native static recompilation of **Advanced V.G. 2** for the original PlayStation (Japan, SLPM-87226).

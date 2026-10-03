@@ -14,6 +14,8 @@ draft: false
 creator: {"github":"elprogramadorloco-arch","discord":"elprogramadorloco_87045"}
 cover: "https://static.wikia.nocookie.net/ewj/images/5/53/Earthworm_Jim_2.jpg/revision/latest?cb=20100614223208"
 platform: "playstation"
+release: "v0.2"
+download: "https://github.com/elprogramadorloco-arch/jim2-recomp/releases/tag/v0.2"
 ---
 
 Earthworm Jim 2 Recompiled is a native static recompilation of the **PlayStation version of Earthworm Jim 2** (Europe, SLES-00343).
