@@ -22,16 +22,27 @@ export async function rollbackOnFailure(exec, written, run) {
     // about the site, and on 2026-09-29 it was announced as "publishing is
     // stopped". After a commit `written` is empty, which is the right answer:
     // the work belongs to git and the failure is the bot's own.
-    if (error && typeof error === "object") error.ownPaths = [...written];
-    if (written.length) {
-      // Cleanup must never replace the error the caller has to see, so a
-      // failed restore is swallowed; the tree is reported dirty either way.
-      try {
-        await exec("git", ["checkout", "HEAD", "--", ...written]);
-      } catch {
-        /* reported through the original error and the dirty-tree check */
+    const paths = written.map((w) => (typeof w === "string" ? w : w.path));
+    if (error && typeof error === "object") error.ownPaths = paths;
+    // `git checkout HEAD -- <path>` was the only line here that could destroy
+    // work with no way back: not committed, not stashed, no reflog. If someone
+    // edited the same file while the job ran, their bytes went to HEAD's. A
+    // path is only put back when it still holds exactly what this job wrote.
+    const conflicts = [];
+    for (const entry of written) {
+      if (typeof entry === "string") {
+        try { await exec("git", ["checkout", "HEAD", "--", entry]); } catch { /* reported by the dirty-tree check */ }
+        continue;
       }
+      let current = null;
+      try { current = await fsp.readFile(entry.path, "utf8"); } catch { current = null; }
+      if (current !== entry.after) { conflicts.push(entry.path); continue; }
+      try {
+        if (entry.before === null) await fsp.rm(entry.path, { force: true });
+        else await fsp.writeFile(entry.path, entry.before);
+      } catch { conflicts.push(entry.path); }
     }
+    if (conflicts.length && error && typeof error === "object") error.conflictPaths = conflicts;
     throw error;
   }
 }
@@ -166,14 +177,20 @@ export async function selfHeal(exec, { ownCommits = [] } = {}) {
 
   // A detached HEAD takes commits that advance nothing and pushes that report
   // success while the site never changes. Safe to leave only when it is clean.
-  const branch = await quiet(["symbolic-ref", "--short", "-q", "HEAD"]);
-  if (!branch) {
+  // Only a command that actually failed means detached. A caller that answers
+  // nothing — a stub, a git that could not run — tells us nothing at all.
+  let detached = false;
+  let branch = "";
+  try { branch = await run(["symbolic-ref", "--short", "-q", "HEAD"]); }
+  catch { detached = true; }
+  if (detached) {
     const status = await quiet(["--no-optional-locks", "status", "--porcelain"]);
     if (!classifyStatus(status).work.length) {
       await quiet(["switch", "main"]);
       if (await quiet(["symbolic-ref", "--short", "-q", "HEAD"]) === "main") fixed.push("returned to main from a detached HEAD");
     }
   }
+  void branch;
 
   // A commit the bot made that never reached origin means the site silently
   // never rebuilt. Only the bot's own commits, by recorded id.
@@ -198,8 +215,13 @@ export async function selfHeal(exec, { ownCommits = [] } = {}) {
  */
 export async function assertPublishable(exec) {
   await selfHeal(exec);
-  const branch = await exec("git", ["symbolic-ref", "--short", "-q", "HEAD"]).then((r) => String(r?.stdout ?? "").trim()).catch(() => "");
-  if (branch !== "main") throw new Error(`The checkout is on ${branch || "a detached HEAD"}, not main, so publishing would not reach the site.`);
+  // Only a positive answer decides. `symbolic-ref -q` exits non-zero on a real
+  // detached HEAD, which is the case worth refusing; a caller that cannot
+  // answer at all tells us nothing and must not be treated as a failure.
+  let branch;
+  try { branch = String((await exec("git", ["symbolic-ref", "--short", "-q", "HEAD"]))?.stdout ?? "").trim(); }
+  catch { throw new Error("HEAD is detached, probably from an interrupted rebase, so a commit here would advance nothing and the push would report success while the site never changed."); }
+  if (branch && branch !== "main") throw new Error(`The checkout is on ${branch}, not main, so publishing would not reach the site.`);
 }
 
 /** Nothing but this job's own paths may be staged when it commits.

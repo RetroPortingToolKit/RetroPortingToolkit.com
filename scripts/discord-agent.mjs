@@ -466,7 +466,23 @@ async function gitSnapshot() {
  * moment a tree looks clean is what walked a request into someone else's
  * session between two of their commits.
  */
-async function waitForQuietCheckout(timeoutMs, onWait) {
+/** The files a structured job will write, so it can wait only for those.
+ *
+ * A release recording touches the game pages it names; a moderation touches
+ * one page and the submissions index; an owner update touches one page. None
+ * of them goes near whatever anyone happens to be editing, and all three stage
+ * and commit by name. Every one of the 148 give-ups in the log was one of
+ * these waiting for an edit that had nothing to do with it. */
+function writeSetOf(job) {
+  if (job.repoUpdate) return (job.repoUpdate.updates ?? [job.repoUpdate]).map((u) => u.path).filter(Boolean);
+  if (job.ownerUpdate?.path) return [job.ownerUpdate.path];
+  // Moderation resolves its page from data/submissions.json at run time; the
+  // index itself is always written, and the page is under data/games.
+  if (job.submissionModeration) return null;
+  return null; // the free-form lane writes whatever it likes: wait for everything
+}
+
+async function waitForQuietCheckout(timeoutMs, onWait, { writeSet = null } = {}) {
   const started = Date.now();
   const deadline = started + timeoutMs;
   let previous = null;
@@ -476,7 +492,13 @@ async function waitForQuietCheckout(timeoutMs, onWait) {
     // bridge reads that as a broken site. A held lock is as good a reason to
     // wait as uncommitted work.
     const holder = await checksLockHolder(STATE_DIR);
-    const reason = holder ? `${holder} is running the checks` : checkoutBusyReason(pulse, Date.now(), QUIET_PERIOD_MS);
+    // With a known write-set, only a change to one of those paths is a reason
+    // to wait. Everything else in the tree is someone's unrelated work, and
+    // the commit is bounded by pathspec so it cannot be swept in.
+    const scoped = writeSet && !classifyStatus(pulse.status).work.some((p) => writeSet.includes(p));
+    const reason = holder ? `${holder} is running the checks`
+      : scoped ? null
+      : checkoutBusyReason(pulse, Date.now(), QUIET_PERIOD_MS);
     if (!reason && !pulseChanged(previous, pulse)) return pulse;
     if (Date.now() >= deadline) return { ...pulse, busyReason: reason ?? "the tree kept changing" };
     if (reason) {
@@ -1213,9 +1235,11 @@ async function checkoutProbe() {
   const next = { reason, firstSeenAt: same ? state.firstSeenAt ?? Date.now() : Date.now(), messageId: state.messageId, announced: state.announced };
   // Half an hour of someone's work sitting there is a person stepping away
   // mid-edit, not a person at the keyboard. Below that, say nothing at all.
-  if (Date.now() - next.firstSeenAt >= WATCH_SILENCE_MS) {
-    const held = queue.length + (running ? 1 : 0);
-    const body = `⏳ Nothing can publish: ${reason}. ${formatElapsed(Date.now() - next.firstSeenAt)} so far${held ? `, ${held} request(s) held` : ""}. Commit it or clear it and everything waiting runs by itself — nothing needs re-sending.`;
+  // Nobody is waiting, so nobody needs telling. A dirty tree with an empty
+  // queue bothers no one: releases are re-detected every tick regardless.
+  const held = queue.length + (running ? 1 : 0);
+  if (held > 0 && Date.now() - next.firstSeenAt >= WATCH_SILENCE_MS) {
+    const body = `⏳ ${held} request(s) can't publish: ${reason}. ${formatElapsed(Date.now() - next.firstSeenAt)} so far. Commit it or clear it and everything waiting runs by itself — nothing needs re-sending.`;
     if (next.messageId) await editWatchNotice(next.messageId, body);
     else next.messageId = (await safeSend({ channelId: config.botChannelId, content: body, suppressMentions: true }))?.id ?? null;
     next.announced = true;
@@ -1385,19 +1409,19 @@ async function drainQueue() {
     if (!scheduled) startStatusTicker(job);
     let report;
     if (job.submissionModeration) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); }, { writeSet: writeSetOf(job) });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.ownerUpdate) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); }, { writeSet: writeSetOf(job) });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const summary = await applyOwnerUpdate({ root: ROOT, update: job.ownerUpdate, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.repoUpdate) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); }, { writeSet: writeSetOf(job) });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const updates = job.repoUpdate.updates ?? [job.repoUpdate];

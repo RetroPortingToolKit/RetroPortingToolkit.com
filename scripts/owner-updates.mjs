@@ -3,7 +3,7 @@ import path from 'node:path';
 import { addUpdate } from './page-updates.mjs';
 import { teamMemberByGithub } from './authors.mjs';
 import { plainText } from './submissions.mjs';
-import { rollbackOnFailure, pushPending } from './checkout.mjs';
+import { rollbackOnFailure, pushPending, assertPublishable, assertOnlyOwnStaged } from './checkout.mjs';
 
 /** A page's creator updating it from Discord:
  *   @Bot update /games/lufia2snesrecomp-1bdbebef status: Playable; news: Saves now work.
@@ -68,6 +68,7 @@ export function ownerUpdatedPage(raw, update) {
 
 export async function applyOwnerUpdate({ root, update, exec, siteUrl = '' }) {
   if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
+  await assertPublishable(exec);
   await exec('git', ['pull', '--ff-only']);
   await pushPending(exec);
   const written = [];
@@ -76,9 +77,10 @@ export async function applyOwnerUpdate({ root, update, exec, siteUrl = '' }) {
     const raw = await fs.readFile(target, 'utf8');
     const next = ownerUpdatedPage(raw, update);
     await fs.writeFile(target, next);
-    written.push(update.path);
+    written.push({ path: target, before: raw, after: next });
     for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
     await exec('git', ['add', '--', update.path]);
+    await assertOnlyOwnStaged(exec, [update.path]);
     // The pathspec is what bounds the commit. `git add --` bounds only the
     // staging; a bare `git commit -m` then commits the WHOLE index, so anything
     // anyone staged during the two minutes of checks was swept in and deployed.

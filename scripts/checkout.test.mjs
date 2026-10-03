@@ -18,7 +18,10 @@ describe('checkout rollback', () => {
       written.push('data/games/01_a/index.md', 'data/submissions.json');
       throw new Error('npm run test failed');
     })).rejects.toThrow('npm run test failed');
-    expect(exec).toHaveBeenCalledWith('git', ['checkout', 'HEAD', '--', 'data/games/01_a/index.md', 'data/submissions.json']);
+    // One path at a time, so a pathspec that fails for one does not abandon
+    // the rest — which is how the restore quietly did nothing for a new file.
+    expect(exec).toHaveBeenCalledWith('git', ['checkout', 'HEAD', '--', 'data/games/01_a/index.md']);
+    expect(exec).toHaveBeenCalledWith('git', ['checkout', 'HEAD', '--', 'data/submissions.json']);
 
     const clean = vi.fn(async () => {});
     expect(await rollbackOnFailure(clean, [], async () => 'done')).toBe('done');
@@ -131,5 +134,45 @@ describe("putting the checkout back by itself", () => {
     await run(dir, ["add", "--", "theirs.txt"]);
     await expect(assertOnlyOwnStaged(exec(dir), ["data/games/01_x/index.md"])).rejects.toThrow(/theirs\.txt/);
     await expect(assertOnlyOwnStaged(exec(dir), ["theirs.txt"])).resolves.toBeUndefined();
+  });
+});
+
+/** The rollback was the only line in the system that could destroy work with
+ * no way back — not committed, not stashed, no reflog. */
+describe("putting back only what this job wrote", () => {
+  it("restores a file the job changed, and removes one it created", async () => {
+    const dir = await fsp.mkdtemp(path.join(os.tmpdir(), "rpt-rollback-"));
+    dirs.push(dir);
+    const existing = path.join(dir, "existing.md");
+    const created = path.join(dir, "created.md");
+    await fsp.writeFile(existing, "original\n");
+    const written = [];
+    await expect(rollbackOnFailure(vi.fn(), written, async () => {
+      await fsp.writeFile(existing, "job wrote this\n");
+      written.push({ path: existing, before: "original\n", after: "job wrote this\n" });
+      await fsp.writeFile(created, "new\n");
+      written.push({ path: created, before: null, after: "new\n" });
+      throw new Error("npm run test failed");
+    })).rejects.toThrow("npm run test failed");
+    expect(await fsp.readFile(existing, "utf8")).toBe("original\n");
+    await expect(fsp.stat(created)).rejects.toThrow();
+  });
+
+  it("leaves a file alone when someone else changed it meanwhile, and says which", async () => {
+    const dir = await fsp.mkdtemp(path.join(os.tmpdir(), "rpt-rollback-"));
+    dirs.push(dir);
+    const file = path.join(dir, "contested.md");
+    await fsp.writeFile(file, "original\n");
+    const written = [];
+    const error = await rollbackOnFailure(vi.fn(), written, async () => {
+      await fsp.writeFile(file, "job wrote this\n");
+      written.push({ path: file, before: "original\n", after: "job wrote this\n" });
+      // A person saves over it while the checks are running.
+      await fsp.writeFile(file, "a person typed this\n");
+      throw new Error("npm run test failed");
+    }).catch((e) => e);
+    expect(await fsp.readFile(file, "utf8")).toBe("a person typed this\n");
+    expect(error.conflictPaths).toEqual([file]);
+    expect(error.ownPaths).toEqual([file]);
   });
 });

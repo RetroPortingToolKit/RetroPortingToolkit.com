@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { releasesFromFeed } from './github-web.mjs';
 import { pickRelease, releaseDecision, isNewsRelease } from './release-rank.mjs';
-import { rollbackOnFailure, pushPending } from './checkout.mjs';
+import { rollbackOnFailure, pushPending, assertPublishable, assertOnlyOwnStaged } from './checkout.mjs';
 
 /** Keeps game pages current with their repositories. Each tick checks a
  * slice of the pages for a new release on GitHub or GitLab; a change becomes
@@ -146,6 +146,9 @@ export function releasePage(raw, update) {
  * deployment, however many releases the tick found. */
 export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
   for (const update of updates) if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
+  // Publishing from a detached HEAD or mid-rebase advances nothing and the
+  // push reports success anyway; selfHeal fixes both before anything is written.
+  await assertPublishable(exec);
   await exec('git', ['pull', '--ff-only']);
   await pushPending(exec);
   const written = [];
@@ -166,7 +169,9 @@ export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
       const next = releasePage(raw, update);
       if (next === raw) continue;
       await fs.writeFile(target, next);
-      written.push(update.path);
+      // The bytes, so a failed run puts back exactly what it replaced and
+      // never overwrites a save someone made while the checks were running.
+      written.push({ path: target, before: raw, after: next, repoPath: update.path });
       changed.push(update);
     }
     if (!changed.length) {
@@ -175,6 +180,7 @@ export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
     }
     for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
     await exec('git', ['add', '--', ...changed.map((u) => u.path)]);
+    await assertOnlyOwnStaged(exec, changed.map((u) => u.path));
     const message = changed.length === 1 ? `Record ${changed[0].tag} for ${changed[0].title}` : `Record ${changed.length} releases\n\n${changed.map((u) => `- ${u.title}: ${u.tag}`).join('\n')}`;
     // The pathspec is what bounds the commit. `git add --` bounds only the
     // staging; a bare `git commit -m` then commits the WHOLE index, so anything
