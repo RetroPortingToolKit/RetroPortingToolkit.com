@@ -26,6 +26,7 @@ import {
   isClearQueueRequest,
   checkoutBusyReason,
   foreignWorkReason,
+  retryDelay,
   isAuthorized,
   isDestructiveRequest,
   isMassDestructiveRequest,
@@ -254,6 +255,8 @@ function jobRecord(job) {
     waitingSince: job.waitingSince ?? null,
     waitingReason: job.waitingReason ?? "",
     startedHead: job.startedHead ?? null,
+    attempts: job.attempts ?? 0,
+    notBefore: job.notBefore ?? 0,
     attachments: job.attachments ?? [],
     requester: job.requester ?? null,
     // So a restart can tidy the previous process's status line.
@@ -1177,6 +1180,8 @@ function scheduledJobsPaused() { return Date.now() < scheduledPausedUntil; }
 
 /** How often the checkout is looked at when nothing is asking it to work. */
 const CHECKOUT_WATCH_MS = envMs("DISCORD_AGENT_WATCH_MS", 5 * 60 * 1_000);
+/** The longest a failed job waits before running the whole suite again. */
+const RETRY_BACKOFF_CAP_MS = envMs("DISCORD_AGENT_BACKOFF_CAP_MS", 20 * 60 * 1_000);
 /** How long a blocker only a person can clear has to persist before anyone is
  * told. Everything the bot can resolve by itself resolves without a message;
  * this is the wait before admitting it cannot. */
@@ -1294,16 +1299,17 @@ async function editWatchNotice(messageId, content) {
  */
 async function confirmBroken(error) {
   const detail = error instanceof Error ? error.message : String(error);
-  // Whose failure is this? Asked before the retry, and before `failedCheck`,
-  // because `git pull --ff-only` failing on a diverged local main is the same
-  // false alarm without any npm check to name. A check cannot be evidence
-  // about the site while someone else's work is in the tree.
-  const foreign = await foreignWorkAtFailure(error);
-  if (foreign) return { foreign };
+  // Someone else running the checks is a collision, not a verdict, and there
+  // is nothing to learn by asking again underneath them.
   const holder = await checksLockHolder(STATE_DIR);
   if (holder) return { foreign: `${holder} is running the checks` };
   const check = failedCheck(detail);
-  if (!check) return { check: null, output: detail };
+  // No npm check to re-run — `git pull --ff-only` on a diverged main, say. The
+  // only evidence available is whether someone else's work is in the way.
+  if (!check) {
+    const foreign = await foreignWorkAtFailure(error);
+    return foreign ? { foreign } : { check: null, output: detail };
+  }
   try {
     // The retry has to honour the lock it just checked, or it becomes the
     // collision the lock exists to prevent.
@@ -1312,9 +1318,6 @@ async function confirmBroken(error) {
     console.warn(`[discord-agent] npm run ${check} failed once and passed on the retry; not pausing`);
     return null;
   } catch (again) {
-    // Someone may have started editing during the retry.
-    const now = await foreignWorkAtFailure(error);
-    if (now) return { foreign: now };
     const output = `${again.stdout ?? ""}${again.stderr ?? ""}${again.message ?? ""}`;
     // Twice overnight, failures that were all timeouts stopped publishing with
     // nothing wrong with the site: the retry ran on the same loaded machine
@@ -1323,6 +1326,16 @@ async function confirmBroken(error) {
     if (onlySlowness(output)) {
       console.warn(`[discord-agent] npm run ${check} failed on timeouts only, twice; treating as load, not a breakage`);
       return { foreign: "the checks timed out under load rather than failing" };
+    }
+    // Only now is someone else's work an explanation. Asking first meant a
+    // genuine breakage of main went unreported for as long as anybody had a
+    // file open — the excuse was accepted without ever testing it. The retry
+    // above ran after the job's own writes were put back, so what failed here
+    // is the tree without them.
+    const foreign = await foreignWorkAtFailure(error);
+    if (foreign) {
+      console.warn(`[discord-agent] npm run ${check} fails, and ${foreign}; parking rather than calling the site broken`);
+      return { foreign };
     }
     return { check, output };
   }
@@ -1386,7 +1399,20 @@ function checkedExec(job) {
 
 async function drainQueue() {
   if (running || !queue.length) return;
-  running = queue.shift();
+  // A job that just failed its checks waits before trying again. Parking used
+  // to be the thing that paced retries: six slow git polls before a job came
+  // back round. Now that a job can start while someone else is working, the
+  // gate returns at once, and a tree that keeps failing would run the whole
+  // typecheck/build/test suite back to back on the machine the bot, the builds
+  // and everyone else share — which is what caused the false alarms this all
+  // started with.
+  const ready = queue.findIndex((j) => !(j.notBefore > Date.now()));
+  if (ready === -1) {
+    const soonest = Math.min(...queue.map((j) => j.notBefore));
+    setTimeout(() => void drainQueue().catch(() => {}), Math.max(1_000, Math.min(soonest - Date.now(), RETRY_BACKOFF_CAP_MS))).unref();
+    return;
+  }
+  running = queue.splice(ready, 1)[0];
   const job = running;
   job.startedAt ??= Date.now();
   let parked = false;
@@ -1455,6 +1481,10 @@ async function drainQueue() {
       if (foreign) {
         console.warn(`[discord-agent] treating a failure as a busy checkout: ${foreign}`);
         error = new CheckoutBusyError(foreign);
+        // This one ran the checks before it failed, unlike a job that parked at
+        // the gate without doing anything, so it has to wait before trying the
+        // whole suite again.
+        error.ranChecks = true;
       }
     }
     if (error instanceof CheckoutBusyError) {
@@ -1465,8 +1495,15 @@ async function drainQueue() {
         // Its status line keeps ticking as "waiting" in the meantime.
         parked = true;
         outcome = null;
+        // Parking at the gate costs nothing, so it comes straight back. Having
+        // run typecheck, build and test first does cost, on the machine the bot
+        // shares with everyone, so that backs off.
+        if (error.ranChecks) {
+          job.attempts = (job.attempts ?? 0) + 1;
+          job.notBefore = Date.now() + retryDelay(job.attempts, RETRY_BACKOFF_CAP_MS);
+        } else job.notBefore = 0;
         queue.push(job);
-        console.warn(`[discord-agent] checkout busy; still holding (${formatElapsed(waited)})`);
+        console.warn(`[discord-agent] checkout busy; still holding (${formatElapsed(waited)})${error.ranChecks ? `, next try in ${formatElapsed(retryDelay(job.attempts, RETRY_BACKOFF_CAP_MS))}` : ""}`);
         return;
       }
       outcome = "⏸️";

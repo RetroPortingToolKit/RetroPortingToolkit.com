@@ -68,6 +68,17 @@ export function isConversational(content, { hasAttachments = false } = {}) {
   return false;
 }
 
+/** How long a failed job waits before trying again: doubling from a minute.
+ *
+ * Parking used to pace this by itself — six slow git polls before a job came
+ * back round. A job can now start while someone else is working, so the gate
+ * returns at once, and a tree that keeps failing would run typecheck, build and
+ * test back to back on the machine the bot shares with the builds and everyone
+ * else. That is what produced the false "publishing is stopped" alarms. */
+export function retryDelay(attempts, cap = 20 * 60_000) {
+  return Math.min(cap, 60_000 * 2 ** Math.max(0, attempts - 1));
+}
+
 export function isStatusRequest(content) {
   return /^(?:status|queue)[?.!]*$|^what(?:'s|\s+is|\s+are)?\s+(?:you\s+)?(?:working\s+on|doing)[?.!]*$/i.test(
     String(content).trim(),

@@ -10,6 +10,7 @@ import {
   modelFor,
   checkoutBusyReason,
   foreignWorkReason,
+  retryDelay,
   pulseChanged,
   canRequestDestructive,
   containsSensitiveContent,
@@ -921,5 +922,31 @@ describe("telling a person's work from a tool's leavings", () => {
     expect(reason).toContain("rebase was interrupted");
     expect(reason).toContain("git rebase --abort");
     expect(classifyStatus("UU a.md").unmerged).toEqual(["a.md"]);
+  });
+});
+
+/** Parking used to pace the retries: six slow git polls before a job came back
+ * round. A job can now start while someone else is working, so the gate returns
+ * at once and a tree that keeps failing would run the whole suite back to back
+ * on the machine the bot, the builds and everyone else share. */
+describe("waiting before running the whole suite again", () => {
+  it("doubles from a minute and stops at the cap", () => {
+    expect(retryDelay(1, 20 * 60_000)).toBe(60_000);
+    expect(retryDelay(2, 20 * 60_000)).toBe(120_000);
+    expect(retryDelay(3, 20 * 60_000)).toBe(240_000);
+    expect(retryDelay(5, 20 * 60_000)).toBe(960_000);
+    expect(retryDelay(6, 20 * 60_000)).toBe(20 * 60_000);
+    expect(retryDelay(50, 20 * 60_000)).toBe(20 * 60_000);
+  });
+
+  it("treats a first attempt and a nonsense count as the shortest wait", () => {
+    expect(retryDelay(0, 20 * 60_000)).toBe(60_000);
+    expect(retryDelay(-3, 20 * 60_000)).toBe(60_000);
+  });
+
+  it("costs a handful of runs an hour, not dozens", () => {
+    let elapsed = 0, runs = 0;
+    for (let attempt = 1; elapsed < 60 * 60_000; attempt++) { elapsed += retryDelay(attempt, 20 * 60_000); runs++; }
+    expect(runs).toBeLessThanOrEqual(7);
   });
 });
