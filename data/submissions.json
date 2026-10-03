@@ -475,5 +475,25 @@
     "images": [],
     "summary": [],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "d4ac854d54678f90",
+    "repo": "https://github.com/elprogramadorloco-arch/agvg2-recomp",
+    "title": "Advanced V.G. 2",
+    "description": "A community game project. See the source repository for details and current progress.",
+    "owner": "elprogramadorloco-arch",
+    "discord": "elprogramadorloco_87045",
+    "path": "data/games/90_agvg2-recomp-d4ac854d/index.md",
+    "url": "/games/agvg2-recomp-d4ac854d",
+    "createdAt": "2026-10-03T09:29:28.199Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "elprogramadorloco_87045"
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
