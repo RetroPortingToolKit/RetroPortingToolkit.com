@@ -427,20 +427,6 @@ async function notifyAdminChannel(job, summary) {
   });
 }
 
-async function notifyPendingAdminChannel(job) {
-  // The owner wants these in the website channel. What made them useless was
-  // repetition and jobs with no requester ("Task pending for Discord user
-  // null"), not the channel: a scheduled job never posts, and a request that
-  // already shows a status line in this channel does not get a second one.
-  if (!config.adminChannelId || job.pendingNotice) return;
-  if (!job.ref?.messageId || job.ref.channelId === config.adminChannelId) return;
-  const requester = job.requester?.display || job.requester?.username || `Discord user ${job.ref.authorId}`;
-  job.pendingNotice = await safeSend({
-    channelId: config.adminChannelId,
-    content: `⏳ Task pending for ${requester}: the shared checkout is busy, so this request is waiting to start.\nRequest: ${job.messageUrl}`,
-    suppressMentions: true,
-  });
-}
 
 function markWaiting(job, reason = "") {
   const first = job.phase !== "waiting";
@@ -452,7 +438,6 @@ function markWaiting(job, reason = "") {
   job.waitingReason = reason || job.waitingReason || "";
   job.waitingSince ??= Date.now();
   if (job.ref?.messageId) void updateStatus(job);
-  if (first) void notifyPendingAdminChannel(job);
 }
 
 async function gitSnapshot() {
@@ -1143,10 +1128,8 @@ async function clearStatus(job) {
   for (const m of [job.status, job.queuedNotice]) {
     if (m?.delete) await m.delete().catch(() => undefined);
   }
-  if (job.pendingNotice?.delete) await job.pendingNotice.delete().catch(() => undefined);
   job.status = null;
   job.queuedNotice = null;
-  job.pendingNotice = null;
 }
 
 /** Delete a message this process never held, by id; best effort. */
@@ -1172,9 +1155,10 @@ function scheduledJobsPaused() { return Date.now() < scheduledPausedUntil; }
 
 /** How often the checkout is looked at when nothing is asking it to work. */
 const CHECKOUT_WATCH_MS = envMs("DISCORD_AGENT_WATCH_MS", 5 * 60 * 1_000);
-/** Two consecutive sightings before anyone is told: a publish legitimately
- * dirties the tree, and one tick of that is not news. */
-const WATCH_CONFIRMATIONS = 2;
+/** How long a blocker only a person can clear has to persist before anyone is
+ * told. Everything the bot can resolve by itself resolves without a message;
+ * this is the wait before admitting it cannot. */
+const WATCH_SILENCE_MS = envMs("DISCORD_AGENT_WATCH_SILENCE_MS", 30 * 60 * 1_000);
 const watchFile = () => path.join(STATE_DIR, "checkout-watch.json");
 
 /**
@@ -1197,11 +1181,11 @@ async function checkoutProbe() {
   const working = running?.phase === "running";
   const pulse = await gitSnapshot().catch(() => null);
   const holder = await checksLockHolder(STATE_DIR);
-  const parked = [running, ...queue].filter(Boolean).find((j) => j.phase === "waiting" && Date.now() - (j.waitingSince ?? Date.now()) > CHECKOUT_WAIT_MS);
-  const reason = working ? null
-    : (pulse && checkoutBusyReason(pulse)) || (holder ? `${holder} is running the checks` : null)
-      || (scheduledJobsPaused() ? "publishing is paused after a failed check" : null)
-      || (parked ? `a request has been waiting ${formatElapsed(Date.now() - parked.waitingSince)}` : null);
+  // Only a person's uncommitted work is reportable. A held checks lock clears
+  // in 20 minutes, a pause clears in 30, a tool's leavings are ignored now,
+  // and a running job is allowed to have written its own files — none of those
+  // is worth anyone's attention, because none of them needs anyone.
+  const reason = working || holder || scheduledJobsPaused() || !pulse ? null : checkoutBusyReason(pulse);
 
   if (!reason) {
     // Say so once, on the message that reported it, and stop.
@@ -1214,11 +1198,12 @@ async function checkoutProbe() {
   }
 
   const same = state.reason === reason;
-  const seen = same ? (state.seen ?? 1) + 1 : 1;
-  const next = { reason, seen, firstSeenAt: same ? state.firstSeenAt ?? Date.now() : Date.now(), messageId: state.messageId, announced: state.announced };
-  if (seen >= WATCH_CONFIRMATIONS) {
-    const waited = formatElapsed(Date.now() - next.firstSeenAt);
-    const body = `⏳ Nothing can publish: ${reason}. Waiting ${waited}; ${queue.length + (running ? 1 : 0)} request(s) held.`;
+  const next = { reason, firstSeenAt: same ? state.firstSeenAt ?? Date.now() : Date.now(), messageId: state.messageId, announced: state.announced };
+  // Half an hour of someone's work sitting there is a person stepping away
+  // mid-edit, not a person at the keyboard. Below that, say nothing at all.
+  if (Date.now() - next.firstSeenAt >= WATCH_SILENCE_MS) {
+    const held = queue.length + (running ? 1 : 0);
+    const body = `⏳ Nothing can publish: ${reason}. ${formatElapsed(Date.now() - next.firstSeenAt)} so far${held ? `, ${held} request(s) held` : ""}. Commit it or clear it and everything waiting runs by itself — nothing needs re-sending.`;
     if (next.messageId) await editWatchNotice(next.messageId, body);
     else next.messageId = (await safeSend({ channelId: config.botChannelId, content: body, suppressMentions: true }))?.id ?? null;
     next.announced = true;

@@ -174,9 +174,12 @@ describe("bridge harness: queueing and the shared checkout", () => {
     fs.writeFileSync(path.join(b.repo.dir, "src/someone-elses-edit.tsx"), "wip\n");
     const id = b.send(ADMIN, "U1", "please wait for me [[sleep=1]]");
     await b.waitFor(parkedFor(id), 8000, "busy notice");
-    await b.waitFor((e) => e.kind === "send" && e.channelId === MODERATION && /Task pending/.test(e.content), 8000, "pending reminder in the website channel");
-    // One notice for one waiting job, never a repeat per retry.
-    expect(b.events.filter((e) => e.channelId === MODERATION && /Task pending/.test(e.content))).toHaveLength(1);
+    // The waiting request's own status line is the whole notification. The
+    // second "Task pending" notice that used to go to the website channel was
+    // unreachable in production — its own guard cancelled it whenever that
+    // channel is also where requests arrive, which is the live configuration —
+    // and it is gone rather than repaired.
+    expect(b.events.filter((e) => /Task pending/.test(e.content))).toHaveLength(0);
     expect(b.events.some((e) => e.messageId === id && e.content.includes("OK:"))).toBe(false);
     fs.rmSync(path.join(b.repo.dir, "src/someone-elses-edit.tsx"));
     const done = await b.waitFor(forMsg(id, "OK: please wait"), 20000, "started on its own after the tree cleared");
