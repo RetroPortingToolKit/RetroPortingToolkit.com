@@ -15,9 +15,9 @@ links:
   - { label: "Project on GitHub", href: "https://github.com/mstan/MegamanX3SNESRecomp" }
 verified: "2026-08-31"
 cover: "./mmx3-wide.png"
-release: "v0.0.4"
-download: "https://github.com/mstan/MegamanX3SNESRecomp/releases/tag/v0.0.4"
-updated: "2026-09-22"
+release: "v0.0.5"
+download: "https://github.com/mstan/MegamanX3SNESRecomp/releases/tag/v0.0.5"
+updated: "2026-10-03"
 ---
 
 Mega Man X3 is a [SNESRecomp](/hardware/super-nintendo) project for the third SNES Mega Man X game.

@@ -15,9 +15,9 @@ links:
   - { label: "Project on GitHub", href: "https://github.com/mstan/MegaManX2Recomp" }
 verified: "2026-08-31"
 cover: "./mmx2-wide.png"
-release: "v0.1.2"
-download: "https://github.com/mstan/MegaManX2Recomp/releases/tag/v0.1.2"
-updated: "2026-09-22"
+release: "v0.1.3"
+download: "https://github.com/mstan/MegaManX2Recomp/releases/tag/v0.1.3"
+updated: "2026-10-03"
 ---
 
 Mega Man X2 is a [SNESRecomp](/hardware/super-nintendo) project for the second SNES Mega Man X game.
