@@ -435,5 +435,25 @@
     "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
     "moderatedBy": "398336732287991808",
     "moderatedAt": "2026-10-03T00:08:17.197Z"
+  },
+  {
+    "id": "5e6212ac506b52d2",
+    "repo": "https://github.com/elprogramadorloco-arch/korokoro-recomp",
+    "title": "KoroKoro post nin",
+    "description": "A community game project. See the source repository for details and current progress.",
+    "owner": "elprogramadorloco-arch",
+    "discord": "elprogramadorloco_87045",
+    "path": "data/games/88_korokoro-recomp-5e6212ac/index.md",
+    "url": "/games/korokoro-recomp-5e6212ac",
+    "createdAt": "2026-10-03T08:55:51.527Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "elprogramadorloco_87045"
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
