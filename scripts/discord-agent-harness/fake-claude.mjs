@@ -42,7 +42,12 @@ process.stdin.on("end", async () => {
   say({ type: "system", subtype: "init" });
   // Before anything else, so "[[dirty]] [[silent]]" is a run that wrote a
   // file and then hung — the case the left-behind note exists for.
-  if (/\[\[dirty\]\]/.test(request)) fs.writeFileSync(path.join(process.cwd(), "left-behind.txt"), "oops\n");
+  if (/\[\[dirty\]\]/.test(request)) {
+    // Into data/, where work lives: a root-level file is a tool's leavings and
+    // is no longer a reason to stop anything.
+    fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
+    fs.writeFileSync(path.join(process.cwd(), "data", "left-behind.md"), "oops\n");
+  }
   if (/\[\[silent\]\]/.test(request)) {
     setInterval(() => {}, 1 << 30); // keep the process alive, saying nothing
     return;

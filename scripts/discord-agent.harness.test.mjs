@@ -170,14 +170,15 @@ describe("bridge harness: queueing and the shared checkout", () => {
 
   it("parks a publish request while someone has uncommitted work, and starts it by itself once the tree is clean", async () => {
     const b = await up();
-    fs.writeFileSync(path.join(b.repo.dir, "someone-elses-edit.txt"), "wip\n");
+    fs.mkdirSync(path.join(b.repo.dir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(b.repo.dir, "src/someone-elses-edit.tsx"), "wip\n");
     const id = b.send(ADMIN, "U1", "please wait for me [[sleep=1]]");
     await b.waitFor(parkedFor(id), 8000, "busy notice");
     await b.waitFor((e) => e.kind === "send" && e.channelId === MODERATION && /Task pending/.test(e.content), 8000, "pending reminder in the website channel");
     // One notice for one waiting job, never a repeat per retry.
     expect(b.events.filter((e) => e.channelId === MODERATION && /Task pending/.test(e.content))).toHaveLength(1);
     expect(b.events.some((e) => e.messageId === id && e.content.includes("OK:"))).toBe(false);
-    fs.rmSync(path.join(b.repo.dir, "someone-elses-edit.txt"));
+    fs.rmSync(path.join(b.repo.dir, "src/someone-elses-edit.tsx"));
     const done = await b.waitFor(forMsg(id, "OK: please wait"), 20000, "started on its own after the tree cleared");
     expect(done).toBeTruthy();
   });
@@ -211,8 +212,8 @@ describe("bridge harness: queueing and the shared checkout", () => {
     // The file the hung run wrote is named, because it parks every request
     // after it until someone deals with it.
     expect(failed.content).toMatch(/left changes in the checkout/);
-    expect(failed.content).toMatch(/- left-behind\.txt/);
-    fs.rmSync(path.join(b.repo.dir, "left-behind.txt"));
+    expect(failed.content).toMatch(/- data\/left-behind\.md/);
+    fs.rmSync(path.join(b.repo.dir, "data/left-behind.md"));
     await b.waitFor(forMsg(next, "OK: after the hang"), 15000, "next job ran");
   });
 
@@ -223,7 +224,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
     expect(blocked.content).toMatch(/uncommitted changes/);
     const later = b.send(ADMIN, "U2", "after the mess [[sleep=0]]");
     await b.waitFor(parkedFor(later), 8000, "parked behind the mess");
-    fs.rmSync(path.join(b.repo.dir, "left-behind.txt"));
+    fs.rmSync(path.join(b.repo.dir, "data/left-behind.md"));
     await b.waitFor(forMsg(later, "OK: after the mess"), 20000, "ran once cleaned");
   });
 
@@ -280,13 +281,14 @@ describe("bridge harness: queueing and the shared checkout", () => {
 
   it("keeps one status line per request, edits it through waiting and working, and deletes it with the queued notice when done", async () => {
     const b = await up();
-    fs.writeFileSync(path.join(b.repo.dir, "wip.txt"), "someone editing\n");
+    fs.mkdirSync(path.join(b.repo.dir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(b.repo.dir, "src/wip.tsx"), "someone editing\n");
     const first = b.send(ADMIN, "U1", "held [[sleep=1]]");
     const second = b.send(ADMIN, "U2", "behind it [[sleep=0]]");
     const onIt = await b.waitFor(forMsg(first, "On it"), 8000, "status created");
     const queued = await b.waitFor(forMsg(second, "Queued. You are number 1"), 8000, "queued notice");
     await b.waitFor((e) => e.kind === "edit" && e.id === onIt.id && /Waiting for the shared checkout/.test(e.content), 8000, "edited to waiting");
-    fs.rmSync(path.join(b.repo.dir, "wip.txt"));
+    fs.rmSync(path.join(b.repo.dir, "src/wip.tsx"));
     await b.waitFor((e) => e.kind === "edit" && e.id === onIt.id && /Still working/.test(e.content), 15000, "edited to working");
     await b.waitFor(forMsg(first, "OK: held"), 15000, "summary");
     await b.waitFor((e) => e.kind === "delete" && e.id === onIt.id, 5000, "status deleted");
@@ -301,7 +303,8 @@ describe("bridge harness: queueing and the shared checkout", () => {
 
   it("resumes a request that a restart interrupted while waiting, and restores the queue behind it", async () => {
     const repo = makeRepo();
-    fs.writeFileSync(path.join(repo.dir, "wip.txt"), "someone editing\n");
+    fs.mkdirSync(path.join(repo.dir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(repo.dir, "src/wip.tsx"), "someone editing\n");
     const a = await up({ repo });
     const first = a.send(ADMIN, "U1", "survive the restart [[sleep=0]]");
     const second = a.send(ADMIN, "U2", "queued through it [[sleep=0]]");
@@ -310,7 +313,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
     await a.waitFor(forMsg(second, "Queued"), 8000, "queued before restart");
     a.stop();
     await new Promise((r) => setTimeout(r, 800));
-    fs.rmSync(path.join(repo.dir, "wip.txt"));
+    fs.rmSync(path.join(repo.dir, "src/wip.tsx"));
     const b = await up({ repo, state: a.state });
     await b.waitFor((e) => e.kind === "delete" && e.id === status.id, 8000, "old status line tidied");
     await b.waitFor(forMsg(first, "I restarted before finishing this"), 8000, "resumed notice");
@@ -519,5 +522,28 @@ describe("bridge harness: replying to something the bot did", () => {
     });
     await b.waitFor(forMsg(id, "OK:"), 12000, "answered");
     expect(b.events.some((e) => e.messageId === id && /On it/.test(e.content))).toBe(false);
+  });
+});
+
+
+/** Six outages in two weeks were one program or another writing a file into
+ * the shared tree. A cache is not someone's work and must not stop the site. */
+describe("bridge harness: a tool's leavings are not a reason to stop", () => {
+  it("publishes with a build cache sitting in the tree", async () => {
+    const b = await up();
+    fs.mkdirSync(path.join(b.repo.dir, ".wrangler/tmp"), { recursive: true });
+    fs.writeFileSync(path.join(b.repo.dir, ".wrangler/tmp/cache"), "junk\n");
+    const id = b.send(ADMIN, "U1", "carry on regardless [[sleep=0]]");
+    await b.waitFor(forMsg(id, "OK: carry on regardless"), 15000, "published despite the cache");
+    expect(b.events.some((e) => e.messageId === id && PARKED.test(e.content))).toBe(false);
+  });
+
+  it("still waits for a half-written page", async () => {
+    const b = await up();
+    fs.mkdirSync(path.join(b.repo.dir, "data/games/99_half"), { recursive: true });
+    fs.writeFileSync(path.join(b.repo.dir, "data/games/99_half/index.md"), "---\ntitle: \"Half\"\n");
+    const id = b.send(ADMIN, "U1", "wait your turn [[sleep=0]]");
+    const parked = await b.waitFor(parkedFor(id), 10000, "parked on the half-written page");
+    expect(parked.content).toContain("data/games/");
   });
 });

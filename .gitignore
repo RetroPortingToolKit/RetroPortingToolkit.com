@@ -3,9 +3,18 @@ dist
 .vite
 .vercel
 .wrangler
-vite.config.ts.timestamp-*.mjs
+*.timestamp-*.mjs
 *.tsbuildinfo
 .eslintcache
+coverage/
+.vitest-reports/
+worker-configuration.d.ts
+*.orig
+*.rej
+*.sw[op]
+*~
+.vscode/
+.idea/
 video/out/
 
 .env

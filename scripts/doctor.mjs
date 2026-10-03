@@ -111,7 +111,10 @@ async function main() {
   if (git.branch !== 'main') warn('branch', `on ${git.branch}`, 'The bridge publishes from main. Switch back with: git switch main');
   if (git.dirty.length) {
     bad('working tree', `${git.dirty.length} uncommitted file(s):\n    ${git.dirty.join('\n    ')}`,
-      'Every bot job waits for a clean tree, so this parks all of them. Commit it, or discard with: git checkout HEAD -- <path>');
+      // `git checkout HEAD -- <path>` fails outright on an untracked path and
+      // restores nothing, which is the most common case here: a leftover cache,
+      // a temp file, a half-written new page folder.
+      'Every bot job waits for a clean tree, so this parks all of them. Commit it; discard a tracked file with: git checkout HEAD -- <path>; remove an untracked one (shown as ??) with: git clean -fd -- <path>');
   } else ok('working tree', 'clean');
   if (git.ahead) bad('unpushed commits', `${git.ahead} commit(s) not on origin`, 'The site never rebuilds from these. Push with: git push origin main');
   else if (git.behind) warn('behind origin', `${git.behind} commit(s)`, 'Run: git pull --ff-only');

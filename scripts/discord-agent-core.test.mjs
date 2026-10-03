@@ -44,6 +44,7 @@ import {
   attachmentsSection,
   coarseElapsed,
 } from "./discord-agent-core.mjs";
+import { classifyStatus } from "./checkout.mjs";
 
 describe("Discord agent core", () => {
   it("removes normal and nickname mentions", () => {
@@ -786,9 +787,18 @@ describe("whose failure is it", () => {
     expect(foreignWorkReason({ status: "" })).toBeNull();
   });
 
-  it("names the paths the same way a parked job does", () => {
-    const status = " M a.mjs\n?? b.mjs\n M c.md\n M d.md\n M e.md";
+  it("names the paths the same way a parked job does, for the work it shares", () => {
+    const status = " M a.mjs\n M c.md\n M d.md\n M e.md";
     expect(foreignWorkReason({ status }, [])).toBe(checkoutBusyReason({ status, lastCommitMs: 0 }, 10_000_000));
+  });
+
+  it("still blames a tool's leavings for a failed check, even though they do not park a job", () => {
+    // The two answer different questions. Starting work on top of a stray
+    // cache is fine; a check that FAILED with one in the tree is still not
+    // evidence that the website is broken, so it must not be announced as one.
+    const status = "?? .wrangler/";
+    expect(checkoutBusyReason({ status, lastCommitMs: 0 }, 10_000_000)).toBeNull();
+    expect(foreignWorkReason({ status }, [])).toContain(".wrangler/");
   });
 });
 
@@ -874,5 +884,42 @@ describe("telling the bot something", () => {
       "there are a few pages still on rc, revert them",
       "fyi mstan pushed a new build, update the page",
     ]) expect(isConversational(text), text).toBe(false);
+  });
+});
+
+/** Six outages in two weeks, each a different program writing a different file
+ * into the shared tree. .gitignore was the oracle, so every new tool was a
+ * fresh one. The list to maintain is where work lives, not where tools write. */
+describe("telling a person's work from a tool's leavings", () => {
+  it("parks on anything tracked, however small", () => {
+    expect(classifyStatus(" M src/App.tsx").work).toEqual(["src/App.tsx"]);
+    expect(classifyStatus("M  data/games/01_x/index.md").work).toEqual(["data/games/01_x/index.md"]);
+    expect(classifyStatus(" D public/logo.png").work).toEqual(["public/logo.png"]);
+  });
+
+  it("parks on an untracked path where work lives, including a bare folder", () => {
+    // Porcelain collapses an untracked directory to one entry with a slash.
+    expect(classifyStatus("?? data/games/88_newpage/").work).toEqual(["data/games/88_newpage/"]);
+    expect(classifyStatus("?? scripts/half-written.mjs").work).toEqual(["scripts/half-written.mjs"]);
+  });
+
+  it("does not park on a tool's output", () => {
+    const { work, debris } = classifyStatus("?? .wrangler/\n?? .vercel/\n?? coverage/\n?? worker-configuration.d.ts");
+    expect(work).toEqual([]);
+    expect(debris).toEqual([".wrangler/", ".vercel/", "coverage/", "worker-configuration.d.ts"]);
+    // The whole point: this is no longer a reason to stop.
+    expect(checkoutBusyReason({ status: "?? .wrangler/", lastCommitMs: 0 }, 10_000_000)).toBeNull();
+  });
+
+  it("still parks when real work sits beside the debris", () => {
+    expect(checkoutBusyReason({ status: "?? .wrangler/\n M src/App.tsx", lastCommitMs: 0 }, 10_000_000))
+      .toContain("src/App.tsx");
+  });
+
+  it("calls an interrupted rebase what it is, since waiting never clears it", () => {
+    const reason = checkoutBusyReason({ status: "UU data/games/01_x/index.md", lastCommitMs: 0 }, 10_000_000);
+    expect(reason).toContain("rebase was interrupted");
+    expect(reason).toContain("git rebase --abort");
+    expect(classifyStatus("UU a.md").unmerged).toEqual(["a.md"]);
   });
 });

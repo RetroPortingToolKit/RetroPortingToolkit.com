@@ -61,7 +61,7 @@ import { classifyIntent, apiIntentCall } from "./intent.mjs";
  * Without one every message is routed by the heuristic, as before. The key
  * is read here and handed to nothing else. */
 const intentCall = apiIntentCall(process.env.ANTHROPIC_API_KEY);
-import { checksLockHolder, withChecksLock } from "./checkout.mjs";
+import { checksLockHolder, withChecksLock, classifyStatus } from "./checkout.mjs";
 import { plainText } from "./submissions.mjs";
 import fsp from "node:fs/promises";
 import { rosterLines, teamMemberByDiscord } from "./authors.mjs";
@@ -443,11 +443,16 @@ async function notifyPendingAdminChannel(job) {
 }
 
 function markWaiting(job, reason = "") {
+  const first = job.phase !== "waiting";
   job.phase = "waiting";
+  // The reason refreshes every poll, so the status line stops naming a blocker
+  // that has already been cleared: notices kept quoting ".wrangler/" after it
+  // was fixed, sending people to clear something that was gone. The one-time
+  // admin notice stays one-time.
   job.waitingReason = reason || job.waitingReason || "";
   job.waitingSince ??= Date.now();
   if (job.ref?.messageId) void updateStatus(job);
-  void notifyPendingAdminChannel(job);
+  if (first) void notifyPendingAdminChannel(job);
 }
 
 async function gitSnapshot() {
@@ -832,14 +837,16 @@ async function remoteMain() {
 
 async function runPublish(job) {
   const starting = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => {
-    if (job.phase !== "waiting") markWaiting(job, reason);
+    markWaiting(job, reason);
   });
-  // Both the dirty tree and the wait that timed out on commit churn (clean
-  // tree, someone committing every few seconds) are "busy": the second used
-  // to slip through because only the status string was checked, and the agent
-  // started on top of an active session.
-  if (starting.status || starting.busyReason) {
-    throw new CheckoutBusyError();
+  // Both someone's uncommitted work and the wait that timed out on commit
+  // churn (clean tree, someone committing every few seconds) are "busy": the
+  // second used to slip through because only the status string was checked,
+  // and the agent started on top of an active session. The raw string was the
+  // wrong test for the first — it counts a build cache as a person's work.
+  if (classifyStatus(starting.status).work.length || starting.busyReason) {
+    // With no reason, nothing downstream can say what is in the way.
+    throw new CheckoutBusyError(starting.busyReason || checkoutBusyReason(starting) || "the checkout was busy");
   }
   // No edit here: "On it." stands until the first tick has something to say.
   // Rewriting it the instant the agent starts produced "Still working — 1s
@@ -893,9 +900,13 @@ async function runPublish(job) {
     });
     if (job.stopRequested) throw new TaskStoppedError("The active agent process was terminated.");
     const ending = await gitSnapshot();
-    if (ending.head === starting.head && ending.status) {
+    // Only work counts. A build cache that was already sitting there — and
+    // which the job was rightly allowed to start on top of — is not the agent
+    // having left a mess, and reading it as one blocked every run instead.
+    const left = classifyStatus(ending.status).work;
+    if (ending.head === starting.head && left.length) {
       throw new SharedCheckoutConflictError(
-        "Blocked: the agent left uncommitted changes in the shared checkout and nothing was published. The tree needs a look before anything else runs.",
+        `Blocked: the agent left uncommitted changes in the shared checkout and nothing was published (${left.slice(0, 3).join(", ")}). The tree needs a look before anything else runs.`,
       );
     }
     let receipt = null;
@@ -1158,6 +1169,73 @@ const SCHEDULED_PAUSE_MS = envMs("DISCORD_SCHEDULED_PAUSE_MS", 30 * 60 * 1_000);
 let scheduledPausedUntil = 0;
 let lastScheduledAlertAt = 0;
 function scheduledJobsPaused() { return Date.now() < scheduledPausedUntil; }
+
+/** How often the checkout is looked at when nothing is asking it to work. */
+const CHECKOUT_WATCH_MS = envMs("DISCORD_AGENT_WATCH_MS", 5 * 60 * 1_000);
+/** Two consecutive sightings before anyone is told: a publish legitimately
+ * dirties the tree, and one tick of that is not news. */
+const WATCH_CONFIRMATIONS = 2;
+const watchFile = () => path.join(STATE_DIR, "checkout-watch.json");
+
+/**
+ * Watches the checkout even when nothing is waiting on it.
+ *
+ * Every stall in this project's history was found by a person eventually
+ * noticing. The log holds 541 parks and 148 silent give-ups, and the one
+ * proactive alarm — "Publishing is stopped" — requires a check to have FAILED,
+ * so it has never fired for the thing that actually happens. A dirty tree with
+ * nothing progressing is invisible by construction.
+ *
+ * Deliberately read-only: no npm script, no checks lock, nothing written into
+ * the tree. `npm run doctor` takes the lock and runs the checks, which would
+ * park every job for two minutes per tick — this cannot be that.
+ */
+async function checkoutProbe() {
+  let state = {};
+  try { state = JSON.parse(await fs.readFile(watchFile(), "utf8")); } catch { /* first run */ }
+  // A job that is running is allowed to have written its own files.
+  const working = running?.phase === "running";
+  const pulse = await gitSnapshot().catch(() => null);
+  const holder = await checksLockHolder(STATE_DIR);
+  const parked = [running, ...queue].filter(Boolean).find((j) => j.phase === "waiting" && Date.now() - (j.waitingSince ?? Date.now()) > CHECKOUT_WAIT_MS);
+  const reason = working ? null
+    : (pulse && checkoutBusyReason(pulse)) || (holder ? `${holder} is running the checks` : null)
+      || (scheduledJobsPaused() ? "publishing is paused after a failed check" : null)
+      || (parked ? `a request has been waiting ${formatElapsed(Date.now() - parked.waitingSince)}` : null);
+
+  if (!reason) {
+    // Say so once, on the message that reported it, and stop.
+    if (state.messageId && state.announced) {
+      const since = state.firstSeenAt ? formatElapsed(Date.now() - state.firstSeenAt) : "a while";
+      await editWatchNotice(state.messageId, `✅ The shared checkout is clear again, after ${since}. Anything that was waiting is running now.`);
+    }
+    await fs.writeFile(watchFile(), JSON.stringify({})).catch(() => {});
+    return;
+  }
+
+  const same = state.reason === reason;
+  const seen = same ? (state.seen ?? 1) + 1 : 1;
+  const next = { reason, seen, firstSeenAt: same ? state.firstSeenAt ?? Date.now() : Date.now(), messageId: state.messageId, announced: state.announced };
+  if (seen >= WATCH_CONFIRMATIONS) {
+    const waited = formatElapsed(Date.now() - next.firstSeenAt);
+    const body = `⏳ Nothing can publish: ${reason}. Waiting ${waited}; ${queue.length + (running ? 1 : 0)} request(s) held.`;
+    if (next.messageId) await editWatchNotice(next.messageId, body);
+    else next.messageId = (await safeSend({ channelId: config.botChannelId, content: body, suppressMentions: true }))?.id ?? null;
+    next.announced = true;
+  }
+  await fs.writeFile(watchFile(), JSON.stringify(next)).catch(() => {});
+}
+
+/** One standing message, edited. Never a second one, never deleted. */
+async function editWatchNotice(messageId, content) {
+  try {
+    const channel = await client.channels.fetch(config.botChannelId);
+    const message = await channel.messages.fetch(messageId);
+    await message.edit({ content });
+  } catch (error) {
+    console.error("[discord-agent] checkout watch edit failed", error.message ?? error);
+  }
+}
 /**
  * One message a day, naming the actual cause.
  *
@@ -1292,19 +1370,19 @@ async function drainQueue() {
     if (!scheduled) startStatusTicker(job);
     let report;
     if (job.submissionModeration) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { if (job.phase !== "waiting") markWaiting(job, reason); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.ownerUpdate) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { if (job.phase !== "waiting") markWaiting(job, reason); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const summary = await applyOwnerUpdate({ root: ROOT, update: job.ownerUpdate, siteUrl: SITE.url, exec: checkedExec(job) });
       report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.repoUpdate) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { if (job.phase !== "waiting") markWaiting(job, reason); });
+      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
       job.phase = "running";
       const updates = job.repoUpdate.updates ?? [job.repoUpdate];
@@ -1359,13 +1437,17 @@ async function drainQueue() {
       // reaction and a log line. Twelve "Blocked." replies landed on one
       // submission notice over two days before this held.
       if (!job.ref?.messageId || job.submissionModeration || job.ref.channelId === config.botChannelId) {
-        console.error(`[discord-agent] blocked after ${formatElapsed(waited)} of a busy checkout: ${job.request}`);
+        // The reason is the only instrumentation that can tell a correct park
+        // from pure downtime when someone reads this log back.
+        console.error(`[discord-agent] blocked after ${formatElapsed(waited)} of a busy checkout (${job.waitingReason || error.message || "reason unknown"}): ${job.request}`);
         return;
       }
       await replyChunks(
         job.ref,
         "⏸️ Blocked.",
-        `The shared checkout has been busy for ${formatElapsed(waited)}, so this request never started and nothing was published. Someone has left work in the tree; once it is committed or cleared, send this again.`,
+        // Naming the blocker, not blaming a person: it is as often a leftover,
+        // an interrupted rebase or the bot's own dead job as it is someone's work.
+        `The shared checkout has been busy for ${formatElapsed(waited)}, so this request never started and nothing was published.${job.waitingReason || error.message ? ` In the way: ${job.waitingReason || error.message}.` : ""} Send it again once that is clear.`,
       );
       return;
     }
@@ -1788,6 +1870,10 @@ client.once(Events.ClientReady, async () => {
   roleTimer.unref();
   const repoUpdateTimer = setInterval(() => void repoUpdates.tick().catch((error) => console.error("[discord-agent] repository watch failed", error)), REPO_UPDATE_POLL_MS);
   repoUpdateTimer.unref();
+
+  // The only thing that watches the checkout when nothing is asking it to work.
+  const checkoutTimer = setInterval(() => void checkoutProbe().catch((error) => console.error("[discord-agent] checkout watch failed", error)), CHECKOUT_WATCH_MS);
+  checkoutTimer.unref();
 
 });
 client.on(Events.Error, (error) => console.error("[discord-agent] Discord client error", error));

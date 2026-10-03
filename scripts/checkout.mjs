@@ -88,3 +88,42 @@ export async function withChecksLock(stateDir, who, run) {
     await fsp.rm(checksLockPath(stateDir), { force: true }).catch(() => {});
   }
 }
+
+/** Porcelain lines as { code, path }. The two status columns carry the whole
+ * question of whose file this is, and slicing them off threw it away. */
+export function statusLines(status) {
+  return String(status ?? "").split("\n").filter(Boolean)
+    .map((line) => ({ code: line.slice(0, 2), path: line.slice(3).trim() }))
+    .filter((l) => l.path);
+}
+
+/** Where this project's work lives. Anything untracked outside these is some
+ * tool's output, not something a person is in the middle of writing.
+ *
+ * This list is the inversion that matters. The old rule was a denylist —
+ * .gitignore — and every tool that learned a new output path was a fresh
+ * outage: .vercel, then .wrangler, which parked every job for an hour on
+ * 2026-10-02. The places work lives are few, stable and reviewed; the places
+ * tools write are open-ended. Maintain the small list, not the endless one. */
+export const WORK_ROOTS = ["data/", "src/", "public/", "api/", "worker/", "scripts/", "docs/", "video/", "starter-kit/"];
+
+/** Splits a porcelain status into what should stop the bot and what should not.
+ *
+ * `work` — a tracked file changed, or an untracked path somewhere work lives:
+ *   a person is mid-edit, or a half-written page folder exists. Wait.
+ * `debris` — untracked, outside every work root: a cache, a build artifact, a
+ *   leftover. It cannot enter a commit, because every lane stages by name.
+ * `unmerged` — a conflicted path. Waiting never clears this one.
+ */
+export function classifyStatus(status) {
+  const work = [], debris = [], unmerged = [];
+  for (const { code, path } of statusLines(status)) {
+    if (code.includes("U") || code === "AA" || code === "DD") unmerged.push(path);
+    // Porcelain collapses an untracked directory to one entry with a trailing
+    // slash, so this has to match on prefix, never on a filename.
+    else if (code === "??" && !WORK_ROOTS.some((root) => path.startsWith(root))) debris.push(path);
+    else work.push(path);
+  }
+  return { work, debris, unmerged };
+}
+

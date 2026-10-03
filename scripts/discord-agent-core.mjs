@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { receiptInstructions } from "./discord-completion.mjs";
+import { statusLines, classifyStatus } from "./checkout.mjs";
 export const MAX_DISCORD_MESSAGE = 1900;
 
 export function parseCsv(value = "") {
@@ -240,11 +241,9 @@ export function channelMode(message, config) {
  * mid-session; the tree being dirty is just the most obvious case of it.
  */
 export function dirtyPaths(status) {
-  return String(status ?? "").split("\n").filter(Boolean).map((line) => line.slice(3).trim()).filter(Boolean);
+  return statusLines(status).map((l) => l.path);
 }
 
-/** "uncommitted work in the tree (a, b and N more)", or the bare phrase when
- * the status could not be parsed into paths. */
 export function dirtyReason(paths) {
   if (!paths.length) return "uncommitted changes in the tree";
   const shown = paths.slice(0, 3).join(", ");
@@ -275,11 +274,17 @@ export function foreignWorkReason({ status, ahead = 0 }, ownPaths = []) {
 
 export function checkoutBusyReason(pulse, now = Date.now(), quietMs = 90_000) {
   if (pulse.status) {
+    const { work, debris, unmerged } = classifyStatus(pulse.status);
+    // Waiting cannot clear a conflict, so saying "busy" would park forever.
+    if (unmerged.length) return `a merge or rebase was interrupted — run git rebase --abort (${unmerged.slice(0, 3).join(", ")})`;
     // Naming the files is the difference between "the bot is stuck" and
     // "someone left work in the tree". On 2026-09-29 finished Codex work sat
     // uncommitted for two days: every job parked behind it and the only thing
     // anyone saw was "Queued. You are number 2 waiting."
-    return dirtyReason(dirtyPaths(pulse.status));
+    if (work.length) return dirtyReason(work);
+    // Only tool output left. Every lane stages by name, so it cannot reach a
+    // commit, and parking on it is pure downtime.
+    if (debris.length) return null;
   }
   const sinceCommit = now - pulse.lastCommitMs;
   if (Number.isFinite(pulse.lastCommitMs) && sinceCommit < quietMs) {

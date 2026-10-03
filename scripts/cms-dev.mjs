@@ -12,6 +12,7 @@
 // copy-bearing TSX/TS files as raw text.
 import fs from "node:fs";
 import { parseUpdates } from "./page-updates.mjs";
+import { classifyStatus } from "./checkout.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { execFile } from "node:child_process";
@@ -751,14 +752,19 @@ function doPublish(dryRun) {
     await recoverInterruptedRebase();
     await assertOnBranch();
     const status = await git(["status", "--porcelain"]);
-    const changed = status.split("\n").filter(Boolean);
+    // Only what this editor is meant to publish. `git add -A` swept up whatever
+    // else happened to be in the shared tree — a build cache, a leftover temp —
+    // and committed it, which is the one rule AGENTS.md and the agent prompt
+    // both state outright: stage by name, never with -A.
+    const { work } = classifyStatus(status);
+    const changed = work;
     if (dryRun) {
       // verify the dev server can authenticate + push, without deploying
       await git(["push", "--dry-run", "origin", "HEAD:main"]);
       return { ok: true, dryRun: true, changed: changed.length };
     }
     if (changed.length) {
-      await git(["add", "-A"]);
+      await git(["add", "--", ...changed]);
       await git(["commit", "-m", `Publish via editor (${changed.length} file${changed.length === 1 ? "" : "s"})`]);
       // Fold in any edits made on the live site first, so dev and prod never diverge.
       try {
