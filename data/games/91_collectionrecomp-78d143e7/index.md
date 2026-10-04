@@ -1,11 +1,11 @@
 ---
 title: "CollectionRecomp"
 desc: "A recompilation of the Japanese version of Super Mario All-Stars made using SNESRecomp."
-kicker: "Community submission"
+kicker: "Super Nintendo"
 tags: ["Community"]
 provenance: "community"
 repo: "https://github.com/SatellaGuyAlt/CollectionRecomp"
-status: ""
+status: "Playable beta"
 platform: "super-nintendo"
 links: [{"label":"Project on GitHub","href":"https://github.com/SatellaGuyAlt/CollectionRecomp"}]
 added: "2026-10-04"
@@ -15,11 +15,11 @@ draft: false
 creator: {"github":"SatellaGuyAlt","discord":"satellaguy"}
 release: "0.2"
 download: "https://github.com/SatellaGuyAlt/CollectionRecomp/releases/tag/0.2"
-cover: "./Screenshot-2026-10-03-190751.png"
+cover: "./Screenshot-2026-10-03-203348.png"
 ---
 
-A recompilation of the Japanese version of Super Mario All-Stars made using [SNESRecomp](/hardware/super-nintendo).
+CollectionRecomp is a static recompilation of the Japanese version of Super Mario All-Stars made using [SNESRecomp](/hardware/super-nintendo).
 
-![](./Screenshot-2026-10-02-223619.png)
-All 4 games included are fully playable with no major bugs,
-and a Nintendo Wii version will be available very soon.
+# Game Status
+All 4 games included are fully playable with no major bugs, 
+and a Nintendo Wii version will be available soon.
