@@ -5,7 +5,7 @@ kicker: "Community submission"
 tags: ["Community"]
 provenance: "community"
 repo: "https://github.com/SatellaGuyAlt/CollectionRecomp"
-status: "Community submission"
+status: ""
 platform: "super-nintendo"
 links: [{"label":"Project on GitHub","href":"https://github.com/SatellaGuyAlt/CollectionRecomp"}]
 added: "2026-10-04"
