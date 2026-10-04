@@ -1,6 +1,6 @@
 ---
 title: "Super Mario Collection"
-desc: "A recompilation of the Japanese version of Super Mario All-Stars made using SNESRecomp."
+desc: "Super Mario Collection on PC thanks to SNESRecomp."
 kicker: "Super Nintendo"
 tags: ["Community"]
 provenance: "community"
