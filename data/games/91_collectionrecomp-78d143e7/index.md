@@ -1,5 +1,5 @@
 ---
-title: "CollectionRecomp"
+title: "Super Mario Collection"
 desc: "A recompilation of the Japanese version of Super Mario All-Stars made using SNESRecomp."
 kicker: "Super Nintendo"
 tags: ["Community"]
