@@ -1,7 +1,7 @@
 ---
 title: "Super Mario Collection"
-desc: "Super Mario Collection on PC thanks to SNESRecomp."
-kicker: "Super Nintendo"
+desc: "Super Mario Collection on PC thanks to SNESRecomp. "
+kicker: "Community submission"
 tags: ["Community"]
 provenance: "community"
 repo: "https://github.com/SatellaGuyAlt/CollectionRecomp"
