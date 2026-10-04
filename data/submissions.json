@@ -495,5 +495,25 @@
     "images": [],
     "summary": [],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "78d143e7ea6a518b",
+    "repo": "https://github.com/SatellaGuyAlt/CollectionRecomp",
+    "title": "CollectionRecomp",
+    "description": "A recompilation of the Japanese version of Super Mario All-Stars made using SNESRecomp.",
+    "owner": "SatellaGuyAlt",
+    "discord": "satellaguy",
+    "path": "data/games/91_collectionrecomp-78d143e7/index.md",
+    "url": "/games/collectionrecomp-78d143e7",
+    "createdAt": "2026-10-04T00:36:36.533Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "satellaguy"
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
