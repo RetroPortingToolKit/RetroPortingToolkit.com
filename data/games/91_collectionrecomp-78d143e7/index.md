@@ -1,6 +1,6 @@
 ---
 title: "CollectionRecomp"
-desc: "CollectionRecomp"
+desc: "A PC Port of Super Mario Collection via SNESRecomp."
 kicker: "Community submission"
 tags: ["Community"]
 provenance: "community"
