@@ -18,7 +18,7 @@ download: "https://github.com/SatellaGuyAlt/CollectionRecomp/releases/tag/0.2"
 cover: "./Screenshot-2026-10-03-203348.png"
 ---
 
-CollectionRecomp is a static recompilation of the Japanese version of Super Mario All-Stars made using [SNESRecomp](/hardware/super-nintendo).
+Super Mario Collection has a playable [SNESRecomp](/hardware/super-nintendo) build.
 
 # Game Status
 All 4 games included are fully playable with no major bugs, 
