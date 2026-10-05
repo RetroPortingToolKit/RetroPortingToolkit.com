@@ -13,6 +13,7 @@
 import fs from "node:fs";
 import { parseUpdates } from "./page-updates.mjs";
 import { classifyStatus } from "./checkout.mjs";
+import { contentProblem } from "./cms-validate.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { execFile } from "node:child_process";
@@ -441,6 +442,11 @@ function writeOne(id, payload) {
     } catch (e) {
       return { ok: false, error: `invalid YAML frontmatter: ${e.message}` };
     }
+    // The same rule the production editor applies: a page that points at an
+    // image it does not have fails the repository's checks, which stops the
+    // bot publishing anything at all. Mirrored in api/cms.ts.
+    const problem = contentProblem({ body: String(payload.body ?? ""), frontmatter: fm, assets: listAssets(id).assets ?? [] });
+    if (problem) return { ok: false, error: problem };
     out = serializeMd(fm, payload.body);
   } else if (type === "json") {
     const raw = String(payload.raw ?? "");

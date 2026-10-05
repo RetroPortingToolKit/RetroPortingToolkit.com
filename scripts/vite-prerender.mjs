@@ -613,7 +613,12 @@ function mdBlocks(md, slugger) {
   for (const raw of blocks) {
     const b = raw.trim();
     if (!b) continue;
-    const h = b.match(/^(#{1,4})\s+(.+)$/s);
+    // An ATX heading is ONE line. The `s` flag with a greedy `(.+)$` used to
+    // swallow every line that followed it when the author left no blank line,
+    // so "# Game Status" with text under it produced an id made of the whole
+    // paragraph — a dead anchor, and a page that fails its own check. What
+    // follows the first line is its own block.
+    const h = b.match(/^(#{1,4})[ \t]+([^\n]+)(?:\n([\s\S]*))?$/);
     if (h) {
       const lvl = Math.min(h[1].length + 1, 5);
       const inner = mdInline(h[2].trim());
@@ -625,6 +630,7 @@ function mdBlocks(md, slugger) {
       // the two renders would be worse than no id at all.
       const id = slugger.slug(htmlText(inner));
       out.push(`<h${lvl} id="${escapeAttr(id)}">${inner}</h${lvl}>`);
+      if (h[3]?.trim()) out.push(mdBlocks(h[3], slugger));
       continue;
     }
     const lines = b.split("\n");

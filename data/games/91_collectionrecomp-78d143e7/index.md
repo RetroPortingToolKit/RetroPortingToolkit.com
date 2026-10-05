@@ -21,6 +21,5 @@ cover: "./Screenshot-2026-10-03-203348.png"
 CollectionRecomp is a static recompilation of the Japanese version of Super Mario All-Stars made using [SNESRecomp](/hardware/super-nintendo).
 
 # Game Status
-![](./Screenshot-2026-10-02-223619.png)
 All 4 games included are fully playable with no major bugs,
 and a Nintendo Wii version will be available very soon.

@@ -340,6 +340,23 @@ describe("mdToHtml, heading ids", () => {
     expect(shellHeadingIds(md)).toEqual(realHeadingIds(md));
   });
 
+  it("stops a heading at its own line, however the author spaced the page", () => {
+    // A creator published "# Game Status" with an image and two lines of prose
+    // directly under it, no blank line. The greedy match swallowed all of it
+    // into the heading, so the anchor became the whole paragraph, the page's
+    // own check failed, and publishing stopped for everyone.
+    const md = "# Game Status\n![](./shot.png)\nAll four games are playable,\nand a Wii build is coming.";
+    expect(shellHeadingIds(md)).toEqual(["game-status"]);
+    expect(shellHeadingIds(md)).toEqual(realHeadingIds(md));
+    // What followed is still rendered, as its own block rather than lost.
+    // (The image itself is a co-located asset this renderer cannot name a URL
+    // for, and with no alt text there is nothing to keep — see below.)
+    expect(mdToHtml(md)).toContain("All four games are playable");
+    expect(mdToHtml(md)).toContain("a Wii build is coming");
+    // A heading on its own is unchanged.
+    expect(shellHeadingIds("# Game Status\n\nprose")).toEqual(["game-status"]);
+  });
+
   it("matches the real renderer on every heading in data/", () => {
     const disagree = [];
     let headings = 0;

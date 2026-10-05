@@ -12,6 +12,7 @@ import { parseUpdates } from "../scripts/page-updates.mjs";
 import yaml from "js-yaml";
 import { authorsOf, canonicalAuthors, teamMemberByGithub, type Team } from "../scripts/authors.mjs";
 import { SUBMISSIONS_PATH } from "../scripts/submissions.mjs";
+import { contentProblem } from "../scripts/cms-validate.mjs";
 
 // Repo identity comes from Vercel's build env so this function is not pinned
 // to one GitHub repo. Override with CMS_REPO_OWNER / CMS_REPO_NAME if you host
@@ -905,6 +906,13 @@ async function writeEditable(
       }
     }
     const body = String(payload.body ?? "").replace(/\s+$/, "");
+    // Every save commits to main, and every commit to main is a production
+    // build, so the editor is the last place this can be caught cheaply. A
+    // page pointing at an image it does not have fails the repository's own
+    // checks, which stops the bot publishing anything at all.
+    const listed = await listAssets(id);
+    const problem = contentProblem({ body, frontmatter: fm, assets: listed.assets ?? [] });
+    if (problem) return { ok: false, error: problem };
     out = `---\n${fm.trim()}\n---\n\n${body}\n`;
   } else {
     // json
