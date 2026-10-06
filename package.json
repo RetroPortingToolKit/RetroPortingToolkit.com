@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.api.json --noEmit",
     "test": "TZ=UTC vitest run",
+    "check:content": "TZ=UTC vitest run scripts/audit-assets.test.mjs scripts/prerender-md.test.mjs",
     "assets:audit": "node scripts/audit-assets.mjs",
     "images": "node scripts/gen-image-variants.mjs",
     "feeds": "node scripts/gen-feeds.mjs",
