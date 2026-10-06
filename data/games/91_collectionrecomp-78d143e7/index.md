@@ -9,12 +9,12 @@ status: "Playable beta"
 platform: "super-nintendo"
 links: [{"label":"Project on GitHub","href":"https://github.com/SatellaGuyAlt/CollectionRecomp"}]
 added: "2026-10-04"
-updated: "2026-10-04"
+updated: "2026-10-06"
 submissionId: "78d143e7ea6a518b"
 draft: false
 creator: {"github":"SatellaGuyAlt","discord":"satellaguy"}
-release: "0.2"
-download: "https://github.com/SatellaGuyAlt/CollectionRecomp/releases/tag/0.2"
+release: "0.3"
+download: "https://github.com/SatellaGuyAlt/CollectionRecomp/releases/tag/0.3"
 cover: "./Screenshot-2026-10-03-203348.png"
 ---
 
