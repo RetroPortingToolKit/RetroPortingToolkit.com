@@ -13,6 +13,8 @@ submissionId: "6545fb1453887641"
 draft: false
 creator: {"github":"rages4calm","discord":"chrono.trigger"}
 cover: "./submission-1.png"
+release: "v0.3.1"
+download: "https://github.com/rages4calm/zelda-companion/releases/tag/v0.3.1"
 ---
 
 A native Windows port of A Link to the Past built on snesrev/zelda3, with a modern portable launcher, smooth 1080p filtering, widescreen, controller/keybind setup, MSU-1 music import and progression-protected Treasure Shuffle. Experimental online co-op supports up to 8 players with names, tunic colors and optional shared gear/progress. Shared combat is limited. Requires your own original USA ROM; no game data or music is included. Demo: https://streamable.com/c6fu71
