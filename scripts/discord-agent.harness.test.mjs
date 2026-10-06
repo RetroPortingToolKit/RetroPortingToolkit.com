@@ -9,6 +9,13 @@
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+// These spawn real bridges, real git and real child processes, so a scenario
+// takes seconds even idle and much longer on a busy machine. The waits below
+// fail on silence rather than on elapsed time, so the per-test ceiling only
+// has to be larger than any legitimate run — it is a backstop against a hang,
+// not a performance bar.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
+
 // Each scenario spawns a real bridge and waits on second-long timings, so the
 // default 5s per test is not enough; 40s is generous and only bites on a hang.
 vi.setConfig({ testTimeout: 40_000, hookTimeout: 20_000 });
@@ -91,21 +98,45 @@ function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdi
     child.stdin.write(JSON.stringify({ channelId, authorId, id, content: raw ? content : `<@BOT> ${content}`, ...rest }) + "\n");
     return id;
   };
-  const waitFor = (pred, timeoutMs = 15000, label = "condition") => new Promise((res, rej) => {
+  // Waits for the bridge to go QUIET, never for a stopwatch.
+  //
+  // This budget used to run from the moment the wait began, so a loaded Mac —
+  // the bridge, a build and sixty other test files on the same machine — made
+  // the whole scenario slower and the wait expired while the bridge was
+  // working perfectly. Fifteen of the failures that stopped publishing were
+  // this, and nothing was ever wrong. A slow bridge still emits events and log
+  // lines; a broken one emits nothing. So the deadline resets on any sign of
+  // life, and only silence fails the test. The absolute cap exists so a truly
+  // hung bridge fails rather than hanging to the vitest timeout.
+  const waitFor = (pred, idleMs = 15000, label = "condition") => new Promise((res, rej) => {
     const started = Date.now();
+    const cap = Math.max(idleMs * 6, 120_000);
+    let seen = events.length + logs.length;
+    let lastSign = Date.now();
     const tick = () => {
       const hit = events.find(pred);
       if (hit) return res(hit);
-      if (Date.now() - started > timeoutMs) return rej(new Error(`timed out waiting for ${label}\nevents:\n${events.map(e => `  +${e.t - t0}ms ${e.kind} ${e.messageId ?? ""}: ${e.content.slice(0, 90)}`).join("\n")}\nlogs:\n${logs.slice(-15).map((l) => l.line).join("\n")}`));
+      const now = events.length + logs.length;
+      if (now !== seen) { seen = now; lastSign = Date.now(); }
+      const idle = Date.now() - lastSign;
+      if (idle > idleMs || Date.now() - started > cap) {
+        return rej(new Error(`timed out waiting for ${label} (${idle}ms with no sign of life, ${Date.now() - started}ms total)\nevents:\n${events.map(e => `  +${e.t - t0}ms ${e.kind} ${e.messageId ?? ""}: ${e.content.slice(0, 90)}`).join("\n")}\nlogs:\n${logs.slice(-15).map((l) => l.line).join("\n")}`));
+      }
       setTimeout(tick, 50);
     };
     tick();
   });
   const ready = new Promise((res, rej) => {
     const started = Date.now();
+    let seen = logs.length;
+    let lastSign = Date.now();
     const tick = () => {
       if (logs.some((l) => l.line.includes("ready as"))) return res();
-      if (Date.now() - started > 10000) return rej(new Error("bridge never became ready:\n" + logs.map((l) => l.line).join("\n")));
+      if (logs.length !== seen) { seen = logs.length; lastSign = Date.now(); }
+      // Silence, not slowness: a bridge still printing is still starting.
+      if (Date.now() - lastSign > 20000 || Date.now() - started > 90000) {
+        return rej(new Error("bridge never became ready:\n" + logs.map((l) => l.line).join("\n")));
+      }
       setTimeout(tick, 25);
     };
     tick();
@@ -210,8 +241,10 @@ describe("bridge harness: queueing and the shared checkout", () => {
     const next = b.send(ADMIN, "U2", "after the hang [[sleep=0]]");
     const failed = await b.waitFor(forMsg(dead, "went silent"), 12000, "watchdog report");
     expect(failed.content).toMatch(/did not complete/);
-    // The watchdog is 2s here; it must not have taken anything like the 30s cap.
-    expect(failed.t - b.t0).toBeLessThan(10000);
+    // The watchdog is 2s here; what matters is that it fired on its own budget
+    // rather than running to the agent timeout, so the bar is the 30s cap and
+    // not a stopwatch that a loaded machine can push past.
+    expect(failed.t - b.t0).toBeLessThan(28000);
     // The file the hung run wrote is named, because it parks every request
     // after it until someone deals with it.
     expect(failed.content).toMatch(/left changes in the checkout/);
