@@ -13,8 +13,8 @@ submissionId: "0fc74848f08c9640"
 draft: false
 creator: {"github":"rages4calm","discord":"chrono.trigger"}
 cover: "./submission-1.png"
-release: "v0.5.0-redux-dev.22"
-download: "https://github.com/rages4calm/earthbound-companion/releases/tag/v0.5.0-redux-dev.22"
+release: "v0.5.0-redux-dev.23"
+download: "https://github.com/rages4calm/earthbound-companion/releases/tag/v0.5.0-redux-dev.23"
 ---
 
 Experimental native Windows EarthBound built on BrianPugh/earthbound and Herringway's work. Portable launcher, 1080p-4K output, widescreen/ultrawide, MSU music setup, controller bindings, sprint, fast-forward, quick saves and Story Shuffle v3. Play original EarthBound or the native MaternalBound Redux development edition. Redux conversion is incomplete; full story/randomized playthroughs need testing. Requires your own clean USA ROM; no ROM or music included. Demo: https://streamable.com/0wgg64
