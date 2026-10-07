@@ -14,11 +14,11 @@ group: "NES"
 links:
   - { label: "NESRecomp progress article (1379.tech)", href: "https://1379.tech/nesrecomp-achieves-10-commercial-titles/" }
 verified: "2026-08-18"
-updated: "2026-10-05"
+updated: "2026-10-07"
 added: "2026-03-15"
 cover: "./voxel-3d.webp"
-release: "v1.9.0"
-download: "https://github.com/mstan/LegendOfZeldaNESRecomp/releases/tag/v1.9.0"
+release: "v1.9.1"
+download: "https://github.com/mstan/LegendOfZeldaNESRecomp/releases/tag/v1.9.1"
 ---
 
 The Legend of Zelda runs as a native PC game through [NESRecomp](/hardware/nes).
