@@ -14,6 +14,8 @@ submissionId: "56608d3b7c1a711a"
 draft: false
 creator: {"github":"kirby1237","discord":"kirbygurll1237"}
 cover: "./submission-1.png"
+release: "v0.1.1"
+download: "https://github.com/kirby1237/PaRappaTheRapperRecomp/releases/tag/v0.1.1"
 ---
 
 a static recompilation of PaRappa the Rapper made with [PSXRecomp](/hardware/playstation)
