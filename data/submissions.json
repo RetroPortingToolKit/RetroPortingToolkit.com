@@ -605,7 +605,7 @@
     "path": "data/games/94_parappatherapperrecomp-56608d3b/index.md",
     "url": "/games/parappatherapperrecomp-56608d3b",
     "createdAt": "2026-10-08T14:46:34.540Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -630,6 +630,8 @@
       "Includes an optional Rhythm Timing Assist mod with configurable latency compensation and early/late tolerance for controller and keyboard play. The default internal-resolution preset is 1080p. The experimental Widescreen mod starts enabled at 21:9 and expands the 3D gameplay view using the native wide renderer. In Mods > Widescreen, choose 21:9, 16:9, Fit to window, or original 4:3. Movies and 2D menus keep their original proportions; disabling the mod restores the 4:3 default. Existing graphics settings take precedence over the new resolution default; select 1080p in the launcher when upgradi",
       "Scaffolded with the New Project Layout. See psxrecomp/docs/GAMEPROJECTSETUP.md for the full flow."
     ],
-    "mediaNote": "Imported 3 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 3 images. The first is the cover; check the page for any missing artwork.",
+    "moderatedBy": "398336732287991808",
+    "moderatedAt": "2026-10-08T17:31:07.129Z"
   }
 ]
