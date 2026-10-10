@@ -12,8 +12,8 @@ updated: "2026-10-10"
 submissionId: "d9c24850b61b37f6"
 draft: false
 creator: {"github":"vibecodekun"}
-release: "v0.1.13"
-download: "https://github.com/vibecodekun/shantaerecomp/releases/tag/v0.1.13"
+release: "v0.1.14"
+download: "https://github.com/vibecodekun/shantaerecomp/releases/tag/v0.1.14"
 ---
 
 Shantae, but it's a little more enjoyable to play.
