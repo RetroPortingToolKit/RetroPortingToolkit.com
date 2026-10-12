@@ -13,6 +13,8 @@ submissionId: "ef363e48e16d9847"
 draft: false
 creator: {"github":"brainWave4","discord":"brainWave4"}
 cover: "./submission-1.png"
+release: "v0.1.0"
+download: "https://github.com/brainWave4/FinalFantasyVSNESRecomp/releases/tag/v0.1.0"
 ---
 
 A community game project. See the source repository for details and current progress.
