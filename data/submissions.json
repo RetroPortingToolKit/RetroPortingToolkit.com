@@ -660,5 +660,41 @@
     "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
     "moderatedBy": "71388029540900864",
     "moderatedAt": "2026-10-12T18:12:29.658Z"
+  },
+  {
+    "id": "df642312441bd47a",
+    "repo": "https://github.com/catmidori/gogoackman1recomp",
+    "title": "Go Go Ackman Recompiled",
+    "description": "Features - In-game menu - press Esc - Widescreen support - User can switch between widescreen and 4:3 in real time by pressing \"u\" or by enabling/disabling the option on the menu - Switch between 4:3 and 8:7 aspect ratio (both have widescreen support) - Vibration/rumble support - Shader support when \"output method\" is set to OpenGL (only .glsl and .glslp shaders are supported) - shader files go in the \"shaders\" folder - Turbo function - press Tab - Rewind function - press \"r\" - Support for the",
+    "owner": "catmidori",
+    "discord": "meltmidori",
+    "path": "data/games/96_gogoackman1recomp-df642312/index.md",
+    "url": "/games/gogoackman1recomp-df642312",
+    "createdAt": "2026-10-15T17:12:10.739Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "meltmidori"
+    },
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "Project banner"
+      }
+    ],
+    "summary": [
+      "A desktop port of the Snes game Go Go Ackman built with SNESRecomp, SDL3, and Dear ImGui. Available for Windows and Linux, including Flatpak packaging.",
+      "The original game ROM is supplied separately by the user. No ROM image is embedded in the executable.",
+      "- In-game menu - press Esc",
+      "- Widescreen support - User can switch between widescreen and 4:3 in real time by pressing \"u\" or by enabling/disabling the option on the menu",
+      "- Switch between 4:3 and 8:7 aspect ratio (both have widescreen support)",
+      "- Vibration/rumble support",
+      "- Shader support when \"output method\" is set to OpenGL (only .glsl and .glslp shaders are supported) - shader files go in the \"shaders\" folder",
+      "- Turbo function - press Tab",
+      "Use Mods → Load .ips file to convert a supported patch into a native package, then transfer it to Active. Activate one translation at a time. These hashes identify the IPS inputs, not the original ROM or generated package.",
+      "These hashes match src/ackmantranslation.h and the supplied IPS files. The PT-BR converter applies the embedded English base before the Portuguese overlay in memory, producing one self-contained package. Unknown IPS files use a bounded native fallback; conversion alone does not establish gameplay compatibility. See translation conversion and native conversion."
+    ],
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
   }
 ]
