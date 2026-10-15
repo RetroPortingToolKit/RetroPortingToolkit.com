@@ -14,6 +14,8 @@ submissionId: "df642312441bd47a"
 draft: false
 creator: {"github":"catmidori","discord":"meltmidori"}
 cover: "./submission-1.png"
+release: "v1.0"
+download: "https://github.com/catmidori/gogoackman1recomp/releases/tag/v1.0"
 ---
 
 Features - In-game menu - press Esc - Widescreen support - User can switch between widescreen and 4:3 in real time by pressing "u" or by enabling/disabling the option on the menu - Switch between 4:3 and 8:7 aspect ratio \(both have widescreen support\) - Vibration/rumble support - Shader support when "output method" is set to OpenGL \(only .glsl and .glslp shaders are supported\) - shader files go in the "shaders" folder - Turbo function - press Tab - Rewind function - press "r" - Support for the

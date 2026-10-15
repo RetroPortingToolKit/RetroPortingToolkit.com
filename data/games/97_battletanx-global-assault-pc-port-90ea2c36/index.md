@@ -13,6 +13,8 @@ submissionId: "90ea2c36edc71635"
 draft: false
 creator: {"github":"TheGh0stShip"}
 cover: "./submission-1.png"
+release: "v0.2.5"
+download: "https://github.com/TheGh0stShip/BattleTanx-Global-Assault-PC-Port/releases/tag/v0.2.5"
 ---
 
 Native Windows and Linux port of BattleTanx: Global Assault using N64Recomp, N64ModernRuntime, RT64, and SDL2. Requires a legally owned original game image; no copyrighted game data is included.
