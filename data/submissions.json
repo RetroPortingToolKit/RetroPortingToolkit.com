@@ -729,5 +729,32 @@
       "- Default-off gameplay mods provide extended fog-free visibility and independent turret aiming with dual sticks or mouse and keyboard."
     ],
     "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "db2acd23fa69d1ad",
+    "repo": "https://github.com/NVDEMU/ApeEscapeRecomp-MacWindows",
+    "title": "Ape Escape for Windows and Mac",
+    "description": "Ape Escape recomp for Windows and Mac",
+    "owner": "NVDEMU",
+    "discord": "nvd123_YT",
+    "path": "data/games/98_apeescaperecomp-macwindows-db2acd23/index.md",
+    "url": "/games/apeescaperecomp-macwindows-db2acd23",
+    "createdAt": "2026-10-16T03:56:12.197Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "nvd123_YT"
+    },
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "Ape Escape"
+      }
+    ],
+    "summary": [
+      "A fan-made, native PC project for revisiting Spike's first monkey-catching adventure."
+    ],
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
   }
 ]
