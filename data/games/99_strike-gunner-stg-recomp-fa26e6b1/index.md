@@ -14,6 +14,8 @@ submissionId: "fa26e6b1ab045448"
 draft: false
 creator: {"github":"SlippyGetBackHere"}
 cover: "./submission-1.png"
+release: "v0.1.1"
+download: "https://github.com/SlippyGetBackHere/Strike-Gunner-STG-Recomp/releases/tag/v0.1.1"
 ---
 
 Native recompilation project of an under the radar SNES title, Strike Gunner S.T.G\! It's a classic shoot 'em up \(shmup\) where you can choose unique weapons before the start of each stage. It's a real gem, in my opinion\! The game should be fully playable from start to finish, I played through myself, but I have not had a chance to fully play with 2 players, and I have not tested the higher/lower difficulties.
