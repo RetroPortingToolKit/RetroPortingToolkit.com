@@ -800,5 +800,29 @@
       "- Native code. 982 compiled variants, seeded from coverage captures of the intro, attract demo, stage 1, one full playthrough and the ending (recomp/coverage/). Uncovered code runs on the interpreter."
     ],
     "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "4b3bb4fd906d6d42",
+    "repo": "https://github.com/retrospective-dev/KuOnPc",
+    "title": "KuOnPc",
+    "description": "Started and currently running at a Kuon Decomp. currently in the early phases but making good progress",
+    "owner": "retrospective-dev",
+    "discord": "@retro-spectiveShow on youtube",
+    "path": "data/games/100_kuonpc-4b3bb4fd/index.md",
+    "url": "/games/kuonpc-4b3bb4fd",
+    "createdAt": "2026-10-17T08:30:15.703Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "@retro-spectiveShow on youtube"
+    },
+    "images": [],
+    "summary": [
+      "A matching decompilation of Kuon (FromSoftware, 2004, PlayStation 2), targeting the PAL release SLES-53411 v1.01. The long-term goal is a native PC port.",
+      "This repo contains no game code or data. You need your own disc.",
+      "See SPEC.md for the project plan and CLAUDE.md for the matching rules and agent workflow."
+    ],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
