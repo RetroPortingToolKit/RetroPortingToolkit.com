@@ -5,9 +5,11 @@
 Direct Discord OAuth sign-in and safe joining of Discord-first/GitHub accounts
 extend the shared wiki permissions. See [CMS access](CMS-ACCESS.md#discord-oauth-configuration)
 and `src/lib/discordLogin.test.ts`. The existing Discord app's callback is registered.
-The remaining provisioning step is its client secret; Discord requires a reset to
-reveal it and the computer-use credential policy requires the owner to perform
-that reset. No secret value should be sent in chat.
+Production provisioning is complete: the OAuth secret is stored in Keychain and
+the Worker secret binding. Direct Discord sign-in was verified through the live
+authorization flow into the docs editor. The implementation is in `f5b9847`;
+typecheck, build, and all 1,190 tests passed. The idle Discord bot was restarted
+to load the updated sign-in guidance.
 
 ## Docs wiki (2026-10-17)
 
