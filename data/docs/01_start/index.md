@@ -4,7 +4,7 @@ summary: "Short guides for readers who know the emulator and porting scene, with
 sectionTitle: "Start here"
 pageType: "reference"
 tags: ["Orientation"]
-updated: "2026-09-15"
+updated: "2026-10-17"
 ---
 
 Start here if you know emulators and fan-made ports, but static recompilation is new to you.
@@ -23,3 +23,5 @@ The pages explain unfamiliar details as they appear and aim to be as beginner-fr
 When you want the ideas underneath, go to [Concepts](/docs/concepts). When you want a specific console, go to [Platforms](/docs/platforms).
 
 Have a project to share? [Submit a recomp](/docs/start/submit-a-recomp) explains how to add it to the Games catalogue.
+
+Want to improve these pages? [Contribute to the docs](/docs/start/contribute-to-docs) explains sign-in, editing access, and contributions through Discord.

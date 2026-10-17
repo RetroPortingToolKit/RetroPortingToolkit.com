@@ -1061,6 +1061,7 @@ async function createEditable(payload: Record<string, unknown>, actor?: Actor | 
 
   const body = kind === "docs" && typeof payload.body === "string" ? payload.body.trim() + "\n" : "Write the post here. This body renders as markdown on the item page.\n";
   let frontmatter = stubFrontmatter(kind, title, actor, section);
+  if (kind === "docs" && typeof payload.body !== "string") frontmatter += "\ndraft: true";
   if (kind === "docs" && typeof payload.body === "string") {
     const description = String(payload.description || payload.summary || title).trim().slice(0, 400);
     frontmatter = frontmatter.replace(/^desc:.*$/m, `desc: ${JSON.stringify(description)}`).replace(/^summary:.*$/m, `summary: ${JSON.stringify(description)}`);

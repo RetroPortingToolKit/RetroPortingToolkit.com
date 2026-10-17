@@ -39,6 +39,7 @@ function bridge(discordId: string, action: string, payload = {}, extra = {}) {
   bindWiki(req, { WIKI_ACCESS: db, DISCORD_BOT_TOKEN: "bridge-secret" }); return req;
 }
 let writes: string[];
+let createdBlobs: string[];
 let historical: Record<string,string>;
 let proposedTree: {path:string;sha:string}[];
 let refUpdates: string[];
@@ -63,7 +64,7 @@ beforeAll(() => vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: R
   if (url.includes("/compare/")) return Response.json({ status: "ahead" });
   if (url.includes("/commits?")) return Response.json([{sha:"a".repeat(40),html_url:"https://github.com/test/site/commit/a",commit:{message:"Edit",author:{name:"writer",date:"2026-10-17T00:00:00Z"}}}]);
   if (!url.includes("/git/") && /\/commits\/[a-f0-9]{40}$/.test(url)) return Response.json({parents:[],files:[]});
-  if (url.endsWith("/git/blobs")) return Response.json({sha:"new-blob"});
+  if (url.endsWith("/git/blobs")) { const body = JSON.parse(String(init?.body)); createdBlobs.push(body.encoding === "base64" ? Buffer.from(body.content, "base64").toString() : body.content); return Response.json({sha:"new-blob"}); }
   if (url.endsWith("/git/trees")) { proposedTree = JSON.parse(String(init?.body)).tree; return Response.json({sha:"new-tree"}); }
   if (url.endsWith("/git/commits")) { if (disableBeforeRef) sql.exec("UPDATE wiki_users SET suspended=1 WHERE login='admin'"); return Response.json({sha:"c".repeat(40)}); }
   if (url.includes("/git/refs/heads/")) { refUpdates.push(JSON.parse(String(init?.body)).sha); return Response.json({}); }
@@ -77,12 +78,59 @@ beforeEach(() => {
   sql.exec("INSERT INTO wiki_users(github_id,login,discord_id,docs) VALUES('1','admin',NULL,0),('2','editor',NULL,0),('3','writer','111111111111111111',0),('4','maker','222222222222222222',0)");
   files = { [path]: '---\ntitle: Intro\ndesc: Intro\nsummary: Intro\ntags: []\npageType: concept\nupdated: "2026-10-17"\n---\n\nOriginal words.\n', [game]: '---\ntitle: Game\nrepo: https://github.com/writer/game\n---\n\nGame.', "data/team.json": '{"members":[]}', "data/submissions.json": "[]" };
   historical = {}; proposedTree = []; refUpdates = []; disableBeforeRef = false;
-  writes = []; cms.clearScopeCache();
+  writes = []; createdBlobs = []; cms.clearScopeCache();
 });
 afterAll(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 const read = async (login = "writer", id = "3") => (await cms.GET(request(login, `read?id=${encodeURIComponent(path)}`, undefined, id))).json();
 const save = async (login = "writer", id = "3") => { const current = await read(login, id); return cms.POST(request(login, "save", { id: path, frontmatter: current.frontmatter, body: "Updated words.", expectedBase: current.baseSha, summary: "Clarify intro" }, id)); };
 describe("shared wiki authorization", () => {
+  it("completes the contributor lifecycle through admin actions with an existing Discord session", async () => {
+    files["data/docs/01_start/index.md"] = files[path];
+    const contributor = (route: string, body?: unknown) => {
+      const req = request("maker", route, body, "4");
+      const payload = Buffer.from(JSON.stringify({ sub: "discord:222222222222222222", discordId: "222222222222222222", via: "discord", exp: Date.now() + 60000 })).toString("base64url");
+      req.headers.set("cookie", `cms_session=${payload}.${crypto.createHmac("sha256", SECRET).update(payload).digest("base64url")}`);
+      return req;
+    };
+    const moderate = (change: Record<string, unknown>) => cms.POST(request("admin", "wiki/user", {githubId:"4", reason:"Isolated contributor pilot", ...change}));
+    const botStatus = () => cms.POST(bridge("222222222222222222", "status"));
+    expect((await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).status).toBe(403);
+    expect((await moderate({docs:true})).status).toBe(200);
+    expect((await (await botStatus()).json()).docs).toBe(true);
+
+    expect((await cms.POST(contributor("new", {kind:"docs",section:"start",title:"Pilot guide"}))).status).toBe(200);
+    expect(createdBlobs.at(-1)).toContain("draft: true");
+    expect((await cms.POST(bridge("222222222222222222", "new", {section:"start",title:"Complete bot guide",body:"Verified instructions.",summary:"Explain setup"}))).status).toBe(200);
+    expect(createdBlobs.at(-1)).not.toContain("draft: true");
+
+    const current = await (await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).json();
+    historical[path] = files[path];
+    expect((await cms.POST(contributor("save", {id:path,frontmatter:current.frontmatter,body:"Pilot correction.",expectedBase:current.baseSha,summary:"Clarify setup"}))).status).toBe(200);
+    expect(files[path]).toContain("Pilot correction.");
+    const history = await (await cms.GET(contributor(`wiki/history?id=${encodeURIComponent(path)}`))).json();
+    expect(history.revisions).toHaveLength(1);
+    const revision = await (await cms.GET(contributor(`wiki/revision?id=${encodeURIComponent(path)}&ref=${"b".repeat(40)}`))).json();
+    expect(revision.raw).toContain("Original words.");
+    const restore = {id:path,ref:"b".repeat(40),expectedBase:hash(files[path]),reason:"Restore verified instructions"};
+    expect((await cms.POST(contributor("wiki/restore",restore))).status).toBe(403);
+    expect((await cms.POST(request("admin","wiki/restore",restore))).status).toBe(200);
+    expect(createdBlobs.at(-1)).toContain("Original words.");
+
+    expect((await moderate({suspended:true})).status).toBe(200);
+    const writesBefore = writes.length, refsBefore = refUpdates.length;
+    expect((await cms.GET(contributor("list"))).status).toBe(401);
+    expect((await cms.POST(contributor("save", {id:path}))).status).toBe(401);
+    expect((await botStatus()).status).toBe(403);
+    expect((await cms.POST(bridge("222222222222222222", "save", {id:path}))).status).toBe(403);
+    expect(writes).toHaveLength(writesBefore); expect(refUpdates).toHaveLength(refsBefore);
+    expect((await moderate({suspended:false})).status).toBe(200);
+    expect((await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).status).toBe(200);
+    expect((await (await botStatus()).json()).docs).toBe(true);
+    expect((await moderate({docs:false})).status).toBe(200);
+    expect((await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).status).toBe(403);
+    expect((await (await botStatus()).json()).docs).toBe(false);
+    expect(sql.prepare("SELECT * FROM wiki_audit WHERE target='4'").all()).toHaveLength(4);
+  });
   it("maps verified publishing roles to shared docs access, preserving game scope", async () => {
     const auth = await (await cms.GET(request("writer", "auth"))).json(); expect(auth.user.docs).toBe(true);
     const list = await (await cms.GET(request("writer", "list"))).json(); expect(list.groups.find((g: {group:string}) => g.group === "Docs")).toBeTruthy();

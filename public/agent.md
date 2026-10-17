@@ -45,6 +45,9 @@ still apply. A website suspension overrides editing permissions in the CMS and
 linked Discord publishing. The RPTK contributor recognition role alone does not
 permit editing.
 
+[Contributor guide](/docs/start/contribute-to-docs). Creating a docs page through
+the editor starts an unlisted draft. Turn off Draft and save to publish it.
+
 Read the page before saving and preserve its frontmatter. Include `summary` with
 a brief explanation of the change in the existing `/api/cms/save` JSON payload.
 The server maintains docs `updated`. Protected pages require an org admin.

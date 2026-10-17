@@ -1221,7 +1221,7 @@ export default function Admin() {
       loadList();
       setCreateMsg({
         kind: "ok",
-        text: prod
+        text: newKind === "docs" ? `Created ${d.slug} as an unlisted draft. Turn off Draft and save when ready to publish.` : prod
           ? `Created ${d.slug}. Live in ~1-2 min.`
           : `Created ${d.slug}. Publish when you are ready.`,
       });

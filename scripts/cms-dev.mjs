@@ -617,7 +617,8 @@ export function createEditable(payload) {
 
   fs.mkdirSync(path.dirname(abs), { recursive: true });
   const body = "Write the post here. This body renders as markdown on the item page.\n";
-  fs.writeFileSync(abs, `---\n${stubFrontmatter(kind, title, null, section)}\n---\n\n${body}`);
+  const frontmatter = stubFrontmatter(kind, title, null, section) + (kind === "docs" ? "\ndraft: true" : "");
+  fs.writeFileSync(abs, `---\n${frontmatter}\n---\n\n${body}`);
   return { ok: true, id, slug, kind, section };
 }
 

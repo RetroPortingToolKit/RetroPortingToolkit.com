@@ -44,6 +44,9 @@ Docs pages have Edit this page, History, and Create a page controls. The editor
 keeps its Markdown preview, media tools, and stale-save protection. Docs saves
 update the maintained date and accept an edit summary. Saving commits to main;
 publication follows the existing Workers Builds deployment.
+New docs created through the editor start as unlisted drafts. Completed bot
+requests publish their supplied content. The public walkthrough is
+[Contribute to the docs](../data/docs/01_start/08_contribute-to-docs/index.md).
 
 For Discord edits, mention the bot first, followed by:
 

@@ -3,7 +3,7 @@ title: "Submit a recomp"
 summary: "Share a game project through the website or Discord and get it into the Games catalogue."
 pageType: "guide"
 tags: ["Community", "Contributing"]
-updated: "2026-09-15"
+updated: "2026-10-17"
 ---
 
 Have a game recompilation or community port to share? [Submit a recomp](/?submit=recomp) to add its own page to the Games catalogue.
@@ -24,7 +24,7 @@ Mention **RetroPortingToolkit Bot** in any channel it can read in the community 
 
 > @RetroPortingToolkit Bot submit https://github.com/your-name/your-recomp — My game port now boots and supports keyboard input.
 
-Anyone can submit this way. Your Discord username appears beside the repository owner's name as the page's creator. Other bot editing commands remain restricted to the team.
+Anyone can submit this way. Your Discord username appears beside the repository owner's name as the page's creator. To edit shared documentation, follow [Contribute to the docs](/docs/start/contribute-to-docs).
 
 ## Banners and screenshots
 
