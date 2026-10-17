@@ -11,10 +11,8 @@ You can fix instructions, explain a missing step, or add a guide. Contributions 
 ## Sign in and get access
 
 1. Open the [editor](/admin) and choose **Sign in with Discord**. Use an account in the community Discord server. GitHub sign-in is also available.
-2. Open **Contributions** to check your linked account. If you cannot edit docs yet, ask an admin in Discord for docs access. Include your Discord username and the page or topic you want to work on.
-3. After access is granted, choose **Refresh access** or reload the editor.
-
-Founder and Community Advocate roles already grant docs access. The RPTK contributor role recognizes project contributors; it does not grant docs editing by itself. A docs grant lets you edit shared docs and create pages inside existing sections.
+2. Server members can edit shared docs and create pages inside existing sections immediately. No access request or special role is needed.
+3. Open **Contributions** to check your linked account. If you signed in with GitHub, choose **Link Discord** to verify your server membership.
 
 You do not need a GitHub account to contribute through Discord. Choose **Link GitHub** in Contributions if you need to prove GitHub organization membership or ownership of a game project.
 
@@ -28,7 +26,7 @@ If someone else saves first, the editor rejects your older version. Keep a copy 
 
 ## Create a page
 
-In the editor's **Docs** list, choose an existing section, enter a clear title, and choose **Add**. The page starts as an unlisted draft. Write a short summary and the page content, then check the preview. Turn off **Draft** and save when it is ready to publish. You can leave Draft on to ask someone to review the unlisted link first. A draft's direct link is still public.
+In the editor's **Docs** list, choose an existing section, enter a clear title, and choose **Add**. This creates a public page immediately. Write a short summary and the page content, check the preview, and save your changes. Each save publishes the updated page.
 
 Choose a title carefully. Renaming a page's address is restricted because it can break links and history. Ask an admin if the page belongs in a new section or needs to move.
 

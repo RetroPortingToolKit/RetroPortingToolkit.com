@@ -94,12 +94,12 @@ describe("shared wiki authorization", () => {
     };
     const moderate = (change: Record<string, unknown>) => cms.POST(request("admin", "wiki/user", {githubId:"4", reason:"Isolated contributor pilot", ...change}));
     const botStatus = () => cms.POST(bridge("222222222222222222", "status"));
-    expect((await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).status).toBe(403);
+    expect((await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).status).toBe(200);
     expect((await moderate({docs:true})).status).toBe(200);
     expect((await (await botStatus()).json()).docs).toBe(true);
 
     expect((await cms.POST(contributor("new", {kind:"docs",section:"start",title:"Pilot guide"}))).status).toBe(200);
-    expect(createdBlobs.at(-1)).toContain("draft: true");
+    expect(createdBlobs.at(-1)).not.toContain("draft: true");
     expect((await cms.POST(bridge("222222222222222222", "new", {section:"start",title:"Complete bot guide",body:"Verified instructions.",summary:"Explain setup"}))).status).toBe(200);
     expect(createdBlobs.at(-1)).not.toContain("draft: true");
 
@@ -127,8 +127,8 @@ describe("shared wiki authorization", () => {
     expect((await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).status).toBe(200);
     expect((await (await botStatus()).json()).docs).toBe(true);
     expect((await moderate({docs:false})).status).toBe(200);
-    expect((await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).status).toBe(403);
-    expect((await (await botStatus()).json()).docs).toBe(false);
+    expect((await cms.GET(contributor(`read?id=${encodeURIComponent(path)}`))).status).toBe(200);
+    expect((await (await botStatus()).json()).docs).toBe(true);
     expect(sql.prepare("SELECT * FROM wiki_audit WHERE target='4'").all()).toHaveLength(4);
   });
   it("maps verified publishing roles to shared docs access, preserving game scope", async () => {
@@ -137,9 +137,9 @@ describe("shared wiki authorization", () => {
     expect((await save()).status).toBe(200); expect(writes).toEqual([path]);
     expect(files[path]).toContain('updated: "');
   });
-  it("keeps the recognition role from silently granting docs access", async () => {
-    expect((await cms.GET(request("maker", `read?id=${encodeURIComponent(path)}`, undefined, "4"))).status).toBe(403);
-    expect((await cms.POST(bridge("222222222222222222", "save", { id: path }))).status).toBe(403);
+  it("lets recognition-role members edit docs without granting broader publishing", async () => {
+    expect((await cms.GET(request("maker", `read?id=${encodeURIComponent(path)}`, undefined, "4"))).status).toBe(200);
+    expect((await (await cms.POST(bridge("222222222222222222", "status"))).json()).publish).toBe(false);
   });
   it("honors explicit docs grants in both interfaces", async () => {
     sql.exec("UPDATE wiki_users SET docs=1 WHERE github_id='4'");

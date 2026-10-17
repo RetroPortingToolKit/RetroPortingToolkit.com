@@ -90,12 +90,11 @@ describe("Discord website sign-in", () => {
   it("does not interpret a Discord username matching a GitHub admin as org access", async () => {
     roles=[]; const {cookie}=await signIn();
     const auth=await (await cms.GET(request("auth",cookie))).json();
-    expect(auth.user.docs).toBe(false); expect(auth.user.wikiAdmin).toBe(false); expect(auth.user.scope).toEqual([]);
+    expect(auth.user.docs).toBe(true); expect(auth.user.wikiAdmin).toBe(false); expect(auth.user.scope).toEqual([]);
     expect((await cms.GET(request("wiki/admin",cookie))).status).toBe(403);
   });
-  it("shares explicit grants and suspensions with the bot and active browser sessions", async () => {
+  it("grants roleless members automatic access and shares suspensions with active sessions", async () => {
     roles=[]; const {cookie}=await signIn();
-    sql.exec("UPDATE wiki_users SET docs=1");
     expect((await (await cms.GET(request("auth",cookie))).json()).user.docs).toBe(true);
     expect((await (await cms.POST(bridge("status"))).json()).docs).toBe(true);
     sql.exec("UPDATE wiki_users SET suspended=1");
@@ -103,10 +102,16 @@ describe("Discord website sign-in", () => {
     expect((await cms.POST(bridge("status"))).status).toBe(403);
     expect((await finish(await begin())).headers.get("location")).toContain("disabled");
   });
-  it("rechecks role removal without requiring sign-out", async () => {
+  it("keeps member docs access after role removal without granting publishing", async () => {
     const {cookie}=await signIn(); roles=[];
+    expect((await (await cms.GET(request("auth",cookie))).json()).user.docs).toBe(true);
+    expect((await (await cms.POST(bridge("status"))).json()).docs).toBe(true);
+    expect((await (await cms.POST(bridge("status"))).json()).publish).toBe(false);
+  });
+  it("revokes existing browser and bot access when membership ends", async () => {
+    roles=[]; const {cookie}=await signIn(); member=false;
     expect((await (await cms.GET(request("auth",cookie))).json()).user.docs).toBe(false);
-    expect((await (await cms.POST(bridge("status"))).json()).docs).toBe(false);
+    await expect(cms.POST(bridge("status"))).rejects.toThrow("belong to the Discord server");
   });
   it("rejects wrong state, browser binding, cancellation, issuer, and failed exchanges", async () => {
     const a=await begin(),b=await begin();

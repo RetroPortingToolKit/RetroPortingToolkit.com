@@ -1774,7 +1774,7 @@ client.on("messageCreate", async (message) => {
     }
     if (wiki) {
       const access = await wikiBridge(TOKEN, message.author.id, "status");
-      if (!access.docs) throw new Error("Ask an org admin for docs contribution access.");
+      if (!access.docs) throw new Error("Sign in with Discord at /admin to contribute docs.");
       queue.push({ ref, request, messageUrl: message.url, wiki });
       await persistJobs(); void drainQueue().catch(error => console.error("[discord-agent] wiki queue failed", error));
       return;

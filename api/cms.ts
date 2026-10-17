@@ -1061,7 +1061,6 @@ async function createEditable(payload: Record<string, unknown>, actor?: Actor | 
 
   const body = kind === "docs" && typeof payload.body === "string" ? payload.body.trim() + "\n" : "Write the post here. This body renders as markdown on the item page.\n";
   let frontmatter = stubFrontmatter(kind, title, actor, section);
-  if (kind === "docs" && typeof payload.body !== "string") frontmatter += "\ndraft: true";
   if (kind === "docs" && typeof payload.body === "string") {
     const description = String(payload.description || payload.summary || title).trim().slice(0, 400);
     frontmatter = frontmatter.replace(/^desc:.*$/m, `desc: ${JSON.stringify(description)}`).replace(/^summary:.*$/m, `summary: ${JSON.stringify(description)}`);
@@ -1974,7 +1973,7 @@ async function wikiBridge(req: Request) {
   if (body.action === "check") return json({ ok: true });
   if (!user) return json({ error: "Sign in with Discord at /admin, or sign in with GitHub and link Discord, before contributing through the bot." }, 403);
   const roles = await memberRoles(env, discordId, true);
-  const actor: Actor = { login: user.login, githubId: user.github_id, discordId, request: req, via: user.github_id.startsWith("discord:") ? "discord" : "github", name: user.display_name || undefined, agent: "Discord bot", docs: !!user.docs || docsRole(roles), scope: [] };
+  const actor: Actor = { login: user.login, githubId: user.github_id, discordId, request: req, via: user.github_id.startsWith("discord:") ? "discord" : "github", name: user.display_name || undefined, agent: "Discord bot", docs: true, scope: [] };
   if (!user.github_id.startsWith("discord:") && await mayEdit(user.login)) actor.scope = undefined;
   if (body.action === "status") return json({ ok: true, docs: !!actor.docs || !actor.scope, publish: docsRole(roles) || PUBLISH_USERS.includes(discordId), destructive: DESTRUCTIVE_USERS.includes(discordId), login: user.login });
   if (body.action === "game-owner") {

@@ -32,11 +32,11 @@ to the site.
 ## Shared documentation
 
 Members of the Discord server can sign in with Discord, without a GitHub account.
-GitHub sign-in remains available. Editing still requires permission. Existing
-full editors and game-owner scopes are preserved; a docs grant adds shared
-editing and page creation inside existing sections. Linked Discord members
-with the existing Founder or Community Advocate publishing role also receive
-docs access. The RPTK contributor recognition role does not grant it.
+GitHub sign-in remains available. All verified Discord server members receive
+shared docs editing and page creation inside existing sections automatically,
+without a special role or access request. GitHub-first users can link Discord.
+Existing full-editor and game-owner scopes remain separate. Extra docs grants
+remain available for GitHub-only users. Suspensions override all of these paths.
 
 Org admins manage docs grants, page protection, identity links, and website
 suspensions in the editor's Contributions screen. These controls require an

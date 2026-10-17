@@ -14,23 +14,23 @@ Live guild role IDs verified on 2026-10-17:
 |---|---|---|
 | Founder | 1522645500724121620 | Shared docs access; existing trusted bot publishing remains |
 | Community Advocate | 1528990973131231365 | Shared docs access; existing trusted bot publishing remains |
-| RPTK contributor | 1550041387217719327 | Recognition only; needs a docs grant unless otherwise authorized |
+| RPTK contributor | 1550041387217719327 | Recognition; same automatic docs access as every member |
 
 The verified explicit publishing and destructive user lists are mirrored in
 `api/wiki-access.ts`; keep that mapping aligned when changing bot authorization.
 The bot still uses its existing configured publishing and destructive-action
 allowlists. Website moderation uses active GitHub organization admin membership.
 Ordinary org membership and the CMS allowlist continue to grant full CMS editing,
-but do not grant the new moderation controls. A docs grant adds editing of shared
-pages and creation inside existing sections. It grants no site configuration,
+but do not grant the new moderation controls. Verified Discord membership adds editing of shared pages and creation inside
+existing sections. Extra docs grants support GitHub-only contributors. It grants no site configuration,
 blog editing, navigation management, or access to others' game pages.
 
 ## Link and contribute
 
 1. Sign in with Discord at `/admin`. No GitHub account or bot link code is
    needed. You must belong to the Discord server.
-2. Existing Founder and Community Advocate roles grant docs access; an org
-   admin can grant it to other signed-in community members in Contributions.
+2. All verified server members receive docs access automatically. No special
+   role or admin approval is needed. GitHub-first users can link Discord.
 3. To verify GitHub org membership or game ownership, choose Link GitHub in
    Contributions. Completing both OAuth flows proves both identities. Grants,
    suspensions, and existing sessions then refer to the same account.
@@ -44,8 +44,8 @@ Docs pages have Edit this page, History, and Create a page controls. The editor
 keeps its Markdown preview, media tools, and stale-save protection. Docs saves
 update the maintained date and accept an edit summary. Saving commits to main;
 publication follows the existing Workers Builds deployment.
-New docs created through the editor start as unlisted drafts. Completed bot
-requests publish their supplied content. The public walkthrough is
+New docs created through the editor publish immediately. Completed bot
+requests also publish their supplied content. The public walkthrough is
 [Contribute to the docs](../data/docs/01_start/08_contribute-to-docs/index.md).
 
 For Discord edits, mention the bot first, followed by:
@@ -74,7 +74,8 @@ check that chains any existing hook; no checkout hook is overwritten.
 Contributions lists signed-in users. Org admins can grant/revoke docs access,
 disable/enable website contributions, clear a mistaken identity link, and protect
 the selected docs page. Every change requires a reason and creates a private
-audit record. A user cannot disable themselves. A suspended identity cannot be
+audit record. A user cannot disable themselves. Automatic member access is stopped with
+Disable, not by revoking an extra docs grant. A suspended identity cannot be
 unlinked until re-enabled, so its Discord suspension cannot be accidentally lost.
 
 Disabling preserves content and overrides org access, role-derived access,

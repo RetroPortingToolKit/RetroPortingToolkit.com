@@ -40,13 +40,12 @@ cover, and nothing else. [Submission guide](/docs/start/submit-a-recomp).
 Sign in with Discord or GitHub at `/admin`. Discord sign-in needs no GitHub
 account. Docs contributors can edit shared docs and create
 pages inside existing sections. Contributions contains Discord linking; an org
-admin grants docs access there. Existing full-editor and game-owner permissions
+admin manages suspensions there. Discord server members receive docs access automatically. Existing full-editor and game-owner permissions
 still apply. A website suspension overrides editing permissions in the CMS and
-linked Discord publishing. The RPTK contributor recognition role alone does not
-permit editing.
+linked Discord publishing. No special Discord role or access request is required.
 
 [Contributor guide](/docs/start/contribute-to-docs). Creating a docs page through
-the editor starts an unlisted draft. Turn off Draft and save to publish it.
+the editor publishes it immediately. Each save publishes the updated page.
 
 Read the page before saving and preserve its frontmatter. Include `summary` with
 a brief explanation of the change in the existing `/api/cms/save` JSON payload.

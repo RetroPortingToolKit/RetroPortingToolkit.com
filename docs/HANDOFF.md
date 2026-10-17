@@ -3,8 +3,8 @@
 ## Wiki rollout (2026-10-17)
 
 See [launch checklist and announcement draft](WIKI-LAUNCH.md). Isolated lifecycle
-verification and live history inspection are complete. A human pilot and launch
-announcement await the owner's choice of member and destination channel.
+verification and live history inspection are complete. The announcement is posted in #ai-development. Discord members now receive
+docs access automatically; the human pilot remains optional community follow-up.
 
 ## Discord website sign-in (2026-10-17)
 

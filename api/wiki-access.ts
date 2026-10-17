@@ -20,11 +20,12 @@ export const PUBLISH_USERS = ["121056800341491712"];
 export const DESTRUCTIVE_USERS = ["398336732287991808", "174355715551526912", "71388029540900864", "326147493517590528"];
 export const CONTRIBUTOR_ROLE = "1550041387217719327";
 export function docsRole(roles: string[]) { return roles.some(id => PUBLISH_ROLES.includes(id)); }
+class MembershipRequired extends Error {}
 export async function memberRoles(env: WikiEnv, discordId: string, requireMember = false): Promise<string[]> {
   const r = await fetch(`https://discord.com/api/v10/guilds/${GUILD}/members/${discordId}`, {
     headers: { authorization: `Bot ${env.DISCORD_BOT_TOKEN}` },
   });
-  if (r.status === 404) { if (requireMember) throw new Error("You must still belong to the Discord server."); return []; }
+  if (r.status === 404) { if (requireMember) throw new MembershipRequired("You must still belong to the Discord server."); return []; }
   if (!r.ok) throw new Error("Discord membership could not be verified.");
   return ((await r.json()) as { roles: string[] }).roles;
 }
@@ -40,7 +41,11 @@ export async function protectedPage(req: Request, path: string) {
 }
 export async function docsAccess(req: Request, user: WikiUser | null) {
   if (!user || user.suspended) return false;
-  return !!user.docs || !!(user.discord_id && docsRole(await memberRoles(wikiEnv(req)!, user.discord_id)));
+  if (user.discord_id) {
+    try { await memberRoles(wikiEnv(req)!, user.discord_id, true); return true; }
+    catch (error) { if (error instanceof MembershipRequired) return false; throw error; }
+  }
+  return !!user.docs;
 }
 export async function audit(req: Request, actor: string, action: string, target: string, reason: string) {
   await wikiEnv(req)!.WIKI_ACCESS.prepare("INSERT INTO wiki_audit (actor,action,target,reason) VALUES (?,?,?,?)").bind(actor, action, target, reason).run();
