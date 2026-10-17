@@ -276,3 +276,16 @@ note is announced in the website channel.
 The owner of a repository named on any game page, or of a submitted repository, can sign in to `/admin` with that GitHub
 account and edit those pages, including their covers, and nothing else. The
 grant comes from `data/submissions.json` and each game page's `repo`.
+
+## Community docs editing
+
+Documentation is shared: an approved docs contributor may edit other contributors'
+pages and create pages inside existing sections. Sign in with GitHub at `/admin`;
+Contributions contains Discord linking and the admin-managed docs grant. Existing
+Founder and Community Advocate Discord roles also grant shared docs access once
+linked. The RPTK contributor recognition role alone does not.
+
+Use a short edit summary. Docs saves maintain `updated` automatically. The
+History control shows revisions and comparisons; org admins can restore an older
+page and its local media as a new revision. Protected pages require an org admin.
+See [wiki operations](CMS-WIKI.md) for the Discord contribution commands.

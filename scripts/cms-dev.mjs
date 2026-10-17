@@ -447,7 +447,8 @@ function writeOne(id, payload) {
     // bot publishing anything at all. Mirrored in api/cms.ts.
     const problem = contentProblem({ body: String(payload.body ?? ""), frontmatter: fm, assets: listAssets(id).assets ?? [] });
     if (problem) return { ok: false, error: problem };
-    out = serializeMd(fm, payload.body);
+    const dated = id.startsWith("data/docs/") ? (/^updated:.*$/m.test(fm) ? fm.replace(/^updated:.*$/m, `updated: "${new Date().toISOString().slice(0, 10)}"`) : `${fm.trim()}\nupdated: "${new Date().toISOString().slice(0, 10)}"`) : fm;
+    out = serializeMd(dated, payload.body);
   } else if (type === "json") {
     const raw = String(payload.raw ?? "");
     try {
@@ -553,6 +554,7 @@ function stubFrontmatter(kind, title, actor, section) {
     `desc: "One line describing this ${KIND_NOUN[kind]}."`,
   ];
   if (kind === "docs") {
+    lines.push(`updated: "${today}"`);
     // A docs page has no date, no year and no repository of its own. It leads
     // with the sentence under its H1 and says which quadrant it is in.
     lines.push(`summary: "One sentence telling a reader what this page answers."`);
@@ -1146,13 +1148,13 @@ export function postItem(payload) {
   const attached = [];
   let cover = typeof payload?.cover === "string" ? payload.cover : "";
 
-  fs.mkdirSync(dir, { recursive: true });
+  const pendingMedia = [];
   for (const m of media) {
     const name = safeAssetName(String(m?.filename || ""));
     if (!name) return { ok: false, error: `"${String(m?.filename)}" is not a supported media filename.` };
     const b64 = String(m?.contentBase64 || m?.data || "").replace(/^data:[^,]*,/, "");
     if (!b64) return { ok: false, error: `"${name}" has no contentBase64.` };
-    fs.writeFileSync(path.join(dir, name), Buffer.from(b64, "base64"));
+    pendingMedia.push({ name, bytes: Buffer.from(b64, "base64") });
     attached.push(name);
     if (m?.cover === true && !cover) cover = `./${name}`;
   }
@@ -1176,6 +1178,7 @@ export function postItem(payload) {
   }
   if (!fm.desc) fm.desc = `One line describing this ${KIND_NOUN[kind]}.`;
   if (kind === "docs") {
+    if (!fm.updated) fm.updated = today;
     // No date and no year: a docs page is maintained, not published on a day.
     if (!fm.summary) fm.summary = String(fm.desc);
     if (!fm.pageType) fm.pageType = "concept";
@@ -1193,6 +1196,12 @@ export function postItem(payload) {
 
   const body = String(payload?.body || "").trim();
   if (!body) return { ok: false, error: "A body is required." };
+  if (kind === "docs") {
+    const problem = contentProblem({ body, frontmatter: yaml.dump(fm), assets: attached });
+    if (problem) return { ok: false, error: problem };
+  }
+  fs.mkdirSync(dir, { recursive: true });
+  for (const media of pendingMedia) fs.writeFileSync(path.join(dir, media.name), media.bytes);
   fs.writeFileSync(path.join(dir, "index.md"), `---\n${yaml.dump(fm).trim()}\n---\n\n${body}\n`);
   return {
     ok: true,
@@ -1282,6 +1291,31 @@ export function createCmsMiddleware() {
       const h = hintCookie(req, false);
       if (h) cookies.push(h);
       return send(res, 200, { ok: true }, { "set-cookie": cookies });
+    }
+
+    if ((url === "/api/cms/wiki/history" || url === "/api/cms/wiki/revision") && req.method === "GET") {
+      const git = (...args) => new Promise((resolve, reject) => execFile("git", args, { cwd: ROOT, maxBuffer: 4 * 1024 * 1024 }, (error, stdout) => error ? reject(error) : resolve(stdout)));
+      void (async () => {
+        let id = query.get("id") || "";
+        if (id.startsWith("/docs/")) id = listEditable().flatMap(g => g.items).find(item => itemParts(item.id)?.kind === "docs" && itemParts(item.id)?.slug === id.slice(6))?.id || "";
+        if (!isAllowed(id) || !id.startsWith("data/docs/")) return send(res, 400, { error: "Invalid docs page." });
+        if (url.endsWith("/revision")) {
+          const ref = query.get("ref") || "";
+          if (!/^[a-f0-9]{40}$/.test(ref)) return send(res, 400, { error: "Invalid revision." });
+          await git("merge-base", "--is-ancestor", ref, "HEAD");
+          const raw = await git("show", `${ref}:${id}`);
+          const baseSha = (await git("rev-parse", `${ref}:${id}`)).trim();
+          const parent = (await git("rev-list", "--parents", "-n", "1", ref)).trim().split(" ")[1];
+          const previousRaw = parent ? await git("show", `${parent}:${id}`).catch(() => "") : "";
+          return send(res, 200, { id, raw, previousRaw, baseSha, ref });
+        }
+        const page = Math.max(1, Math.min(10000, Number(query.get("page")) || 1));
+        const text = await git("log", "-z", "--format=%H%x00%an%x00%aI%x00%B", "--max-count=31", `--skip=${(page - 1) * 30}`, "--", `:(glob)${id.slice(0, -8)}*`);
+        const fields = text.split("\0"); const revisions = [];
+        for (let i = 0; i + 3 < fields.length; i += 4) revisions.push({ sha: fields[i].trim(), html_url: `https://github.com/RetroPortingToolKit/RetroPortingToolkit.com/commit/${fields[i].trim()}`, commit: { author: { name: fields[i+1], date: fields[i+2] }, message: fields[i+3] } });
+        return send(res, 200, { revisions: revisions.slice(0,30), next: revisions.length > 30 ? page + 1 : null });
+      })().catch(() => send(res, 400, { error: "Page history or revision is unavailable." }));
+      return;
     }
 
     if (url === "/api/cms/list" && req.method === "GET") {

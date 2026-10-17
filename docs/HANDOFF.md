@@ -1,5 +1,13 @@
 # retroportingtoolkit.com handoff
 
+## Docs wiki (2026-10-17)
+
+CMS and Discord contribution permissions, account linking, suspensions, history,
+and page/media restoration are documented in [wiki operations](CMS-WIKI.md).
+The private access schema is in `migrations/`; regression coverage is in
+`src/lib/wikiAccess.test.ts` and `scripts/wiki-bridge.test.mjs`.
+
+
 2026-09-13: Instruction-only cleanup; application behavior unchanged. Earlier notes are preserved verbatim in [HANDOFF-history-2026-09-13.md](HANDOFF-history-2026-09-13.md). Read the relevant section when resuming its topic; historical release/status claims need revalidation.
 
 ## Recent recorded checkpoints

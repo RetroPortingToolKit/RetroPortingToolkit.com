@@ -35,6 +35,29 @@ response message includes an edit link: the repository owner can sign in to
 `/admin` with that GitHub account and edit their own page, including its
 cover, and nothing else. [Submission guide](/docs/start/submit-a-recomp).
 
+## Contribute documentation
+
+Sign in with GitHub at `/admin`. Docs contributors can edit shared docs and create
+pages inside existing sections. Contributions contains Discord linking; an org
+admin grants docs access there. Existing full-editor and game-owner permissions
+still apply. A website suspension overrides editing permissions in the CMS and
+linked Discord publishing. The RPTK contributor recognition role alone does not
+permit editing.
+
+Read the page before saving and preserve its frontmatter. Include `summary` with
+a brief explanation of the change in the existing `/api/cms/save` JSON payload.
+The server maintains docs `updated`. Protected pages require an org admin.
+`GET /api/cms/wiki/history?id=<page-id>` returns paginated Git revisions;
+`GET /api/cms/wiki/revision?id=<page-id>&ref=<commit-sha>` returns a revision and
+its previous text. These are read-only. Admin restoration is available in the
+editor's History view and creates a new commit.
+
+For Discord, first link the two accounts from Contributions and confirm the link
+back in the signed-in browser. Mention the bot, followed by
+`wiki edit /docs/section/page your instructions`. For a new page, send
+`wiki new section Page title` and put source facts on the following line. The
+same docs permissions and content checks apply to both interfaces.
+
 ## First, check you are on the right path
 
 This page is the HTTP API, which needs a bearer token. **Tokens are not

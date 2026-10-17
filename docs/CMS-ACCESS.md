@@ -9,7 +9,7 @@ through the site's own `GITHUB_TOKEN`, which redeploys in a minute or two.
 | Someone outside it | Sign in with GitHub | `CMS_ALLOWED_LOGINS` |
 | Their agent | a bearer token | `CMS_AGENT_KEYS` |
 
-Access is org membership. Add someone to the RetroPortingToolKit org on GitHub
+Full-editor access is org membership. Add someone to the RetroPortingToolKit org on GitHub
 and they can edit; remove them and they cannot. There is no separate list to
 keep in step, and an invitation is not membership: it counts once accepted.
 
@@ -25,9 +25,28 @@ identity-less `cms-admin` session, which is exactly what makes a commit
 unattributable, so they were removed once GitHub sign-in worked. Every way in
 now carries a GitHub login, and `git log` alone answers who edited what.
 
-Everyone who gets in can publish directly. There is no review step, by
+Everyone with editing permission can publish directly. There is no review step, by
 decision: treat adding someone to the allowlist as handing them commit access
 to the site.
+
+## Shared documentation
+
+Anyone can sign in with GitHub. Editing still requires permission. Existing
+full editors and game-owner scopes are preserved; a docs grant adds shared
+editing and page creation inside existing sections. Linked Discord members
+with the existing Founder or Community Advocate publishing role also receive
+docs access. The RPTK contributor recognition role does not grant it.
+
+Org admins manage docs grants, page protection, identity links, and website
+suspensions in the editor's Contributions screen. These controls require an
+active GitHub org membership with role `admin`, not the ordinary editor
+allowlist. Suspension overrides all website editing permissions and associated
+Discord publishing, including queued work and the pre-push check for trusted
+agent jobs. Old browser sessions must sign in again to acquire a stable GitHub
+user ID. Bot publishing requires a confirmed GitHub/Discord account link.
+
+See [wiki operation and verification](CMS-WIKI.md) for identity linking,
+history, restoration, and the Discord request syntax.
 
 ## Environment variables
 
@@ -41,6 +60,7 @@ CMS_ALLOWED_ORG            a GitHub org whose members may edit
 CMS_ALLOWED_LOGINS         comma-separated GitHub logins: "alice,bob"
 CMS_AGENT_KEYS             comma-separated <login>:<label>:<sha256-of-token>
 CMS_SESSION_SECRET         HMAC key for the session cookie (already set)
+DISCORD_BOT_TOKEN         existing bot token, also installed as a Worker secret
 GITHUB_TOKEN               the token every commit is actually made with (already set)
 ```
 
@@ -107,11 +127,12 @@ Every write records who made it. The commit's author is the person (or
 
 ## Known limits
 
-- **No rate limiting.** A key with a loop behind it can commit as fast as the
-  GitHub API allows. Watch the commit log after handing out a key.
-- **No scopes.** Any key can edit any page. If that becomes a problem, the
-  place to add per-key path restrictions is `actorFor()` in `api/cms.ts`.
-- **Direct publish.** Nothing is reviewed before it is live. The safety net is
-  `git revert`.
-- The dev server (`scripts/cms-dev.mjs`) still uses the local password only. It
-  writes to your working tree, so it is not reachable from outside.
+- Browser/wiki contribution operations have a per-account limit of 60 per hour.
+  The existing public game submission limits remain separate.
+- Game owners have page scopes; docs contributors share docs access. Existing
+  full-editor agent keys retain their owner permissions and suspension checks.
+- **Direct publish.** Saves commit immediately. Docs history offers admin
+  restoration as a new commit; Git history remains the source of revisions.
+- The local dev CMS is restricted to loopback and writes to the working tree.
+  It supports read-only Git history; production account administration uses
+  the private Worker binding.

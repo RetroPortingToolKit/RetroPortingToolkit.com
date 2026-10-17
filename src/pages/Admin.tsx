@@ -1,3 +1,4 @@
+import { WikiAccount, WikiHistory } from "../components/WikiPanel";
 // DEV-ONLY content editor, organized BY PAGE. The sidebar lists pages (Home,
 // each project/talk/writing/blog/source page) plus the code-copy files;
 // selecting one shows everything editable on it in one screen, with a live
@@ -315,6 +316,25 @@ export default function Admin() {
   const [me, setMe] = useState<{ name: string; avatar: string; login: string } | null>(null);
   // Set for a contributor: the only pages they may edit, their own submissions.
   const [scoped, setScoped] = useState(false);
+  const [docsContributor, setDocsContributor] = useState(false);
+  const [wikiAdmin, setWikiAdmin] = useState(false);
+  const [wikiView, setWikiView] = useState<"account" | "history" | null>(null);
+  useEffect(() => {
+    if (!wikiView) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const overlay = document.querySelector<HTMLElement>(".wiki-overlay");
+    overlay?.querySelector<HTMLButtonElement>("button")?.focus();
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setWikiView(null); return; }
+      if (event.key !== "Tab") return;
+      const elements = [...(overlay?.querySelectorAll<HTMLElement>("button:not(:disabled), a[href], input, select, textarea, summary") || [])];
+      const first = elements[0], last = elements[elements.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener("keydown", keyboard);
+    return () => { document.removeEventListener("keydown", keyboard); previous?.focus(); };
+  }, [wikiView]);
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [creating, setCreating] = useState(false);
@@ -553,6 +573,8 @@ export default function Admin() {
           setSignedInAs(d.user?.login ?? null);
           setMe(d.user ? { name: d.user.name || d.user.login || "", avatar: d.user.avatar || "", login: d.user.login || "" } : null);
           setScoped(Array.isArray(d.user?.scope));
+          setDocsContributor(!!d.user?.docs);
+          setWikiAdmin(!!d.user?.wikiAdmin);
           setAuthRequired(!!d.required);
           if (d.env === "prod") setProd(true);
           setEnvKnown(true);
@@ -686,12 +708,15 @@ export default function Admin() {
       setMsg({ kind: "err", text: `Invalid JSON: ${jsonError}` });
       return;
     }
+    const summary = selected.id.startsWith("data/docs/") ? window.prompt("Briefly describe your change:") : "";
+    if (summary === null) return;
     setSaving(true);
     setMsg(null);
     // Same shape the live preview streams, so what you see is exactly what saves.
     const payload: Record<string, unknown> = {
       id: selected.id,
       ...draftPayload(),
+      summary,
       expectedBase: baseSha.current, // optimistic-concurrency guard
     };
     fetch("/api/cms/save", {
@@ -1359,6 +1384,8 @@ export default function Admin() {
             How this works
           </button>
         )}
+        {prod && signedInAs && <button className="ac-btn ac-btn-plain" onClick={() => setWikiView("account")}>Contributions</button>}
+        {selected?.id.startsWith("data/docs/") && <button className="ac-btn ac-btn-plain" onClick={() => setWikiView("history")}>History</button>}
         {selected && (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {msg && (
@@ -1439,7 +1466,10 @@ export default function Admin() {
           </div>
         )}
       </header>
-
+      {wikiView && <div className="wiki-overlay" role="dialog" aria-modal="true" aria-label={wikiView === "history" ? "Page history" : "Contribution access"}>
+        <button className="ac-btn ac-btn-gray" onClick={() => setWikiView(null)}>Close</button>
+        {wikiView === "account" ? <WikiAccount admin={wikiAdmin} selectedId={selected?.id} /> : selected && <WikiHistory id={selected.id} admin={wikiAdmin} onRestored={() => { setWikiView(null); open(selected); }} />}
+      </div>}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* sidebar: source list */}
         <aside
@@ -1472,7 +1502,7 @@ export default function Admin() {
           )}
           {scoped && (
             <div style={{ font: "500 12px/1.35 var(--ac-font-text)", color: "var(--ac-label-2)", padding: "0 12px 6px" }}>
-              You can edit the pages of the repositories you own, including their cover. Save publishes within a couple of minutes.
+              {docsContributor ? "You can contribute to shared docs and edit your own project pages." : "You can edit your own project pages. Ask an org admin for docs access."} Save publishes within a couple of minutes.
             </div>
           )}
           <div className="ac-account">
@@ -1503,7 +1533,7 @@ export default function Admin() {
                 <div className="ac-listview-count">
                   {currentItems.length} {currentItems.length === 1 ? "item" : "items"}
                 </div>
-                {newKind && !scoped && (
+                {newKind && (!scoped || (docsContributor && newKind === "docs")) && (
                   <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
                     {newKind === "docs" && (
                       <select
@@ -1512,7 +1542,7 @@ export default function Admin() {
                         onChange={(e) => setNewSection(e.target.value)}
                         aria-label="Section for the new docs page"
                       >
-                        <option value="">New section</option>
+                        <option value="">{prod && !wikiAdmin ? "Choose a section" : "New section"}</option>
                         {docsSections.map((s) => (
                           <option key={s.slug} value={s.slug}>
                             In {s.title}

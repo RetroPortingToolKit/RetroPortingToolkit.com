@@ -319,3 +319,16 @@
   margin-top: 0;
   padding-bottom: 8px;
 }
+
+/* Shared wiki history and account controls. */
+.wiki-panel { padding: 20px; overflow-wrap: anywhere; max-width: 100%; }
+.wiki-panel button { cursor: pointer; padding: 6px 10px; margin: 4px; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 6px; }
+.wiki-panel li { margin-bottom: 8px; }
+.wiki-panel table { border-collapse: collapse; width: 100%; }
+.wiki-panel th, .wiki-panel td { text-align: left; padding: 8px; border-bottom: 1px solid #8885; }
+.wiki-overlay { position: fixed; inset: 4vh 4vw; z-index: 1000; overflow: auto; padding: 16px; background: var(--ac-bg, #16181b); color: var(--ac-label, #eee); border: 1px solid #888; border-radius: 12px; box-shadow: 0 0 0 10vw #0009; }
+.wiki-diff { overflow: auto; white-space: pre; font-size: 13px; line-height: 1.6; }
+.wiki-added { background: #23863633; }
+.wiki-removed { background: #da363333; }
+.wiki-actions { display: flex; gap: 16px; align-items: center; margin: 12px 0; }
+.wiki-actions button { color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 5px; cursor: pointer; }

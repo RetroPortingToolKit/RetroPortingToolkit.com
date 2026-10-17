@@ -386,6 +386,22 @@ Tests run under `TZ=UTC` (`npm test`). They used to run in whatever zone the
 machine was in, and an assertion that pinned the UTC instant of a local-time
 string began failing the day this Mac moved from CEST to PDT.
 
+## Shared docs contribution lane
+
+The existing CMS owns wiki permissions and website suspensions. Bot contribution
+accounts must link GitHub and Discord from the editor's Contributions screen.
+Both the queued docs lane and existing trusted publishing check current website
+access; trusted agent pushes also run a temporary per-task pre-push guard that
+chains the existing hook. Game owner updates now verify the linked GitHub
+repository owner rather than trusting a matching Discord display name.
+
+Docs contributors can mention the bot with `wiki edit /docs/section/page ...` or
+`wiki new section Page title` followed by source facts on the next line. This
+lane uses a read-only proposal runner and the CMS writer, never the unrestricted
+maintenance agent. Founder and Community Advocate retain their existing broad
+publishing lane; RPTK contributor remains recognition only. See
+[wiki operations](CMS-WIKI.md) for linking, role IDs, grants, and recovery.
+
 ## Admin actions are never chat-driven
 
 The bot's server role carries Administrator. Nothing in the bridge's message,

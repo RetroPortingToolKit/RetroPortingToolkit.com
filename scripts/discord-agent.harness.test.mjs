@@ -53,6 +53,7 @@ function startBridge({ repo, env = {}, state = fs.mkdtempSync(path.join(os.tmpdi
       PATH: `${FAKE_BIN}:${path.dirname(process.execPath)}:/usr/bin:/bin:/usr/local/bin`,
       HOME: os.homedir(),
       DISCORD_BOT_TOKEN: "fake",
+      NODE_OPTIONS: `--import=${HOOKS}`,
       DISCORD_ALLOWED_GUILD_IDS: "G", // the stub stamps every message with guild "G"
       DISCORD_ALLOWED_CHANNEL_IDS: ADMIN,
       DISCORD_PUBLIC_CHANNEL_IDS: PUBLIC,
@@ -164,6 +165,13 @@ const PARKED = /Waiting for the shared checkout|shared checkout is busy|Still wa
 const parkedFor = (id) => (e) => e.messageId === id && PARKED.test(e.content);
 
 describe("bridge harness: queueing and the shared checkout", () => {
+  it("denies a disabled trusted user before any publishing work starts", async () => {
+    const b = await up({ env: { HARNESS_DISABLED_DISCORD_ID: "U1" } });
+    const id = b.send(ADMIN, "U1", "write a new page");
+    await b.waitFor(forMsg(id, "website contribution access is disabled"));
+    expect(b.agentStartedAt(id)).toBeNull();
+  });
+
   it("runs three simultaneous publish requests one at a time, in order, telling each its place", async () => {
     const b = await up();
     const a = b.send(ADMIN, "U1", "first [[sleep=1]]");

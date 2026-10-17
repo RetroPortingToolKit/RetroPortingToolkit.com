@@ -1,4 +1,5 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { WikiHistory } from "../components/WikiPanel";
+import { useEffect, useState, useRef, type CSSProperties } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import DOCS_UPDATED from "virtual:docs-updated";
 import { formatArticleDate } from "@/lib/contentCore";
@@ -257,9 +258,10 @@ function DocsItem({ slug }: { slug: string }) {
   // Draft-aware, exactly like ItemPage: inside the editor's preview frame this
   // resolves from the streamed draft, so a page renders as it is written.
   const item = useDocsItem(slug);
-  const { hash } = useLocation();
+  const { hash, search } = useLocation();
   useDocumentTitle(item ? titleForItem(item) : "", !!item);
 
+  const [showHistory, setShowHistory] = useState(() => new URLSearchParams(search).has("history"));
   const bodyRef = useRef<HTMLDivElement>(null);
   const headings = useDocsHeadings(bodyRef, (item?.slug ?? "") + (item?.body ?? ""));
 
@@ -290,7 +292,7 @@ function DocsItem({ slug }: { slug: string }) {
   return (
     <DocsShell
       currentSlug={item.slug}
-      rail={<DocsToc headings={headings} variant="rail" />}
+      rail={showHistory ? undefined : <DocsToc headings={headings} variant="rail" />}
     >
       <article
         className="docs-article"
@@ -301,7 +303,9 @@ function DocsItem({ slug }: { slug: string }) {
         }
       >
         <Breadcrumbs item={item} />
+        <nav aria-label="Page actions" className="wiki-actions"><Link to={`/admin?at=${encodeURIComponent(`/docs/${item.slug}`)}`}>Edit this page</Link><button onClick={() => setShowHistory(!showHistory)}>{showHistory ? "Read page" : "History"}</button><Link to="/admin/docs">Create a page</Link></nav>
         <h1 className="docs-title">{item.title}</h1>
+        {showHistory ? <WikiHistory id={`/docs/${item.slug}`} /> : <>
         {summary && <p className="docs-summary">{summary}</p>}
         <DocsToc headings={headings} variant="inline" />
         {item.body && (
@@ -314,6 +318,7 @@ function DocsItem({ slug }: { slug: string }) {
           <LastUpdated slug={item.slug} />
         </footer>
         <Pager slug={item.slug} />
+        </>}
       </article>
     </DocsShell>
   );

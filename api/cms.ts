@@ -1,3 +1,4 @@
+import { wikiEnv, accessUser, docsAccess, protectedPage, audit, limit, verifyBridge, linkHash, memberRoles, docsRole, PUBLISH_USERS, DESTRUCTIVE_USERS, type WikiUser } from "./wiki-access";
 // Prod CMS backend. A Vercel serverless function (Web API
 // signature, Node runtime) that mirrors the dev middleware (scripts/cms-dev.mjs)
 // but for the static live site: content is read/written via the GitHub Contents
@@ -46,6 +47,10 @@ const GH_CLIENT_SECRET = process.env.CMS_GITHUB_CLIENT_SECRET || "";
 export interface Actor {
   /** GitHub login */
   login: string;
+  githubId?: string;
+  discordId?: string;
+  request?: Request;
+  docs?: boolean;
   /** display name, when GitHub has one */
   name?: string;
   /** the name data/team.json gives them, when they are on it */
@@ -111,9 +116,9 @@ async function isOrgMember(login: string, now = Date.now()): Promise<boolean> {
     // Anything else (rate limit, outage, a token that lost read:org) is not an
     // answer. Leave the cache alone and deny this request rather than caching
     // a false negative for everyone.
-    else return hit?.member ?? false;
+    else return false;
   } catch {
-    return hit?.member ?? false;
+    return false;
   }
   orgCache.set(key, { member, at: now });
   return member;
@@ -188,7 +193,7 @@ async function repoOwners(now = Date.now()): Promise<{ path: string; owner: stri
 }
 /** Is this item within what the actor may touch? Full editors have no scope. */
 export function withinScope(actor: Actor | null, id: string): boolean {
-  return !actor?.scope || actor.scope.includes(id);
+  return !actor?.scope || actor.scope.includes(id) || !!(actor.docs && isDocsPath(id));
 }
 
 /** May this GitHub login edit? Org membership or the explicit allowlist. */
@@ -246,9 +251,10 @@ function identityFor(req: Request): Actor | null {
   const payload = verifyPayload(readCookie(req, "cms_session"));
   if (!payload) return null;
   const sub = typeof payload.sub === "string" ? payload.sub : "";
-  if (payload.via !== "github") return null;
+  if (payload.via !== "github" || (wikiEnv(req) && !payload.githubId)) return null;
   return {
     login: sub,
+    githubId: typeof payload.githubId === "string" ? payload.githubId : undefined,
     via: "github",
     name: typeof payload.name === "string" ? payload.name : undefined,
     avatar: typeof payload.avatar === "string" ? payload.avatar : undefined,
@@ -261,12 +267,21 @@ function identityFor(req: Request): Actor | null {
     agent is bound to its owner: revoking the person revokes their agents. */
 async function actorFor(req: Request): Promise<Actor | null> {
   const who = identityFor(req);
+  if (who) who.request = req;
   if (!who) return null;
-  if (!(await mayEdit(who.login))) {
+  const env = wikiEnv(req);
+  const record = env ? (who.githubId
+    ? await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE github_id = ?").bind(who.githubId).first<WikiUser>()
+    : await accessUser(req, who.login)) : null;
+  if (record?.suspended || (env && !record)) return null;
+  if (record) { who.login = record.login; who.githubId = record.github_id; who.discordId = record.discord_id || undefined; }
+  const fullEditor = await mayEdit(who.login);
+  who.docs = env ? fullEditor || await docsAccess(req, record) : false;
+  if (!fullEditor) {
     // Agents act for their owner and inherit nothing narrower than that.
     if (who.via !== "github") return null;
     const scope = await contributorScope(who.login);
-    if (!scope.length) return null;
+    if (!scope.length && !env) return null;
     who.scope = scope;
   }
   // The name the team page uses for them, so a post they create is bylined
@@ -279,7 +294,7 @@ async function actorFor(req: Request): Promise<Actor | null> {
 function actorLabel(actor: Actor | null): string {
   if (!actor) return "unknown";
   if (actor.via === "agent") return `${actor.login} via agent ${actor.agent}`;
-  if (actor.via === "github") return actor.login;
+  if (actor.via === "github") return actor.agent ? `${actor.login} via ${actor.agent}` : actor.login;
   return "owner";
 }
 
@@ -342,8 +357,8 @@ function verifyPayload(token: string | undefined): Record<string, unknown> | nul
   if (typeof payload.exp !== "number" || Date.now() > payload.exp) return null;
   return payload;
 }
-const sessionCookie = (sub: string, profile?: { name?: string; avatar?: string }) =>
-  `cms_session=${signPayload({ sub, via: "github", name: profile?.name || "", avatar: profile?.avatar || "" }, 7 * 24 * 3600_000)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`;
+const sessionCookie = (sub: string, profile?: { name?: string; avatar?: string; githubId?: string }) =>
+  `cms_session=${signPayload({ sub, via: "github", githubId: profile?.githubId || "", name: profile?.name || "", avatar: profile?.avatar || "" }, 7 * 24 * 3600_000)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`;
 const clearSession = () => `cms_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
 // non-secret flag so the live site can show the "Edit page" button
 // Scope the hint to the registrable domain of whatever host is serving, so a
@@ -363,7 +378,7 @@ async function authed(req: Request): Promise<boolean> {
   if (await actorFor(req)) return true;
   // With no org, no allowlist and no agent keys configured the CMS is open,
   // which is the template's unconfigured state; once any is set, it is closed.
-  return !accessConfigured();
+  return !wikiEnv(req) && !accessConfigured();
 }
 
 // -------------------------------------------------------------- github contents
@@ -408,10 +423,11 @@ async function ghWriteFileAtVersion(
   if (actor) {
     body.author = {
       name: actor.agent ? `${actor.login} (agent: ${actor.agent})` : actor.login,
-      email: `${actor.login}@users.noreply.github.com`,
+      email: `${actor.githubId ? actor.githubId + "+" : ""}${actor.login}@users.noreply.github.com`,
     };
   }
   if (existing) body.sha = existing.sha;
+  await assertActiveActor(actor, [path]);
   const r = await fetch(`${GH}/contents/${path}`, {
     method: "PUT",
     headers: { ...ghHeaders(), "content-type": "application/json" },
@@ -505,10 +521,11 @@ async function ghCommitAt(
   if (actor) {
     commitBody.author = {
       name: actor.agent ? `${actor.login} (agent: ${actor.agent})` : actor.login,
-      email: `${actor.login}@users.noreply.github.com`,
+      email: `${actor.githubId ? actor.githubId + "+" : ""}${actor.login}@users.noreply.github.com`,
     };
   }
   const commit = await ghJson(`${GH}/git/commits`, { method: "POST", body: JSON.stringify(commitBody) });
+  await assertActiveActor(actor, changes.map(c => c.path));
   const updated = await fetch(`${GH}/git/refs/heads/${BRANCH}`, {
     method: "PATCH",
     headers: { ...ghHeaders(), "content-type": "application/json" },
@@ -913,7 +930,8 @@ async function writeEditable(
     const listed = await listAssets(id);
     const problem = contentProblem({ body, frontmatter: fm, assets: listed.assets ?? [] });
     if (problem) return { ok: false, error: problem };
-    out = `---\n${fm.trim()}\n---\n\n${body}\n`;
+    const dated = isDocsPath(id) ? setDocsUpdated(fm) : fm;
+    out = `---\n${dated.trim()}\n---\n\n${body}\n`;
   } else {
     // json
     const raw = String(payload.raw ?? "");
@@ -925,7 +943,7 @@ async function writeEditable(
     out = raw.endsWith("\n") ? raw : raw + "\n";
   }
 
-  const written = await ghWriteFileAtVersion(id, out, `CMS: update ${id}`, existing, actor);
+  const written = await ghWriteFileAtVersion(id, out, `CMS: update ${id}${typeof payload.summary === "string" && payload.summary.trim() ? "\n\n" + payload.summary.trim().slice(0, 800) : ""}`, existing, actor);
   if (!written.ok) {
     // A change after our read makes GitHub reject the stale sha. Read once more
     // only to hand the editor the version it should reload.
@@ -982,6 +1000,7 @@ function stubFrontmatter(
     `desc: "One line describing this ${KIND_NOUN[kind]}."`,
   ];
   if (kind === "docs") {
+    lines.push(`updated: "${today}"`);
     // A docs page has no date, no year and no repository of its own. It leads
     // with the sentence under its H1 and says which quadrant it is in.
     lines.push(`summary: "One sentence telling a reader what this page answers."`);
@@ -1037,10 +1056,17 @@ async function createEditable(payload: Record<string, unknown>, actor?: Actor | 
   const id = `data/${kind}/${parent ? `${parent}/` : ""}${nextOrder(folders)}_${slug}/index.md`;
   if (!isAllowed(id)) return { ok: false, error: "refused" };
 
-  const body = "Write the post here. This body renders as markdown on the item page.\n";
+  const body = kind === "docs" && typeof payload.body === "string" ? payload.body.trim() + "\n" : "Write the post here. This body renders as markdown on the item page.\n";
+  let frontmatter = stubFrontmatter(kind, title, actor, section);
+  if (kind === "docs" && typeof payload.body === "string") {
+    const description = String(payload.description || payload.summary || title).trim().slice(0, 400);
+    frontmatter = frontmatter.replace(/^desc:.*$/m, `desc: ${JSON.stringify(description)}`).replace(/^summary:.*$/m, `summary: ${JSON.stringify(description)}`);
+  }
+  const problem = contentProblem({ body, frontmatter, assets: [] });
+  if (problem) return { ok: false, error: problem };
   const conflict = await ghPublishMutation(
-    [{ path: id, text: `---\n${stubFrontmatter(kind, title, actor, section)}\n---\n\n${body}` }],
-    `cms: add ${where}/${slug}`,
+    [{ path: id, text: `---\n${frontmatter}\n---\n\n${body}` }],
+    `cms: add ${where}/${slug}${typeof payload.summary === "string" ? "\n\n" + payload.summary.slice(0, 600) : ""}`,
     snapshot,
     actor,
   );
@@ -1183,16 +1209,21 @@ async function githubCallback(req: Request): Promise<Response> {
       "user-agent": "cms",
     },
   });
-  const user = (await userRes.json().catch(() => ({}))) as { login?: string; name?: string; avatar_url?: string };
+  const user = (await userRes.json().catch(() => ({}))) as { id?: number; login?: string; name?: string; avatar_url?: string };
   if (!userRes.ok || !user.login) return loginFailed("profile");
-  if (!(await mayEdit(user.login)) && !(await contributorScope(user.login)).length) return loginFailed("not_allowed");
+  if (wikiEnv(req)) {
+    if (!user.id) return loginFailed("profile");
+    const db = wikiEnv(req)!.WIKI_ACCESS;
+    await db.prepare("INSERT INTO wiki_users(github_id,login) VALUES(?,?) ON CONFLICT(github_id) DO UPDATE SET login = excluded.login").bind(String(user.id), user.login.toLowerCase()).run();
+    if ((await accessUser(req, user.login))?.suspended) return loginFailed("disabled");
+  } else if (!(await mayEdit(user.login)) && !(await contributorScope(user.login)).length) return loginFailed("not_allowed");
 
   return new Response(null, {
     status: 302,
     headers: [
       ["location", safeNext(typeof payload.next === "string" ? payload.next : "/")],
       ["set-cookie", `cms_oauth=; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=0`],
-      ["set-cookie", sessionCookie(user.login.toLowerCase(), { name: user.name || user.login, avatar: user.avatar_url })],
+      ["set-cookie", sessionCookie(user.login.toLowerCase(), { name: user.name || user.login, avatar: user.avatar_url, githubId: user.id ? String(user.id) : undefined })],
       ["set-cookie", hintCookie(true, req)],
       ["cache-control", "no-store"],
     ],
@@ -1548,6 +1579,7 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
   }
   if (!fm.desc) fm.desc = `One line describing this ${KIND_NOUN[kind]}.`;
   if (kind === "docs") {
+    if (!fm.updated) fm.updated = today;
     // No date and no year: a docs page is maintained, not published on a day.
     if (!fm.summary) fm.summary = String(fm.desc);
     if (!fm.pageType) fm.pageType = "concept";
@@ -1569,6 +1601,10 @@ async function postItem(payload: Record<string, unknown>, actor?: Actor | null) 
 
   const body = String(payload.body || "").trim();
   if (!body) return { ok: false, error: "A body is required." };
+  if (kind === "docs") {
+    const problem = contentProblem({ body, frontmatter: yaml.dump(fm), assets: attached });
+    if (problem) return { ok: false, error: problem };
+  }
   changes.push({ path: `${folder}/index.md`, text: `---\n${yaml.dump(fm).trim()}\n---\n\n${body}\n` });
 
   const conflict = await ghPublishMutation(changes, `cms: post ${kind}/${slug}`, snapshot, actor);
@@ -1599,28 +1635,32 @@ export async function GET(req: Request): Promise<Response> {
   if (route === "auth") {
     const actor = await actorFor(req);
     return json({
-      required: accessConfigured(),
-      authed: !!actor || !accessConfigured(),
+      required: !!wikiEnv(req) || accessConfigured(),
+      authed: !!actor || (!wikiEnv(req) && !accessConfigured()),
       github: !!GH_CLIENT_ID,
       org: allowedOrg() || null,
       orgReady: await orgReady(),
       user: actor
-        ? { login: actor.login, via: actor.via, agent: actor.agent ?? null, name: actor.name ?? null, avatar: actor.avatar ?? null, scope: actor.scope ?? null }
+        ? { login: actor.login, via: actor.via, agent: actor.agent ?? null, name: actor.name ?? null, avatar: actor.avatar ?? null, scope: actor.scope ?? null, docs: actor.docs ?? false, discordId: actor.discordId ?? null, wikiAdmin: wikiEnv(req) ? await wikiAdmin(actor) : false }
         : null,
       env: "prod",
     });
   }
+  if (route === "wiki/history" || route === "wiki/revision") return wikiHistory(req, route);
   if (!(await authed(req))) return json({ error: "auth", required: true }, 401);
   const actor = await actorFor(req);
+  if (route === "wiki/account") return wikiAccount(req, actor);
+  if (route === "wiki/admin") return wikiAdministration(req, actor);
   if (route === "list") {
     try {
       const groups = await listEditable();
       if (actor?.scope) {
         const items = groups.flatMap((g) => g.items).filter((i) => actor.scope!.includes(i.id));
+        const docs = actor.docs ? groups.filter(g => g.group === "Docs") : [];
         // The platform picker is built from the Hardware folder, which a
         // contributor does not see, so the choices travel separately.
         const platforms = (groups.find((g) => g.group === "Hardware")?.items ?? []).map((i) => ({ slug: i.sub || "", title: i.title })).filter((o) => o.slug);
-        return json({ groups: [{ group: "Your pages", items }], platforms });
+        return json({ groups: [...docs, { group: "Your pages", items }], platforms });
       }
       return json({ groups });
     } catch (e) {
@@ -1643,17 +1683,25 @@ export async function GET(req: Request): Promise<Response> {
 
 export async function POST(req: Request): Promise<Response> {
   const route = sub(req);
+  if (route === "wiki/bridge") return wikiBridge(req);
   const body = await readJson(req);
+  if (wikiEnv(req) && req.headers.has("cookie") && req.headers.get("origin") !== new URL(req.url).origin) return json({ error: "Invalid request origin." }, 403);
 
   if (route === "logout") return json({ ok: true }, 200, [clearSession(), hintCookie(false)]);
 
   if (!(await authed(req))) return json({ error: "auth", required: true }, 401);
   const actor = await actorFor(req);
+  if (route.startsWith("wiki/")) return wikiMutation(req, actor, route, body);
+  if (wikiEnv(req) && actor) {
+    const denial = await wikiWriteGate(req, actor, route, body);
+    if (denial) return denial;
+    await limit(req, actor.githubId || actor.login);
+  }
   // A contributor may change their own page and its files, and nothing else:
   // no new pages, no renames, no deletions, no posting.
   if (actor?.scope) {
-    if (!["upload", "asset/delete", "save", "publish"].includes(route)) return json({ ok: false, error: "forbidden" }, 403);
-    if (route !== "publish" && !withinScope(actor, String(body.id || ""))) return json({ ok: false, error: "forbidden" }, 403);
+    if (!["upload", "asset/delete", "save", "publish", ...(actor.docs ? ["new", "post"] : [])].includes(route)) return json({ ok: false, error: "forbidden" }, 403);
+    if (route !== "publish" && route !== "new" && route !== "post" && !withinScope(actor, String(body.id || ""))) return json({ ok: false, error: "forbidden" }, 403);
   }
   if (route === "upload") {
     try {
@@ -1724,4 +1772,233 @@ export async function POST(req: Request): Promise<Response> {
   // "publish" is a no-op on prod: every save already commits (which redeploys).
   if (route === "publish") return json({ ok: true, nothing: true });
   return json({ error: "unknown_cms_route" }, 404);
+}
+
+// Wiki capabilities are additive to existing CMS and game-owner permissions.
+export function isDocsPath(id: string): boolean {
+  return /^data\/docs\/\d+_[a-z0-9-]+\/(?:\d+_[a-z0-9-]+\/)?index\.md$/.test(id);
+}
+function setDocsUpdated(fm: string) {
+  const date = `updated: "${new Date().toISOString().slice(0, 10)}"`;
+  return /^updated:.*$/m.test(fm) ? fm.replace(/^updated:.*$/m, date) : `${fm.trim()}\n${date}`;
+}
+async function wikiAdmin(actor: Actor | null): Promise<boolean> {
+  if (!actor || actor.via !== "github") return false;
+  const response = await fetch(`https://api.github.com/orgs/RetroPortingToolKit/memberships/${encodeURIComponent(actor.login)}`, { headers: ghHeaders() });
+  if (!response.ok) return false;
+  const membership = await response.json() as { state: string; role: string };
+  return membership.state === "active" && membership.role === "admin";
+}
+async function wikiWriteGate(req: Request, actor: Actor, route: string, body: Record<string, unknown>): Promise<Response | null> {
+  const id = String(body.id || "");
+  const admin = await wikiAdmin(actor);
+  if (["new", "post"].includes(route) && body.kind === "docs" && !body.section && !admin) return json({ error: "Only org admins may create docs sections." }, 403);
+  if (isDocsPath(id) && route === "rename") return json({ error: "Docs URL changes require a tracked migration so page history and protections remain intact." }, 400);
+  if (["new", "post"].includes(route) && actor.scope && (body.kind !== "docs" || !actor.docs || !body.section)) return json({ error: "You may create docs inside existing sections only." }, 403);
+  if (route === "post" && body.kind === "docs" && body.featured === true && !admin) return json({ error: "Only org admins may promote docs." }, 403);
+  if (isDocsPath(id)) {
+    if (!withinScope(actor, id)) return json({ error: "Docs editing permission is required." }, 403);
+    if (!admin && (await protectedPage(req, id) || !["save", "upload", "asset/delete"].includes(route))) return json({ error: "This action requires an org admin." }, 403);
+    if (!admin && route === "save") {
+      const before = await ghReadFile(id);
+      if (!before) return json({ error: "not_found" }, 404);
+      const prev = yaml.load(splitRaw(before.content).fmText) as Record<string, unknown>;
+      const next = yaml.load(String(body.frontmatter || "")) as Record<string, unknown>;
+      for (const key of ["order", "sectionTitle", "featured"])
+        if (JSON.stringify(prev?.[key] ?? null) !== JSON.stringify(next?.[key] ?? null)) return json({ error: `Only admins may change ${key}.` }, 403);
+    }
+  }
+  return null;
+}
+async function wikiAccount(req: Request, actor: Actor | null) {
+  if (!actor || !wikiEnv(req)) return json({ error: "Sign in with GitHub." }, 401);
+  return json({ pending: (await wikiEnv(req)!.WIKI_ACCESS.prepare("SELECT hash,discord_id,discord_name FROM wiki_links WHERE github_id = ? AND discord_id IS NOT NULL AND expires > ?").bind(actor.githubId || "", Date.now()).all()).results, user: await accessUser(req, actor.login), docs: !!actor.docs || !actor.scope, admin: await wikiAdmin(actor) });
+}
+async function wikiAdministration(req: Request, actor: Actor | null) {
+  if (!wikiEnv(req) || !await wikiAdmin(actor)) return json({ error: "Org admin required." }, 403);
+  const db = wikiEnv(req)!.WIKI_ACCESS;
+  const [users, protections, events] = await Promise.all([
+    db.prepare("SELECT * FROM wiki_users ORDER BY login").all(),
+    db.prepare("SELECT path FROM wiki_protections ORDER BY path").all(),
+    db.prepare("SELECT * FROM wiki_audit ORDER BY id DESC LIMIT 100").all(),
+  ]);
+  return json({ users: users.results, protections: protections.results, audit: events.results });
+}
+async function wikiMutation(req: Request, actor: Actor | null, route: string, body: Record<string, unknown>) {
+  const env = wikiEnv(req);
+  if (!env || !actor || actor.via !== "github") return json({ error: "Sign in with GitHub." }, 401);
+  const user = await accessUser(req, actor.login);
+  if (!user || user.suspended) return json({ error: "Sign in again to refresh your account." }, 403);
+  await limit(req, user.github_id);
+  if (route === "wiki/link") {
+    if (user.discord_id) return json({ error: "Discord is already linked. An admin can clear an incorrect link." }, 400);
+    const code = crypto.randomBytes(18).toString("hex");
+    await env.WIKI_ACCESS.batch([
+      env.WIKI_ACCESS.prepare("DELETE FROM wiki_links WHERE expires < ? OR github_id = ?").bind(Date.now(), user.github_id),
+      env.WIKI_ACCESS.prepare("INSERT INTO wiki_links(hash,github_id,expires) VALUES(?,?,?)").bind(linkHash(code), user.github_id, Date.now() + 600000),
+    ]);
+    return json({ ok: true, code });
+  }
+  if (route === "wiki/confirm-link") {
+    const link = await env.WIKI_ACCESS.prepare("DELETE FROM wiki_links WHERE hash = ? AND github_id = ? AND discord_id IS NOT NULL AND expires > ? RETURNING discord_id").bind(String(body.hash || ""), user.github_id, Date.now()).first<{discord_id:string}>();
+    if (!link || user.discord_id) return json({ error: "Link expired or account already linked." }, 400);
+    await env.WIKI_ACCESS.batch([
+      env.WIKI_ACCESS.prepare("UPDATE wiki_users SET discord_id = ? WHERE github_id = ? AND discord_id IS NULL AND suspended = 0").bind(link.discord_id, user.github_id),
+      env.WIKI_ACCESS.prepare("INSERT INTO wiki_audit(actor,action,target,reason) VALUES(?,?,?,?)").bind(actor.login, "link", link.discord_id, "Confirmed in GitHub-authenticated CMS"),
+    ]);
+    return json({ ok: true });
+  }
+  if (!await wikiAdmin(actor)) return json({ error: "Org admin required." }, 403);
+  const reason = String(body.reason || "").trim().slice(0, 500);
+  if (!reason) return json({ error: "A reason is required." }, 400);
+  if (route === "wiki/user") {
+    const target = String(body.githubId || "");
+    const record = await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE github_id = ?").bind(target).first<WikiUser>();
+    if (!record) return json({ error: "Account not found. They must sign in first." }, 404);
+    if (body.suspended === true && target === user.github_id) return json({ error: "You cannot disable your own account." }, 400);
+    if (body.unlink === true && record.suspended) return json({ error: "Enable this user before clearing their identity link." }, 400);
+    const docs = typeof body.docs === "boolean" ? Number(body.docs) : record.docs;
+    const suspended = typeof body.suspended === "boolean" ? Number(body.suspended) : record.suspended;
+    await env.WIKI_ACCESS.batch([
+      env.WIKI_ACCESS.prepare("UPDATE wiki_users SET docs = ?, suspended = ?, discord_id = ? WHERE github_id = ?").bind(docs, suspended, body.unlink === true ? null : record.discord_id, target),
+      env.WIKI_ACCESS.prepare("INSERT INTO wiki_audit(actor,action,target,reason) VALUES(?,?,?,?)").bind(actor.login, JSON.stringify({ docs, suspended, unlink: body.unlink === true }), target, reason),
+    ]);
+    return json({ ok: true });
+  }
+  if (route === "wiki/protect") {
+    const id = String(body.id || "");
+    if (!isDocsPath(id) || !await ghReadFile(id)) return json({ error: "A current docs page is required." }, 400);
+    await env.WIKI_ACCESS.batch([
+      body.protected === true ? env.WIKI_ACCESS.prepare("INSERT OR IGNORE INTO wiki_protections(path) VALUES(?)").bind(id) : env.WIKI_ACCESS.prepare("DELETE FROM wiki_protections WHERE path = ?").bind(id),
+      env.WIKI_ACCESS.prepare("INSERT INTO wiki_audit(actor,action,target,reason) VALUES(?,?,?,?)").bind(actor.login, body.protected === true ? "protect" : "unprotect", id, reason),
+    ]);
+    return json({ ok: true });
+  }
+  if (route === "wiki/restore") return restoreWiki(req, actor, body, reason);
+  return json({ error: "Unknown wiki action." }, 404);
+}
+async function reachableRevision(ref: string) {
+  if (!/^[a-f0-9]{40}$/.test(ref)) return false;
+  const comparison = await ghJson(`${GH}/compare/${ref}...${BRANCH}?per_page=1`);
+  return comparison.status === "ahead" || comparison.status === "identical";
+}
+async function wikiHistory(req: Request, route: string) {
+  const url = new URL(req.url);
+  let id = url.searchParams.get("id") || "";
+  if (id.startsWith("/docs/")) {
+    const slug = id.slice(6);
+    id = (await ghListTree()).find(e => isDocsPath(e.path) && itemSlug(e.path) === slug)?.path || "";
+  }
+  if (!isDocsPath(id)) return json({ error: "Invalid docs page." }, 400);
+  if (route === "wiki/revision") {
+    const ref = url.searchParams.get("ref") || "";
+    if (!await reachableRevision(ref)) return json({ error: "Revision must belong to main." }, 400);
+    const file = await ghReadFile(id, ref);
+    const commit = await ghJson(`${GH}/commits/${ref}`);
+    const parent = (commit.parents as {sha:string}[] | undefined)?.[0]?.sha;
+    const previous = parent ? await ghReadFile(id, parent) : null;
+    const files = ((commit.files || []) as { filename:string; status:string }[]).filter(f => f.filename.startsWith(id.slice(0,-8)) && !f.filename.slice(id.length - 8).includes("/")).map(f => ({ path:f.filename, status:f.status }));
+    return json({ id, raw: file?.content || "", previousRaw: previous?.content || "", files, baseSha: file?.sha || "", deleted: !file, ref });
+  }
+  const page = Math.max(1, Math.min(10000, Number(url.searchParams.get("page")) || 1));
+  const r = await fetch(`${GH}/commits?sha=${BRANCH}&path=${encodeURIComponent(id.slice(0, -8))}&per_page=30&page=${page}`, { headers: ghHeaders() });
+  if (!r.ok) throw new Error("Page history unavailable.");
+  const candidates = await r.json() as {sha:string}[];
+  const latestRef = candidates[0]?.sha || null;
+  let revisions = candidates;
+  // A section index owns only direct media, never its child pages.
+  if (id.split("/").length === 4) {
+    const folder = id.slice(0,-8);
+    const details = await Promise.all(candidates.map(commit => ghJson(`${GH}/commits/${commit.sha}`)));
+    revisions = candidates.filter((_, i) => ((details[i].files || []) as {filename:string}[]).some(file => file.filename.startsWith(folder) && !file.filename.slice(folder.length).includes("/")));
+  }
+  return json({ revisions, latestRef, next: r.headers.get("link")?.includes('rel="next"') ? page + 1 : null });
+}
+async function restoreWiki(req: Request, actor: Actor, body: Record<string, unknown>, reason: string) {
+  const id = String(body.id || "");
+  const ref = String(body.ref || "");
+  if (!isDocsPath(id) || !await reachableRevision(ref)) return json({ error: "Invalid page or revision." }, 400);
+  const snapshot = await ghSnapshot();
+  const current = await ghReadFile(id, snapshot.head);
+  if (body.expectedBase !== (current?.sha || "")) return json({ error: "Page changed. Reload before restoring." }, 409);
+  const file = await ghReadFile(id, ref);
+  if (!file) return json({ error: "Page did not exist at that revision." }, 404);
+  const folder = id.slice(0, -8);
+  const historicCommit = await ghJson(`${GH}/git/commits/${ref}`);
+  const historicTree = await ghListTree({ head: ref, tree: (historicCommit.tree as { sha:string }).sha });
+  const currentTree = await ghListTree(snapshot);
+  const oldAssets = historicTree.filter(e => e.path.startsWith(folder) && !e.path.slice(folder.length).includes("/") && e.path !== id);
+  const changes: Change[] = [{ path: id, text: file.content.replace(splitRaw(file.content).fmText, setDocsUpdated(splitRaw(file.content).fmText)) }];
+  // Restore the complete local media snapshot; leave newer, unreferenced files intact.
+  for (const asset of oldAssets) changes.push({ path: asset.path, blobSha: asset.sha });
+  const assets = [...new Set([...oldAssets, ...currentTree.filter(e => e.path.startsWith(folder) && !e.path.slice(folder.length).includes("/"))].map(e => e.path.slice(folder.length)))];
+  const split = splitRaw(file.content);
+  const problem = contentProblem({ body: split.body, frontmatter: split.fmText, assets });
+  if (problem) return json({ error: problem }, 400);
+  if ((await accessUser(req, actor.login))?.suspended || !await wikiAdmin(actor)) return json({ error: "Access revoked." }, 403);
+  const result = await ghCommitAt(changes, `Wiki: restore ${id} to ${ref}\n\n${reason}`, snapshot, actor);
+  if (!result.ok) return json({ error: "Repository changed. Reload before restoring." }, 409);
+  await audit(req, actor.login, "restore", `${id}@${ref}`, reason);
+  return json({ ok: true, commit: result.sha });
+}
+async function wikiBridge(req: Request) {
+  const raw = await req.text();
+  if (raw.length > 1500000 || !verifyBridge(req, raw)) return json({ error: "Invalid bridge signature." }, 401);
+  const body = JSON.parse(raw) as Record<string, unknown>;
+  const discordId = String(body.discordId || "");
+  if (!/^\d{15,22}$/.test(discordId)) return json({ error: "Invalid Discord identity." }, 400);
+  const env = wikiEnv(req)!;
+  const db = env.WIKI_ACCESS;
+  const user = await db.prepare("SELECT * FROM wiki_users WHERE discord_id = ?").bind(discordId).first<WikiUser>();
+  if (user?.suspended) return json({ error: "Your website contribution access is disabled." }, 403);
+  if (body.action === "link") {
+    if (user) return json({ error: "This Discord account is already linked." }, 409);
+    const link = await db.prepare("UPDATE wiki_links SET discord_id = ?, discord_name = ? WHERE hash = ? AND expires > ? AND discord_id IS NULL RETURNING github_id").bind(discordId, String(body.discordName || discordId).slice(0, 100), linkHash(String(body.code || "")), Date.now()).first<{github_id:string}>();
+    if (!link) return json({ error: "Link code expired or already used. Generate another in the CMS." }, 400);
+    return json({ ok: true, pending: true });
+  }
+  if (body.action === "check") return json({ ok: true });
+  if (!user) return json({ error: "Sign in at /admin and link Discord before contributing through the bot." }, 403);
+  const roles = await memberRoles(env, discordId, true);
+  const actor: Actor = { login: user.login, githubId: user.github_id, discordId, request: req, via: "github", agent: "Discord bot", docs: !!user.docs || docsRole(roles), scope: [] };
+  if (await mayEdit(user.login)) actor.scope = undefined;
+  if (body.action === "status") return json({ ok: true, docs: !!actor.docs || !actor.scope, publish: docsRole(roles) || PUBLISH_USERS.includes(discordId), destructive: DESTRUCTIVE_USERS.includes(discordId), login: user.login });
+  if (body.action === "game-owner") {
+    const id = String((body.payload as Record<string,unknown> | undefined)?.id || "");
+    const allowed = /^data\/games\/[^/]+\/index\.md$/.test(id) && (!actor.scope || (await contributorScope(user.login)).includes(id));
+    return allowed ? json({ok:true}) : json({error:"Only the verified repository owner can update this game page."},403);
+  }
+  if (!actor.docs && actor.scope) return json({ error: "Docs contribution access is required." }, 403);
+  await limit(req, user.github_id);
+  const action = String(body.action || "");
+  if (!["read", "save", "new"].includes(action)) return json({ error: "Unsupported wiki action." }, 400);
+  const payload = (body.payload || {}) as Record<string, unknown>;
+  if (String(payload.id || "").startsWith("/docs/")) payload.id = (await ghListTree()).find(e => isDocsPath(e.path) && itemSlug(e.path) === String(payload.id).slice(6))?.path || "";
+  if (action === "new") { payload.kind = "docs"; if (!payload.section) return json({ error: "Choose an existing docs section." }, 400); }
+  else if (!isDocsPath(String(payload.id || ""))) return json({ error: "Docs pages only." }, 403);
+  if (action === "read") {
+    if (await protectedPage(req, String(payload.id)) && !await wikiAdmin(actor)) return json({ error: "This page is protected. Ask an org admin to edit it." }, 403);
+    const page = await readEditable(String(payload.id));
+    return page ? json(page) : json({ error: "Docs page not found." }, 404);
+  }
+  const denied = await wikiWriteGate(req, actor, action, payload);
+  if (denied) return denied;
+  // Recheck after reads and validation, immediately before committing.
+  if ((await accessUser(req, user.login))?.suspended) return json({ error: "Access disabled." }, 403);
+  payload.summary = `${String(payload.summary || "Discord edit").slice(0, 250)}\nDiscord-requester: ${discordId}\nDiscord-message: ${String(body.messageUrl || "").slice(0, 200)}`;
+  const result = action === "new" ? await createEditable(payload, actor) : await writeEditable(String(payload.id), payload, actor);
+  return json(result, mutationStatus(result));
+}
+
+async function assertActiveActor(actor: Actor | null | undefined, paths: string[]) {
+  if (!actor?.request || !wikiEnv(actor.request)) return;
+  const record = await accessUser(actor.request, actor.login);
+  if (!record || record.suspended) throw new Error("Contribution access disabled. Nothing was published.");
+  if (actor.scope && paths.some(path => path.startsWith("data/docs/")) && !await docsAccess(actor.request, record)) throw new Error("Docs access revoked. Nothing was published.");
+  if (paths.some(path => path.startsWith("data/docs/")) && !await wikiAdmin(actor)) {
+    for (const path of paths) {
+      const id = path.replace(/[^/]+$/, "index.md");
+      if (isDocsPath(id) && await protectedPage(actor.request, id)) throw new Error("Page is protected. Nothing was published.");
+    }
+  }
 }

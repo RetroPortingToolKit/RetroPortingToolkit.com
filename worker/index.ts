@@ -2,6 +2,7 @@
 // straight from dist (see wrangler.jsonc); this script runs for /api/* and
 // hosts the three server endpoints. /api/cms/* and /api/newsletter/* reach
 // their handlers with the subpath in ?__sub=, the shape the handlers expect.
+import { bindWiki, type WikiEnv } from "../api/wiki-access";
 import * as cms from "../api/cms";
 import * as newsletter from "../api/newsletter";
 import * as submissions from "../api/submissions";
@@ -28,13 +29,18 @@ export function route(request: Request): { handlers: Handlers; request: Request 
 }
 
 export default {
-  async fetch(request: Request, env: { ASSETS: { fetch(request: Request): Promise<Response> } }): Promise<Response> {
+  async fetch(request: Request, env: WikiEnv & { ASSETS: { fetch(request: Request): Promise<Response> } }): Promise<Response> {
     const { pathname } = new URL(request.url);
     if (!pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     const match = route(request);
     if (!match) return new Response("Not found", { status: 404 });
-    if (request.method === "GET" || request.method === "HEAD") return match.handlers.GET(match.request);
-    if (request.method === "POST") return match.handlers.POST(match.request);
-    return new Response("Method not allowed", { status: 405, headers: { allow: "GET, POST" } });
+    bindWiki(match.request, env);
+    try {
+      if (request.method === "GET" || request.method === "HEAD") return await match.handlers.GET(match.request);
+      if (request.method === "POST") return await match.handlers.POST(match.request);
+      return new Response("Method not allowed", { status: 405, headers: { allow: "GET, POST" } });
+    } catch {
+      return Response.json({ error: "The request could not be completed. Reload to check its result before retrying." }, { status: 503, headers: { "cache-control": "no-store" } });
+    }
   },
 };

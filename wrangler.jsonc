@@ -3,20 +3,39 @@
   "name": "retroportingtoolkit",
   "main": "worker/index.ts",
   "compatibility_date": "2026-09-30",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "html_handling": "drop-trailing-slash",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": [
+      "/api/*"
+    ]
   },
   "vars": {
     "CMS_REPO_OWNER": "RetroPortingToolKit",
     "CMS_REPO_NAME": "RetroPortingToolkit.com"
   },
   "workers_dev": true,
-  "routes": [{ "pattern": "retroportingtoolkit.com", "custom_domain": true }],
+  "routes": [
+    {
+      "pattern": "retroportingtoolkit.com",
+      "custom_domain": true
+    }
+  ],
   "preview_urls": false,
-  "observability": { "enabled": true }
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "WIKI_ACCESS",
+      "database_name": "retroportingtoolkit-access",
+      "database_id": "33f4ea69-dbdc-4853-a851-473b257c1e61",
+      "migrations_dir": "migrations"
+    }
+  ]
 }
