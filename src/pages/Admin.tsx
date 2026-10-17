@@ -242,6 +242,7 @@ export default function Admin() {
   );
   // sidebar show/hide (HIG: toolbar toggle, leading edge; persist)
   const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (window.matchMedia("(max-width: 700px)").matches) return false;
     try {
       return sessionStorage.getItem("cms.sidebar") !== "0";
     } catch {
@@ -1357,7 +1358,7 @@ export default function Admin() {
       {/* window toolbar: leading = sidebar toggle + a contextual back (Apple: item
           -> list -> site); trailing = the document's actions when editing. */}
       <header className="ac-toolbar ac-chrome">
-        <button className="ac-icon-btn" onClick={() => setSidebarOpen((s) => !s)} title="Show/Hide Sidebar (Ctrl-Cmd-S)" aria-label="Toggle sidebar">
+        <button className="ac-icon-btn" onClick={() => setSidebarOpen((s) => !s)} title="Show/Hide Sidebar (Ctrl-Cmd-S)" aria-label="Toggle sidebar" aria-expanded={sidebarOpen} aria-controls="cms-sidebar">
           <SidebarIcon />
         </button>
         {selected ? (
@@ -1471,9 +1472,10 @@ export default function Admin() {
         <button className="ac-btn ac-btn-gray" onClick={() => setWikiView(null)}>Close</button>
         {wikiView === "account" ? <WikiAccount admin={wikiAdmin} selectedId={selected?.id} /> : selected && <WikiHistory id={selected.id} admin={wikiAdmin} onRestored={() => { setWikiView(null); open(selected); }} />}
       </div>}
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      <div className={`ac-workspace${sidebarOpen ? " ac-sidebar-open" : ""}`} style={{ display: "flex", flex: 1, minHeight: 0 }}>
         {/* sidebar: source list */}
         <aside
+          id="cms-sidebar"
           className="ac-sidebar ac-chrome"
           style={{ width: sidebarOpen ? 260 : 0, flex: sidebarOpen ? "0 0 260px" : "0 0 0px", overflow: "hidden", transition: "width .2s ease, flex-basis .2s ease" }}
         >
@@ -1488,6 +1490,7 @@ export default function Admin() {
                   setSelectedFolder(g.group);
                   setSelected(null);
                   setFilter("");
+                  if (window.matchMedia("(max-width: 700px)").matches) setSidebarOpen(false);
                 }}
               >
                 <span className="ac-folder-icon">
@@ -1535,7 +1538,7 @@ export default function Admin() {
                   {currentItems.length} {currentItems.length === 1 ? "item" : "items"}
                 </div>
                 {newKind && (!scoped || (docsContributor && newKind === "docs")) && (
-                  <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+                  <div className="ac-create" style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
                     {newKind === "docs" && (
                       <select
                         style={{ ...styles.input, width: 190, padding: "6px 10px", font: "400 13px/1.3 var(--ac-font-text)" }}
@@ -1659,7 +1662,7 @@ export default function Admin() {
               </div>
             </div>
           ) : (
-            <div ref={splitRowRef} style={styles.splitRow}>
+            <div className="ac-editor-split" ref={splitRowRef} style={styles.splitRow}>
               <div
                 style={{ ...styles.editorScroll, flex: showPreview && previewUrl ? `0 0 ${splitPct}%` : "1 1 0" }}
                 onBlur={() => {

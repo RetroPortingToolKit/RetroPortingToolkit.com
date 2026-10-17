@@ -1,5 +1,12 @@
 # retroportingtoolkit.com handoff
 
+## Mobile CMS (2026-10-17)
+
+At phone widths, the editor opens with navigation collapsed. The navigation
+toggle switches between folders and content; choosing a folder closes it.
+Creation fields and toolbar actions wrap, and the preview stacks below the
+editor. Responsive verification uses Chrome's 400px phone viewport.
+
 ## Wiki rollout (2026-10-17)
 
 See [launch checklist and announcement draft](WIKI-LAUNCH.md). Isolated lifecycle

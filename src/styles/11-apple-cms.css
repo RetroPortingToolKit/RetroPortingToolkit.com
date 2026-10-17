@@ -332,3 +332,26 @@
 .wiki-removed { background: #da363333; }
 .wiki-actions { display: flex; gap: 16px; align-items: center; margin: 12px 0; }
 .wiki-actions button { color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 5px; cursor: pointer; }
+
+/* Phones use one pane at a time; navigation must not squeeze the content. */
+@media (max-width: 700px) {
+  .applecms .ac-toolbar { height: auto; min-height: var(--ac-h-toolbar); flex-wrap: wrap; padding: 8px; gap: 6px; }
+  .applecms .ac-toolbar > .ac-back { max-width: 45%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .applecms .ac-toolbar > div:last-child { flex-wrap: wrap; max-width: 100%; }
+  .applecms .ac-workspace { min-width: 0; position: relative; }
+  .applecms .ac-sidebar { width: 0 !important; flex: 0 0 0 !important; border: 0; visibility: hidden; }
+  .applecms .ac-sidebar-open > .ac-sidebar { width: 100% !important; flex: 0 0 100% !important; visibility: visible; }
+  .applecms .ac-sidebar-open > main { display: none !important; }
+  .applecms .ac-listview { min-width: 0; }
+  .applecms .ac-listview-head { padding: 16px 12px 6px; }
+  .applecms .ac-create { flex-wrap: wrap; margin-top: 12px; }
+  .applecms .ac-create > select, .applecms .ac-create > input { width: 100% !important; min-width: 0; }
+  .applecms .ac-noterow-title { white-space: normal; overflow-wrap: anywhere; }
+  .applecms .ac-editor-split { flex-direction: column; overflow-y: auto; }
+  .applecms .ac-editor-split > div { min-width: 0 !important; flex: 1 0 auto !important; }
+  .applecms .ac-editor-split > div:first-child { padding: 16px 12px 40px !important; }
+  .applecms .ac-editor-split > div:last-child:not(:first-child) { min-height: 65dvh; }
+  .applecms .ac-editor-split > .ac-split-handle { display: none; }
+  .wiki-overlay { inset: 8px; padding: 8px; }
+  .wiki-panel { padding: 12px; }
+}
