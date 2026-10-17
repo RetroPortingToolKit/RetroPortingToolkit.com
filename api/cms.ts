@@ -1,4 +1,4 @@
-import { wikiEnv, accessUser, docsAccess, protectedPage, audit, limit, verifyBridge, linkHash, memberRoles, docsRole, PUBLISH_USERS, DESTRUCTIVE_USERS, type WikiUser } from "./wiki-access";
+import { wikiEnv, canonicalUser, accessUser, docsAccess, protectedPage, audit, limit, verifyBridge, linkHash, memberRoles, docsRole, PUBLISH_USERS, DESTRUCTIVE_USERS, type WikiUser } from "./wiki-access";
 // Prod CMS backend. A Vercel serverless function (Web API
 // signature, Node runtime) that mirrors the dev middleware (scripts/cms-dev.mjs)
 // but for the static live site: content is read/written via the GitHub Contents
@@ -43,6 +43,8 @@ const TOKEN = process.env.GITHUB_TOKEN || "";
 // when it is minted by scripts/cms-token.mjs, and cannot be recovered from here.
 const GH_CLIENT_ID = process.env.CMS_GITHUB_CLIENT_ID || "";
 const GH_CLIENT_SECRET = process.env.CMS_GITHUB_CLIENT_SECRET || "";
+const DISCORD_CLIENT_ID = process.env.CMS_DISCORD_CLIENT_ID || "";
+const DISCORD_CLIENT_SECRET = process.env.CMS_DISCORD_CLIENT_SECRET || "";
 
 export interface Actor {
   /** GitHub login */
@@ -58,7 +60,7 @@ export interface Actor {
   /** avatar URL */
   avatar?: string;
   /** how they authenticated */
-  via: "github" | "agent";
+  via: "github" | "discord" | "agent";
   /** the agent key's label, when via === "agent" */
   agent?: string;
   /** Item ids this person may edit, when they are not a full editor: the
@@ -251,6 +253,10 @@ function identityFor(req: Request): Actor | null {
   const payload = verifyPayload(readCookie(req, "cms_session"));
   if (!payload) return null;
   const sub = typeof payload.sub === "string" ? payload.sub : "";
+  if (payload.via === "discord") {
+    if (!/^\d{15,22}$/.test(String(payload.discordId || "")) || !wikiEnv(req)) return null;
+    return { login: sub, discordId: String(payload.discordId), via: "discord", name: typeof payload.name === "string" ? payload.name : undefined, avatar: typeof payload.avatar === "string" ? payload.avatar : undefined };
+  }
   if (payload.via !== "github" || (wikiEnv(req) && !payload.githubId)) return null;
   return {
     login: sub,
@@ -270,17 +276,19 @@ async function actorFor(req: Request): Promise<Actor | null> {
   if (who) who.request = req;
   if (!who) return null;
   const env = wikiEnv(req);
-  const record = env ? (who.githubId
+  const record = env ? await canonicalUser(req, who.via === "discord"
+    ? await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE discord_id = ?").bind(who.discordId).first<WikiUser>()
+    : (who.githubId
     ? await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE github_id = ?").bind(who.githubId).first<WikiUser>()
-    : await accessUser(req, who.login)) : null;
+    : await accessUser(req, who.login))) : null;
   if (record?.suspended || (env && !record)) return null;
   if (record) { who.login = record.login; who.githubId = record.github_id; who.discordId = record.discord_id || undefined; }
-  const fullEditor = await mayEdit(who.login);
+  const fullEditor = !record?.github_id.startsWith("discord:") && await mayEdit(who.login);
   who.docs = env ? fullEditor || await docsAccess(req, record) : false;
   if (!fullEditor) {
     // Agents act for their owner and inherit nothing narrower than that.
-    if (who.via !== "github") return null;
-    const scope = await contributorScope(who.login);
+    if (who.via === "agent") return null;
+    const scope = who.githubId?.startsWith("discord:") ? [] : await contributorScope(who.login);
     if (!scope.length && !env) return null;
     who.scope = scope;
   }
@@ -294,7 +302,8 @@ async function actorFor(req: Request): Promise<Actor | null> {
 function actorLabel(actor: Actor | null): string {
   if (!actor) return "unknown";
   if (actor.via === "agent") return `${actor.login} via agent ${actor.agent}`;
-  if (actor.via === "github") return actor.agent ? `${actor.login} via ${actor.agent}` : actor.login;
+  if (actor.via === "discord" && actor.githubId?.startsWith("discord:")) return `${actor.name || "Discord contributor"} (Discord: ${actor.discordId})`;
+  if (actor.via === "github" || actor.via === "discord") return actor.agent ? `${actor.login} via ${actor.agent}` : actor.login;
   return "owner";
 }
 
@@ -421,10 +430,7 @@ async function ghWriteFileAtVersion(
     branch: BRANCH,
   };
   if (actor) {
-    body.author = {
-      name: actor.agent ? `${actor.login} (agent: ${actor.agent})` : actor.login,
-      email: `${actor.githubId ? actor.githubId + "+" : ""}${actor.login}@users.noreply.github.com`,
-    };
+    body.author = commitAuthor(actor);
   }
   if (existing) body.sha = existing.sha;
   await assertActiveActor(actor, [path]);
@@ -519,10 +525,7 @@ async function ghCommitAt(
     parents: [snapshot.head],
   };
   if (actor) {
-    commitBody.author = {
-      name: actor.agent ? `${actor.login} (agent: ${actor.agent})` : actor.login,
-      email: `${actor.githubId ? actor.githubId + "+" : ""}${actor.login}@users.noreply.github.com`,
-    };
+    commitBody.author = commitAuthor(actor);
   }
   const commit = await ghJson(`${GH}/git/commits`, { method: "POST", body: JSON.stringify(commitBody) });
   await assertActiveActor(actor, changes.map(c => c.path));
@@ -1140,7 +1143,7 @@ function originOf(req: Request): string {
 
 /** Only same-site paths are accepted as a post-login destination. */
 function safeNext(raw: string | null): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/";
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//") || /[\\\x00-\x20]/.test(raw)) return "/";
   return raw;
 }
 
@@ -1149,7 +1152,9 @@ function githubStart(req: Request): Response {
   const next = safeNext(new URL(req.url).searchParams.get("next"));
   // The state is a signed, short-lived value, so a callback cannot be forged
   // or replayed from another site.
-  const state = signPayload({ next, purpose: "oauth" }, 10 * 60_000);
+  const linking = new URL(req.url).searchParams.get("link") === "1" ? identityFor(req) : null;
+  if (linking && linking.via !== "discord") return json({ error: "Sign in with Discord before linking GitHub." }, 400);
+  const state = signPayload({ next, purpose: "oauth", nonce: crypto.randomBytes(24).toString("hex"), ...(linking ? { linkDiscord: linking.discordId } : {}) }, 10 * 60_000);
   const params = new URLSearchParams({
     client_id: GH_CLIENT_ID,
     redirect_uri: `${originOf(req)}/api/cms/auth/github/callback`,
@@ -1216,6 +1221,11 @@ async function githubCallback(req: Request): Promise<Response> {
     const db = wikiEnv(req)!.WIKI_ACCESS;
     await db.prepare("INSERT INTO wiki_users(github_id,login) VALUES(?,?) ON CONFLICT(github_id) DO UPDATE SET login = excluded.login").bind(String(user.id), user.login.toLowerCase()).run();
     if ((await accessUser(req, user.login))?.suspended) return loginFailed("disabled");
+    if (payload.linkDiscord) {
+      const current = identityFor(req);
+      if (current?.via !== "discord" || current.discordId !== payload.linkDiscord) return loginFailed("state");
+      if (!await mergeDiscordIdentity(req, String(user.id), String(payload.linkDiscord))) return loginFailed("link_conflict");
+    }
   } else if (!(await mayEdit(user.login)) && !(await contributorScope(user.login)).length) return loginFailed("not_allowed");
 
   return new Response(null, {
@@ -1632,12 +1642,15 @@ export async function GET(req: Request): Promise<Response> {
   const route = sub(req);
   if (route === "auth/github/start") return githubStart(req);
   if (route === "auth/github/callback") return githubCallback(req);
+  if (route === "auth/discord/start") return discordStart(req);
+  if (route === "auth/discord/callback") return discordCallback(req);
   if (route === "auth") {
     const actor = await actorFor(req);
     return json({
       required: !!wikiEnv(req) || accessConfigured(),
       authed: !!actor || (!wikiEnv(req) && !accessConfigured()),
       github: !!GH_CLIENT_ID,
+      discord: !!DISCORD_CLIENT_ID && !!DISCORD_CLIENT_SECRET && !!wikiEnv(req),
       org: allowedOrg() || null,
       orgReady: await orgReady(),
       user: actor
@@ -1783,7 +1796,7 @@ function setDocsUpdated(fm: string) {
   return /^updated:.*$/m.test(fm) ? fm.replace(/^updated:.*$/m, date) : `${fm.trim()}\n${date}`;
 }
 async function wikiAdmin(actor: Actor | null): Promise<boolean> {
-  if (!actor || actor.via !== "github") return false;
+  if (!actor || actor.via === "agent" || !/^\d+$/.test(actor.githubId || "")) return false;
   const response = await fetch(`https://api.github.com/orgs/RetroPortingToolKit/memberships/${encodeURIComponent(actor.login)}`, { headers: ghHeaders() });
   if (!response.ok) return false;
   const membership = await response.json() as { state: string; role: string };
@@ -1818,7 +1831,7 @@ async function wikiAdministration(req: Request, actor: Actor | null) {
   if (!wikiEnv(req) || !await wikiAdmin(actor)) return json({ error: "Org admin required." }, 403);
   const db = wikiEnv(req)!.WIKI_ACCESS;
   const [users, protections, events] = await Promise.all([
-    db.prepare("SELECT * FROM wiki_users ORDER BY login").all(),
+    db.prepare("SELECT * FROM wiki_users WHERE canonical_id IS NULL ORDER BY login").all(),
     db.prepare("SELECT path FROM wiki_protections ORDER BY path").all(),
     db.prepare("SELECT * FROM wiki_audit ORDER BY id DESC LIMIT 100").all(),
   ]);
@@ -1826,11 +1839,12 @@ async function wikiAdministration(req: Request, actor: Actor | null) {
 }
 async function wikiMutation(req: Request, actor: Actor | null, route: string, body: Record<string, unknown>) {
   const env = wikiEnv(req);
-  if (!env || !actor || actor.via !== "github") return json({ error: "Sign in with GitHub." }, 401);
+  if (!env || !actor || actor.via === "agent") return json({ error: "Sign in to manage contributions." }, 401);
   const user = await accessUser(req, actor.login);
   if (!user || user.suspended) return json({ error: "Sign in again to refresh your account." }, 403);
   await limit(req, user.github_id);
   if (route === "wiki/link") {
+    if (user.github_id.startsWith("discord:")) return json({ error: "Use Link GitHub to connect your accounts." }, 400);
     if (user.discord_id) return json({ error: "Discord is already linked. An admin can clear an incorrect link." }, 400);
     const code = crypto.randomBytes(18).toString("hex");
     await env.WIKI_ACCESS.batch([
@@ -1842,10 +1856,7 @@ async function wikiMutation(req: Request, actor: Actor | null, route: string, bo
   if (route === "wiki/confirm-link") {
     const link = await env.WIKI_ACCESS.prepare("DELETE FROM wiki_links WHERE hash = ? AND github_id = ? AND discord_id IS NOT NULL AND expires > ? RETURNING discord_id").bind(String(body.hash || ""), user.github_id, Date.now()).first<{discord_id:string}>();
     if (!link || user.discord_id) return json({ error: "Link expired or account already linked." }, 400);
-    await env.WIKI_ACCESS.batch([
-      env.WIKI_ACCESS.prepare("UPDATE wiki_users SET discord_id = ? WHERE github_id = ? AND discord_id IS NULL AND suspended = 0").bind(link.discord_id, user.github_id),
-      env.WIKI_ACCESS.prepare("INSERT INTO wiki_audit(actor,action,target,reason) VALUES(?,?,?,?)").bind(actor.login, "link", link.discord_id, "Confirmed in GitHub-authenticated CMS"),
-    ]);
+    if (!await mergeDiscordIdentity(req, user.github_id, link.discord_id)) return json({ error: "The account is disabled or already linked elsewhere." }, 403);
     return json({ ok: true });
   }
   if (!await wikiAdmin(actor)) return json({ error: "Org admin required." }, 403);
@@ -1856,11 +1867,13 @@ async function wikiMutation(req: Request, actor: Actor | null, route: string, bo
     const record = await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE github_id = ?").bind(target).first<WikiUser>();
     if (!record) return json({ error: "Account not found. They must sign in first." }, 404);
     if (body.suspended === true && target === user.github_id) return json({ error: "You cannot disable your own account." }, 400);
+    if (body.unlink === true && record.github_id.startsWith("discord:")) return json({ error: "Link GitHub before clearing this account’s only sign-in identity." }, 400);
     if (body.unlink === true && record.suspended) return json({ error: "Enable this user before clearing their identity link." }, 400);
     const docs = typeof body.docs === "boolean" ? Number(body.docs) : record.docs;
     const suspended = typeof body.suspended === "boolean" ? Number(body.suspended) : record.suspended;
     await env.WIKI_ACCESS.batch([
       env.WIKI_ACCESS.prepare("UPDATE wiki_users SET docs = ?, suspended = ?, discord_id = ? WHERE github_id = ?").bind(docs, suspended, body.unlink === true ? null : record.discord_id, target),
+      ...(body.unlink === true ? [env.WIKI_ACCESS.prepare("UPDATE wiki_users SET canonical_id = NULL, docs = 0 WHERE canonical_id = ?").bind(target)] : []),
       env.WIKI_ACCESS.prepare("INSERT INTO wiki_audit(actor,action,target,reason) VALUES(?,?,?,?)").bind(actor.login, JSON.stringify({ docs, suspended, unlink: body.unlink === true }), target, reason),
     ]);
     return json({ ok: true });
@@ -1952,16 +1965,16 @@ async function wikiBridge(req: Request) {
   const user = await db.prepare("SELECT * FROM wiki_users WHERE discord_id = ?").bind(discordId).first<WikiUser>();
   if (user?.suspended) return json({ error: "Your website contribution access is disabled." }, 403);
   if (body.action === "link") {
-    if (user) return json({ error: "This Discord account is already linked." }, 409);
+    if (user && !user.github_id.startsWith("discord:")) return json({ error: "This Discord account is already linked." }, 409);
     const link = await db.prepare("UPDATE wiki_links SET discord_id = ?, discord_name = ? WHERE hash = ? AND expires > ? AND discord_id IS NULL RETURNING github_id").bind(discordId, String(body.discordName || discordId).slice(0, 100), linkHash(String(body.code || "")), Date.now()).first<{github_id:string}>();
     if (!link) return json({ error: "Link code expired or already used. Generate another in the CMS." }, 400);
     return json({ ok: true, pending: true });
   }
   if (body.action === "check") return json({ ok: true });
-  if (!user) return json({ error: "Sign in at /admin and link Discord before contributing through the bot." }, 403);
+  if (!user) return json({ error: "Sign in with Discord at /admin, or sign in with GitHub and link Discord, before contributing through the bot." }, 403);
   const roles = await memberRoles(env, discordId, true);
-  const actor: Actor = { login: user.login, githubId: user.github_id, discordId, request: req, via: "github", agent: "Discord bot", docs: !!user.docs || docsRole(roles), scope: [] };
-  if (await mayEdit(user.login)) actor.scope = undefined;
+  const actor: Actor = { login: user.login, githubId: user.github_id, discordId, request: req, via: user.github_id.startsWith("discord:") ? "discord" : "github", name: user.display_name || undefined, agent: "Discord bot", docs: !!user.docs || docsRole(roles), scope: [] };
+  if (!user.github_id.startsWith("discord:") && await mayEdit(user.login)) actor.scope = undefined;
   if (body.action === "status") return json({ ok: true, docs: !!actor.docs || !actor.scope, publish: docsRole(roles) || PUBLISH_USERS.includes(discordId), destructive: DESTRUCTIVE_USERS.includes(discordId), login: user.login });
   if (body.action === "game-owner") {
     const id = String((body.payload as Record<string,unknown> | undefined)?.id || "");
@@ -2001,4 +2014,113 @@ async function assertActiveActor(actor: Actor | null | undefined, paths: string[
       if (isDocsPath(id) && await protectedPage(actor.request, id)) throw new Error("Page is protected. Nothing was published.");
     }
   }
+}
+
+function commitAuthor(actor: Actor) {
+  if (actor.githubId?.startsWith("discord:")) return {
+    name: `${actor.name || "Discord contributor"} (Discord: ${actor.discordId})${actor.agent ? ` via ${actor.agent}` : ""}`,
+    email: `${actor.discordId}@discord.invalid`,
+  };
+  return { name: actor.agent ? `${actor.login} (agent: ${actor.agent})` : actor.login, email: `${actor.githubId ? actor.githubId + "+" : ""}${actor.login}@users.noreply.github.com` };
+}
+
+const discordOAuthCookie = (value: string, maxAge = 600) =>
+  `cms_discord_oauth=${value}; HttpOnly; Secure; SameSite=Lax; Path=/api/cms; Max-Age=${maxAge}`;
+function discordFailed(reason: string) {
+  return new Response(null, { status: 302, headers: {
+    location: `/admin?cms_login=${encodeURIComponent(reason)}`,
+    "set-cookie": discordOAuthCookie("", 0), "cache-control": "no-store",
+  } });
+}
+async function discordStart(req: Request): Promise<Response> {
+  if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET || !SECRET || !wikiEnv(req)) return json({ error: "Discord sign-in is not configured." }, 503);
+  const url = new URL(req.url);
+  let linkGithub: string | undefined;
+  if (url.searchParams.get("link") === "1") {
+    const actor = await actorFor(req);
+    if (!actor?.githubId || !/^\d+$/.test(actor.githubId)) return json({ error: "Sign in with GitHub before linking Discord." }, 403);
+    linkGithub = actor.githubId;
+  }
+  const state = signPayload({ purpose: "discord-oauth", nonce: crypto.randomBytes(24).toString("hex"), next: safeNext(url.searchParams.get("next") || "/admin"), linkGithub }, 600000);
+  const verifier = crypto.randomBytes(32).toString("base64url");
+  const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
+  const params = new URLSearchParams({ client_id: DISCORD_CLIENT_ID, response_type: "code", scope: "identify", redirect_uri: `${originOf(req)}/api/cms/auth/discord/callback`, state, code_challenge: challenge, code_challenge_method: "S256" });
+  return new Response(null, { status: 302, headers: {
+    location: `https://discord.com/oauth2/authorize?${params}`,
+    "set-cookie": discordOAuthCookie(signPayload({ state, verifier }, 600000)), "cache-control": "no-store",
+  } });
+}
+async function discordCallback(req: Request): Promise<Response> {
+  if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET || !wikiEnv(req)) return discordFailed("discord_not_configured");
+  const url = new URL(req.url);
+  const state = url.searchParams.get("state") || "";
+  const payload = verifyPayload(state);
+  const cookie = verifyPayload(readCookie(req, "cms_discord_oauth"));
+  const code = url.searchParams.get("code");
+  if (!payload || payload.purpose !== "discord-oauth" || !cookie || typeof cookie.state !== "string" || !safeEqual(cookie.state, state) || typeof cookie.verifier !== "string") return discordFailed("discord_state");
+  if (url.searchParams.has("error") || !code) return discordFailed("discord_cancelled");
+  if (url.searchParams.has("iss") && url.searchParams.get("iss") !== "https://discord.com") return discordFailed("discord_state");
+  const response = await fetch("https://discord.com/api/oauth2/token", {
+    method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ client_id: DISCORD_CLIENT_ID, client_secret: DISCORD_CLIENT_SECRET, grant_type: "authorization_code", code, redirect_uri: `${originOf(req)}/api/cms/auth/discord/callback`, code_verifier: cookie.verifier }),
+  }).catch(() => null);
+  if (!response) return discordFailed("discord_exchange");
+  const token = await response.json().catch(() => ({})) as { access_token?: string };
+  if (!response.ok || !token.access_token) return discordFailed("discord_exchange");
+  try {
+    const profileResponse = await fetch("https://discord.com/api/v10/users/@me", { headers: { authorization: `Bearer ${token.access_token}` } });
+    const profile = await profileResponse.json() as { id?: string; username?: string; global_name?: string; avatar?: string; bot?: boolean };
+    if (!profileResponse.ok || !/^\d{15,22}$/.test(profile.id || "") || !profile.username || profile.bot) return discordFailed("discord_profile");
+    const discordId = profile.id!;
+    const env = wikiEnv(req)!;
+    let user = await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE discord_id = ?").bind(discordId).first<WikiUser>();
+    if (user?.suspended) return discordFailed("disabled");
+    // A sign-in proves identity. Guild roles and grants are still checked on every request.
+    try { await memberRoles(env, discordId, true); }
+    catch { return discordFailed("discord_membership"); }
+    if (payload.linkGithub) {
+      const current = identityFor(req);
+      if (current?.githubId !== payload.linkGithub || current.via === "agent") return discordFailed("discord_state");
+      if (!await mergeDiscordIdentity(req, String(payload.linkGithub), discordId)) return discordFailed("link_conflict");
+      user = await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE discord_id = ?").bind(discordId).first<WikiUser>();
+    }
+    if (!user) {
+      const id = `discord:${discordId}`;
+      await env.WIKI_ACCESS.prepare("INSERT INTO wiki_users(github_id,login,discord_id,display_name) VALUES(?,?,?,?) ON CONFLICT(github_id) DO UPDATE SET display_name = excluded.display_name, discord_id = CASE WHEN canonical_id IS NULL THEN excluded.discord_id ELSE discord_id END").bind(id, id, discordId, profile.global_name || profile.username).run();
+      user = await canonicalUser(req, await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE github_id = ?").bind(id).first<WikiUser>());
+    }
+    if (!user || user.suspended || user.discord_id !== discordId) return discordFailed("disabled");
+    if (user.github_id.startsWith("discord:")) await env.WIKI_ACCESS.prepare("UPDATE wiki_users SET display_name = ? WHERE github_id = ?").bind(profile.global_name || profile.username, user.github_id).run();
+    const avatar = profile.avatar ? `https://cdn.discordapp.com/avatars/${discordId}/${profile.avatar}.png` : "";
+    const session = signPayload({ sub: discordId, discordId, via: "discord", name: profile.global_name || profile.username, avatar }, 604800000);
+    return new Response(null, { status: 302, headers: [
+      ["location", safeNext(typeof payload.next === "string" ? payload.next : "/admin")],
+      ["set-cookie", discordOAuthCookie("", 0)],
+      ["set-cookie", `cms_session=${session}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`],
+      ["set-cookie", hintCookie(true, req)], ["cache-control", "no-store"],
+    ] });
+  } catch {
+    return discordFailed("discord_unavailable");
+  } finally {
+    // Tokens are used only to prove the profile, never persisted or sent to the browser.
+    await fetch("https://discord.com/api/oauth2/token/revoke", {
+      method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ client_id: DISCORD_CLIENT_ID, client_secret: DISCORD_CLIENT_SECRET, token: token.access_token }),
+    }).catch(() => {});
+  }
+}
+async function mergeDiscordIdentity(req: Request, githubId: string, discordId: string): Promise<boolean> {
+  const env = wikiEnv(req)!;
+  if (!/^\d+$/.test(githubId) || !/^\d{15,22}$/.test(discordId)) return false;
+  const target = await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE github_id = ?").bind(githubId).first<WikiUser>();
+  const source = await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE discord_id = ?").bind(discordId).first<WikiUser>();
+  if (!target || target.suspended || source?.suspended || (target.discord_id && target.discord_id !== discordId)) return false;
+  if (source?.github_id === githubId) return true;
+  if (source && source.github_id !== `discord:${discordId}`) return false;
+  const statements = [];
+  if (source) statements.push(env.WIKI_ACCESS.prepare("UPDATE wiki_users SET discord_id = NULL, canonical_id = ? WHERE github_id = ? AND discord_id = ? AND suspended = 0 AND canonical_id IS NULL AND EXISTS(SELECT 1 FROM wiki_users WHERE github_id = ? AND suspended = 0 AND (discord_id IS NULL OR discord_id = ?))").bind(githubId, source.github_id, discordId, githubId, discordId));
+  statements.push(env.WIKI_ACCESS.prepare(`UPDATE wiki_users SET discord_id = ?, docs = MAX(docs, COALESCE((SELECT docs FROM wiki_users WHERE github_id = ? AND canonical_id = ?), 0)) WHERE github_id = ? AND suspended = 0 AND (discord_id IS NULL OR discord_id = ?) AND (? IS NULL OR EXISTS(SELECT 1 FROM wiki_users WHERE github_id = ? AND canonical_id = ? AND suspended = 0))`).bind(discordId, source?.github_id || "", githubId, githubId, discordId, source?.github_id || null, source?.github_id || "", githubId));
+  statements.push(env.WIKI_ACCESS.prepare("INSERT INTO wiki_audit(actor,action,target,reason) SELECT ?, 'link', ?, 'Proved control of GitHub and Discord' WHERE EXISTS(SELECT 1 FROM wiki_users WHERE github_id = ? AND discord_id = ? AND suspended = 0)").bind(target.login, discordId, githubId, discordId));
+  await env.WIKI_ACCESS.batch(statements);
+  return !!await env.WIKI_ACCESS.prepare("SELECT github_id FROM wiki_users WHERE github_id = ? AND discord_id = ? AND suspended = 0").bind(githubId, discordId).first();
 }

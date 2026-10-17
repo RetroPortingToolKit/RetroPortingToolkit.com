@@ -27,14 +27,18 @@ blog editing, navigation management, or access to others' game pages.
 
 ## Link and contribute
 
-1. Sign in with GitHub at `/admin` and open Contributions.
-2. Generate a Link Discord code and mention the bot in the server with
-   `link CODE`.
-3. Refresh Contributions, check the displayed Discord account, and confirm it.
-   A code expires after ten minutes, can be claimed once, and cannot complete
-   a link without confirmation from the GitHub-authenticated browser.
-4. An org admin grants docs access in Contributions if needed. Refresh or reload
-   the editor after access changes.
+1. Sign in with Discord at `/admin`. No GitHub account or bot link code is
+   needed. You must belong to the Discord server.
+2. Existing Founder and Community Advocate roles grant docs access; an org
+   admin can grant it to other signed-in community members in Contributions.
+3. To verify GitHub org membership or game ownership, choose Link GitHub in
+   Contributions. Completing both OAuth flows proves both identities. Grants,
+   suspensions, and existing sessions then refer to the same account.
+
+GitHub sign-in remains available. A GitHub-first account can choose Link Discord
+for OAuth linking, or use the existing one-use bot code and confirm the account
+back in the browser. Two existing accounts are joined only after both identities
+are proved. A suspended source or destination cannot be joined.
 
 Docs pages have Edit this page, History, and Create a page controls. The editor
 keeps its Markdown preview, media tools, and stale-save protection. Docs saves
@@ -93,7 +97,9 @@ normal wiki moderation.
 
 ## Verification
 
-`src/lib/wikiAccess.test.ts` exercises a real SQLite schema with mocked GitHub
+`src/lib/discordLogin.test.ts` covers OAuth state/PKCE, identity-only scopes,
+Discord-first and linked sign-in, live role checks, shared suspensions, and safe
+account merging. `src/lib/wikiAccess.test.ts` exercises a real SQLite schema with mocked GitHub
 and Discord services. It covers role-derived grants, explicit grants, cross-channel
 suspension, existing sessions, protected pages, actual org-admin authorization,
 request origin, stale edits, identity confirmation, signed bridge calls, historical
@@ -106,5 +112,5 @@ boundary and keeps testing real queue/request handling.
 The local CMS supplies Git history and previews without using production account
 state. Test hosted permissions through the Worker or the isolated SQLite tests.
 Live bot verification requires loading the new code with an idle restart and
-signing in/linking a real account. Do not post test pages to production merely to
+signing in with a real Discord account. Do not post test pages to production merely to
 exercise the write routes.

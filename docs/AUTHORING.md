@@ -280,8 +280,8 @@ grant comes from `data/submissions.json` and each game page's `repo`.
 ## Community docs editing
 
 Documentation is shared: an approved docs contributor may edit other contributors'
-pages and create pages inside existing sections. Sign in with GitHub at `/admin`;
-Contributions contains Discord linking and the admin-managed docs grant. Existing
+pages and create pages inside existing sections. Sign in with Discord or GitHub at `/admin`;
+Contributions contains account linking and the admin-managed docs grant. Existing
 Founder and Community Advocate Discord roles also grant shared docs access once
 linked. The RPTK contributor recognition role alone does not.
 

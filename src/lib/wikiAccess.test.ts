@@ -73,7 +73,7 @@ beforeAll(() => vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: R
   return Response.json({}, { status: 404 });
 }));
 beforeEach(() => {
-  sql = new DatabaseSync(":memory:"); sql.exec(readFileSync("migrations/0001_wiki_access.sql", "utf8")); sql.exec(readFileSync("migrations/0002_link_confirmation.sql", "utf8"));
+  sql = new DatabaseSync(":memory:"); sql.exec(readFileSync("migrations/0001_wiki_access.sql", "utf8")); sql.exec(readFileSync("migrations/0002_link_confirmation.sql", "utf8")); sql.exec(readFileSync("migrations/0003_discord_login.sql", "utf8"));
   sql.exec("INSERT INTO wiki_users(github_id,login,discord_id,docs) VALUES('1','admin',NULL,0),('2','editor',NULL,0),('3','writer','111111111111111111',0),('4','maker','222222222222222222',0)");
   files = { [path]: '---\ntitle: Intro\ndesc: Intro\nsummary: Intro\ntags: []\npageType: concept\nupdated: "2026-10-17"\n---\n\nOriginal words.\n', [game]: '---\ntitle: Game\nrepo: https://github.com/writer/game\n---\n\nGame.', "data/team.json": '{"members":[]}', "data/submissions.json": "[]" };
   historical = {}; proposedTree = []; refUpdates = []; disableBeforeRef = false;

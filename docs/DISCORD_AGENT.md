@@ -389,7 +389,8 @@ string began failing the day this Mac moved from CEST to PDT.
 ## Shared docs contribution lane
 
 The existing CMS owns wiki permissions and website suspensions. Bot contribution
-accounts must link GitHub and Discord from the editor's Contributions screen.
+accounts can sign in with Discord at `/admin`, or link GitHub and Discord from
+the editor's Contributions screen.
 Both the queued docs lane and existing trusted publishing check current website
 access; trusted agent pushes also run a temporary per-task pre-push guard that
 chains the existing hook. Game owner updates now verify the linked GitHub

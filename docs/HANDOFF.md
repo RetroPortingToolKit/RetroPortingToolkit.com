@@ -1,5 +1,14 @@
 # retroportingtoolkit.com handoff
 
+## Discord website sign-in (2026-10-17)
+
+Direct Discord OAuth sign-in and safe joining of Discord-first/GitHub accounts
+extend the shared wiki permissions. See [CMS access](CMS-ACCESS.md#discord-oauth-configuration)
+and `src/lib/discordLogin.test.ts`. The existing Discord app's callback is registered.
+The remaining provisioning step is its client secret; Discord requires a reset to
+reveal it and the computer-use credential policy requires the owner to perform
+that reset. No secret value should be sent in chat.
+
 ## Docs wiki (2026-10-17)
 
 CMS and Discord contribution permissions, account linking, suspensions, history,

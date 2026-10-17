@@ -1769,7 +1769,7 @@ client.on("messageCreate", async (message) => {
     }
     if (wiki || /^(?:submit|update)\b/i.test(request)) await wikiBridge(TOKEN, message.author.id, "check");
     if (!wiki && /^wiki\b/i.test(request)) {
-      await safeSend({ ...ref, content: "Mention me with `wiki edit /docs/section/page your instructions`, or `wiki new section Page title` followed by a new line and your source facts. Sign in and link Discord in the website editor first.", suppressMentions: true });
+      await safeSend({ ...ref, content: "Mention me with `wiki edit /docs/section/page your instructions`, or `wiki new section Page title` followed by a new line and your source facts. Sign in with Discord in the website editor first, or use a linked GitHub account.", suppressMentions: true });
       return;
     }
     if (wiki) {

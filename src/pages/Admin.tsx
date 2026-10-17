@@ -312,6 +312,7 @@ export default function Admin() {
   const [authRequired, setAuthRequired] = useState(false);
 
   const [hasGithub, setHasGithub] = useState(false);
+  const [hasDiscord, setHasDiscord] = useState(false);
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
   const [me, setMe] = useState<{ name: string; avatar: string; login: string } | null>(null);
   // Set for a contributor: the only pages they may edit, their own submissions.
@@ -570,7 +571,8 @@ export default function Admin() {
       .then((d) => {
         if (d) {
           setHasGithub(!!d.github);
-          setSignedInAs(d.user?.login ?? null);
+          setHasDiscord(!!d.discord);
+          setSignedInAs(d.user?.via === "discord" ? d.user.name || d.user.login : d.user?.login ?? null);
           setMe(d.user ? { name: d.user.name || d.user.login || "", avatar: d.user.avatar || "", login: d.user.login || "" } : null);
           setScoped(Array.isArray(d.user?.scope));
           setDocsContributor(!!d.user?.docs);
@@ -1321,10 +1323,12 @@ export default function Admin() {
         <div style={{ width: 300 }}>
           <h1 style={{ font: "600 22px/1.25 var(--ac-font-text)", letterSpacing: "0.016em", margin: "0 0 14px", color: "var(--ac-label)" }}>Sign in</h1>
 
+          {new URLSearchParams(location.search).has("cms_login") && <p role="alert" style={{color:"var(--ac-red)"}}>{new URLSearchParams(location.search).get("cms_login") === "disabled" ? "Your contribution access is disabled." : "Sign-in could not be completed. Please try again. You must be a member of the Discord server to sign in with Discord."}</p>}
+          {hasDiscord && <a href={`/api/cms/auth/discord/start?next=${encodeURIComponent(location.pathname + location.search)}`} className="cmsx-save" style={{ ...styles.saveBtn, width:"100%", display:"inline-flex", alignItems:"center", justifyContent:"center", textDecoration:"none", boxSizing:"border-box", marginBottom:12 }}>Sign in with Discord</a>}
           {hasGithub ? (
             <>
               <a
-                href={`/api/cms/auth/github/start?next=${encodeURIComponent(location.pathname)}`}
+                href={`/api/cms/auth/github/start?next=${encodeURIComponent(location.pathname + location.search)}`}
                 className="cmsx-save"
                 style={{ ...styles.saveBtn, width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none", boxSizing: "border-box" }}
               >
@@ -1334,15 +1338,12 @@ export default function Admin() {
                 Sign in with GitHub
               </a>
               <p style={{ font: "400 13px/1.45 var(--ac-font-text)", color: "var(--ac-label-2)", textAlign: "center", margin: "14px 0 0" }}>
-                Editing is open to members of the project's GitHub organization.
+                Sign in to contribute. Your existing roles and docs grants determine what you can edit.
               </p>
             </>
-          ) : (
-            <p style={{ font: "400 15px/1.5 var(--ac-font-text)", color: "var(--ac-label-2)", margin: 0 }}>
-              GitHub sign-in is not configured on this deployment, so there is no
-              way to sign in. Set CMS_GITHUB_CLIENT_ID and CMS_GITHUB_CLIENT_SECRET.
-            </p>
-          )}
+          ) : !hasDiscord ? (
+            <p style={{ font: "400 15px/1.5 var(--ac-font-text)", color: "var(--ac-label-2)", margin: 0 }}>Sign-in is temporarily unavailable.</p>
+          ) : null}
         </div>
       </div>
     );

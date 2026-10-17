@@ -31,7 +31,8 @@ to the site.
 
 ## Shared documentation
 
-Anyone can sign in with GitHub. Editing still requires permission. Existing
+Members of the Discord server can sign in with Discord, without a GitHub account.
+GitHub sign-in remains available. Editing still requires permission. Existing
 full editors and game-owner scopes are preserved; a docs grant adds shared
 editing and page creation inside existing sections. Linked Discord members
 with the existing Founder or Community Advocate publishing role also receive
@@ -43,7 +44,9 @@ active GitHub org membership with role `admin`, not the ordinary editor
 allowlist. Suspension overrides all website editing permissions and associated
 Discord publishing, including queued work and the pre-push check for trusted
 agent jobs. Old browser sessions must sign in again to acquire a stable GitHub
-user ID. Bot publishing requires a confirmed GitHub/Discord account link.
+user ID. Discord sign-in identifies the same account to the bot automatically. GitHub
+users can instead link Discord. Verifying a GitHub identity is required for org
+admin and repository-owner privileges.
 
 See [wiki operation and verification](CMS-WIKI.md) for identity linking,
 history, restoration, and the Discord request syntax.
@@ -55,7 +58,9 @@ public. It all lives in the host's environment.
 
 ```
 CMS_GITHUB_CLIENT_ID       OAuth app client id
-CMS_GITHUB_CLIENT_SECRET   OAuth app client secret
+CMS_GITHUB_CLIENT_SECRET   GitHub OAuth app client secret
+CMS_DISCORD_CLIENT_ID      existing Discord application client id (public config)
+CMS_DISCORD_CLIENT_SECRET  Discord OAuth client secret, stored as a Worker secret
 CMS_ALLOWED_ORG            a GitHub org whose members may edit
 CMS_ALLOWED_LOGINS         comma-separated GitHub logins: "alice,bob"
 CMS_AGENT_KEYS             comma-separated <login>:<label>:<sha256-of-token>
@@ -136,3 +141,19 @@ Every write records who made it. The commit's author is the person (or
 - The local dev CMS is restricted to loopback and writes to the working tree.
   It supports read-only Git history; production account administration uses
   the private Worker binding.
+
+## Discord OAuth configuration
+
+The existing Discord application is `1543907467040129115`. Its OAuth redirect is
+`https://retroportingtoolkit.com/api/cms/auth/discord/callback`. The authorization
+code flow requests only `identify`, uses a browser-bound random state and PKCE,
+and revokes the profile token after use. Tokens are not stored in D1, cookies,
+or the browser. The client secret belongs in the login Keychain service
+`retroportingtoolkit-discord-oauth` (account `1543907467040129115`) and Worker
+secret `CMS_DISCORD_CLIENT_SECRET`. It is distinct from the running bot's token.
+
+The access schema retains the historical `github_id` primary-key name. A
+Discord-only account uses `discord:<user-id>` in that key and a namespaced login;
+it must never be interpreted as a verified GitHub identity. Proving both accounts
+can merge a Discord-first account into its GitHub account, retaining grants and
+aliases for existing sessions. A suspended identity cannot be merged away.

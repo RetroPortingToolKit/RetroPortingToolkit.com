@@ -17,7 +17,8 @@
   },
   "vars": {
     "CMS_REPO_OWNER": "RetroPortingToolKit",
-    "CMS_REPO_NAME": "RetroPortingToolkit.com"
+    "CMS_REPO_NAME": "RetroPortingToolkit.com",
+    "CMS_DISCORD_CLIENT_ID": "1543907467040129115"
   },
   "workers_dev": true,
   "routes": [

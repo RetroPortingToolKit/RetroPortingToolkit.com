@@ -37,7 +37,8 @@ cover, and nothing else. [Submission guide](/docs/start/submit-a-recomp).
 
 ## Contribute documentation
 
-Sign in with GitHub at `/admin`. Docs contributors can edit shared docs and create
+Sign in with Discord or GitHub at `/admin`. Discord sign-in needs no GitHub
+account. Docs contributors can edit shared docs and create
 pages inside existing sections. Contributions contains Discord linking; an org
 admin grants docs access there. Existing full-editor and game-owner permissions
 still apply. A website suspension overrides editing permissions in the CMS and
@@ -52,8 +53,8 @@ The server maintains docs `updated`. Protected pages require an org admin.
 its previous text. These are read-only. Admin restoration is available in the
 editor's History view and creates a new commit.
 
-For Discord, first link the two accounts from Contributions and confirm the link
-back in the signed-in browser. Mention the bot, followed by
+For Discord, sign in with Discord at `/admin`, or link Discord to your GitHub
+account from Contributions. Mention the bot, followed by
 `wiki edit /docs/section/page your instructions`. For a new page, send
 `wiki new section Page title` and put source facts on the following line. The
 same docs permissions and content checks apply to both interfaces.

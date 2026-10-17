@@ -8,7 +8,7 @@ export interface Statement {
 }
 export interface AccessDB { prepare(sql: string): Statement; batch(statements: Statement[]): Promise<unknown>; }
 export interface WikiEnv { WIKI_ACCESS: AccessDB; DISCORD_BOT_TOKEN: string; }
-export interface WikiUser { github_id: string; login: string; discord_id: string | null; docs: number; suspended: number; }
+export interface WikiUser { github_id: string; login: string; discord_id: string | null; docs: number; suspended: number; canonical_id?: string | null; display_name?: string | null; }
 const contexts = new WeakMap<Request, WikiEnv>();
 export function bindWiki(req: Request, env: WikiEnv) { contexts.set(req, env); }
 export function wikiEnv(req: Request) { return contexts.get(req); }
@@ -31,7 +31,8 @@ export async function memberRoles(env: WikiEnv, discordId: string, requireMember
 export async function accessUser(req: Request, login: string): Promise<WikiUser | null> {
   const env = wikiEnv(req);
   if (!env) return null;
-  return env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE login = ?").bind(login).first<WikiUser>();
+  const user = await env.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE login = ?").bind(login).first<WikiUser>();
+  return canonicalUser(req, user);
 }
 export async function protectedPage(req: Request, path: string) {
   const env = wikiEnv(req);
@@ -61,3 +62,10 @@ export function verifyBridge(req: Request, raw: string): boolean {
   return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
 }
 export function linkHash(code: string) { return crypto.createHash("sha256").update(code).digest("hex"); }
+
+export async function canonicalUser(req: Request, user: WikiUser | null): Promise<WikiUser | null> {
+  if (!user?.canonical_id) return user;
+  // Only one hop is allowed: Discord-only aliases point at a GitHub account.
+  const target = await wikiEnv(req)!.WIKI_ACCESS.prepare("SELECT * FROM wiki_users WHERE github_id = ?").bind(user.canonical_id).first<WikiUser>();
+  return target && !target.canonical_id ? target : null;
+}
