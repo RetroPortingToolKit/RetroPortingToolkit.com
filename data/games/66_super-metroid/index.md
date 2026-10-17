@@ -12,11 +12,11 @@ platform: "super-nintendo"
 repo: "https://github.com/mstan/SuperMetroidRecomp"
 group: "Super Nintendo"
 verified: "2026-08-20"
-updated: "2026-10-16"
+updated: "2026-10-17"
 added: "2026-06-08"
 cover: "./boxart.webp"
-release: "v0.3.11"
-download: "https://github.com/mstan/SuperMetroidRecomp/releases/tag/v0.3.11"
+release: "v0.3.12"
+download: "https://github.com/mstan/SuperMetroidRecomp/releases/tag/v0.3.12"
 ---
 
 Super Metroid has an early [SNESRecomp](/hardware/super-nintendo) build.
