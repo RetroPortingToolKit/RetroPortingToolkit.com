@@ -22,8 +22,6 @@ Native PC port of the classic PlayStation 1 title \`Wild 9\`, powered by static 
 
 Static recompilation and native PC port of Wild 9 \(PlayStation 1, NTSC-U SLUS-00425\).
 
-Screenshots \(click a thumbnail to view full size\):
-
 Wild 9 is a 2.5D platform action game developed by Shiny Entertainment and published by Interplay in 1998 for the Sony PlayStation. This project provides a native PC port of the original NTSC-U release \(SLUS-00425\) by statically translating the MIPS R3000A machine code from the game executable into native C source files.
 
 The recompiled C code links directly against a hardware-accurate runtime environment provided by [PSXRecomp](/hardware/playstation) and recomp-ui. The runtime provides native display output, widescreen viewport expansion, PGXP geometric precision correction, an integrated OpenBIOS implementation, and modding plugins while preserving the original game logic, physics, and timing.
