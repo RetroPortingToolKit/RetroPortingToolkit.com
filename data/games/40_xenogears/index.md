@@ -12,11 +12,11 @@ platform: "playstation"
 repo: "https://github.com/OpokXeno/xenogears-recomp"
 group: "PlayStation"
 verified: "2026-08-18"
-updated: "2026-10-17"
+updated: "2026-10-18"
 added: "2026-07-22"
 cover: "./boxart.png"
-release: "v0.10.5"
-download: "https://github.com/OpokXeno/xenogears-recomp/releases/tag/v0.10.5"
+release: "v0.11.0"
+download: "https://github.com/OpokXeno/xenogears-recomp/releases/tag/v0.11.0"
 ---
 
 XenogearsRecomp is an independent community project by OpokXeno.
