@@ -12,11 +12,11 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/MegaManZeroRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
-updated: "2026-08-29"
+updated: "2026-10-18"
 added: "2026-07-14"
 cover: "./mmz-gameplay.png"
-release: "v0.0.6"
-download: "https://github.com/mstan/MegaManZeroRecomp/releases/tag/v0.0.6"
+release: "v0.0.7"
+download: "https://github.com/mstan/MegaManZeroRecomp/releases/tag/v0.0.7"
 ---
 
 Mega Man Zero is fast and demanding, and the GBA screen gives you very little room to react.
