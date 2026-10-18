@@ -12,11 +12,11 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/WarioWareTwistedRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
-updated: "2026-08-29"
+updated: "2026-10-18"
 added: "2026-07-29"
 cover: "/covers/warioware-sensors.jpg"
-release: "v0.0.1"
-download: "https://github.com/mstan/WarioWareTwistedRecomp/releases/tag/v0.0.1"
+release: "v0.0.2"
+download: "https://github.com/mstan/WarioWareTwistedRecomp/releases/tag/v0.0.2"
 ---
 
 WarioWare: Twisted! shipped with a gyro sensor built into the cartridge. You played it by physically twisting the console.
