@@ -13,7 +13,7 @@ updated: "2026-10-18"
 submissionId: "d506dbb58d4077a5"
 draft: false
 creator: {"github":"plinkr","discord":"plinkr"}
-cover: "./submission-1.png"
+cover: "./8c46df32775afcc338f82c9abe645cc2.png"
 ---
 
 Native PC port of the classic PlayStation 1 title \`Wild 9\`, powered by static recompilation. Features true widescreen, high-resolution rendering, PGXP correction, intro skipping, higher framerate support, multiple languages, controls and gameplay changes and an extensible mod system
