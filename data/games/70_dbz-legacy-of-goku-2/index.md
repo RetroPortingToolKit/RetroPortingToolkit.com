@@ -13,11 +13,11 @@ showOnPlatform: false
 repo: "https://github.com/mstan/DragonBallZLegacyofGokuIIRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-20"
-updated: "2026-08-29"
+updated: "2026-10-18"
 added: "2026-08-02"
 cover: "./boxart.webp"
-release: "v0.0.2"
-download: "https://github.com/mstan/DragonBallZLegacyofGokuIIRecomp/releases/tag/v0.0.2"
+release: "v0.0.3"
+download: "https://github.com/mstan/DragonBallZLegacyofGokuIIRecomp/releases/tag/v0.0.3"
 ---
 
 The Legacy of Goku II is an experimental [GBARecomp](/hardware/game-boy-advance) preview.

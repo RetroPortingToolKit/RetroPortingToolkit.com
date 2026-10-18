@@ -15,11 +15,11 @@ group: "Super Nintendo"
 links:
   - { label: "Star Fox Enhanced", href: "https://github.com/kandowontu2/starfox-enhanced" }
 verified: "2026-08-20"
-updated: "2026-09-21"
+updated: "2026-10-18"
 added: "2026-07-15"
 cover: "./starfox-title.png"
-release: "v0.3.1"
-download: "https://github.com/mstan/StarFoxSNESRecomp/releases/tag/v0.3.1"
+release: "v0.3.2"
+download: "https://github.com/mstan/StarFoxSNESRecomp/releases/tag/v0.3.2"
 ---
 
 Star Fox is a hidden [SNESRecomp](/hardware/super-nintendo) development preview.
