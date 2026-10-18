@@ -34,3 +34,8 @@ The recompiled C code links directly against a hardware-accurate runtime environ
 - Geometry and texturing fixes: Employs PGXP precision geometry and perspective-correct texturing to eliminate PlayStation affine texture warping and polygon jitter.
 - Widescreen rendering: Native widescreen expansion with automated 2D backdrop stretching and SXY screen culling adjustments.
 - Frame rate presentation mod: Optional temporal frame blending mod supporting 60, 120, 144, 165 FPS, and display refresh targets on OpenGL while maintaining original 59.94 Hz simulation cadence.
+- Video skip mod: Configurable controller button shortcut to skip introductory FMV sequences and logos.
+- Language selection mod: Configurable launcher option to select among built-in Multi-5 languages (English, French, German, Italian, Spanish).
+- Debug overlay: Mod plugin exposing the native engine diagnostic overlay for memory, GPU, and rendering performance metrics.
+- Enhanced environment brightness: Optional OpenGL post-process gamma adjustment that lifts shadows and mid-tones without modifying guest rendering state, textures, or recompiled game code.
+- Rig overhead hover mod: Gameplay enhancement allowing players to lock held objects or enemies overhead by holding both trigger buttons (R2 + L2 / RT + LT), eliminating awkward carry physics during platforming sections.
