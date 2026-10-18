@@ -39,3 +39,5 @@ The recompiled C code links directly against a hardware-accurate runtime environ
 - Debug overlay: Mod plugin exposing the native engine diagnostic overlay for memory, GPU, and rendering performance metrics.
 - Enhanced environment brightness: Optional OpenGL post-process gamma adjustment that lifts shadows and mid-tones without modifying guest rendering state, textures, or recompiled game code.
 - Rig overhead hover mod: Gameplay enhancement allowing players to lock held objects or enemies overhead by holding both trigger buttons (R2 + L2 / RT + LT), eliminating awkward carry physics during platforming sections.
+
+![](./simplescreenrecorder-2026-10-18_01.44.09.mp4)
