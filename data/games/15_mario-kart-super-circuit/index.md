@@ -15,8 +15,8 @@ verified: "2026-08-18"
 updated: "2026-10-19"
 added: "2026-07-30"
 cover: "./super-circuit-widescreen.jpg"
-release: "v0.1.7"
-download: "https://github.com/mstan/MarioKartSuperCircuitRecomp/releases/tag/v0.1.7"
+release: "v0.1.8"
+download: "https://github.com/mstan/MarioKartSuperCircuitRecomp/releases/tag/v0.1.8"
 ---
 
 Mario Kart: Super Circuit has unused 60 FPS track-rendering behavior in its own code. That discovery came from antimattur's decompilation work on the game.
