@@ -8,13 +8,13 @@ repo: "https://github.com/mstan/SuperMarioLand2Recomp"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/SuperMarioLand2Recomp"}]
 added: "2026-09-28"
-updated: "2026-09-19"
+updated: "2026-10-19"
 submissionId: "57709e656a9ec54a"
 draft: false
 creator: {"github":"mstan"}
 cover: "./submission-1.png"
-release: "v0.1.1"
-download: "https://github.com/mstan/SuperMarioLand2Recomp/releases/tag/v0.1.1"
+release: "v0.2.0"
+download: "https://github.com/mstan/SuperMarioLand2Recomp/releases/tag/v0.2.0"
 ---
 
 Super Mario Land 2: 6 Golden Coins \(Game Boy\) static recompilation with adaptive widescreen and DX mods
