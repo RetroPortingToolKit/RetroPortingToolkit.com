@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-10-19"
 added: "2026-03-15"
 cover: "./char-sonic.png"
-release: "v1.12.2"
-download: "https://github.com/mstan/SuperMarioBrosNESRecomp/releases/tag/v1.12.2"
+release: "v1.12.3"
+download: "https://github.com/mstan/SuperMarioBrosNESRecomp/releases/tag/v1.12.3"
 ---
 
 Super Mario Bros. runs here as a native PC program, rebuilt from the original game by [NESRecomp](/hardware/nes).
