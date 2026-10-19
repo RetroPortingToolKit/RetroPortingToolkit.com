@@ -860,5 +860,53 @@
       "- Frame rate presentation mod: Optional temporal frame blending mod supporting 60, 120, 144, 165 FPS, and display refresh targets on OpenGL while maintaining original 59.94 Hz simulation cadence."
     ],
     "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "67b83dab476b8c49",
+    "repo": "https://github.com/kinduff/TLKRecomp",
+    "title": "The Lion King",
+    "description": "TLKRecomp is a static recompilation of The Lion King (SNES), built with snesrecomp",
+    "owner": "kinduff",
+    "discord": "@lettucebegood",
+    "path": "data/games/102_tlkrecomp-67b83dab/index.md",
+    "url": "/games/tlkrecomp-67b83dab",
+    "createdAt": "2026-10-19T04:26:31.119Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "@lettucebegood"
+    },
+    "images": [
+      {
+        "path": "./submission-1.png",
+        "alt": "Six scenes from the game running in tlk_sdl: the ostrich ride, the stampede, Hakuna Matata, Simba's Destiny, Be Prepared and the fight with Scar"
+      },
+      {
+        "path": "./submission-2.png",
+        "alt": "Recompilation status: routines compiled 100%, game code run compiled 94.5%, functions found 93.9%, tapes matching the interpreter 100%, speedruns in s"
+      },
+      {
+        "path": "./submission-3.png",
+        "alt": "The settings menu over the game, Display section"
+      },
+      {
+        "path": "./submission-4.png",
+        "alt": "Practice mode: level timer, TAS split and input display over Can"
+      }
+    ],
+    "summary": [
+      "Disney's The Lion King (SNES, 1994), running as a native PC program.",
+      "TLKRecomp is a static recompilation of the US release, built with snesrecomp. The game's 65816 program is translated to C and compiled for your CPU; graphics, sound and timing run on snesrecomp's emulated PPU and SPC, so it plays like the cartridge, from the Westwood logo to the last hit on Scar. It runs on Linux, Windows and macOS (Apple Silicon).",
+      "No game data is in this repository. No ROM, no assets, no generated code. Bring your own dump (Lion King, The (USA).sfc, 3 MiB headerless, SHA-256 457abe63...0f3712); the build reads it and generates the C on your machine, and the release builds need it to start.",
+      "- Routines compiled: every entry point the recompiler knows about has a compiled C body.",
+      "- Game code run compiled: share of the instructions on a whole-game run (All Bugs, idle loops excluded) that run as compiled C. The rest still runs in snesrecomp's interpreter: a few routines the game enters in a CPU mode the compiler can't handle yet.",
+      "- Functions found: entry points known to the recompiler, out of about 1,390 known to exist. The real total is probably 1,450-1,550; the rest are reached only through pointers (docs/functioncount.md).",
+      "- Tapes match interpreter: 71 hand-made input tapes give the same frame and RAM compiled and interpreted.",
+      "- Speedruns in sync: three TASVideos runs and All Bugs, game RAM checked against BizHawk (bsnes).",
+      "The card is drawn by tools/statuscard.py, in the colours of the game's HUD; each number in it names the command that measured it.",
+      "- The whole game, start to finish, bonus stages included, on keyboard or gamepad."
+    ],
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
   }
 ]
