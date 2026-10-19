@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-10-19"
 added: "2026-04-03"
 cover: "/data/blog/20_nesrecomp-10-titles/MetroidNESRecomp_Csz3Tj0DhO.png"
-release: "v0.2.2"
-download: "https://github.com/mstan/MetroidNESRecomp/releases/tag/v0.2.2"
+release: "v0.2.3"
+download: "https://github.com/mstan/MetroidNESRecomp/releases/tag/v0.2.3"
 ---
 
 Metroid is an early [NESRecomp](/hardware/nes) proof for a larger action game.

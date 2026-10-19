@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-10-19"
 added: "2026-03-15"
 cover: "./title-screen.png"
-release: "v2.3.2"
-download: "https://github.com/mstan/FaxanaduRecomp/releases/tag/v2.3.2"
+release: "v2.3.3"
+download: "https://github.com/mstan/FaxanaduRecomp/releases/tag/v2.3.3"
 ---
 
 Faxanadu was the [first commercial title](/blog/nesrecomp-4-titles) [NESRecomp](/hardware/nes) ever supported.
