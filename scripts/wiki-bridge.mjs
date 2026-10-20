@@ -9,7 +9,14 @@ export async function wikiBridge(token, discordId, action, payload = {}, extra =
     signal: AbortSignal.timeout(20000),
   });
   const result = await response.json();
-  if (!response.ok || result.error || result.ok === false) throw new Error(result.error || 'Website contribution access could not be verified.');
+  if (!response.ok || result.error || result.ok === false) {
+    const error = new Error(result.error || 'Website contribution access could not be verified.');
+    // A refusal is a decision about one person, never evidence that the site is
+    // broken: on 2026-10-20 one requester's missing Discord link was announced
+    // to everyone as "Publishing is stopped".
+    if ([400, 401, 403, 409].includes(response.status)) error.denied = true;
+    throw error;
+  }
   return result;
 }
 export function parseWikiRequest(text) {

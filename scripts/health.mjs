@@ -13,6 +13,21 @@ export function failedCheck(message) {
   return String(message ?? "").match(/Command failed: npm run ([\w:-]+)/)?.[1] ?? null;
 }
 
+/** Is there any evidence here that the site is broken?
+ *
+ * Only two things are: a named check that failed (`Command failed: npm run x`),
+ * or a git command that could not publish (`Command failed: git ...` — a
+ * diverged main, a rejected push). Everything else a job can throw — a refusal,
+ * a timeout talking to Discord, a bug in a lane — is that job's failure, not the
+ * site's. The alarm used to accept anything it did not recognise as breakage,
+ * which is how one requester's missing Discord link stopped publishing for
+ * everyone on 2026-10-20. Unknown is not evidence.
+ */
+export function evidenceOfBreakage(message) {
+  const text = String(message ?? "");
+  return Boolean(failedCheck(text)) || /Command failed: git /.test(text);
+}
+
 /** Does this failure say the site is broken, or only that the machine was busy?
  *
  * A test that timed out, or a bridge agent reported as having gone silent, is

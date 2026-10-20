@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { failedCheck, failureSummary, onlySlowness } from './health.mjs';
+import { failedCheck, failureSummary, onlySlowness, evidenceOfBreakage } from './health.mjs';
 
 // The real shape of a failing run: cms-git.test.mjs deliberately produces a
 // conflicting rebase on every run, and React prints render stacks. Reporting
@@ -70,5 +70,24 @@ describe("load is not a breakage", () => {
     // Nothing recognisable is not an excuse either.
     expect(onlySlowness("Command failed: npm run test")).toBe(false);
     expect(onlySlowness("")).toBe(false);
+  });
+});
+
+/** 2026-10-20: one requester's missing Discord link — a 403 from the identity
+ * check — was announced to everyone as "Publishing is stopped". The alarm took
+ * anything it did not recognise as proof the site was broken. */
+describe("an alarm needs evidence", () => {
+  it("counts a failed check and a git command that could not publish", () => {
+    expect(evidenceOfBreakage("Command failed: npm run test\n× something")).toBe(true);
+    expect(evidenceOfBreakage("Command failed: git push origin main\n! [rejected]")).toBe(true);
+    expect(evidenceOfBreakage("Command failed: git pull --ff-only\nfatal: Not possible to fast-forward")).toBe(true);
+  });
+
+  it("does not count anything else a job can throw", () => {
+    expect(evidenceOfBreakage("Sign in with Discord at /admin, or sign in with GitHub and link Discord, before contributing through the bot.")).toBe(false);
+    expect(evidenceOfBreakage("Discord publishing access revoked.")).toBe(false);
+    expect(evidenceOfBreakage("The operation was aborted due to timeout")).toBe(false);
+    expect(evidenceOfBreakage("TypeError: Cannot read properties of undefined")).toBe(false);
+    expect(evidenceOfBreakage("")).toBe(false);
   });
 });

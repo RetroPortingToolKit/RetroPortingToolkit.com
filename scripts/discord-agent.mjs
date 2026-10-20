@@ -56,7 +56,7 @@ import { siteChangeWatcher } from "./site-changes.mjs";
 import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from "./repo-updates.mjs";
 import { parseOwnerRequest, findGamePage, applyOwnerUpdate } from "./owner-updates.mjs";
 import { syncContributorRoles } from "./discord-contributor-roles.mjs";
-import { failedCheck, failureSummary, onlySlowness } from "./health.mjs";
+import { failedCheck, failureSummary, onlySlowness, evidenceOfBreakage } from "./health.mjs";
 import { classifyIntent, apiIntentCall } from "./intent.mjs";
 
 /** The intent classifier's model call, when there is a key to make one with.
@@ -1325,6 +1325,10 @@ async function confirmBroken(error) {
   // No npm check to re-run — `git pull --ff-only` on a diverged main, say. The
   // only evidence available is whether someone else's work is in the way.
   if (!check) {
+    // No check failed. Without positive evidence — a git command that could not
+    // publish — this was the job's own failure, and saying "publishing is
+    // stopped" over it is false: see evidenceOfBreakage.
+    if (error?.denied || !evidenceOfBreakage(detail)) return { notBreakage: detail };
     const foreign = await foreignWorkAtFailure(error);
     return foreign ? { foreign } : { check: null, output: detail };
   }
@@ -1374,6 +1378,10 @@ async function alertPublishingBroken(error) {
   // Not the site's problem. Returning false leaves scheduled jobs running and
   // keeps "Publishing is stopped" out of the channel: the work is parked by
   // the ordinary busy-checkout path and picked up once the tree is clear.
+  if (confirmed.notBreakage) {
+    console.warn(`[discord-agent] a job failed without any sign the site is broken; not pausing: ${String(confirmed.notBreakage).split("\n")[0].slice(0, 200)}`);
+    return false;
+  }
   if (confirmed.foreign) {
     console.warn(`[discord-agent] a check failed while the checkout held other work (${confirmed.foreign}); not pausing`);
     return false;

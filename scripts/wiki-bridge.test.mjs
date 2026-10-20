@@ -25,3 +25,15 @@ describe('Discord docs contribution lane', () => {
     expect(calls).not.toContain('save');
   });
 });
+
+describe("a refusal is a decision, not a fault", () => {
+  it("marks a 403 as denied, and an outage as not", async () => {
+    const { wikiBridge } = await import("./wiki-bridge.mjs");
+    const refuse = async () => new Response(JSON.stringify({ error: "Sign in with Discord at /admin" }), { status: 403 });
+    const down = async () => new Response(JSON.stringify({ error: "upstream" }), { status: 502 });
+    const denied = await wikiBridge("t", "123456789012345678", "status", {}, {}, refuse).catch((e) => e);
+    expect(denied.denied).toBe(true);
+    const outage = await wikiBridge("t", "123456789012345678", "status", {}, {}, down).catch((e) => e);
+    expect(outage.denied).toBeUndefined();
+  });
+});
