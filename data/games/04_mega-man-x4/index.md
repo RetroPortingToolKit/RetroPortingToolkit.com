@@ -16,10 +16,10 @@ links:
 cover: "./mega-man-x4.png"
 videoUrl: "https://www.youtube.com/watch?v=Rbh5wKb112A"
 verified: "2026-08-18"
-updated: "2026-10-19"
+updated: "2026-10-20"
 added: "2026-07-06"
-release: "v0.1.1-coop-playtest.41"
-download: "https://github.com/mstan/MegaManX4Recomp/releases/tag/v0.1.1-coop-playtest.41"
+release: "v0.1.1-coop-playtest.42"
+download: "https://github.com/mstan/MegaManX4Recomp/releases/tag/v0.1.1-coop-playtest.42"
 ---
 
 The X series hit PlayStation with X4, and [PSXRecomp](/hardware/playstation) picks the story up right there. It sits alongside [Mega Man X5](/games/mega-man-x5) and [Mega Man X6](/games/mega-man-x6) in the framework's run of Capcom titles.
