@@ -12,11 +12,11 @@ platform: "playstation"
 repo: "https://github.com/PeriBluGaming/ToyStory2Recomp"
 group: "PlayStation"
 verified: "2026-08-20"
-updated: "2026-10-17"
+updated: "2026-10-20"
 added: "2026-07-29"
 cover: "./toystory2-gameplay.jpg"
-release: "v0.2.0"
-download: "https://github.com/PeriBluGaming/ToyStory2Recomp/releases/tag/v0.2.0"
+release: "v0.3.0"
+download: "https://github.com/PeriBluGaming/ToyStory2Recomp/releases/tag/v0.3.0"
 ---
 
 ToyStory2Recomp is a community project by PeriBluGaming.
