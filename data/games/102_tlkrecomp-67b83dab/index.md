@@ -9,13 +9,13 @@ status: "Community submission"
 platform: "super-nintendo"
 links: [{"label":"Project on GitHub","href":"https://github.com/kinduff/TLKRecomp"}]
 added: "2026-10-19"
-updated: "2026-10-19"
+updated: "2026-10-21"
 submissionId: "67b83dab476b8c49"
 draft: false
 creator: {"github":"kinduff","discord":"@lettucebegood"}
 cover: "./submission-1.png"
-release: "v0.2.1"
-download: "https://github.com/kinduff/TLKRecomp/releases/tag/v0.2.1"
+release: "v0.3.0"
+download: "https://github.com/kinduff/TLKRecomp/releases/tag/v0.3.0"
 ---
 
 TLKRecomp is a static recompilation of The Lion King \(SNES\), built with [SNESRecomp](/hardware/super-nintendo)
