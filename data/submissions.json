@@ -908,5 +908,23 @@
       "- The whole game, start to finish, bonus stages included, on keyboard or gamepad."
     ],
     "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "c3970fe12043378a",
+    "repo": "https://github.com/sigods/otogi1",
+    "title": "Otogi: Myth of Demons",
+    "description": "Static recompilation of the original Xbox release. Boots the retail XBE on Linux, runs the title's own main loop, streams the menu BGM and opens a framebuffer window. Research preview: the UI draws, the 3D scene and controller input are not wired yet. You supply your own disc; no game data is included.",
+    "owner": "sigods",
+    "path": "data/games/103_otogi1-c3970fe1/index.md",
+    "url": "/games/otogi1-c3970fe1",
+    "createdAt": "2026-10-21T19:05:26.844Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
