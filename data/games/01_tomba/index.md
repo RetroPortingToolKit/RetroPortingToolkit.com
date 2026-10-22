@@ -18,10 +18,10 @@ links:
 cover: "/covers/tomba-gameplay.jpg"
 videoUrl: "https://www.youtube.com/watch?v=sbqPnJhb3uk"
 verified: "2026-08-18"
-updated: "2026-10-20"
+updated: "2026-10-22"
 added: "2026-03-15"
-release: "v0.20.2-alpha"
-download: "https://github.com/mstan/TombaRecomp/releases/tag/v0.20.2-alpha"
+release: "v0.21.0-alpha"
+download: "https://github.com/mstan/TombaRecomp/releases/tag/v0.21.0-alpha"
 ---
 
 Every framework has a first game. For [PSXRecomp](/hardware/playstation), that game was Tomba!.
