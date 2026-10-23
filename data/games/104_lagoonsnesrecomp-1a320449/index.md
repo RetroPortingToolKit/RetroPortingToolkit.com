@@ -14,6 +14,8 @@ submissionId: "1a320449459261c8"
 draft: false
 creator: {"github":"rages4calm","discord":"chrono.trigger"}
 cover: "./submission-1.png"
+release: "v0.2.5"
+download: "https://github.com/rages4calm/LagoonSNESRecomp/releases/tag/v0.2.5"
 ---
 
 Lagoon returns on Windows with widescreen exploration, an in-game map and quality-of-life improvements. And apparently someone took a wrong turn on the way to another RPG… Bring your own clean USA ROM. No ROM is included.
