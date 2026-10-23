@@ -14,8 +14,8 @@ submissionId: "87d17311e2cec2ce"
 draft: false
 creator: {"github":"mstan"}
 cover: "./submission-1.png"
-release: "v0.0.5"
-download: "https://github.com/mstan/ZeroRacersVirtualBoyRecomp/releases/tag/v0.0.5"
+release: "v0.1.0"
+download: "https://github.com/mstan/ZeroRacersVirtualBoyRecomp/releases/tag/v0.1.0"
 ---
 
 Zero Racers Virtual Boy native recompilation with recomp-ui and independent cosimulation
