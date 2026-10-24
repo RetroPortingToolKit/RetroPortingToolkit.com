@@ -9,13 +9,13 @@ status: "Community submission"
 platform: "playstation"
 links: [{"label":"Project on GitHub","href":"https://github.com/plinkr/Wild9Recomp"}]
 added: "2026-10-18"
-updated: "2026-10-18"
+updated: "2026-10-24"
 submissionId: "d506dbb58d4077a5"
 draft: false
 creator: {"github":"plinkr","discord":"plinkr"}
 cover: "./8c46df32775afcc338f82c9abe645cc2--.webp"
-release: "v0.1.7"
-download: "https://github.com/plinkr/Wild9Recomp/releases/tag/v0.1.7"
+release: "v0.1.8"
+download: "https://github.com/plinkr/Wild9Recomp/releases/tag/v0.1.8"
 ---
 
 Native PC port of the classic PlayStation 1 title \`Wild 9\`, powered by static recompilation. Features true widescreen, high-resolution rendering, PGXP correction, intro skipping, higher framerate support, multiple languages, controls and gameplay changes and an extensible mod system
