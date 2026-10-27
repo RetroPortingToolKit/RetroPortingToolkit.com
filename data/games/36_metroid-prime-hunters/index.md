@@ -17,10 +17,10 @@ links:
 cover: "/covers/mph-2119.jpg"
 videoUrl: "https://www.youtube.com/watch?v=FFUglxqa_eI"
 verified: "2026-08-18"
-updated: "2026-10-24"
+updated: "2026-10-27"
 added: "2026-08-01"
-release: "v0.7.9-alpha"
-download: "https://github.com/mstan/MetroidPrimeHuntersRecomp/releases/tag/v0.7.9-alpha"
+release: "v0.7.10-alpha"
+download: "https://github.com/mstan/MetroidPrimeHuntersRecomp/releases/tag/v0.7.10-alpha"
 ---
 
 Metroid Prime Hunters is the one public game built on [ndsrecomp](/hardware/nintendo-ds), the core team's very early Nintendo DS recompiler. The framework itself is pre-alpha research, but this title runs ahead of it as a public alpha: a DS shooter with mouse aiming and a genuinely wider field of view.
