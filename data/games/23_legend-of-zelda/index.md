@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-10-27"
 added: "2026-03-15"
 cover: "./voxel-3d.webp"
-release: "v1.9.5"
-download: "https://github.com/mstan/LegendOfZeldaNESRecomp/releases/tag/v1.9.5"
+release: "v1.10.0"
+download: "https://github.com/mstan/LegendOfZeldaNESRecomp/releases/tag/v1.10.0"
 ---
 
 The Legend of Zelda runs as a native PC game through [NESRecomp](/hardware/nes).
