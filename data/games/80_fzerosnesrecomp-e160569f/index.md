@@ -14,7 +14,7 @@ draft: false
 creator: {"github":"mstan"}
 cover: "./submission-1.png"
 release: "v1.8.3"
-download: "https://github.com/mstan/FZeroSNESRecomp/releases/tag/v1.8.3"
+download: "https://github.com/RetroPortingToolKit/FZeroSNESRecomp/releases/tag/v1.8.3"
 ---
 
 A community game project. See the source repository for details and current progress.
