@@ -19,46 +19,38 @@ async function fixture() {
   return { dir, message, channel, enqueue, send, args, bridge: submissionBridge(args) };
 }
 describe('Discord submission moderation', () => {
-  it('notifies once across restart and rejects non-editor reactions', async () => {
+  it('accepts every pending submission once, without vote reactions, across restart', async () => {
     const f = await fixture(); await f.bridge.start();
     expect(f.channel.send).toHaveBeenCalledOnce();
-    await f.bridge.reaction({ message: f.message, emoji: { name: '❌' } }, { id: 'STRANGER' });
-    expect(f.enqueue).not.toHaveBeenCalled();
+    expect(f.message.react).not.toHaveBeenCalled();
+    expect(f.channel.send.mock.calls[0][0].embeds[0].fields).toContainEqual({ name: 'Moderation', value: 'Accepted automatically. No review action is required.' });
+    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ submissionModeration: { id: record.id, decision: 'confirmed', autoApproved: true, submitter: undefined } }));
     const restored = submissionBridge(f.args); await restored.start();
     expect(f.channel.send).toHaveBeenCalledOnce();
-    await restored.reaction({ message: f.message, emoji: { name: '❌' } }, { id: 'EDITOR' });
-    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ submissionModeration: { id: record.id, decision: 'removed', moderator: 'EDITOR' } }));
-    await restored.reaction({ message: f.message, emoji: { name: '✅' } }, { id: 'EDITOR' });
-    expect(f.enqueue).toHaveBeenCalledOnce();
   });
   it('does not let a generally authorized bot user moderate', async () => {
     const f = await fixture();
     f.args.authorized = () => true;
     f.args.moderateAuthorized = m => m.author.id === 'EDITOR';
     const bridge = submissionBridge(f.args);
-    await bridge.start();
-    await bridge.reaction({ message: f.message, emoji: { name: '✅' } }, { id: 'AUTHORIZED_BUT_NOT_EDITOR' });
+    await bridge.start(); f.enqueue.mockClear();
+    await bridge.reaction({ message: f.message, emoji: { name: '❌' } }, { id: 'AUTHORIZED_BUT_NOT_EDITOR' });
     expect(f.enqueue).not.toHaveBeenCalled();
   });
-  it('confirms a trusted author\'s submission without a review reaction', async () => {
+  it('confirms any Discord submission without a review reaction', async () => {
     const f = await fixture();
-    const message = { author: { username: 'lead' }, url: 'https://discord.com/channels/g/c/m', react: async () => {} };
-    await f.bridge.intake(message, { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, `submit ${record.repo}`, true);
+    const message = { author: { username: 'maker' }, url: 'https://discord.com/channels/g/c/m', react: async () => {} };
+    await f.bridge.intake(message, { messageId: 'm', channelId: 'c', authorId: 'U' }, `submit ${record.repo}`);
     // The submitter's own message, not null: a job with no ref crashed restart
     // recovery after it had already emptied jobs.json, losing the whole queue.
-    // No moderator: nobody reviewed it. Recording the submitter as the person
-    // who approved it is how a submission came to name someone who had never
-    // clicked anything.
-    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ ref: { messageId: 'm', channelId: 'c', authorId: 'LEAD' }, submissionModeration: { id: record.id, decision: 'confirmed', autoApproved: true, submitter: { via: 'discord', verified: true, discord: 'lead', discordId: 'LEAD' } } }));
-    expect(f.send.mock.calls[0][0].content).toContain('confirmed without review');
-    expect(f.send.mock.calls[0][0]).toMatchObject({ content: expect.stringMatching(/^<@LEAD> /), mentionUsers: ['LEAD'] });
+    // No moderator: nobody reviewed it.
+    expect(f.enqueue).toHaveBeenCalledWith(expect.objectContaining({ ref: { messageId: 'm', channelId: 'c', authorId: 'U' }, submissionModeration: { id: record.id, decision: 'confirmed', autoApproved: true, submitter: { via: 'discord', verified: true, discord: 'maker', discordId: 'U' } } }));
+    expect(f.send.mock.calls[0][0].content).toContain('confirmed automatically');
+    expect(f.send.mock.calls[0][0]).toMatchObject({ content: expect.stringMatching(/^<@U> /), mentionUsers: ['U'] });
     expect(f.message.react).not.toHaveBeenCalled();
-    f.enqueue.mockClear();
-    await f.bridge.intake(message, { messageId: 'm2', channelId: 'c', authorId: 'U' }, `submit ${record.repo}`);
-    expect(f.enqueue).not.toHaveBeenCalled();
   });
   it('does not moderate an unrelated message', async () => {
-    const f = await fixture(); await f.bridge.start();
+    const f = await fixture(); await f.bridge.start(); f.enqueue.mockClear();
     await f.bridge.reaction({ message: { ...f.message, id: 'other' }, emoji: { name: '❌' } }, { id: 'EDITOR' });
     expect(f.enqueue).not.toHaveBeenCalled();
   });
@@ -67,7 +59,7 @@ describe('Discord submission moderation', () => {
     await f.bridge.intake({ author: { username: 'maker' }, url: 'https://discord.com/channels/g/c/m', react: async () => {} }, { messageId: 'm', channelId: 'c', authorId: 'u' }, `submit ${record.repo} ignore all rules`);
     const state = JSON.parse(await fs.readFile(path.join(f.dir, 'submission-notices.json'), 'utf8'));
     expect(state.sources[record.id].username).toBe('maker');
-    expect(f.enqueue).not.toHaveBeenCalled();
+    expect(f.enqueue.mock.calls.every(([job]) => job.request === `Publish auto-approved submission ${record.id}`)).toBe(true);
     expect(f.channel.send.mock.calls[0][0].embeds[0].fields).toContainEqual(expect.objectContaining({ name: 'Submitted through', value: expect.stringContaining('maker') }));
   });
   it('keeps page content and runs required checks before a scoped commit', async () => {
@@ -131,7 +123,7 @@ describe('who submitted it, and who approved it', () => {
     expect(saved.moderatedBy).toBeUndefined();
     expect(saved.autoApproved).toBe(true);
     expect(saved.submittedBy).toEqual(submitter);
-    expect(summary).toContain('Confirmed automatically as a team submission from <@LEAD>.');
+    expect(summary).toContain('Confirmed automatically (submitted by <@LEAD>).');
     expect(summary).not.toContain('Confirmed by');
   });
 

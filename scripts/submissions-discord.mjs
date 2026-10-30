@@ -26,14 +26,15 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     if (!response.ok) throw new Error(result.error || 'The submission could not be published.');
     const record = result.record;
     if (!record?.id || !/^\/games\/[a-z0-9-]+$/.test(record.url)) throw new Error('The submission returned an incomplete result.');
-    state.sources[record.id] ??= { ref: intake.ref, username: intake.username, url: intake.url, autoApproved: intake.trusted && !result.duplicate,
+    state.sources[record.id] ??= { ref: intake.ref, username: intake.username, url: intake.url, autoApproved: !result.duplicate,
       // The bridge saw this message itself, so unlike anything the public form
       // reports, this identity is evidence.
       submitter: { via: 'discord', verified: true, discord: intake.username, discordId: intake.ref.authorId } };
     delete state.intake[key];
     await save();
-    const auto = intake.trusted && !result.duplicate;
-    await send({ ...intake.ref, content: `<@${intake.ref.authorId}> ${result.message}${auto ? ' As a team submission it is confirmed without review.' : ''}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true, mentionUsers: [intake.ref.authorId] });
+    // Every submission is accepted on arrival; nobody votes on it.
+    const auto = !result.duplicate;
+    await send({ ...intake.ref, content: `<@${intake.ref.authorId}> ${result.message}${auto ? ' It is confirmed automatically.' : ''}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true, mentionUsers: [intake.ref.authorId] });
     await poll();
     // The submitter's own message, not null: a job with no ref crashed the
     // restart recovery after it had already emptied jobs.json, silently
@@ -126,28 +127,17 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
                 : record.submittedBy?.via === 'discord' ? `Discord: ${record.submittedBy.discord ?? 'unknown'}`
                 : record.submittedBy?.discord ? `Website form, claiming to be ${record.submittedBy.discord} on Discord (unverified)`
                 : 'Website form, with no submitter given' },
-              { name: 'Moderation', value: source?.autoApproved
-                ? 'Auto-approved team submission. No review action is required.'
-                : 'The game page publishes automatically. ✅ confirms it; ❌ removes it from listings (keeps its unlisted URL). Only approved site editors can moderate.' },
+              { name: 'Moderation', value: 'Accepted automatically. No review action is required.' },
             ], footer: { text: `Submission ${record.id}` },
           }] });
         }
         notice = state.notices[record.id] = { ...notice, messageId: message.id, channelId: channel.id, autoApproved: source?.autoApproved === true };
         await save();
-        if (!notice.autoApproved) { await message.react('✅'); await message.react('❌'); }
-        // Fetch reaction users as well as listening live, so moderation made
-        // while the bridge was offline still reaches the serialized queue.
-        for (const emoji of ['❌', '✅']) {
-          const reaction = message.reactions.cache.find(r => r.emoji.name === emoji);
-          if (!reaction) continue;
-          let after;
-          for (;;) {
-            const users = await reaction.users.fetch({ limit: 100, ...(after ? { after } : {}) });
-            for (const user of users.values()) await queueReaction(message, emoji, user);
-            if (users.size < 100 || pending.has(record.id)) break;
-            after = users.last().id;
-          }
-        }
+        // No ✅/❌ vote: anything still pending (the website form, or a Discord
+        // intake that crashed before its confirm was queued) is confirmed here.
+        if (!pending.has(record.id)) await enqueue({ ref: source?.ref ?? { channelId: channel.id, messageId: message.id, authorId: client.user.id },
+          request: `Publish auto-approved submission ${record.id}`, messageUrl: source?.url ?? message.url,
+          submissionModeration: { id: record.id, decision: 'confirmed', autoApproved: true, submitter: source?.submitter } });
       }
     } finally { polling = false; }
   }
@@ -227,7 +217,7 @@ export async function moderateSubmission({ root, action, exec, siteUrl = '' }) {
   // Who did this, in the message that survives: the notice it was clicked on
   // is deleted, so without this line nothing on Discord records the decision.
   const who = action.autoApproved
-    ? `Confirmed automatically${record.submittedBy?.discordId ? ` as a team submission from <@${record.submittedBy.discordId}>` : ' as a team submission'}.`
+    ? `Confirmed automatically${record.submittedBy?.discordId ? ` (submitted by <@${record.submittedBy.discordId}>)` : ''}.`
     : `${action.decision === 'confirmed' ? 'Confirmed' : 'Removed'} by <@${action.moderator}>.`;
   return action.decision === 'confirmed'
     ? `Submission confirmed. ${siteUrl}${record.url}\n${who}`
