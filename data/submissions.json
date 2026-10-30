@@ -955,5 +955,42 @@
       "Native combat, damage, death/revival, boss services and endgame routes, display fades and guarded HUD dispatch have focused checks; the interpreter remains enabled for paths that have not been qualified. Scenery contracts cover all 75 authored room descriptors, but that does not mean every actor, effect, menu or transition supports widescreen. Unsupported content falls back to the original view."
     ],
     "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "7f8296d8c2fd7c20",
+    "repo": "https://github.com/mstan/BlinxRecomp",
+    "title": "Blinx the Timesweeper Recompiled",
+    "description": "A recompilation of Blinx the Timesweeper using Xbox Low Level Recompiler (xboxllr)",
+    "owner": "mstan",
+    "discord": "gamemaster",
+    "path": "data/games/105_blinxrecomp-7f8296d8/index.md",
+    "url": "/games/blinxrecomp-7f8296d8",
+    "createdAt": "2026-10-30T06:09:20.408Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "gamemaster"
+    },
+    "images": [
+      {
+        "path": "./submission-1.jpg",
+        "alt": "Blinx exploring a street in adaptive ultrawide, with the HUD at the edges"
+      },
+      {
+        "path": "./submission-2.png",
+        "alt": "Native Blinx gameplay in 16:9 with adaptive widescreen enabled"
+      },
+      {
+        "path": "./submission-3.png",
+        "alt": "Native Blinx gameplay in 21:9 with adaptive widescreen enabled"
+      }
+    ],
+    "summary": [
+      "Play Blinx on Windows with adaptive widescreen, higher internal resolution, controller support and optional gameplay mods through an Xbox-themed launcher. Built on XboxLLR, the early low-level Xbox recompiler ecosystem.",
+      "Download the playable Windows x64 alpha — no compiler needed. Supply your own supported NTSC-U game files.",
+      "Fresh launchers default to adaptive Fit to screen, 1080p internal rendering, 2×2 supersampling, FXAA, 8× filtering and blended 60 FPS presentation. Change these individually under Mods. See graphics options and costs."
+    ],
+    "mediaNote": "Imported 3 images. The first is the cover; check the page for any missing artwork."
   }
 ]
