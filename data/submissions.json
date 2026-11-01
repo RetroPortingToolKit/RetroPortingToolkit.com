@@ -992,5 +992,25 @@
       "Fresh launchers default to adaptive Fit to screen, 1080p internal rendering, 2×2 supersampling, FXAA, 8× filtering and blended 60 FPS presentation. Change these individually under Mods. See graphics options and costs."
     ],
     "mediaNote": "Imported 3 images. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "fc59ab6153a2640d",
+    "repo": "https://github.com/bigevilmods/FInal-Fantasy-NSE-Recomp",
+    "title": "Final Fantasy NSE Recomp",
+    "description": "FInal Fantasy NSE Static Recomp",
+    "owner": "bigevilmods",
+    "discord": "bigevildev",
+    "path": "data/games/106_final-fantasy-nse-recomp-fc59ab61/index.md",
+    "url": "/games/final-fantasy-nse-recomp-fc59ab61",
+    "createdAt": "2026-11-01T23:33:04.698Z",
+    "status": "pending",
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "bigevildev"
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
