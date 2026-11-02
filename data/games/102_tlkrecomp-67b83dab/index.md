@@ -14,8 +14,8 @@ submissionId: "67b83dab476b8c49"
 draft: false
 creator: {"github":"kinduff","discord":"@lettucebegood"}
 cover: "./submission-1.png"
-release: "v0.3.3"
-download: "https://github.com/kinduff/TLKRecomp/releases/tag/v0.3.3"
+release: "v0.3.4"
+download: "https://github.com/kinduff/TLKRecomp/releases/tag/v0.3.4"
 ---
 
 TLKRecomp is a static recompilation of The Lion King \(SNES\), built with [SNESRecomp](/hardware/super-nintendo)
