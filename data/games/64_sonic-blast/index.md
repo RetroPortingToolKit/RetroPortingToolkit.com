@@ -12,11 +12,11 @@ platform: "master-system-game-gear"
 repo: "https://github.com/mstan/SonicBlastGGRecomp"
 group: "Game Gear"
 verified: "2026-08-20"
-updated: "2026-10-18"
+updated: "2026-11-02"
 added: "2026-06-23"
 cover: "./title-screen.png"
-release: "v0.0.3"
-download: "https://github.com/mstan/SonicBlastGGRecomp/releases/tag/v0.0.3"
+release: "v0.0.4"
+download: "https://github.com/mstan/SonicBlastGGRecomp/releases/tag/v0.0.4"
 ---
 
 Sonic Blast is a very early [Master System / Game Gear](/hardware/master-system-game-gear) tech demo.
