@@ -16,8 +16,8 @@ verified: "2026-08-18"
 updated: "2026-11-01"
 added: "2026-06-22"
 cover: "./pokemon-emerald-gameplay.webp"
-release: "v0.1.4"
-download: "https://github.com/mstan/EmeraldRecomp/releases/tag/v0.1.4"
+release: "v0.1.5"
+download: "https://github.com/mstan/EmeraldRecomp/releases/tag/v0.1.5"
 ---
 
 Pokemon Emerald joins the Gen 3 [GBARecomp](/hardware/game-boy-advance) work alongside [Ruby & Sapphire](/games/pokemon-ruby-sapphire) and [FireRed & LeafGreen](/games/pokemon-firered-leafgreen).

@@ -15,8 +15,8 @@ verified: "2026-08-18"
 updated: "2026-11-01"
 added: "2026-06-22"
 cover: "./pokemon-ruby.webp"
-release: "v0.0.8"
-download: "https://github.com/mstan/RubySapphireRecomp/releases/tag/v0.0.8"
+release: "v0.0.9"
+download: "https://github.com/mstan/RubySapphireRecomp/releases/tag/v0.0.9"
 ---
 
 Pokemon Ruby and Sapphire opened Gen 3, and this [GBARecomp](/hardware/game-boy-advance) project turns both into native PC games.
