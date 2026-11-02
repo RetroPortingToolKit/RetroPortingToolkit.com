@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-11-02"
 added: "2026-05-29"
 cover: "./boxart.png"
-release: "v0.7.1"
-download: "https://github.com/mstan/Sonic3AndKnucklesRecomp/releases/tag/v0.7.1"
+release: "v0.7.2"
+download: "https://github.com/mstan/Sonic3AndKnucklesRecomp/releases/tag/v0.7.2"
 ---
 
 Sonic 3 & Knuckles is really three builds in one repository: Sonic 3 alone, Sonic & Knuckles alone, and the combined lock-on game.
