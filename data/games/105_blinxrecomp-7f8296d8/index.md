@@ -13,8 +13,8 @@ submissionId: "7f8296d8c2fd7c20"
 draft: false
 creator: {"github":"mstan","discord":"gamemaster"}
 cover: "./submission-1.jpg"
-release: "v0.5.0"
-download: "https://github.com/mstan/BlinxRecomp/releases/tag/v0.5.0"
+release: "v0.5.1"
+download: "https://github.com/mstan/BlinxRecomp/releases/tag/v0.5.1"
 ---
 
 A recompilation of Blinx the Timesweeper using Xbox Low Level Recompiler \(xboxllr\)
