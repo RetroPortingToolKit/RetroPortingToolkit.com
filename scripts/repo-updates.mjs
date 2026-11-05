@@ -2,7 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { releasesFromFeed } from './github-web.mjs';
 import { pickRelease, releaseDecision, isNewsRelease } from './release-rank.mjs';
-import { rollbackOnFailure, pushPending, assertPublishable, assertOnlyOwnStaged } from './checkout.mjs';
 
 /** Keeps game pages current with their repositories. Each tick checks a
  * slice of the pages for a new release on GitHub or GitLab; a change becomes
@@ -142,56 +141,34 @@ export function releasePage(raw, update) {
   return raw.replace(match[0], `---\n${fm}\n---`);
 }
 
-/** Applies every update in one commit: one set of checks, one push, one
- * deployment, however many releases the tick found. */
-export async function applyRepoUpdates({ root, updates, exec, siteUrl = '' }) {
+/** Applies every update in one commit and pushes it, in a clean clone of
+ * main. No local build: Vercel builds the push, and a failed build never goes
+ * live. A rejected push (main moved) throws; the next pass starts from the
+ * new main and finds the same work, because the page decides what is left. */
+export async function applyRepoUpdates({ root, updates, git, siteUrl = '' }) {
   for (const update of updates) if (!/^data\/games\/[^/]+\/index\.md$/.test(update.path)) throw new Error('Invalid page path.');
-  // Publishing from a detached HEAD or mid-rebase advances nothing and the
-  // push reports success anyway; selfHeal fixes both before anything is written.
-  await assertPublishable(exec);
-  await exec('git', ['pull', '--ff-only']);
-  await pushPending(exec);
-  const written = [];
-  return rollbackOnFailure(exec, written, async () => {
-    const changed = [];
-    const refused = [];
-    for (const update of updates) {
-      const target = path.join(root, update.path);
-      const raw = await fs.readFile(target, 'utf8');
-      // The decision was made when the tick ran; the page is written now. A
-      // queue that survived a restart can carry an update the page has since
-      // moved past, and a downgrade must not reach a page through a replay.
-      const recorded = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1]?.match(/^release:\s*"?([^"\n]*)"?\s*$/m)?.[1] ?? '';
-      if (recorded && releaseDecision({ recorded, recordedUrl: '', pick: { tag: update.tag, url: update.releaseUrl }, feedTags: [recorded] }) === 'review') {
-        refused.push(`${update.title} still lists ${recorded}, so ${update.tag} was not written`);
-        continue;
-      }
-      const next = releasePage(raw, update);
-      if (next === raw) continue;
-      await fs.writeFile(target, next);
-      // The bytes, so a failed run puts back exactly what it replaced and
-      // never overwrites a save someone made while the checks were running.
-      written.push({ path: target, before: raw, after: next, repoPath: update.path });
-      changed.push(update);
+  const changed = [];
+  const refused = [];
+  for (const update of updates) {
+    const target = path.join(root, update.path);
+    const raw = await fs.readFile(target, 'utf8');
+    // A downgrade must never reach a page, however the update was decided.
+    const recorded = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1]?.match(/^release:\s*"?([^"\n]*)"?\s*$/m)?.[1] ?? '';
+    if (recorded && releaseDecision({ recorded, recordedUrl: '', pick: { tag: update.tag, url: update.releaseUrl }, feedTags: [recorded] }) === 'review') {
+      refused.push(`${update.title} still lists ${recorded}, so ${update.tag} was not written`);
+      continue;
     }
-    if (!changed.length) {
-      const already = updates.filter((u) => !refused.some((r) => r.startsWith(`${u.title} `)));
-      return [already.map((u) => `${u.title} already lists ${u.tag}`).join('; '), ...refused].filter(Boolean).join('. ') + '.';
-    }
-    for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
-    await exec('git', ['add', '--', ...changed.map((u) => u.path)]);
-    await assertOnlyOwnStaged(exec, changed.map((u) => u.path));
-    const message = changed.length === 1 ? `Record ${changed[0].tag} for ${changed[0].title}` : `Record ${changed.length} releases\n\n${changed.map((u) => `- ${u.title}: ${u.tag}`).join('\n')}`;
-    // The pathspec is what bounds the commit. `git add --` bounds only the
-    // staging; a bare `git commit -m` then commits the WHOLE index, so anything
-    // anyone staged during the two minutes of checks was swept in and deployed.
-    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', message, '--', ...changed.map((u) => u.path)]);
-    written.length = 0; // committed: a failed push must not undo the work
-    await exec('git', ['push', 'origin', 'main']);
-    return [...changed.map((u) => `${u.title}: release ${u.tag} recorded. ${siteUrl}${u.url}`), ...refused].join('\n');
-  });
+    const next = releasePage(raw, update);
+    if (next === raw) continue;
+    await fs.writeFile(target, next);
+    changed.push(update);
+  }
+  if (!changed.length) return [...updates.filter((u) => !refused.some((r) => r.startsWith(`${u.title} `))).map((u) => `${u.title} already lists ${u.tag}`), ...refused].join('. ') + '.';
+  const message = changed.length === 1 ? `Record ${changed[0].tag} for ${changed[0].title}` : `Record ${changed.length} releases\n\n${changed.map((u) => `- ${u.title}: ${u.tag}`).join('\n')}`;
+  await git('-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '--quiet', '-m', message, '--', ...changed.map((u) => u.path));
+  await git('push', '--quiet', 'origin', 'HEAD:main');
+  return [...changed.map((u) => `${u.title}: release ${u.tag} recorded. ${siteUrl}${u.url}`), ...refused].join('\n');
 }
-export const applyRepoUpdate = ({ update, ...rest }) => applyRepoUpdates({ updates: [update], ...rest });
 
 /** The website-channel line for a release people have not seen yet. */
 export function releaseAnnouncement(update, siteUrl = '') {

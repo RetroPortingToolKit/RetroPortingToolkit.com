@@ -73,42 +73,12 @@ from trusted people.
 - The page publishes immediately and is credited to the repository owner.
   The reply tells the submitter how to edit it.
 
-### 4. Discord bot (`scripts/discord-agent.mjs` and siblings)
+### 4. Site bot (`scripts/site-bot.mjs`)
 
-A single long-running Node process under launchd on a Mac that holds a clone
-of the repository. Everything it does on the checkout goes through one
-serialized queue with a busy-tree check, the project's own checks
-(typecheck, build, test), and a commit and push.
-
-- Addressing: it acts only on messages that open with its mention or reply
-  to it. Mentions mid-sentence and a reply's automatic ping are ignored.
-- Intake: `@Bot submit <repo url>` from anyone, any channel. Attachments
-  become artwork. The submitter is @-mentioned with the page and edit link.
-  Submissions from a configured team list are confirmed on publication.
-- Moderation: each submission posts a notice in the bot channel; editors
-  react ✅ to confirm (notice deleted) or ❌ to unlist. Reactions are checked
-  against the same authorization as publishing.
-- Owner self-service: `@Bot update /games/<slug> status: …; news: …` from
-  the page's Discord creator, the team member owning its repository, or the
-  trusted list. This is a frontmatter rewrite, not an agent run.
-  Code: `scripts/owner-updates.mjs`, `scripts/page-updates.mjs`.
-- Watchers: the site-change watcher polls GitHub's compare API and posts one
-  line per page that was created, removed, published, unlisted, given a cover
-  or images, or substantially edited, after a burst goes quiet
-  (`scripts/site-changes.mjs`). The release watcher checks each game's
-  repository about once a day, records the latest release and download link
-  on the page, and announces releases after the first
-  (`scripts/repo-updates.mjs`). Anonymous GitHub usage stays under ten calls
-  an hour.
-- Agent lane: trusted people can ask for open-ended edits in natural
-  language. The bot runs a coding agent (Codex, then the Claude CLI on a
-  subscription, then the Claude CLI on an API key) with the request, a
-  bounded context, and a receipt format; it verifies the agent's completion
-  claims against the committed source and remote before reporting. Public
-  channels get a read-only question lane with tools fenced to the checkout.
-  See [DISCORD_AGENT.md](DISCORD_AGENT.md) and
-  [DISCORD-OPERATIONS.md](DISCORD-OPERATIONS.md).
-- Channels: one for site changes only, one for everything the bot did.
+A small Node process under launchd on a Mac. It records new game releases on
+their pages (`scripts/repo-updates.mjs`), commits and pushes them from its own
+clone, and posts releases and page changes (`scripts/site-changes.mjs`) in
+#website. It takes no requests. See [SITE-BOT.md](SITE-BOT.md).
 
 ### 5. Durability and failure handling
 
@@ -172,6 +142,5 @@ the repository, not who typed the submission.
 
 - [AUTHORING.md](AUTHORING.md): content rules and frontmatter.
 - [CMS-ACCESS.md](CMS-ACCESS.md), [CMS-API.md](CMS-API.md): identity and the write API.
-- [DISCORD_AGENT.md](DISCORD_AGENT.md): the bot's behaviour and configuration.
-- [DISCORD-OPERATIONS.md](DISCORD-OPERATIONS.md): running and restarting it.
+- [SITE-BOT.md](SITE-BOT.md): the site bot and how to run it.
 - `public/agent.md`: what an outside agent is told about this site.

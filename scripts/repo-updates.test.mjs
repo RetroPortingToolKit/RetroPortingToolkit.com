@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { repoUpdateWatcher, releasePage, applyRepoUpdate, applyRepoUpdates, releaseAnnouncement, gamePages } from './repo-updates.mjs';
+import { repoUpdateWatcher, releasePage, applyRepoUpdates, releaseAnnouncement, gamePages } from './repo-updates.mjs';
 
 const dirs = [];
 afterEach(async () => { await Promise.all(dirs.splice(0).map(removeTemp)); });
@@ -100,59 +100,37 @@ describe('repository update watcher', () => {
     expect(f.enqueue).not.toHaveBeenCalled();
   });
 
-  it('restores the pages it wrote when a check fails, and keeps them once committed', async () => {
-    const f = await fixture({ alpha: 'v1', beta: null });
-    const update = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'v1', name: 'Alpha v1', releaseUrl: 'https://github.com/a/alpha/releases/tag/v1', date: '2026-09-16', announce: false };
-
-    const failing = vi.fn(async (_cmd, args) => { if (args[0] === 'run' && args[1] === 'test') throw new Error('Command failed: npm run test'); });
-    await expect(applyRepoUpdates({ root: f.dir, updates: [update], exec: failing })).rejects.toThrow('npm run test');
-    // The page is put back from the bytes it held before, not from HEAD:
-    // `git checkout HEAD -- <path>` would overwrite a save someone else made
-    // while the checks were running, with no way back.
-    expect(await fs.readFile(path.join(f.dir, update.path), 'utf8')).not.toContain('release: "v1"');
-    expect(failing.mock.calls.some(c => c[1].includes('commit'))).toBe(false);
-
-    // A push that fails after the commit must not undo the commit.
-    const g = await fixture({ alpha: 'v1', beta: null });
-    const pushFails = vi.fn(async (_cmd, args) => { if (args[0] === 'push') throw new Error('rejected'); });
-    await expect(applyRepoUpdates({ root: g.dir, updates: [update], exec: pushFails })).rejects.toThrow('rejected');
-    expect(pushFails.mock.calls.some(c => c[1][0] === 'checkout')).toBe(false);
-    expect(pushFails.mock.calls.some(c => c[1].includes('commit'))).toBe(true);
-  });
-
-  it('batches a tick into one job and one commit', async () => {
+  it('commits a tick as one commit, by path, and pushes it; no local build', async () => {
     const f = await fixture({ alpha: 'v1', beta: '2.0' });
     const enqueueBatch = vi.fn(async () => {});
     const w = repoUpdateWatcher({ root: f.dir, stateDir: path.join(f.dir, 'state'), enqueueBatch, fetcher: f.fetcher, batch: 10 });
     await w.start();
-    expect(enqueueBatch).toHaveBeenCalledOnce();
     const updates = enqueueBatch.mock.calls[0][0];
     expect(updates.map(u => u.tag)).toEqual(['v1', '2.0']);
-    const exec = vi.fn(async () => {});
-    await applyRepoUpdates({ root: f.dir, updates, exec });
-    expect(exec.mock.calls.filter(c => c[1][0] === 'run')).toHaveLength(3);
-    const commit = exec.mock.calls.find(c => c[1].includes('commit'))[1];
+    const git = vi.fn(async () => {});
+    await applyRepoUpdates({ root: f.dir, updates, git });
+    expect(git.mock.calls.map((c) => c.find((a) => a === 'commit' || a === 'push'))).toEqual(['commit', 'push']);
+    const commit = git.mock.calls[0];
     expect(commit[commit.indexOf('-m') + 1]).toContain('Record 2 releases');
-    // The pathspec is what bounds the commit: `git add --` bounds only the
-    // staging, and a bare `git commit -m` then takes the whole index, so
-    // anything anyone staged during the checks was committed and deployed.
     expect(commit.slice(commit.indexOf('--') + 1)).toEqual(['data/games/01_alpha/index.md', 'data/games/02_beta/index.md']);
-    expect(exec.mock.calls.filter(c => c[1][0] === 'push')).toHaveLength(1);
+    expect(git.mock.calls[1]).toEqual(['push', '--quiet', 'origin', 'HEAD:main']);
   });
-  it('writes release, download, and updated into frontmatter and commits after checks', async () => {
+  it('lets a rejected push throw, for the next pass to retry from a fresh main', async () => {
+    const f = await fixture({ alpha: 'v1', beta: null });
+    const update = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'v1', name: 'Alpha v1', releaseUrl: 'u', date: '2026-09-16' };
+    const git = vi.fn(async (...args) => { if (args[0] === 'push') throw new Error('rejected'); });
+    await expect(applyRepoUpdates({ root: f.dir, updates: [update], git })).rejects.toThrow('rejected');
+  });
+  it('writes release, download, and updated into frontmatter', async () => {
     const f = await fixture({ alpha: 'v1', beta: null });
     const update = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'v1', name: 'Alpha v1', releaseUrl: 'https://github.com/a/alpha/releases/tag/v1', date: '2026-09-16', announce: true };
-    const exec = vi.fn(async () => {});
-    expect(await applyRepoUpdate({ root: f.dir, update, exec, siteUrl: 'https://site' })).toBe('Alpha: release v1 recorded. https://site/games/alpha');
+    const git = vi.fn(async () => {});
+    expect(await applyRepoUpdates({ root: f.dir, updates: [update], git, siteUrl: 'https://site' })).toBe('Alpha: release v1 recorded. https://site/games/alpha');
     const raw = await fs.readFile(path.join(f.dir, update.path), 'utf8');
     expect(raw).toContain('release: "v1"\ndownload: "https://github.com/a/alpha/releases/tag/v1"\nupdated: "2026-09-16"\n---\n\nBody.');
-    // Read-only state probes (rev-parse/symbolic-ref/status) are the
-    // self-heal checking whether the checkout can publish at all; what matters
-    // here is the sequence of commands that change something.
-    const changing = (calls) => calls.map((c) => c[1]).filter((a) => !['rev-parse', 'symbolic-ref', 'status'].includes(a[0]) && !(a[0] === '--no-optional-locks'));
-    expect(changing(exec.mock.calls).map((a) => a.join(' '))).toEqual(['pull --ff-only', 'rev-list --count @{u}..HEAD', 'run typecheck', 'run build', 'run test', 'add -- data/games/01_alpha/index.md', expect.stringContaining('commit -m Record v1 for Alpha'), 'push origin main']);
     expect(releasePage(raw, { ...update, tag: 'v2', releaseUrl: 'u2', date: '' })).toContain('release: "v2"\ndownload: "u2"\nupdated: "2026-09-16"');
-    expect(await applyRepoUpdate({ root: f.dir, update, exec })).toContain('already lists v1');
+    expect(await applyRepoUpdates({ root: f.dir, updates: [update], git })).toContain('already lists v1');
+    expect(git).toHaveBeenCalledTimes(2); // the second run had nothing to commit
     expect(releaseAnnouncement(update, 'https://site')).toBe('🎉 Alpha: new release Alpha v1 (v1)\nhttps://github.com/a/alpha/releases/tag/v1\nhttps://site/games/alpha');
   });
 });
@@ -213,47 +191,11 @@ describe('a release the page should keep', () => {
     const f = await fixture({ alpha: 'v1', beta: null });
     await fs.writeFile(path.join(f.dir, 'data/games/01_alpha/index.md'), withRelease('v1.6.6'));
     const stale = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'zero-v0.0.1', name: 'mod', releaseUrl: 'u', date: '2026-09-29' };
-    const exec = vi.fn(async () => {});
-    const summary = await applyRepoUpdate({ root: f.dir, update: stale, exec });
+    const git = vi.fn(async () => {});
+    const summary = await applyRepoUpdates({ root: f.dir, updates: [stale], git });
     expect(summary).toContain('still lists v1.6.6');
     expect(await fs.readFile(path.join(f.dir, 'data/games/01_alpha/index.md'), 'utf8')).toContain('release: "v1.6.6"');
-    // Nothing was written, so nothing is checked, committed or pushed.
-    expect(exec.mock.calls.filter((c) => c[1][0] === 'run')).toHaveLength(0);
-    expect(exec.mock.calls.filter((c) => c[1].includes('commit'))).toHaveLength(0);
-  });
-});
-
-/** The owner on 2026-10-02: "i dont wanna keep babysitting this project".
- * All 148 give-ups in the live log were structured jobs waiting on an edit
- * that had nothing to do with the file they write. */
-describe("not waiting for work it will never touch", () => {
-  it("records a release while someone edits an unrelated file, and does not commit theirs", async () => {
-    const f = await fixture({ alpha: 'v1', beta: null });
-    // Someone is mid-edit somewhere else in the checkout.
-    await fs.mkdir(path.join(f.dir, 'src'), { recursive: true });
-    await fs.writeFile(path.join(f.dir, 'src/App.tsx'), 'half a thought\n');
-    const update = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'v1', name: 'Alpha v1', releaseUrl: 'https://github.com/a/alpha/releases/tag/v1', date: '2026-09-16' };
-    const exec = vi.fn(async () => {});
-    await applyRepoUpdates({ root: f.dir, updates: [update], exec });
-
-    const add = exec.mock.calls.find(c => c[1][0] === 'add')[1];
-    const commit = exec.mock.calls.find(c => c[1].includes('commit'))[1];
-    // Staged by name, and — the part that was missing — committed by name too.
-    expect(add.slice(add.indexOf('--') + 1)).toEqual(['data/games/01_alpha/index.md']);
-    expect(commit.slice(commit.indexOf('--') + 1)).toEqual(['data/games/01_alpha/index.md']);
-    expect(commit.join(' ')).not.toContain('src/App.tsx');
-    // Their file is untouched on disk.
-    expect(await fs.readFile(path.join(f.dir, 'src/App.tsx'), 'utf8')).toBe('half a thought\n');
-  });
-
-  it("refuses to commit when someone has staged something of their own", async () => {
-    const f = await fixture({ alpha: 'v1', beta: null });
-    const update = { path: 'data/games/01_alpha/index.md', url: '/games/alpha', title: 'Alpha', tag: 'v1', name: 'Alpha v1', releaseUrl: 'u', date: '2026-09-16' };
-    // `git status --porcelain` reports a file someone staged themselves.
-    const exec = vi.fn(async (_cmd, args) => (args.includes('status') ? { stdout: 'M  src/App.tsx\n' } : {}));
-    await expect(applyRepoUpdates({ root: f.dir, updates: [update], exec })).rejects.toThrow(/staged src\/App\.tsx/);
-    expect(exec.mock.calls.some(c => c[1].includes('commit'))).toBe(false);
-    // And the page it had written is put back.
-    expect(await fs.readFile(path.join(f.dir, update.path), 'utf8')).not.toContain('release: "v1"');
+    // Nothing was written, so nothing is committed or pushed.
+    expect(git).not.toHaveBeenCalled();
   });
 });

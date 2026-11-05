@@ -1,14 +1,8 @@
 #!/usr/bin/env node
-// One command that says why the Discord bridge is not publishing.
+// One command that says whether the site and its bot are healthy.
 //
 //   npm run doctor          full report, runs the checks (~2 min)
 //   npm run doctor -- --quick   skips the checks
-//
-// Written after 2026-09-19, when a test that depended on the machine's
-// timezone started failing, every publishing job died holding a half-written
-// page, one leftover file parked every job behind it, and the only symptom
-// anyone saw was a stream of "Blocked." messages in Discord. Each check below
-// prints what to do about it, so the next occurrence is one command long.
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -17,7 +11,6 @@ import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { gamePages, latestRelease } from './repo-updates.mjs';
 import { releaseDecision } from './release-rank.mjs';
-import { withChecksLock } from './checkout.mjs';
 
 const execFileAsync = promisify(execFile);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -42,15 +35,6 @@ const report = [];
 const ok = (name, detail = '') => report.push({ level: 'ok', name, detail });
 const warn = (name, detail, action) => report.push({ level: 'warn', name, detail, action });
 const bad = (name, detail, action) => report.push({ level: 'bad', name, detail, action });
-
-/** The one that matters: a dirty tree parks every job the bridge has. */
-export async function checkoutState() {
-  const status = await run('git', ['--no-optional-locks', 'status', '--porcelain']);
-  const branch = (await run('git', ['rev-parse', '--abbrev-ref', 'HEAD'])).out.trim();
-  const ahead = (await run('git', ['rev-list', '--count', '@{u}..HEAD'])).out.trim();
-  const behind = (await run('git', ['rev-list', '--count', 'HEAD..@{u}'])).out.trim();
-  return { dirty: status.out.split('\n').filter(Boolean), branch, ahead: Number(ahead) || 0, behind: Number(behind) || 0 };
-}
 
 /** Pages whose repository has published a release the page does not carry.
  *
@@ -106,57 +90,22 @@ export async function staleReleases(root = ROOT, stateDir = STATE_DIR) {
 }
 
 async function main() {
-  // --- the checkout
-  const git = await checkoutState();
-  if (git.branch !== 'main') warn('branch', `on ${git.branch}`, 'The bridge publishes from main. Switch back with: git switch main');
-  if (git.dirty.length) {
-    bad('working tree', `${git.dirty.length} uncommitted file(s):\n    ${git.dirty.join('\n    ')}`,
-      // `git checkout HEAD -- <path>` fails outright on an untracked path and
-      // restores nothing, which is the most common case here: a leftover cache,
-      // a temp file, a half-written new page folder.
-      'Every bot job waits for a clean tree, so this parks all of them. Commit it; discard a tracked file with: git checkout HEAD -- <path>; remove an untracked one (shown as ??) with: git clean -fd -- <path>');
-  } else ok('working tree', 'clean');
-  if (git.ahead) bad('unpushed commits', `${git.ahead} commit(s) not on origin`, 'The site never rebuilds from these. Push with: git push origin main');
-  else if (git.behind) warn('behind origin', `${git.behind} commit(s)`, 'Run: git pull --ff-only');
-  else ok('origin', 'in sync');
-
-  // --- the checks, which every publishing job must pass before it can commit
-  const busy = (await readJson(path.join(STATE_DIR, 'jobs.json'), null))?.active?.request;
+  // --- the checks Vercel also runs on every push
   if (quick) warn('checks', 'skipped (--quick)', 'Run npm run doctor without --quick before trusting a green report.');
-  else if (busy) {
-    // Two builds in one checkout collide, and the bridge reads that as a
-    // broken site: running the doctor during a job is what triggered the
-    // false "publishing is stopped" alert on 2026-09-21.
-    warn('checks', `skipped: the bridge is running "${busy}"`,
-      'Running them now would collide with it in the same checkout. Wait for the queue to be idle, then run again.');
-  } else {
-    // Held so the bridge waits instead of starting its own run alongside.
-    await withChecksLock(STATE_DIR, 'npm run doctor', async () => {
-      for (const check of ['typecheck', 'build', 'test']) {
-        const result = await run('npm', ['run', check]);
-        if (result.ok) { ok(`npm run ${check}`, 'passes'); continue; }
-        const failing = result.out.split('\n').filter((l) => /FAIL|error|✕|×/.test(l)).slice(0, 6).join('\n    ');
-        bad(`npm run ${check}`, failing || 'failed',
-          'No bot job can commit while this fails, and each one dies holding the page it wrote. Fix this first.');
-        break; // the first failing check is the one to fix
-      }
-    });
-  }
-
-  // --- the bridge process and its queue
-  const alive = await run('pgrep', ['-f', 'discord-agent.mjs']);
-  if (alive.ok && alive.out.trim()) ok('bridge process', `pid ${alive.out.trim().split('\n')[0]}`);
-  else bad('bridge process', 'not running', `Start it with: launchctl kickstart -k gui/$(id -u)/com.retroportingtoolkit.discord-agent`);
-
-  const jobs = await readJson(path.join(STATE_DIR, 'jobs.json'), null);
-  if (!jobs) warn('queue', 'no jobs.json yet', 'Normal before the bridge has run once.');
   else {
-    const queued = jobs.queued?.length ?? 0;
-    const active = jobs.active?.request;
-    if (active) ok('queue', `running: ${active}${queued ? ` (+${queued} queued)` : ''}`);
-    else if (queued) warn('queue', `${queued} waiting, nothing running`, 'Usually the tree is dirty. See the working tree check above.');
-    else ok('queue', 'idle');
+    for (const check of ['typecheck', 'build', 'test']) {
+      const result = await run('npm', ['run', check]);
+      if (result.ok) { ok(`npm run ${check}`, 'passes'); continue; }
+      const failing = result.out.split('\n').filter((l) => /FAIL|error|✕|×/.test(l)).slice(0, 6).join('\n    ');
+      bad(`npm run ${check}`, failing || 'failed', 'Vercel runs the same build on every push; a failing build never goes live.');
+      break; // the first failing check is the one to fix
+    }
   }
+
+  // --- the site bot
+  const alive = await run('pgrep', ['-f', 'site-bot.mjs']);
+  if (alive.ok && alive.out.trim()) ok('site bot', `pid ${alive.out.trim().split('\n')[0]}`);
+  else bad('site bot', 'not running', 'Install or restart it with: scripts/install-site-bot.sh');
 
   // --- releases the watcher believes it has delivered but no page carries
   const stale = await staleReleases();
@@ -178,9 +127,9 @@ async function main() {
   }
 
   // --- recent trouble in the log
-  const stderr = await fs.readFile(path.join(LOG_DIR, 'stderr.log'), 'utf8').catch(() => '');
-  const recent = stderr.split('\n').filter((l) => /scheduled job failed|could not|Command failed|blocked after/.test(l)).slice(-3);
-  if (recent.length) warn('recent errors', recent.map((l) => l.slice(0, 160)).join('\n    '), `Full log: ${path.join(LOG_DIR, 'stderr.log')}`);
+  const stderr = await fs.readFile(path.join(LOG_DIR, 'site-bot.log'), 'utf8').catch(() => '');
+  const recent = stderr.split('\n').filter((l) => /failed|could not|Command failed/.test(l)).slice(-3);
+  if (recent.length) warn('recent errors', recent.map((l) => l.slice(0, 160)).join('\n    '), `Full log: ${path.join(LOG_DIR, 'site-bot.log')}`);
   else ok('recent errors', 'none in the log');
 
   // --- the environment that broke it last time
@@ -193,7 +142,7 @@ async function main() {
     if (line.action) console.log(`           → ${line.action}`);
   }
   const failed = report.filter((l) => l.level === 'bad');
-  console.log(`\n${failed.length ? `${failed.length} problem(s) stopping the bridge.` : 'The bridge can publish.'}\n`);
+  console.log(`\n${failed.length ? `${failed.length} problem(s).` : 'All good.'}\n`);
   process.exitCode = failed.length ? 1 : 0;
 }
 
