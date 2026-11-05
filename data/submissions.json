@@ -115,7 +115,7 @@
     "path": "data/games/76_reshadowtower-e088138b/index.md",
     "url": "/games/reshadowtower-e088138b",
     "createdAt": "2026-09-19T23:40:11.621Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [
       {
         "path": "./submission-1.png",
@@ -131,7 +131,9 @@
       "- A full playthrough has not been verified. Geometry seam correction was checked in selected scenes, not throughout the game. Back up normal memory-card saves.",
       "- No widescreen mode or frame-rate unlock. Gameplay retains roughly 20 updates per second; higher rendering resolution does not change this."
     ],
-    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:01:47.980Z"
   },
   {
     "id": "c5318b986728e8ef",
