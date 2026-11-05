@@ -1,0 +1,83 @@
+/**
+ * Stands in for `claude -p ... --output-format stream-json`. Reads the prompt
+ * on stdin and does what markers in the request text say:
+ *   [[sleep=N]]  emit an event every 400ms for N seconds, then a result
+ *   [[silent]]   emit init, then never speak again (the watchdog's case)
+ *   [[dirty]]    leave an uncommitted file in the checkout first (then a result, or [[silent]])
+ *   [[fail]]     a result with is_error: true
+ */
+import fs from "node:fs";
+import path from "node:path";
+
+const chunks = [];
+process.stdin.on("data", (d) => chunks.push(d));
+process.stdin.on("end", async () => {
+  const prompt = Buffer.concat(chunks).toString("utf8");
+  // Both lanes wrap the request differently; the line carrying the harness
+  // marker is the request, whatever surrounds it.
+  const request = (prompt.split("\n").find((l) => l.includes("[[")) || prompt.split("\n")[0]).trim();
+  const say = (o) => process.stdout.write(JSON.stringify(o) + "\n");
+  if (prompt.includes('[[weekly-codex]]')) {
+    say({type:'result',is_error:true,result:"You've hit your weekly limit · resets Sep 27 at 9pm (America/Los_Angeles)"}); process.exit(1);
+  }
+  const answer = text => prompt.startsWith("A trusted") ? `[answer]\n${text}` : text;
+  const receiptPath = prompt.match(/^Completion receipt: (.+)$/m)?.[1];
+  if (/\[\[false-complete\]\]/.test(request)) {
+    say({ type: "result", subtype: "success", is_error: false, result: '[answer]\nYes. The footer links, homepage Explore games CTA, and modal behavior are already in main and pushed to origin/main.' });
+    process.exit(0);
+  }
+  if (/\[\[scope-start\]\]/.test(request)) {
+    say({ type: "result", subtype: "success", is_error: false, result: '[clarification]\nWhich admin channel should receive notices?' });
+    process.exit(0);
+  }
+  if (/\[\[scope-check\]\]/.test(request)) {
+    const hasOriginal = prompt.includes('Submit a recomp') && prompt.includes('GitLab') && prompt.includes('anyone');
+    if (receiptPath && hasOriginal) fs.writeFileSync(receiptPath, JSON.stringify({ outcome: "partial", requirements: [
+      { requirement: 'Submit a recomp CTA and GitHub/GitLab form', status: 'missing' },
+      { requirement: 'Discord intake from anyone', status: 'missing' },
+    ] }));
+    say({ type: "result", subtype: "success", is_error: false, result: hasOriginal ? 'Partial: submission features are missing.' : '[answer]\nYes. All the old features are done.' });
+    process.exit(0);
+  }
+  say({ type: "system", subtype: "init" });
+  // Before anything else, so "[[dirty]] [[silent]]" is a run that wrote a
+  // file and then hung — the case the left-behind note exists for.
+  if (/\[\[dirty\]\]/.test(request)) {
+    // Into data/, where work lives: a root-level file is a tool's leavings and
+    // is no longer a reason to stop anything.
+    fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
+    fs.writeFileSync(path.join(process.cwd(), "data", "left-behind.md"), "oops\n");
+  }
+  if (/\[\[silent\]\]/.test(request)) {
+    setInterval(() => {}, 1 << 30); // keep the process alive, saying nothing
+    return;
+  }
+  const sleep = Number((request.match(/\[\[sleep=(\d+)\]\]/) || [])[1] || 0);
+  const until = Date.now() + sleep * 1000;
+  while (Date.now() < until) {
+    say({ type: "assistant", message: { content: [{ type: "tool_use", name: "Bash", input: { command: "tick" } }] } });
+    await new Promise((r) => setTimeout(r, 400));
+  }
+  const isError = /\[\[fail\]\]/.test(request);
+  if (/\[\[attachment\]\]/.test(request)) {
+    // Prove the file really is where the prompt says: read it back.
+    const m = prompt.match(/^- (\/\S+)\s/m);
+    let seen = "no attachment path in prompt";
+    if (m) { try { seen = fs.readFileSync(m[1], "utf8").split("\n")[0]; } catch (e) { seen = "unreadable: " + e.message; } }
+    say({ type: "result", subtype: "success", is_error: false, result: answer(`OK: attachment says ${seen}`) });
+    process.exit(0);
+  }
+  if (/\[\[whoami\]\]/.test(request)) {
+    const who = (prompt.match(/^Requester: .*$/m) || ["no Requester line"])[0];
+    const roster = (prompt.match(/^- .* — .*$/gm) || []).length;
+    say({ type: "result", subtype: "success", is_error: false, result: answer(`OK: ${who} roster=${roster}`) });
+    process.exit(0);
+  }
+  if (/\[\[question\]\]/.test(request)) {
+    say({ type: "result", subtype: "success", is_error: false, result: "[answer]\nShokunin does UI/UX, frontend and marketing." });
+    process.exit(0);
+  }
+  say({ type: "result", subtype: isError ? "error" : "success", is_error: isError,
+        result: isError ? "The fake agent failed on purpose." : answer(`OK: ${request.replace(/\[\[[^\]]*\]\]/g, "").trim().slice(0, 80)}`) });
+  process.exit(0);
+});

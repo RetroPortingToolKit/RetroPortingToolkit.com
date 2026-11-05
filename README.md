@@ -38,8 +38,9 @@ commits to `main` under your name, so it deploys like any other push.
 Anyone can use **Submit a recomp** on Games, the home page, or the footer to
 share a public GitHub/GitLab repository. The narrow `/api/submissions` endpoint
 creates a new game page and a record in `data/submissions.json`; it cannot edit
-existing pages. Submissions publish as they arrive; there is no review step. See
-[the submission guide](data/docs/01_start/07_submit-a-recomp/index.md).
+existing pages. The Discord bot accepts the same submissions and delivers
+moderation notices. See [the submission guide](data/docs/01_start/07_submit-a-recomp/index.md)
+and [bot operations](docs/DISCORD_AGENT.md#submission-operations).
 
 ## Content
 

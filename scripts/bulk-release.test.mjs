@@ -7,7 +7,7 @@ import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from './rep
 // The scenario CobaltCryptid raised on 2026-09-21: "it's going to have a
 // really bad time when one day I decide to bulk update all of my psxrecomp
 // titles in one shot." They own nine pages; mstan owns forty-two. This runs
-// the watcher exactly as the site bot configures it and counts what the
+// the watcher exactly as the bridge configures it and counts what the
 // community would actually see.
 const dirs = [];
 afterEach(async () => { await Promise.all(dirs.splice(0).map(removeTemp)); });
@@ -24,7 +24,7 @@ async function removeTemp(dir) {
 }
 
 
-const PASS_TICKS = 4; // scripts/site-bot.mjs passes this to the watcher
+const PASS_TICKS = 4; // scripts/discord-agent.mjs passes this to the watcher
 
 async function catalogue({ titles, owner = 'TechnicallyComputers', bystanders = 40, otherOwner = 'someoneelse' }) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'rpt-bulk-')); dirs.push(dir);
@@ -70,14 +70,15 @@ describe('a bulk release across one owner', () => {
     const batches = [];
     const watcher = repoUpdateWatcher({ root: dir, stateDir: path.join(dir, 'state'), passTicks: PASS_TICKS, fetcher: feeds('TechnicallyComputers'), enqueueBatch: async (u) => { batches.push(u); } });
 
-    // One hour of the bot: a tick, then the batch it found is written.
-    let commits = 0, pushes = 0;
+    // One hour of the bridge: a tick, then the job it queued actually runs.
+    let commits = 0, pushes = 0, checkRuns = 0;
     const runBatch = async (batch) => {
-      const git = vi.fn(async (...args) => {
+      const exec = vi.fn(async (_cmd, args) => {
+        if (args[0] === 'run') checkRuns++;
         if (args.includes('commit')) commits++;
         if (args[0] === 'push') pushes++;
       });
-      await applyRepoUpdates({ root: dir, updates: batch, git, siteUrl: 'https://site' });
+      await applyRepoUpdates({ root: dir, updates: batch, exec, siteUrl: 'https://site' });
     };
     await watcher.start();
     if (batches.length) await runBatch(batches.at(-1));
@@ -93,9 +94,10 @@ describe('a bulk release across one owner', () => {
     expect(new Set(found.map(u => u.tag))).toEqual(new Set(['v2.0.0']));
     expect(batches.length).toBeLessThanOrEqual(PASS_TICKS);
 
-    // One commit and one push per batch, whatever it carries.
+    // One set of checks, one commit and one push per batch, whatever it carries.
     expect(commits).toBe(batches.length);
     expect(pushes).toBe(batches.length);
+    expect(checkRuns).toBe(batches.length * 3);
 
     // Every page really did get the new release written into it.
     const applied = await Promise.all(TITLES.map(async (t) => {
@@ -128,7 +130,7 @@ describe('a bulk release across the largest catalogue', () => {
 
     const batches = [];
     const watcher = repoUpdateWatcher({ root: dir, stateDir: path.join(dir, 'state'), passTicks: PASS_TICKS, fetcher: feeds('mstan'), enqueueBatch: async (u) => { batches.push(u); } });
-    const runBatch = async (batch) => applyRepoUpdates({ root: dir, updates: batch, git: vi.fn(async () => {}), siteUrl: 'https://site' });
+    const runBatch = async (batch) => applyRepoUpdates({ root: dir, updates: batch, exec: vi.fn(async () => {}), siteUrl: 'https://site' });
     await watcher.start();
     if (batches.length) await runBatch(batches.at(-1));
     for (let i = 0; i < PASS_TICKS - 1; i++) {
