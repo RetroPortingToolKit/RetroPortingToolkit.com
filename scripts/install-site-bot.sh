@@ -10,9 +10,10 @@ log_dir="$HOME/Library/Logs/RetroPortingToolkitDiscordAgent"
 label="com.retroportingtoolkit.site-bot"
 plist="$HOME/Library/LaunchAgents/$label.plist"
 
-# The token is read from the login Keychain when the job starts; an SSH
-# session cannot unlock it, so it is not checked here. A missing token shows
-# up as "DISCORD_BOT_TOKEN is required." in the log.
+if ! security find-generic-password -s retroportingtoolkit-discord-bot -w >/dev/null 2>&1; then
+  echo "Missing Keychain item: retroportingtoolkit-discord-bot" >&2
+  exit 1
+fi
 mkdir -p "$config_dir" "$log_dir"
 chmod 700 "$config_dir" "$log_dir"
 
