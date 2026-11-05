@@ -170,7 +170,7 @@
     "path": "data/games/78_mickeywildadventurerecomp-6c3e20b3/index.md",
     "url": "/games/mickeywildadventurerecomp-6c3e20b3",
     "createdAt": "2026-09-23T14:37:58.920Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [
       {
         "path": "./submission-1.webp",
@@ -197,7 +197,9 @@
       "- exclusive fullscreen",
       "- CRT filter presets"
     ],
-    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "db227f9cc77f609d",
@@ -274,7 +276,7 @@
     "path": "data/games/81_megaman3nesrecomp-ec26233d/index.md",
     "url": "/games/megaman3nesrecomp-ec26233d",
     "createdAt": "2026-09-27T22:23:49.595Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [],
     "summary": [
       "Static recompilation of Mega Man 3 (NES) for native PC. Built with the NESRecomp framework.",
@@ -289,7 +291,9 @@
       "- Visual elements may have minor glitches or missing sprites in some areas",
       "- Audio is basic (APU register writes are captured but full audio mixing is work-in-progress)"
     ],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "57709e656a9ec54a",
@@ -300,7 +304,7 @@
     "path": "data/games/82_supermarioland2recomp-57709e65/index.md",
     "url": "/games/supermarioland2recomp-57709e65",
     "createdAt": "2026-09-28T01:04:19.421Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [
       {
         "path": "./submission-1.png",
@@ -323,7 +327,9 @@
       "Static recompilation of the Game Boy title Super Mario Land 2 - 6 Golden Coins (UE) (V1.0) (CRC32 D5EC24E4) to native code via gbrecompiled, with the shared recomp-ui launcher.",
       "One executable, two recompiled bodies of that one cart: the faithful V1.0 build, and Super Mario Land 2 DX v1.8.1 derived from the same ROM in memory at boot. The launcher's Mods page picks between them — see DX.md."
     ],
-    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "e10e1ad7c15cb3d8",
@@ -334,7 +340,7 @@
     "path": "data/games/83_tetrisgbrecomp-e10e1ad7/index.md",
     "url": "/games/tetrisgbrecomp-e10e1ad7",
     "createdAt": "2026-09-28T01:06:01.672Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [],
     "summary": [
       "Static recompilation of Tetris (Game Boy) for native PC. Built with the gb-recompiled engine and the shared recomp-ui launcher.",
@@ -343,7 +349,9 @@
       "- Music and sound effects",
       "- recomp-ui launcher: ROM picker with CRC gate, settings/video/input overlay (F1)"
     ],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "77d3c638dbbda74e",
@@ -354,13 +362,15 @@
     "path": "data/games/84_pokemonyellowrecomp-77d3c638/index.md",
     "url": "/games/pokemonyellowrecomp-77d3c638",
     "createdAt": "2026-09-28T01:07:15.730Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [],
     "summary": [
       "An extended Pokémon Yellow built from the pret/pokeyellow decompilation, then run natively through our gbrecomp static recompiler and SDL/ANGLE runner.",
       "Everything is done by editing the decomp source (assembly + data + PNG sprites) and reassembling a real ROM — not by binary-patching a .gbc. The Gen-2 content is pulled from pokecrystal's source at build time (no Crystal ROM needed), so the repo ships source only — no ROM, binary, or patch."
     ],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "f21ce565d82554d4",
@@ -371,7 +381,7 @@
     "path": "data/games/85_pokemonredandbluerecomp-f21ce565/index.md",
     "url": "/games/pokemonredandbluerecomp-f21ce565",
     "createdAt": "2026-09-28T01:09:27.240Z",
-    "status": "pending",
+    "status": "confirmed",
     "images": [],
     "summary": [
       "A static recompilation of Pokemon Red and Pokemon Blue (Game Boy) for native PC.",
@@ -388,7 +398,9 @@
       "- No link cable or printer support",
       "- Only tested with US/Europe ROM versions"
     ],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "87d17311e2cec2ce",
@@ -448,7 +460,7 @@
     "path": "data/games/88_korokoro-recomp-5e6212ac/index.md",
     "url": "/games/korokoro-recomp-5e6212ac",
     "createdAt": "2026-10-03T08:55:51.527Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -456,7 +468,9 @@
     },
     "images": [],
     "summary": [],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "22d030eb91b02541",
@@ -468,7 +482,7 @@
     "path": "data/games/89_jim2-recomp-22d030eb/index.md",
     "url": "/games/jim2-recomp-22d030eb",
     "createdAt": "2026-10-03T09:13:51.200Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -476,7 +490,9 @@
     },
     "images": [],
     "summary": [],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "d4ac854d54678f90",
@@ -488,7 +504,7 @@
     "path": "data/games/90_agvg2-recomp-d4ac854d/index.md",
     "url": "/games/agvg2-recomp-d4ac854d",
     "createdAt": "2026-10-03T09:29:28.199Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -496,7 +512,9 @@
     },
     "images": [],
     "summary": [],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "78d143e7ea6a518b",
@@ -508,7 +526,7 @@
     "path": "data/games/91_collectionrecomp-78d143e7/index.md",
     "url": "/games/collectionrecomp-78d143e7",
     "createdAt": "2026-10-04T00:36:36.533Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -516,7 +534,9 @@
     },
     "images": [],
     "summary": [],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "6545fb1453887641",
@@ -528,7 +548,7 @@
     "path": "data/games/92_zelda-companion-6545fb14/index.md",
     "url": "/games/zelda-companion-6545fb14",
     "createdAt": "2026-10-06T02:02:02.486Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -553,7 +573,9 @@
       "Actual v0.3.1 launcher capture after a short native seed-launch test. Existing original saves were kept separate. It does not establish a full playthrough.",
       "The established ALttPR generator produces patched SNES ROMs and has a much larger item/logic feature set. Its patches and seed codes do not run in this native engine. Treasure Shuffle is an independent, smaller generator. Rules, saves and verification."
     ],
-    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 2 images. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "0fc74848f08c9640",
@@ -565,7 +587,7 @@
     "path": "data/games/93_earthbound-companion-0fc74848/index.md",
     "url": "/games/earthbound-companion-0fc74848",
     "createdAt": "2026-10-06T02:04:24.245Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -595,7 +617,9 @@
       "The twelfth development build fixes Bubble Monkey leaving before Jeff's rope cave. The expanded view could load the departure NPC before the puzzle; her event now waits for the rope milestone in both game modes. Older saves with this specific impossible state recover the monkey automatically while retaining the unfinished puzzle. Cold quick-save loads also bind the item/action tables before Bubble Gum or overworld PSI can use them. Native menu replays verify gum, the rope animation, climbing, and the intended later departure. Cause and verification.",
       "HD means high-resolution output and enhanced presentation. Converted pixel artwork is used; a replacement hand-drawn HD art pack is not included. Widescreen expands the native world view within the renderer's limits, rather than merely stretching the original picture. Physical controller play and every display/DPI combination have not been fully verified. Mod profiles tune supported native options; arbitrary ROM patches require explicit native adaptations."
     ],
-    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "56608d3b7c1a711a",
@@ -673,7 +697,7 @@
     "path": "data/games/96_gogoackman1recomp-df642312/index.md",
     "url": "/games/gogoackman1recomp-df642312",
     "createdAt": "2026-10-15T17:12:10.739Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -697,7 +721,9 @@
       "Use Mods → Load .ips file to convert a supported patch into a native package, then transfer it to Active. Activate one translation at a time. These hashes identify the IPS inputs, not the original ROM or generated package.",
       "These hashes match src/ackmantranslation.h and the supplied IPS files. The PT-BR converter applies the embedded English base before the Portuguese overlay in memory, producing one self-contained package. Unknown IPS files use a bounded native fallback; conversion alone does not establish gameplay compatibility. See translation conversion and native conversion."
     ],
-    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "90ea2c36edc71635",
@@ -708,7 +734,7 @@
     "path": "data/games/97_battletanx-global-assault-pc-port-90ea2c36/index.md",
     "url": "/games/battletanx-global-assault-pc-port-90ea2c36",
     "createdAt": "2026-10-15T18:30:01.563Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false
@@ -730,7 +756,9 @@
       "- Original 4:3, match-window, 16:9, 16:10, 21:9, and 32:9 renderer projection modes are selectable; game-specific HUD and split-screen validation remains in progress.",
       "- Default-off gameplay mods provide extended fog-free visibility and independent turret aiming with dual sticks or mouse and keyboard."
     ],
-    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "db2acd23fa69d1ad",
@@ -742,7 +770,7 @@
     "path": "data/games/98_apeescaperecomp-macwindows-db2acd23/index.md",
     "url": "/games/apeescaperecomp-macwindows-db2acd23",
     "createdAt": "2026-10-16T03:56:12.197Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -757,7 +785,9 @@
     "summary": [
       "A fan-made, native PC project for revisiting Spike's first monkey-catching adventure."
     ],
-    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "fa26e6b1ab045448",
@@ -768,7 +798,7 @@
     "path": "data/games/99_strike-gunner-stg-recomp-fa26e6b1/index.md",
     "url": "/games/strike-gunner-stg-recomp-fa26e6b1",
     "createdAt": "2026-10-16T20:13:23.994Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false
@@ -801,7 +831,9 @@
       "- Audio. Matches the reference. The remaining occasional pops are in the game's own sound (see Options).",
       "- Native code. 982 compiled variants, seeded from coverage captures of the intro, attract demo, stage 1, one full playthrough and the ending (recomp/coverage/). Uncovered code runs on the interpreter."
     ],
-    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "4b3bb4fd906d6d42",
@@ -813,7 +845,7 @@
     "path": "data/games/100_kuonpc-4b3bb4fd/index.md",
     "url": "/games/kuonpc-4b3bb4fd",
     "createdAt": "2026-10-17T08:30:15.703Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -825,7 +857,9 @@
       "This repo contains no game code or data. You need your own disc.",
       "See SPEC.md for the project plan and CLAUDE.md for the matching rules and agent workflow."
     ],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "d506dbb58d4077a5",
@@ -837,7 +871,7 @@
     "path": "data/games/101_wild9recomp-d506dbb5/index.md",
     "url": "/games/wild9recomp-d506dbb5",
     "createdAt": "2026-10-18T05:17:53.276Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -861,7 +895,9 @@
       "- Widescreen rendering: Native widescreen expansion with automated 2D backdrop stretching and SXY screen culling adjustments.",
       "- Frame rate presentation mod: Optional temporal frame blending mod supporting 60, 120, 144, 165 FPS, and display refresh targets on OpenGL while maintaining original 59.94 Hz simulation cadence."
     ],
-    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "67b83dab476b8c49",
@@ -873,7 +909,7 @@
     "path": "data/games/102_tlkrecomp-67b83dab/index.md",
     "url": "/games/tlkrecomp-67b83dab",
     "createdAt": "2026-10-19T04:26:31.119Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -909,7 +945,9 @@
       "The card is drawn by tools/statuscard.py, in the colours of the game's HUD; each number in it names the command that measured it.",
       "- The whole game, start to finish, bonus stages included, on keyboard or gamepad."
     ],
-    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "c3970fe12043378a",
@@ -920,14 +958,16 @@
     "path": "data/games/103_otogi1-c3970fe1/index.md",
     "url": "/games/otogi1-c3970fe1",
     "createdAt": "2026-10-21T19:05:26.844Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false
     },
     "images": [],
     "summary": [],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "1a320449459261c8",
@@ -939,7 +979,7 @@
     "path": "data/games/104_lagoonsnesrecomp-1a320449/index.md",
     "url": "/games/lagoonsnesrecomp-1a320449",
     "createdAt": "2026-10-22T23:05:51.767Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -956,7 +996,9 @@
       "The current Windows release is 0.2.5 / v0.2.5. It fixes map text losing pixel rows during overlay presentation, keeping small lettering readable at standard and ultrawide aspects. It also includes the 0.2.4 fixes from the owner's completed campaign: faster area loading, Thor's bridge crossing, a more forgiving castle landing, the Moon Sword equipment cursor, first-phase Evil Spirit/Zerah health bars, widescreen enemy simulation and the ending achievement. Local achievements now use compact top-right notices. The hidden cameo retains Lagoon-style typing dialogue, a portrait and uninterrupted mu",
       "Native combat, damage, death/revival, boss services and endgame routes, display fades and guarded HUD dispatch have focused checks; the interpreter remains enabled for paths that have not been qualified. Scenery contracts cover all 75 authored room descriptors, but that does not mean every actor, effect, menu or transition supports widescreen. Unsupported content falls back to the original view."
     ],
-    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "7f8296d8c2fd7c20",
@@ -968,7 +1010,7 @@
     "path": "data/games/105_blinxrecomp-7f8296d8/index.md",
     "url": "/games/blinxrecomp-7f8296d8",
     "createdAt": "2026-10-30T06:09:20.408Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -993,7 +1035,9 @@
       "Download the playable Windows x64 alpha — no compiler needed. Supply your own supported NTSC-U game files.",
       "Fresh launchers default to adaptive Fit to screen, 1080p internal rendering, 2×2 supersampling, FXAA, 8× filtering and blended 60 FPS presentation. Change these individually under Mods. See graphics options and costs."
     ],
-    "mediaNote": "Imported 3 images. The first is the cover; check the page for any missing artwork."
+    "mediaNote": "Imported 3 images. The first is the cover; check the page for any missing artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   },
   {
     "id": "fc59ab6153a2640d",
@@ -1005,7 +1049,7 @@
     "path": "data/games/106_final-fantasy-nse-recomp-fc59ab61/index.md",
     "url": "/games/final-fantasy-nse-recomp-fc59ab61",
     "createdAt": "2026-11-01T23:33:04.698Z",
-    "status": "pending",
+    "status": "confirmed",
     "submittedBy": {
       "via": "form",
       "verified": false,
@@ -1013,6 +1057,8 @@
     },
     "images": [],
     "summary": [],
-    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
+    "autoApproved": true,
+    "moderatedAt": "2026-11-05T08:08:44.987Z"
   }
 ]

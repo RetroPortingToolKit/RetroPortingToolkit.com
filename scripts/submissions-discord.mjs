@@ -1,15 +1,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { discordSubmission, moderationPage, SUBMISSIONS_PATH, plainText } from './submissions.mjs';
-import { rollbackOnFailure, pushPending, assertPublishable, assertOnlyOwnStaged } from './checkout.mjs';
+import { discordSubmission, plainText } from './submissions.mjs';
 
-/** Public intake never invokes an agent or writes arbitrary paths. */
-export function submissionBridge({ client, endpoint, adminChannelId, stateDir, authorized, moderateAuthorized = authorized, enqueue, send, siteUrl }) {
+/** Public intake never invokes an agent or writes arbitrary paths. A
+ * submission publishes on arrival; there is no review step to wait for. */
+export function submissionBridge({ endpoint, stateDir, send, siteUrl }) {
   const stateFile = path.join(stateDir, 'submission-notices.json');
-  let state = { notices: {}, sources: {}, intake: {} };
+  let state = { intake: {} };
   let saveChain = Promise.resolve();
-  let polling = false;
-  const pending = new Set();
   const save = () => {
     const content = JSON.stringify(state, null, 2);
     saveChain = saveChain.catch(() => {}).then(async () => {
@@ -26,26 +24,11 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     if (!response.ok) throw new Error(result.error || 'The submission could not be published.');
     const record = result.record;
     if (!record?.id || !/^\/games\/[a-z0-9-]+$/.test(record.url)) throw new Error('The submission returned an incomplete result.');
-    state.sources[record.id] ??= { ref: intake.ref, username: intake.username, url: intake.url, autoApproved: !result.duplicate,
-      // The bridge saw this message itself, so unlike anything the public form
-      // reports, this identity is evidence.
-      submitter: { via: 'discord', verified: true, discord: intake.username, discordId: intake.ref.authorId } };
     delete state.intake[key];
     await save();
-    // Every submission is accepted on arrival; nobody votes on it.
-    const auto = !result.duplicate;
-    await send({ ...intake.ref, content: `<@${intake.ref.authorId}> ${result.message}${auto ? ' It is confirmed automatically.' : ''}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true, mentionUsers: [intake.ref.authorId] });
-    await poll();
-    // The submitter's own message, not null: a job with no ref crashed the
-    // restart recovery after it had already emptied jobs.json, silently
-    // losing every other queued request with it.
-    // Not `moderator`: nobody reviewed this. Recording the submitter as the
-    // moderator is how F-Zero came to say it was approved by someone who had
-    // never clicked anything.
-    if (auto) await enqueue({ ref: intake.ref, request: `Publish auto-approved submission ${record.id}`, messageUrl: intake.url,
-      submissionModeration: { id: record.id, decision: 'confirmed', autoApproved: true, submitter: state.sources[record.id]?.submitter } });
+    await send({ ...intake.ref, content: `<@${intake.ref.authorId}> ${result.message}\n${siteUrl}${record.url}`, ping: true, suppressMentions: true, mentionUsers: [intake.ref.authorId] });
   }
-  async function intake(message, ref, request, trusted = false) {
+  async function intake(message, ref, request) {
     if (!endpoint) return false;
     const input = discordSubmission(request, [...(message.attachments?.values() ?? [])], message.author.username);
     if (!input) return false;
@@ -55,7 +38,7 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
       await send({ ...ref, content: 'There are several submissions in progress. Please try again shortly.', ping: true });
       return true;
     }
-    const item = { input, ref, username: plainText(message.author.username, 80), url: message.url, trusted: trusted === true };
+    const item = { input, ref, username: plainText(message.author.username, 80), url: message.url };
     state.intake[key] = item;
     await save();
     await message.react('🔍').catch(() => {});
@@ -66,160 +49,16 @@ export function submissionBridge({ client, endpoint, adminChannelId, stateDir, a
     }
     return true;
   }
-  async function queueReaction(message, emoji, user) {
-    if (!user || user.bot || !['✅', '❌'].includes(emoji)) return;
-    const entry = Object.entries(state.notices).find(([, n]) => n.messageId === message.id && n.channelId === message.channelId);
-    if (!entry || !message.guildId || message.author?.id !== client.user.id) return;
-    const [id, notice] = entry;
-    if (notice.done || notice.autoApproved || pending.has(id)) return;
-    const member = await message.guild.members.fetch(user.id).catch(() => null);
-    if (!member || !moderateAuthorized({ guildId: message.guildId, channelId: message.channelId, author: user, member })) return;
-    pending.add(id);
-    try {
-      await enqueue({ ref: { channelId: message.channelId, messageId: message.id, authorId: user.id },
-        request: `Moderate submission ${id}`, messageUrl: message.url,
-        submissionModeration: { id, decision: emoji === '✅' ? 'confirmed' : 'removed', moderator: user.id, submitter: state.sources[id]?.submitter } });
-    } catch (error) { pending.delete(id); throw error; }
-  }
-  async function poll() {
-    if (!endpoint || !adminChannelId || polling) return;
-    polling = true;
-    try {
-      const response = await fetch(endpoint, { signal: AbortSignal.timeout(20_000) });
-      if (!response.ok) return;
-      const { submissions } = await response.json();
-      if (!Array.isArray(submissions)) return;
-      const channel = await client.channels.fetch(adminChannelId);
-      if (!channel?.isTextBased()) return;
-      for (const record of submissions) {
-        if (!/^[a-f0-9]{16}$/.test(record.id)) continue;
-        let notice = state.notices[record.id];
-        if (record.status !== 'pending') {
-          if (record.status === 'confirmed' && notice) {
-            const oldMessage = await channel.messages.fetch(notice.messageId).catch(() => null);
-            if (oldMessage) await oldMessage.delete().catch(() => {});
-            delete state.notices[record.id];
-            await save();
-          }
-          continue;
-        }
-        const source = state.sources[record.id];
-        let message = notice ? await channel.messages.fetch(notice.messageId).catch(() => null) : null;
-        if (!message) {
-          // Recover the send/save crash window using the stable submission ID
-          // embedded in the notice before sending another copy.
-          const recent = await channel.messages.fetch({ limit: 100 });
-          message = recent.find(m => m.author.id === client.user.id && m.embeds?.[0]?.footer?.text === `Submission ${record.id}`);
-        }
-        if (!message) {
-          message = await channel.send({ allowedMentions: { parse: [] }, embeds: [{
-            title: plainText(record.title, 100), url: `${siteUrl}${record.url}`, color: 0x0066cc,
-            description: plainText(record.description, 500),
-            fields: [
-              { name: 'Page', value: `${siteUrl}${record.url}` },
-              { name: 'Repository', value: record.repo },
-              { name: 'Artwork', value: record.mediaNote || 'No imported artwork recorded.' },
-              { name: 'Repository owner', value: record.owner || source?.username || 'Not available' },
-              // The record outlives this bot's memory of the submission, so it
-              // is the better witness. A handle typed into the public form is
-              // a claim, and says so.
-              { name: 'Submitted through', value: source ? `Discord: ${source.username}\n${source.url}`
-                : record.submittedBy?.via === 'discord' ? `Discord: ${record.submittedBy.discord ?? 'unknown'}`
-                : record.submittedBy?.discord ? `Website form, claiming to be ${record.submittedBy.discord} on Discord (unverified)`
-                : 'Website form, with no submitter given' },
-              { name: 'Moderation', value: 'Accepted automatically. No review action is required.' },
-            ], footer: { text: `Submission ${record.id}` },
-          }] });
-        }
-        notice = state.notices[record.id] = { ...notice, messageId: message.id, channelId: channel.id, autoApproved: source?.autoApproved === true };
-        await save();
-        // No ✅/❌ vote: anything still pending (the website form, or a Discord
-        // intake that crashed before its confirm was queued) is confirmed here.
-        if (!pending.has(record.id)) await enqueue({ ref: source?.ref ?? { channelId: channel.id, messageId: message.id, authorId: client.user.id },
-          request: `Publish auto-approved submission ${record.id}`, messageUrl: source?.url ?? message.url,
-          submissionModeration: { id: record.id, decision: 'confirmed', autoApproved: true, submitter: source?.submitter } });
-      }
-    } finally { polling = false; }
-  }
   return {
     intake,
     async start() {
-      try { state = JSON.parse(await fs.readFile(stateFile, 'utf8')); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+      try { state = { intake: JSON.parse(await fs.readFile(stateFile, 'utf8')).intake ?? {} }; } catch (error) { if (error.code !== 'ENOENT') throw error; }
       // A crash during an HTTP request can leave its outcome unknown. The
       // canonical repository key makes resubmitting this durable input safe.
       for (const [key, item] of Object.entries(state.intake)) {
         try { await postIntake(key, item); }
         catch { await send({ ...item.ref, content: `<@${item.ref.authorId}> Your submission was interrupted. Please retry; duplicates are detected.`, ping: true, suppressMentions: true, mentionUsers: [item.ref.authorId] }); delete state.intake[key]; await save(); }
       }
-      await poll();
-    },
-    poll,
-    async reaction(reaction, user) {
-      if (reaction.partial) await reaction.fetch();
-      const message = reaction.message.partial ? await reaction.message.fetch() : reaction.message;
-      await queueReaction(message, reaction.emoji.name, user);
-    },
-    async completed(id, success, decision) {
-      pending.delete(id);
-      const notice = state.notices[id];
-      if (!success || !notice) return;
-      notice.done = true;
-      await save();
-      // A confirmed page needs no further moderation, so its notice goes.
-      // An unlisted one stays as the record of what was removed and why.
-      if (decision === 'confirmed') {
-        const channel = await client.channels.fetch(notice.channelId).catch(() => null);
-        const message = channel ? await channel.messages.fetch(notice.messageId).catch(() => null) : null;
-        if (message) await message.delete().catch(() => {});
-      }
     },
   };
-}
-
-export async function moderateSubmission({ root, action, exec, siteUrl = '' }) {
-  if (!/^[a-f0-9]{16}$/.test(action.id) || !['confirmed', 'removed'].includes(action.decision)) throw new Error('Invalid moderation action.');
-  await assertPublishable(exec);
-  await exec('git', ['pull', '--ff-only']);
-  await pushPending(exec);
-  const records = JSON.parse(await fs.readFile(path.join(root, SUBMISSIONS_PATH), 'utf8'));
-  const record = records.find(r => r.id === action.id);
-  if (!record) throw new Error('Submission not found.');
-  if (record.status !== 'pending') return `This submission is already ${record.status}.`;
-  if (!/^data\/games\/\d+_[a-z0-9-]+\/index\.md$/.test(record.path)) throw new Error('Invalid submission path.');
-  const target = path.join(root, record.path);
-  const written = [];
-  await rollbackOnFailure(exec, written, async () => {
-    const raw = await fs.readFile(target, 'utf8');
-    const updated = moderationPage(raw, record, action.decision);
-    record.status = action.decision;
-    // A person clicking ✅ and a team submission skipping review are different
-    // events, and writing both into moderatedBy made the second look like the
-    // first. Only a real click sets it.
-    if (action.autoApproved) record.autoApproved = true;
-    else record.moderatedBy = action.moderator;
-    record.moderatedAt = new Date().toISOString();
-    // The notice is deleted once it is acted on, so provenance has to live on
-    // the record or it is gone. Only the bridge's own intake is verified.
-    if (action.submitter?.discordId) record.submittedBy = { ...action.submitter };
-    await fs.writeFile(target, updated);
-    await fs.writeFile(path.join(root, SUBMISSIONS_PATH), JSON.stringify(records, null, 2) + '\n');
-    written.push(record.path, SUBMISSIONS_PATH);
-    for (const check of ['typecheck', 'build', 'test']) await exec('npm', ['run', check]);
-    await exec('git', ['add', '--', record.path, SUBMISSIONS_PATH]);
-    await assertOnlyOwnStaged(exec, [record.path, SUBMISSIONS_PATH]);
-    // The pathspec is what bounds the commit. `git add --` bounds only the
-    // staging; a bare `git commit -m` then commits the WHOLE index, so anything
-    // anyone staged during the two minutes of checks was swept in and deployed.
-    await exec('git', ['-c', 'user.name=Shokunin', '-c', 'user.email=30949000+tetrisgm@users.noreply.github.com', 'commit', '-m', `${action.decision === 'confirmed' ? 'Confirm' : 'Unlist'} community submission ${record.id}`, '--', record.path, SUBMISSIONS_PATH]);
-    written.length = 0; // committed: a failed push must not undo the work
-    await exec('git', ['push', 'origin', 'main']);
-  });
-  // Who did this, in the message that survives: the notice it was clicked on
-  // is deleted, so without this line nothing on Discord records the decision.
-  const who = action.autoApproved
-    ? `Confirmed automatically${record.submittedBy?.discordId ? ` (submitted by <@${record.submittedBy.discordId}>)` : ''}.`
-    : `${action.decision === 'confirmed' ? 'Confirmed' : 'Removed'} by <@${action.moderator}>.`;
-  return action.decision === 'confirmed'
-    ? `Submission confirmed. ${siteUrl}${record.url}\n${who}`
-    : `Submission removed from listings. Its unlisted URL is retained: ${siteUrl}${record.url}\n${who}`;
 }

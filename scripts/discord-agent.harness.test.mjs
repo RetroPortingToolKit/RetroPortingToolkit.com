@@ -468,8 +468,7 @@ describe("bridge harness: queueing and the shared checkout", () => {
       await b.waitFor(forMsg(id, "Your page is publishing."));
       expect(posted.repo).toBe("https://github.com/example/recomp");
       expect(fs.existsSync(path.join(b.state, "task-logs"))).toBe(false);
-      const saved = JSON.parse(fs.readFileSync(path.join(b.state, "submission-notices.json"), "utf8"));
-      expect(saved.sources["1234567890abcdef"].username).toBe("STRANGER");
+      expect(posted.discord).toBe("STRANGER");
     } finally { server.close(); }
   });
 
