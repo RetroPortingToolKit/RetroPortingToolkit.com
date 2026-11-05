@@ -442,7 +442,12 @@ function markWaiting(job, reason = "") {
   // admin notice stays one-time.
   job.waitingReason = reason || job.waitingReason || "";
   job.waitingSince ??= Date.now();
-  if (job.ref?.messageId) void updateStatus(job);
+  if (job.ref?.messageId && !noStatusLine(job)) void updateStatus(job);
+}
+
+/** Moderation, and anything replying into the read-only website channel. */
+function noStatusLine(job) {
+  return Boolean(job.submissionModeration) || job.ref?.channelId === config.adminChannelId;
 }
 
 async function gitSnapshot() {
@@ -1460,14 +1465,18 @@ async function drainQueue() {
     // A scheduled job has no requester: no status line, no progress, no
     // completion reply. Its result shows up as the change it made.
     const scheduled = !job.ref?.messageId;
-    if (!job.status && !scheduled) {
+    // Moderation and anything replying into the website channel get no status
+    // line either: it was posted and then deleted moments later, which left
+    // everyone in that read-only channel with an unread for nothing.
+    const silent = scheduled || noStatusLine(job);
+    if (!job.status && !silent) {
       await updateStatus(job, job.resumed ? resumedMessage() : `On it.${queue.length ? ` ${queue.length} queued.` : ""}`);
       // Persist again now that the status line exists: a restart during the
       // wait reads its id from here to tidy it, and the first persist above
       // happened before it was posted.
       await persistJobs();
     }
-    if (!scheduled) startStatusTicker(job);
+    if (!silent) startStatusTicker(job);
     let report;
     if (job.ref?.authorId) await assertJobAccess(job);
     if (job.wiki) {
