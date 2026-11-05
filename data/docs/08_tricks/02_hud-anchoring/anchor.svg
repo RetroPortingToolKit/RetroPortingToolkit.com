@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 400" role="img" aria-label="On the original screen, a health bar sits top left, monster icons top right and time controls bottom center. In the wide view, the health bar moves left by the left margin, the icons move right by the right margin, and the time controls stay centered. Nothing is stretched.">
+  <style>
+    svg { --ink: #76767c; --acc: #cc4b45; --ok: #3f8f5a; }
+    @media (prefers-color-scheme: dark) {
+      svg { --ink: #84848a; --acc: #dc5b55; --ok: #5fb07a; }
+    }
+    text { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: var(--ink); }
+    .h { font-size: 13.5px; font-weight: 600; }
+    .s { font-size: 12.5px; font-weight: 600; }
+    .m { font-size: 11px; }
+    .xs { font-size: 10.5px; }
+    .scr { fill: none; stroke: var(--ink); stroke-width: 1.25; }
+    .core { fill: none; stroke: var(--ink); stroke-width: 1; stroke-dasharray: 4 3; }
+    .hud { fill: var(--ok); fill-opacity: 0.22; stroke: var(--ok); stroke-width: 1.25; }
+    .ghost { fill: none; stroke: var(--ok); stroke-width: 1; stroke-dasharray: 3 3; stroke-opacity: 0.8; }
+    .arrow { stroke: var(--acc); stroke-width: 1.5; fill: none; marker-end: url(#a); }
+    .acct { fill: var(--acc); }
+    .lbl { font-size: 10.5px; font-weight: 600; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="var(--acc)"/>
+    </marker>
+  </defs>
+
+  <!-- original screen -->
+  <text class="h" x="360" y="24" text-anchor="middle">Original screen</text>
+  <rect class="scr" x="240" y="36" width="240" height="140"/>
+  <rect class="hud" x="250" y="46" width="56" height="18"/>
+  <text class="lbl" x="278" y="59" text-anchor="middle">health</text>
+  <rect class="hud" x="414" y="46" width="56" height="18"/>
+  <text class="lbl" x="442" y="59" text-anchor="middle">icons</text>
+  <rect class="hud" x="320" y="148" width="80" height="18"/>
+  <text class="lbl" x="360" y="161" text-anchor="middle">controls</text>
+  <text class="m" x="496" y="62">right group</text>
+  <text class="m" x="224" y="62" text-anchor="end">left group</text>
+  <text class="m" x="496" y="161">center group</text>
+
+  <!-- wide screen -->
+  <text class="h" x="360" y="210" text-anchor="middle">Wide view</text>
+  <rect class="scr" x="120" y="222" width="480" height="140"/>
+  <rect class="core" x="240" y="222" width="240" height="140"/>
+  <rect class="ghost" x="250" y="232" width="56" height="18"/>
+  <rect class="ghost" x="414" y="232" width="56" height="18"/>
+  <rect class="hud" x="130" y="232" width="56" height="18"/>
+  <text class="lbl" x="158" y="245" text-anchor="middle">health</text>
+  <rect class="hud" x="534" y="232" width="56" height="18"/>
+  <text class="lbl" x="562" y="245" text-anchor="middle">icons</text>
+  <rect class="hud" x="320" y="334" width="80" height="18"/>
+  <text class="lbl" x="360" y="347" text-anchor="middle">controls</text>
+  <path class="arrow" d="M248,262 L190,262"/>
+  <path class="arrow" d="M472,262 L530,262"/>
+  <text class="m acct" x="190" y="280">− left margin</text>
+  <text class="m acct" x="470" y="280">+ right margin</text>
+  <text class="m" x="360" y="320" text-anchor="middle">does not move</text>
+
+  <text class="xs" x="16" y="388">dashed: the original 4:3 area. Each piece moves, none stretch.</text>
+</svg>

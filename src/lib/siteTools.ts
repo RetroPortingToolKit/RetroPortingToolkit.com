@@ -498,6 +498,7 @@ export const HARDWARE_DOCS_PLATFORM: Record<string, string> = {
   "nintendo-ds": "nintendo-ds",
   "virtual-boy": "virtual-boy",
   "cd-i": "cd-i",
+  xbox: "xbox",
 };
 
 /** What people call these machines, so a plan can be asked for by any of them. */
@@ -517,6 +518,7 @@ export const CONSOLE_ALIASES: Record<string, string[]> = {
   "nintendo-ds": ["ds", "nds", "nintendo ds"],
   "virtual-boy": ["vb", "virtual boy"],
   "cd-i": ["cdi", "cd i", "philips cd i"],
+  xbox: ["xbox", "original xbox", "microsoft xbox", "xboxllr", "xbox llr"],
 };
 
 /** The hardware slug a console name refers to, or "". */
@@ -626,6 +628,11 @@ const DEFAULT_CONSOLE_ROUTES: Record<string, ConsoleRoute> = {
     means: "Study the platform page before treating it as a normal port target",
     scaffolding: "Research",
   },
+  xbox: {
+    route: "copy",
+    means: "Use the XboxLLR build tool, copy a working title project, and expect early-beta engine work.",
+    scaffolding: "None",
+  },
 };
 
 export function consoleRoutes(hardware: Item[], recompPage: Item | undefined): Map<string, ConsoleRoute> {
@@ -688,6 +695,10 @@ const DEFAULT_MODEL_PORTS: Record<string, ModelPort> = {
   "virtual-boy": {
     framework: "vbrecomp",
     port: { name: "MarioTennisVirtualBoyRecomp", url: "https://github.com/mstan/MarioTennisVirtualBoyRecomp" },
+  },
+  xbox: {
+    framework: "xboxllr",
+    port: { name: "BlinxRecomp", url: "https://github.com/mstan/BlinxRecomp" },
   },
 };
 

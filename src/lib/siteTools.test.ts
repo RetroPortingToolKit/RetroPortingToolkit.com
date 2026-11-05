@@ -449,7 +449,7 @@ describe("the documentation the plan is parsed out of", () => {
     const models = modelPorts(HARDWARE, DOCS.find((d) => d.slug === PORT_PLAN_SOURCES.portAGame));
     expect(models.size).toBeGreaterThanOrEqual(8);
     for (const [slug, model] of models) {
-      expect(model.framework, slug).toMatch(/recomp/);
+      expect(model.framework, slug).toMatch(/recomp|xboxllr/);
       expect(model.port.url, slug).toMatch(/^https:\/\/github\.com\//);
     }
   });

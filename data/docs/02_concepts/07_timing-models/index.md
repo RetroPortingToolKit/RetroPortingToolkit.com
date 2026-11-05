@@ -7,7 +7,7 @@ repos:
   - "https://github.com/mstan/smsggrecomp"
   - "https://github.com/mstan/snesrecomp"
   - "https://github.com/mstan/gbarecomp"
-updated: "2026-08-31"
+updated: "2026-11-04"
 ---
 
 Most users should not think about timing at all.
@@ -58,6 +58,8 @@ If you are tuning one game, you may be able to relax some values and make that g
 Look for softlocks, missed events, broken audio, bad input timing, desyncs, and bugs that appear later than the change itself.
 
 Keep the result specific to your game. A timing tweak that works for one game, one revision, and one test path cannot be assumed to transfer safely to other games.
+
+There is usually a safer way to get speed. Instead of loosening timing, replace an expensive part of the runtime with a host-native version that keeps the same guest-visible timing. The game sees the same time pass. Only the PC does less work. See [How does host-native HLE make a port faster?](/docs/concepts/host-native-hle).
 
 ## What should readers take away?
 
