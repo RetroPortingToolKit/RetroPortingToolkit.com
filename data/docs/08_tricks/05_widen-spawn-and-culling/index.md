@@ -6,7 +6,7 @@ tags: ["Tricks", "Widescreen", "Spawning", "Culling"]
 repos:
   - "https://github.com/mstan/MegaManXSNESRecomp"
   - "https://github.com/mstan/MegaManX4Recomp"
-updated: "2026-11-04"
+updated: "2026-11-05"
 ---
 
 A wider picture is not enough. Most games decide which enemies and items exist, and which sprites get drawn, by checking them against the original screen. In a wide view, the margins look empty, enemies pop in at the old 4:3 line, and sprites vanish before they leave the screen.
@@ -23,6 +23,8 @@ A wider picture is not enough. Most games decide which enemies and items exist, 
 | Sprite clip | Whether a sprite's screen X is in range | Sprites wrap to the other side |
 
 Find each one in the game's code. Widen it by the current left and right margins, on the side each margin is on.
+
+![Left at the old edge, the spawn line sits inside the wide view and enemies pop in on screen. Widened, they already exist when they are seen.](./bounds.svg)
 
 ## Spawning is a simulation change
 
@@ -54,9 +56,12 @@ At 4:3 both margins are zero. Every widened bound reduces to the original one. C
 | Collision happens from across the screen. | A margin hitbox wrapped into the 4:3 area. Keep the full signed position. |
 | The game runs out of sprites. | More visible objects means more sprites. Some ports raise the sprite limit in the renderer only, for presentation. |
 
-## Where is it used?
+## Examples of where it's used
 
-- [Mega Man X](https://github.com/mstan/MegaManXSNESRecomp) on snesrecomp. Split wide and native spawn passes, per-pass cursors, resync on death, and expanded sprite capacity with its widescreen mod.
-- [Mega Man X4](https://github.com/mstan/MegaManX4Recomp) on psxrecomp. Its experimental 16:9 mode widens the background tile window plus actor activation, despawn and draw-cull bounds.
+**[Mega Man X](https://github.com/mstan/MegaManXSNESRecomp) on snesrecomp.** Split wide and native spawn passes, per-pass cursors, resync on death, and expanded sprite capacity with its widescreen mod.
+
+![Mega Man X at 16:9 in a snowy base. The spiked wheel at the right is already active in the margin, outside the original 4:3 area.](./mmx-snow-base.webp)
+
+**[Mega Man X4](https://github.com/mstan/MegaManX4Recomp) on psxrecomp.** Its experimental 16:9 mode widens the background tile window plus actor activation, despawn and draw-cull bounds.
 
 The general steps for culling, wrapping and spawning are also in [Add widescreen](/docs/guides/add-widescreen).

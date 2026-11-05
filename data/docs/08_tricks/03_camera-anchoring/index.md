@@ -15,7 +15,7 @@ Widen the view and center it on the original camera, and the extra margin hangs 
 
 **Camera anchoring** keeps the wide view inside the room. Near an edge, the view slides inward. The width it cannot show on one side is shown on the other side instead.
 
-## Where has it shipped?
+## Examples of where it's used
 
 Mega Man Maverick Hunter X on PSPLLR, the PSP Low Level Recompiler. Its 0.2.0 release anchors the camera at stage edges, with Fit to screen on by default from the PSP's 480 by 272 up to 32:9. The release notes list camera-edge coverage in the Spark Mandrill, Launch Octopus and Sting Chameleon stages. The project is private for now, so there is no public link.
 
@@ -38,6 +38,8 @@ Now open a 21:9 window. The view is 1.32 times wider than the PSP's, so it shows
 | Original PSP view | 90 | 4.89 to 175.11 | The game as made |
 | Centered, 21:9 | 90 | -22.53 to 202.53 | 22.53 units past the wall, where nothing was built |
 | Anchored, 21:9 | 117.42 | 4.89 to 229.96 | The same left edge as the original. All the new width is on the right, where the stage continues |
+
+![The same moment at the left wall. Centered, the 21:9 view crosses the wall into empty space. Anchored, it keeps the original left edge.](./anchor.svg)
 
 At 32:9 the extra width is 86.37 units each side. Anchored, the view still starts at 4.89 and now reaches 347.85.
 

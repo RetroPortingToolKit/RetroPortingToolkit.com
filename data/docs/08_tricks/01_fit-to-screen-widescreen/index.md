@@ -9,10 +9,14 @@ repos:
   - "https://github.com/mstan/xboxllr"
   - "https://github.com/mstan/BlinxRecomp"
   - "https://github.com/mstan/JSRFRecomp"
-updated: "2026-11-04"
+updated: "2026-11-05"
 ---
 
 **Fit to screen** is the recommended default shape for widescreen. Instead of one fixed 16:9 mode, the view grows or shrinks to match the window. A 16:9 monitor gets 16:9. An ultrawide gets 21:9 or 32:9. A 4:3 window gets the original game.
+
+![The Legend of Zelda: The Minish Cap at its native 240 by 160 view.](./minish-cap-native.webp)
+
+![The same scene in an ultrawide window. Link and Zelda stay put, and more of the village fills the sides.](./minish-cap-adaptive.webp)
 
 ## What problem does it solve?
 
@@ -26,6 +30,8 @@ Fit to screen solves all of those with one setting.
 2. Keep the original height. Work out the width that gives square pixels at that height.
 3. Clamp that width between the original width and the game's own maximum.
 4. Render that many columns. If the window changes, do it again.
+
+![The view grows with the window until it reaches the game's maximum. Past that, the extra space becomes bars.](./fit.svg)
 
 The maximum matters. Each game only supports as much width as it can fill with real content. gbarecomp's shared video surface reaches 896 by 160, enough for 50:9, but each game sets its own ceiling inside that, and games that have not opted in stay at 240.
 
@@ -46,11 +52,22 @@ Scenes the port does not support should fall back to the original width with bar
 | Netplay players see different widths. | If the view width can change what the game simulates, players must agree on one fixed width. Mega Man X's netplay only allows the original view or fixed 16:9, 21:9 or 32:9. |
 | Stale tiles appear in the margins. | The game is not streaming that area. Fall back to the original width for that scene, or see [Fill the edges](/docs/tricks/fill-the-edges). |
 
-## Where is it used?
+## Examples of where it's used
 
-- [Blinx](https://github.com/mstan/BlinxRecomp) on XboxLLR. Adaptive follows the window's client size from 4:3 through 32:9, with 16:9, 21:9 and 32:9 presets. Gameplay widens, menus and stage select stay centered 4:3. A fresh launcher defaults to Fit to screen.
-- [Jet Set Radio Future](https://github.com/mstan/JSRFRecomp). Widescreen is on by default and follows the window, including ultrawide.
-- [Mega Man X](https://github.com/mstan/MegaManXSNESRecomp) on snesrecomp. Adaptive, 16:9, 21:9 and 32:9 views of expanded gameplay.
-- [gbarecomp](https://github.com/mstan/gbarecomp). A game opts in with its own maximum view width. The framework handles live resizing and the wider video surface, while each game owns its streaming, camera, spawning and HUD.
+**[Blinx](https://github.com/mstan/BlinxRecomp) on XboxLLR.** Adaptive follows the window's client size from 4:3 through 32:9, with 16:9, 21:9 and 32:9 presets. Gameplay widens, menus and stage select stay centered 4:3. A fresh launcher defaults to Fit to screen.
+
+![Blinx exploring a street in an ultrawide window, with the HUD at the edges.](./blinx-ultrawide.webp)
+
+**[Jet Set Radio Future](https://github.com/mstan/JSRFRecomp) on XboxLLR.** Widescreen is on by default and follows the window, including ultrawide.
+
+![Jet Set Radio Future in a 21:9 window.](./jsrf-21x9.webp)
+
+**[gbarecomp](https://github.com/mstan/gbarecomp).** A game opts in with its own maximum view width. The framework handles live resizing and the wider video surface, while each game owns its streaming, camera, spawning and HUD.
+
+![Dragon Ball Z: The Legacy of Goku at its native 240 by 160 view.](./legacy-of-goku-native.webp)
+
+![The same spot at a wider adaptive view, with Goku in the same position. The health bar stays at the top left.](./legacy-of-goku-adaptive.webp)
+
+**[Mega Man X](https://github.com/mstan/MegaManXSNESRecomp) on snesrecomp.** Adaptive, 16:9, 21:9 and 32:9 views of expanded gameplay. Its screenshots are on the [HUD anchoring](/docs/tricks/hud-anchoring), [Fill the edges](/docs/tricks/fill-the-edges) and [Widen spawn and cull bounds](/docs/tricks/widen-spawn-and-culling) pages.
 
 Next: once the view is wider, the HUD needs to move. See [HUD anchoring](/docs/tricks/hud-anchoring).

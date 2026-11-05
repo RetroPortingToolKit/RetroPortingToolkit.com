@@ -6,7 +6,7 @@ tags: ["Tricks", "Performance", "Internal resolution", "Graphics"]
 repos:
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/xboxllr"
-updated: "2026-11-04"
+updated: "2026-11-05"
 ---
 
 A port locked to the original game's speed does not run faster when its code gets faster. It finishes each frame sooner and waits. That spare time is **headroom**.
@@ -39,8 +39,14 @@ At 1x, the result should match the original renderer.
 | One setting is too slow on some machines. | Ship a safe default and document a cheaper fallback, such as original resolution without supersampling. |
 | The image is too big for the GPU. | Reduce only the upload when a texture limit or allocation fails. Keep the logical view and game state unchanged. |
 
-## Where is it used?
+## Examples of where it's used
 
-- **Blinx on XboxLLR.** At 3x internal resolution, CPU time per update fell from 57.0 to 34.4 ms. Game speed went from 23.8 to 29.5 updates per second, against a target of 30.
-- **Mario Kart: Super Circuit on gbarecomp.** Its course layer can be sampled at higher internal resolutions while sprites and HUD stay native. Moving that work to the GPU took 8x widescreen from 72.6 to 11.8 ms of CPU per frame, and from under 25 FPS to over 150 on a 2013 PC with a GTX 760. See [Game Boy Advance](/docs/platforms/game-boy-advance).
-- **PlayStation ports** such as Ape Escape at 4K and Mega Man X6 at 4x. See the results table in [How does host-native HLE make a port faster?](/docs/concepts/host-native-hle#what-were-the-results).
+**Blinx on XboxLLR.** At 3x internal resolution, CPU time per update fell from 57.0 to 34.4 ms. Game speed went from 23.8 to 29.5 updates per second, against a target of 30. The comparison at the top of this page is Blinx.
+
+**Mario Kart: Super Circuit on gbarecomp.** Its course layer can be sampled at higher internal resolutions while sprites and HUD stay native. Moving that work to the GPU took 8x widescreen from 72.6 to 11.8 ms of CPU per frame, and from under 25 FPS to over 150 on a 2013 PC with a GTX 760. See [Game Boy Advance](/docs/platforms/game-boy-advance).
+
+![Mario Kart: Super Circuit at native resolution and at 8x HD. The old CPU renderer managed under 25 FPS at 8x on a 2013 PC; the GPU renderer runs it at over 150.](./compare-gba.webp)
+
+![Mario Kart: Super Circuit at 8x in 16:9. The track is sampled at high resolution, while karts, portraits and HUD stay pixel art.](./mksc-8x.webp)
+
+**PlayStation ports** such as Ape Escape at 4K and Mega Man X6 at 4x. See the results table in [How does host-native HLE make a port faster?](/docs/concepts/host-native-hle#what-were-the-results).

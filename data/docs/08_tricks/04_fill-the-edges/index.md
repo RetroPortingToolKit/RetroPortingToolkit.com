@@ -6,7 +6,7 @@ tags: ["Tricks", "Widescreen", "2D"]
 repos:
   - "https://github.com/mstan/MegaManXSNESRecomp"
   - "https://github.com/mstan/snesrecomp"
-updated: "2026-11-04"
+updated: "2026-11-05"
 ---
 
 Sometimes the view cannot slide. The camera is locked, the room is too narrow, or moving the view would break something else. The margin still reaches past the last real column of the level, and the player sees an empty backdrop.
@@ -24,6 +24,8 @@ Mega Man X does this. Past the left or right end of a stage, it reflects the nea
 - and so on.
 
 Inside the level, margins still sample their true world position. Only the space with no map data is filled.
+
+![Past a hard stage edge, each margin column shows a real column mirrored from the edge.](./mirror.svg)
 
 ## What about content the game has not revealed yet?
 
@@ -46,6 +48,8 @@ All of this happens in the port's own margin renderer. The game's background lay
 | The margin shows a door, enemy or object too early. | Find what the original screen could not see, and hide only that. Keep the real thing in charge at the original edge. |
 | A shaking camera tears the margin. | Rebuild margin positions from the same scroll the game uses, including shake and raster offsets. |
 
-## Where is it used?
+## Examples of where it's used
 
-[Mega Man X](https://github.com/mstan/MegaManXSNESRecomp) on snesrecomp fills hard stage boundaries by reflection and handles boss doors and early set pieces in its widescreen margin renderer.
+**[Mega Man X](https://github.com/mstan/MegaManXSNESRecomp) on snesrecomp.** It fills hard stage boundaries by reflection, and handles boss doors and early set pieces in its widescreen margin renderer.
+
+![Mega Man X at 16:9 on an ocean stage. The port's own margin renderer draws both sides.](./mmx-ocean.webp)

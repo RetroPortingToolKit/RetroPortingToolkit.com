@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 384" role="img" aria-label="Four windows of the same height. A 4:3 window shows the original view. A 16:9 window shows a wider view. A 21:9 window shows a view at this game's maximum width. A 32:9 window still shows the 21:9 maximum, with bars on both sides. The original view stays in the middle of each.">
+  <style>
+    svg { --ink: #76767c; --acc: #cc4b45; --ok: #3f8f5a; }
+    @media (prefers-color-scheme: dark) {
+      svg { --ink: #84848a; --acc: #dc5b55; --ok: #5fb07a; }
+    }
+    text { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: var(--ink); }
+    .h { font-size: 13.5px; font-weight: 600; }
+    .s { font-size: 12.5px; font-weight: 600; }
+    .m { font-size: 11px; }
+    .xs { font-size: 10.5px; }
+    .win { fill: none; stroke: var(--ink); stroke-width: 1.25; }
+    .view { fill: var(--ok); fill-opacity: 0.18; stroke: var(--ok); stroke-width: 1.25; }
+    .core { fill: none; stroke: var(--ink); stroke-width: 1; stroke-dasharray: 4 3; }
+    .bars { fill: var(--ink); fill-opacity: 0.35; }
+    .limit { stroke: var(--acc); stroke-width: 1.25; stroke-dasharray: 5 4; }
+    .limt { fill: var(--acc); }
+  </style>
+
+  <text class="h" x="360" y="24" text-anchor="middle">Same height, different window shapes. This game's maximum is 21:9.</text>
+
+  <!-- maximum width guides: 21:9 view is 140 wide at height 60, centered on x=400 -->
+  <line class="limit" x1="330" y1="40" x2="330" y2="362"/>
+  <line class="limit" x1="470" y1="40" x2="470" y2="362"/>
+  <text class="xs limt" x="470" y="376" text-anchor="middle">game maximum</text>
+  <text class="xs limt" x="330" y="376" text-anchor="middle">game maximum</text>
+
+  <!-- row 1: 4:3 -->
+  <text class="s" x="16" y="78">4:3 window</text>
+  <rect class="view" x="360" y="50" width="80" height="60"/>
+  <text class="m" x="490" y="84">the original game</text>
+
+  <!-- row 2: 16:9 -->
+  <text class="s" x="16" y="160">16:9 window</text>
+  <rect class="view" x="346.7" y="132" width="106.7" height="60"/>
+  <rect class="core" x="360" y="132" width="80" height="60"/>
+  <text class="m" x="490" y="166">wider view, fills the window</text>
+
+  <!-- row 3: 21:9 -->
+  <text class="s" x="16" y="242">21:9 window</text>
+  <rect class="view" x="330" y="214" width="140" height="60"/>
+  <rect class="core" x="360" y="214" width="80" height="60"/>
+  <text class="m" x="490" y="248">at the maximum, fills the window</text>
+
+  <!-- row 4: 32:9 -->
+  <text class="s" x="16" y="324">32:9 window</text>
+  <rect class="win" x="293.3" y="296" width="213.4" height="60"/>
+  <rect class="bars" x="293.3" y="296" width="36.7" height="60"/>
+  <rect class="bars" x="470" y="296" width="36.7" height="60"/>
+  <rect class="view" x="330" y="296" width="140" height="60"/>
+  <rect class="core" x="360" y="296" width="80" height="60"/>
+  <text class="m" x="520" y="322">clamped to the maximum,</text>
+  <text class="m" x="520" y="336">bars on the sides</text>
+
+  <text class="xs" x="16" y="376">dashed box: the original view</text>
+</svg>
