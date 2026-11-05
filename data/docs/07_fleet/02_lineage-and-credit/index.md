@@ -8,7 +8,8 @@ repos:
   - "https://github.com/mstan/m68k-recomp-core"
   - "https://github.com/mstan/z80-recomp-core"
   - "https://github.com/mstan/recomp-ui"
-updated: "2026-08-31"
+  - "https://github.com/mstan/xboxllr"
+updated: "2026-11-04"
 ---
 
 The toolchains here are not independent projects. One of them is the model the
@@ -95,6 +96,19 @@ credits it as ported "through the gbarecomp/snesrecomp implementations with
 permission". psxrecomp and [vbrecomp](https://github.com/mstan/vbrecomp) carry
 their own versions in C.
 
+## XboxLLR adapted HLE from outside the fleet
+
+XboxLLR borrowed and adapted HLE work from other original Xbox projects, with permission, and made
+each piece follow its own rule: same inputs and same outputs as the low-level
+path it replaces. Its README credits
+[sp00nz](https://github.com/sp00nznet/xboxrecomp) for xboxrecomp,
+[Phobos](https://github.com/phobos665/DirectXbox-Recomp) for DirectXbox-Recomp,
+[NoRain](https://github.com/NoRain211/doaxvb-re) for doaxvb-re, and the
+[xemu](https://github.com/xemu-project/xemu) contributors, and
+[apexJCL](https://github.com/apexJCL/blinx1-recomp), whose Blinx work inspired
+its RAM-cache design. Its Windows builds use Phobos's
+Direct3D 11 renderer, which keeps its own GPLv3 terms.
+
 ## Every game port pins a commit
 
 A game port is a thin repository over one framework, joined by a git submodule
@@ -114,3 +128,4 @@ repository, never in one of those copies.
 - The shared cores: [`m68k-recomp-core/PROVENANCE.md`](https://github.com/mstan/m68k-recomp-core/blob/main/PROVENANCE.md) and [`README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md).
 - The travelling parts: [`snesrecomp/THIRD_PARTY_ATTRIBUTION.md`](https://github.com/mstan/snesrecomp/blob/main/THIRD_PARTY_ATTRIBUTION.md), [`segagenesisrecomp/THIRD-PARTY-LICENSES.md`](https://github.com/mstan/segagenesisrecomp/blob/master/THIRD-PARTY-LICENSES.md).
 - The pins come from every `.gitmodules` file and every gitlink in the fleet, read together.
+- The Xbox credits: [`xboxllr/README.md`](https://github.com/mstan/xboxllr/blob/master/README.md) and the [XboxLLR announcement](/blog/introducing-xboxllr).
