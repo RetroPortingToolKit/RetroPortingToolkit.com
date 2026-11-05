@@ -1417,6 +1417,11 @@ async function pauseScheduledJobs(error) {
 }
 
 async function assertJobAccess(job) {
+  // Auto-accepted submissions are the bridge's own decision, made by policy;
+  // nobody asked, so there is nobody's access to check. Checking the
+  // submitter's (or, for a form submission, the bot's own) denied every one,
+  // and the poll re-queued all of them every ten minutes.
+  if (job.submissionModeration?.autoApproved) return;
   const access = await wikiBridge(TOKEN, job.ref.authorId, "status");
   if (job.ownerUpdate) return wikiBridge(TOKEN, job.ref.authorId, "game-owner", { id: job.ownerUpdate.path });
   if (job.wiki) { if (!access.docs) throw new Error("Docs access revoked."); }
