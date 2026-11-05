@@ -4,7 +4,7 @@ summary: "The core ideas behind recomp ports, explained before the docs get cons
 sectionTitle: "Concepts"
 pageType: "reference"
 tags: ["Concepts"]
-updated: "2026-09-01"
+updated: "2026-11-04"
 ---
 
 This section explains the ideas behind recomp ports.
@@ -13,7 +13,8 @@ Start here when a guide uses a word you do not know yet, or when you want to und
 
 - [What are the recompiler and runtime?](/docs/concepts/recompiler-and-runtime). The two main parts most projects are built around.
 - [How does a project tell code from data?](/docs/concepts/code-discovery). Why finding the real program inside a game file is hard.
-- [What are HLE and LLE?](/docs/concepts/hle-and-lle). Two ways to handle console behavior around the game.
+- [What are HLE and LLE?](/docs/concepts/hle-and-lle). Two ways to handle console behavior around the game, and how one HLE part can replace several LLE parts.
+- [How does host-native HLE make a port faster?](/docs/concepts/host-native-hle). Replacing slow faithful parts with fast ones that keep the same contract, with measured results.
 - [What about code you cannot see ahead of time?](/docs/concepts/code-you-cannot-see-ahead-of-time). What happens when a game creates or loads code while it is running.
 - [How do we compare a port to the original?](/docs/concepts/co-simulation). How projects check whether the translated code still behaves correctly.
 - [What does correct enough mean?](/docs/concepts/accuracy-and-burndowns). How faithfulness becomes a list of concrete problems to fix.

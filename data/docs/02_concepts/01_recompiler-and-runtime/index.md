@@ -3,7 +3,7 @@ title: "What are the recompiler and runtime?"
 summary: "Most recomp ports have two major parts: a tool that translates the game before launch, and a runtime that acts like the console around it."
 pageType: "concept"
 tags: ["Architecture", "Recompiler", "Runtime"]
-updated: "2026-08-30"
+updated: "2026-11-04"
 ---
 
 Most recomp ports have two major parts.
@@ -41,6 +41,8 @@ The translated game code runs natively.
 When it needs console behavior, it calls the runtime. The runtime answers those requests by acting like the original hardware or firmware closely enough for the game to behave correctly.
 
 If the game reaches code that was not translated ahead of time, the runtime may use an interpreter. That is slower, but it keeps the game correct while the project learns about that missing code path.
+
+Inside the runtime, each console service can have more than one version. A faithful low-level version follows the hardware closely and acts as the reference. A faster host-native version can replace it, sometimes covering several low-level parts at once, as long as it keeps the same inputs and outputs. The project picks one when the game is built. See [What are HLE and LLE?](/docs/concepts/hle-and-lle) and [How does host-native HLE make a port faster?](/docs/concepts/host-native-hle).
 
 ## Which side owns a bug?
 
