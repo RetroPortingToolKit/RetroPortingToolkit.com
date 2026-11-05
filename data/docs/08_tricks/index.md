@@ -5,7 +5,7 @@ sectionTitle: "Common tricks"
 pageType: "reference"
 tags: ["Tricks", "Widescreen", "Enhancements"]
 order: 4.5
-updated: "2026-11-04"
+updated: "2026-11-05"
 ---
 
 A trick here is a pattern that solved the same problem in more than one port. Each page names the problem, the trick, how to keep the faithful path untouched, what tends to go wrong, and a port that uses it.
@@ -20,7 +20,7 @@ Every trick follows the same rules as any enhancement:
 
 - [Fit to screen widescreen](/docs/tricks/fit-to-screen-widescreen). The default way to do widescreen: follow the window's shape, up to a limit each game sets.
 - [HUD anchoring](/docs/tricks/hud-anchoring). Sort each HUD piece into left, center or right, and pin it to that edge of the wider view.
-- [Camera anchoring](/docs/tricks/camera-anchoring). Near a room edge, slide the wide view inward so it never shows the empty space past the edge.
+- [Camera anchoring](/docs/tricks/camera-anchoring). Near a room edge, slide the wide view inward so it never shows the empty space past the edge. Shipped in Mega Man Maverick Hunter X on PSPLLR.
 - [Fill the edges](/docs/tricks/fill-the-edges). When the view cannot move, fill margins that have no real map data instead of leaving them blank.
 - [Widen spawn and cull bounds](/docs/tricks/widen-spawn-and-culling). Make enemies, items and sprites exist across the whole wide view, not just the old 4:3 window.
 
