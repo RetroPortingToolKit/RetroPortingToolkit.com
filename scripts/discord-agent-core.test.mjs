@@ -950,3 +950,14 @@ describe("waiting before running the whole suite again", () => {
     expect(runs).toBeLessThanOrEqual(7);
   });
 });
+
+/** 2026-11-07: after a network cleanup revoked every session, Codex still
+ * reported "Logged in" locally and then failed each request with this line. A
+ * revoked login is a runner that cannot serve, so the request moves on to the
+ * next runner instead of failing. */
+describe("a revoked login hands over to the next runner", () => {
+  it("recognises Codex's own wording", () => {
+    expect(isRunnerUnavailable("ERROR: Your access token could not be refreshed because your refresh token was revoked. Please log out and sign in again.")).toBe(true);
+    expect(isRunnerUnavailable('"code": "token_revoked"')).toBe(true);
+  });
+});
