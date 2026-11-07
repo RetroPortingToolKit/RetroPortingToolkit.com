@@ -12,11 +12,11 @@ platform: "playstation"
 repo: "https://github.com/mstan/ApeEscapeRecomp"
 group: "PlayStation"
 verified: "2026-08-18"
-updated: "2026-11-05"
+updated: "2026-11-07"
 added: "2026-06-07"
 cover: "./ape-escape.png"
-release: "v0.5.6"
-download: "https://github.com/mstan/ApeEscapeRecomp/releases/tag/v0.5.6"
+release: "v0.5.7"
+download: "https://github.com/mstan/ApeEscapeRecomp/releases/tag/v0.5.7"
 ---
 
 Ape Escape is a milestone for [PSXRecomp](/hardware/playstation): the first public PlayStation recomp here built around analog movement and camera control.
