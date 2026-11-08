@@ -1060,5 +1060,29 @@
     "mediaNote": "No supported images could be imported. The page is publishing without artwork.",
     "autoApproved": true,
     "moderatedAt": "2026-11-05T08:08:44.987Z"
+  },
+  {
+    "id": "86077a95b3f6e06e",
+    "repo": "https://github.com/aoxzh/bayo3-recomp",
+    "title": "Bayonetta 3",
+    "description": "Run Bayonetta 3 for Nintendo Switch, version 1.2.0, natively on Windows, Linux / Steam Deck and Android. The game's ARM code is statically recompiled into C++ and built as native x86-64 and ARM64 programs. No emulator; graphics go through Vulkan. Bring your own game files.",
+    "owner": "aoxzh",
+    "path": "data/games/107_bayo3-recomp-86077a95/index.md",
+    "url": "/games/bayo3-recomp-86077a95",
+    "createdAt": "2026-11-08T08:10:53.232Z",
+    "status": "confirmed",
+    "autoApproved": true,
+    "submittedBy": {
+      "via": "form",
+      "verified": false
+    },
+    "images": [
+      {
+        "path": "./submission-1.jpg",
+        "alt": "Project banner"
+      }
+    ],
+    "summary": [],
+    "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
   }
 ]
