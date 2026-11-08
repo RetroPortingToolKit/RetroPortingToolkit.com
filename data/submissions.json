@@ -1108,5 +1108,30 @@
     ],
     "summary": [],
     "mediaNote": "Imported 1 image. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "ca48568036a47438",
+    "repo": "https://github.com/nvd123-YT/BombermanOnlineRecomp",
+    "title": "Bomberman Online Recompiled",
+    "description": "Online-supported recomp of bomberman online for the dreamcast",
+    "owner": "nvd123-YT",
+    "discord": "nvd123_YT",
+    "path": "data/games/109_bombermanonlinerecomp-ca485680/index.md",
+    "url": "/games/bombermanonlinerecomp-ca485680",
+    "createdAt": "2026-11-08T18:42:05.040Z",
+    "status": "confirmed",
+    "autoApproved": true,
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "nvd123_YT"
+    },
+    "images": [],
+    "summary": [
+      "A native C/C++ recompilation of Bomberman Online (Sega Dreamcast, USA, MK-51065 V1.004), built on dreamcomp-style static SH-4 recompilation.",
+      "The original game is © SEGA / HUDSON SOFT. This repository contains no game data. You must supply your own disc image. Original online multiplayer compatibility is a core requirement, not an optional extra.",
+      "Milestone 1 is in progress. See docs/PLAN.md for the current verified checkpoint and the exact blockers. Do not read a row in this table as more than it says."
+    ],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
