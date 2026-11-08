@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-11-08"
 added: "2026-05-05"
 cover: "/data/blog/19_journey-with-ai-and-recompilation/SonicTheHedgehog2Recomp_5jt992tJom.png"
-release: "v0.9.19"
-download: "https://github.com/mstan/SonicTheHedgehog2Recomp/releases/tag/v0.9.19"
+release: "v0.9.20"
+download: "https://github.com/mstan/SonicTheHedgehog2Recomp/releases/tag/v0.9.20"
 ---
 
 Sonic the Hedgehog 2 runs through [SegaGenesisRecomp](/hardware/sega-genesis).
