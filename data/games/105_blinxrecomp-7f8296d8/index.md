@@ -8,13 +8,13 @@ repo: "https://github.com/mstan/BlinxRecomp"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/BlinxRecomp"}]
 added: "2026-10-30"
-updated: "2026-11-03"
+updated: "2026-11-08"
 submissionId: "7f8296d8c2fd7c20"
 draft: false
 creator: {"github":"mstan","discord":"gamemaster"}
 cover: "./submission-1.jpg"
-release: "v0.5.1"
-download: "https://github.com/mstan/BlinxRecomp/releases/tag/v0.5.1"
+release: "v0.5.2"
+download: "https://github.com/mstan/BlinxRecomp/releases/tag/v0.5.2"
 ---
 
 A recompilation of Blinx the Timesweeper using Xbox Low Level Recompiler \(xboxllr\)
