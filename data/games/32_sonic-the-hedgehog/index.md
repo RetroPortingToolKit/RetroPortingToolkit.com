@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-11-09"
 added: "2026-03-25"
 cover: "/data/blog/19_journey-with-ai-and-recompilation/SonicTheHedgehogRecomp_cJeXxJybYL.png"
-release: "v1.0.8"
-download: "https://github.com/mstan/SonicTheHedgehogRecomp/releases/tag/v1.0.8"
+release: "v1.0.9"
+download: "https://github.com/mstan/SonicTheHedgehogRecomp/releases/tag/v1.0.9"
 ---
 
 Sonic the Hedgehog was the first game brought up on [SegaGenesisRecomp](/hardware/sega-genesis).
