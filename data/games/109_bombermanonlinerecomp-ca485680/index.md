@@ -12,8 +12,8 @@ updated: "2026-11-09"
 submissionId: "ca48568036a47438"
 draft: false
 creator: {"github":"nvd123-YT","discord":"nvd123_YT"}
-release: "v1.0.3"
-download: "https://github.com/nvd123-YT/BombermanOnlineRecomp/releases/tag/v1.0.3"
+release: "v1.0.6"
+download: "https://github.com/nvd123-YT/BombermanOnlineRecomp/releases/tag/v1.0.6"
 ---
 
 Online-supported recomp of bomberman online for the dreamcast
