@@ -8,10 +8,12 @@ repo: "https://github.com/nvd123-YT/BombermanOnlineRecomp"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/nvd123-YT/BombermanOnlineRecomp"}]
 added: "2026-11-08"
-updated: "2026-11-08"
+updated: "2026-11-09"
 submissionId: "ca48568036a47438"
 draft: false
 creator: {"github":"nvd123-YT","discord":"nvd123_YT"}
+release: "v1.0.2"
+download: "https://github.com/nvd123-YT/BombermanOnlineRecomp/releases/tag/v1.0.2"
 ---
 
 Online-supported recomp of bomberman online for the dreamcast
