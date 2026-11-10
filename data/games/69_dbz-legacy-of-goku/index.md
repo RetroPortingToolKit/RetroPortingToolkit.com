@@ -16,8 +16,8 @@ verified: "2026-08-20"
 updated: "2026-11-10"
 added: "2026-08-02"
 cover: "./legacy-of-goku-adaptive.webp"
-release: "v0.0.4"
-download: "https://github.com/mstan/DragonBallZLegacyOfGokuRecomp/releases/tag/v0.0.4"
+release: "v0.0.5"
+download: "https://github.com/mstan/DragonBallZLegacyOfGokuRecomp/releases/tag/v0.0.5"
 ---
 
 The Legacy of Goku is an experimental [GBARecomp](/hardware/game-boy-advance) preview.
