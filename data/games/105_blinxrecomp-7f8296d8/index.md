@@ -4,6 +4,7 @@ desc: "A recompilation of Blinx the Timesweeper using Xbox Low Level Recompiler 
 kicker: "Community submission"
 tags: ["Community"]
 provenance: "community"
+platform: "xbox"
 repo: "https://github.com/mstan/BlinxRecomp"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/BlinxRecomp"}]

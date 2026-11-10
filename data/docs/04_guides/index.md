@@ -4,7 +4,7 @@ summary: "Practical guides for building, porting, modifying, debugging, and rele
 sectionTitle: "Guides"
 pageType: "reference"
 tags: ["Guides"]
-updated: "2026-08-30"
+updated: "2026-11-04"
 ---
 
 These guides are for people who want to work on a port.
@@ -21,5 +21,8 @@ Each guide is meant to answer one practical question.
 - [Debug a divergence](/docs/guides/debug-a-divergence). Find the first point where native and reference behavior disagree.
 - [Set up co-simulation](/docs/guides/set-up-co-simulation). Compare a recomp build against an oracle.
 - [Release a port](/docs/guides/release-a-port). Package a release without shipping files that do not belong there.
+- [Optimize a port without losing accuracy](/docs/guides/optimize-a-port). Replace slow faithful parts with host-native ones and prove each change with a matched measurement.
+
+Reusable enhancement patterns, such as Fit to screen widescreen and HUD anchoring, are collected in [Common tricks](/docs/tricks).
 
 When a guide needs a game file or BIOS, use legally obtained files. This site does not provide them.
