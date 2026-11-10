@@ -14,6 +14,8 @@ submissionId: "18af38e279eaf228"
 draft: false
 creator: {"github":"2002-source","discord":"dosmildos."}
 cover: "./submission-1.png"
+release: "v1.0.0-alpha"
+download: "https://github.com/2002-source/InazumaElevenRecomp/releases/tag/v1.0.0-alpha"
 ---
 
 Native PC port of Inazuma Eleven \(Nintendo DS, Europe\) built with [NDSRecomp](/hardware/nintendo-ds) static recompilation. Full game at 60 FPS with a launcher and in-game menu in English and Spanish, window/fullscreen and scaling options, remappable keys and gamepad support, Spanish text and voices from your own Spanish ROM, mods \(free training, IE2-style special move levels, Japanese voices\) and experimental local wireless play between two PCs. Alpha. Bring your own ROM; no game data is included.
