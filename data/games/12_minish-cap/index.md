@@ -17,8 +17,8 @@ verified: "2026-08-18"
 updated: "2026-11-11"
 added: "2026-05-25"
 cover: "/covers/minish-cap.jpg"
-release: "v0.0.7"
-download: "https://github.com/mstan/MinishCapRecomp/releases/tag/v0.0.7"
+release: "v0.0.8"
+download: "https://github.com/mstan/MinishCapRecomp/releases/tag/v0.0.8"
 ---
 
 The Minish Cap is one of the clearest [GBARecomp](/hardware/game-boy-advance) examples.
