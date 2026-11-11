@@ -12,11 +12,11 @@ platform: "game-boy-advance"
 repo: "https://github.com/mstan/RubySapphireRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-18"
-updated: "2026-11-01"
+updated: "2026-11-11"
 added: "2026-06-22"
 cover: "./pokemon-ruby.webp"
-release: "v0.0.9"
-download: "https://github.com/mstan/RubySapphireRecomp/releases/tag/v0.0.9"
+release: "v0.0.10"
+download: "https://github.com/mstan/RubySapphireRecomp/releases/tag/v0.0.10"
 ---
 
 Pokemon Ruby and Sapphire opened Gen 3, and this [GBARecomp](/hardware/game-boy-advance) project turns both into native PC games.
