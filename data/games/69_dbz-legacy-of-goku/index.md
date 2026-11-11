@@ -13,11 +13,11 @@ showOnPlatform: false
 repo: "https://github.com/mstan/DragonBallZLegacyOfGokuRecomp"
 group: "Game Boy Advance"
 verified: "2026-08-20"
-updated: "2026-11-10"
+updated: "2026-11-11"
 added: "2026-08-02"
 cover: "./legacy-of-goku-adaptive.webp"
-release: "v0.0.5"
-download: "https://github.com/mstan/DragonBallZLegacyOfGokuRecomp/releases/tag/v0.0.5"
+release: "v0.0.6"
+download: "https://github.com/mstan/DragonBallZLegacyOfGokuRecomp/releases/tag/v0.0.6"
 ---
 
 The Legacy of Goku is an experimental [GBARecomp](/hardware/game-boy-advance) preview.
