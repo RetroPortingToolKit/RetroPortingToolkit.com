@@ -14,11 +14,11 @@ group: "Sega Genesis"
 links:
   - { label: "segagenesisrecomp + Sonic the Hedgehog tech demo (1379.tech)", href: "https://1379.tech/segagenesisrecomp-sonic-the-hedgehog-tech-demo/" }
 verified: "2026-08-18"
-updated: "2026-11-10"
+updated: "2026-11-11"
 added: "2026-03-25"
 cover: "/data/blog/19_journey-with-ai-and-recompilation/SonicTheHedgehogRecomp_cJeXxJybYL.png"
-release: "v1.1.0"
-download: "https://github.com/mstan/SonicTheHedgehogRecomp/releases/tag/v1.1.0"
+release: "v1.1.1"
+download: "https://github.com/mstan/SonicTheHedgehogRecomp/releases/tag/v1.1.1"
 ---
 
 Sonic the Hedgehog was the first game brought up on [SegaGenesisRecomp](/hardware/sega-genesis).
