@@ -9,12 +9,12 @@ status: "Community submission"
 platform: "nes"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/Megaman3NESRecomp"}]
 added: "2026-09-27"
-updated: "2026-10-19"
+updated: "2026-11-13"
 submissionId: "ec26233d01dd8271"
 draft: false
 creator: {"github":"mstan"}
-release: "v0.1.3"
-download: "https://github.com/mstan/Megaman3NESRecomp/releases/tag/v0.1.3"
+release: "v0.2.0"
+download: "https://github.com/mstan/Megaman3NESRecomp/releases/tag/v0.2.0"
 ---
 
 Mega Man 3 recompiled for the NES using [NESRecomp](/hardware/nes) · Part of the R.A.I.D. community
