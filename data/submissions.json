@@ -1178,5 +1178,33 @@
       "- Language packs built from your own ROMs (Spanish text, voices and in-code text; Japanese voices)."
     ],
     "mediaNote": "Imported 4 images. The first is the cover; check the page for any missing artwork."
+  },
+  {
+    "id": "dea03286e44251c9",
+    "repo": "https://github.com/Cis-24/FinalFantasyVISNESRecomp",
+    "title": "Final Fantasy VI Recomp",
+    "description": "A community game project. See the source repository for details and current progress.",
+    "owner": "Cis-24",
+    "discord": "cis24",
+    "path": "data/games/111_finalfantasyvisnesrecomp-dea03286/index.md",
+    "url": "/games/finalfantasyvisnesrecomp-dea03286",
+    "createdAt": "2026-11-13T16:57:00.849Z",
+    "status": "confirmed",
+    "autoApproved": true,
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "cis24"
+    },
+    "images": [],
+    "summary": [
+      "A native recompilation of Final Fantasy VI for the SNES (released in North America as Final Fantasy III), built on snesrecomp.",
+      "The game's 65816 code is translated ahead of time into C and compiled into a native executable. Code that cannot be proven statically still runs in the framework's interpreter, so the port stays correct while more of it moves to native code. Progress is checked against a reference emulator with scripted input routes.",
+      "Work in progress; not yet playable from start to finish.",
+      "- Boots to the title screen and runs the intro, the field (walking, doors, map changes) and the main menu.",
+      "- Battles are the current work. The first battle and two battles with the player commands (Fight, Magic, Summon, Item, Steal, SwdTech, Throw, Tools, Blitz, Sketch, Slot, Dance; Lore, X-Magic, Morph, Revert, Runic, Capture, Jump, Control, Mimic, GP Rain, Rage, Row, Def) run through to the victory and back to the field. Further battle routes cover different battle types, monster AI and most of the spells.",
+      "Validated routes (validation/routes): boot to title, new game to Narshe, field walk, menu tour, first battle, battle commands (two routes), field modes, doors, menu scrolling, battle types, monster AI, spells (two routes). Each route replays fixed input and compares memory, video memory and the frame buffer at checkpoints. Known and explained differences from the reference are masked in validation/masks.toml, each with a reason."
+    ],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
