@@ -745,7 +745,9 @@ function DefaultDetail({ item, mediaActive }: { item: Item; mediaActive: boolean
                   </SmartLink>
                 )}
                 {item.kind === "game" && item.status && <span className="pill">{item.status}</span>}
-                <CreatorLine item={item} delay={0} />
+                {/* A post's byline is its credit. "Made by" names whoever built a
+                    project, and on a post it named the writer as its sole maker. */}
+                {item.kind !== "blog" && <CreatorLine item={item} delay={0} />}
                 {item.kind === "game" && downloadUrl(item) && (
                   <a className="project-cta project-cta--download" href={downloadUrl(item)!} target="_blank" rel="noopener noreferrer">
                     Download <span className="ext">↗</span>

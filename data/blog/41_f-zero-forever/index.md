@@ -16,7 +16,7 @@ links:
   - { label: "F-Zero Forever game page", href: "/games/fzerosnesrecomp-e160569f" }
 ---
 
-**F-Zero Forever is a modern PC conversion of the original SNES anti-gravity racer.**
+F-Zero Forever is a modern PC conversion of the original SNES anti-gravity racer.
 
 Rather than a predictable port of the game, our ambition was to push it to new heights, with overwhelming amounts of modes and content, and all the technical improvements we could throw at it.
 
