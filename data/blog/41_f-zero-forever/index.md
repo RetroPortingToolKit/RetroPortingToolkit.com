@@ -23,6 +23,8 @@ The same week we started our efforts, a really ambitious romhack called the [F-Z
 
 There was some resistance. Some of the CGP co-creators did not love the AI use. It helped that I'm a huge anti-gravity racing fan, particularly of F-Zero GX and the original SNES game. After hours of hashing it out with the team, we agreed on the vision for F-Zero Forever. This game is the result of 7 weeks of work, by 4 contributors: GameMaster led all the technical implementation, Shokunin (me) for the design / features, Worthy MF9 and Fennor did possibly over a hundred hours of QA. It's very probably the largest team effort in a recomp, ever.
 
+This project is a great example of what AI can achieve in the hands of a dedicated team that cares. We would never have had the time or resources to put this many features together otherwise, and we pushed the game further than anyone has in its 35 years. That took developers willing to put in the hours, and it took hardcore fans of the game testing it, fixing it, and coming up with improvements. It only worked because we combined the two.
+
 
 ## 75 races. 15 cups.
 
