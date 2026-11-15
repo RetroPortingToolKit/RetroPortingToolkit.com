@@ -26,7 +26,7 @@ There was some resistance. Some of the CGP co-creators did not love the AI use. 
 
 ## 75 races. 15 cups.
 
-We worked with the community and combined several of the highest quality ROM hacks for the game, including **[Community Grand Prix](https://romhackplaza.org/romhacks/f-zero-community-grand-prix-cgp-super-nintendo-romhack), Astra Front, Bower, and MAX**. You can even [bring your own ROM hacks and create your own races](#bring-your-own-races-or-make-them). This is the largest combination of tracks EVER for F-Zero.
+We worked with the community and combined several of the highest quality ROM hacks for the game, including **[Community Grand Prix](https://romhackplaza.org/romhacks/f-zero-community-grand-prix-cgp-super-nintendo-romhack), Astra Velocity, Bower, and MAX**. You can even [bring your own ROM hacks and create your own races](#bring-your-own-races-or-make-them). This is the largest combination of tracks EVER for F-Zero.
 
 > All bundled ROM hack content is included with explicit permission from its authors and creators. AI was not used in any way to modify the ROM hacks or their content. The inclusion of their work in this project should not be taken as a statement of their views on AI.
 
