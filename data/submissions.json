@@ -1206,5 +1206,26 @@
       "Validated routes (validation/routes): boot to title, new game to Narshe, field walk, menu tour, first battle, battle commands (two routes), field modes, doors, menu scrolling, battle types, monster AI, spells (two routes). Each route replays fixed input and compares memory, video memory and the frame buffer at checkpoints. Known and explained differences from the reference are masked in validation/masks.toml, each with a reason."
     ],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "5bbc4dd82b05d735",
+    "repo": "https://github.com/devin-thomas/tekken-2",
+    "title": "Tekken 2 Recompiled",
+    "description": "Native PC port of Tekken 2 PS1 for Windows and Mac",
+    "owner": "devin-thomas",
+    "discord": "@lil.gohan",
+    "path": "data/games/112_tekken-2-5bbc4dd8/index.md",
+    "url": "/games/tekken-2-5bbc4dd8",
+    "createdAt": "2026-11-15T18:31:30.307Z",
+    "status": "confirmed",
+    "autoApproved": true,
+    "submittedBy": {
+      "via": "form",
+      "verified": false,
+      "discord": "@lil.gohan"
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
