@@ -17,9 +17,12 @@ links:
 
 [F-Zero Forever](https://github.com/RetroPortingToolKit/F-ZeroForever) is a modern PC conversion of the original SNES anti-gravity racer.
 
-Rather than a predictable port of the game, our ambition was to push it to new heights, with overwhelming amounts of modes and content, and all the technical improvements we could throw at it.
+When people think about recompilations, the cliche is one non-technical person asking Claude to make me a port. They barely know the game, and it falls apart the minute you run into a bug. Our ambition for F-Zero Forever was to push it to new heights, with overwhelming amounts of modes and content, and all the technical improvements we could throw at it.
 
-Our team consists of veteran developers from the [RetroPortingToolkit](https://github.com/RetroPortingToolKit) team and F-Zero modders from the [F-Zero Community Grand Prix](https://romhackplaza.org/romhacks/f-zero-community-grand-prix-cgp-super-nintendo-romhack) team. For this special game, we spent over seven weeks working on new features, daily. Here is what [F-Zero Forever](https://github.com/RetroPortingToolKit/F-ZeroForever/releases/latest) includes.
+The same week we started our efforts, a really ambitious romhack called the [F-Zero Community Grand Prix](https://romhackplaza.org/romhacks/f-zero-community-grand-prix-cgp-super-nintendo-romhack) was released. The devs had put so much care in creating not just new races and cars, but new obstacle types and functionality. It was a deep mod of the game. I reached out to them on their Discord and explained what our team at [RetroPortingToolkit](https://github.com/RetroPortingToolKit), led by GameMaster, had in mind.
+
+There was some resistance. Some of the CGP co-creators did not love the AI use. It helped that I'm a huge anti-gravity racing fan, particularly of F-Zero GX and the original SNES game. After hours of hashing it out with the team, we agreed on the vision for F-Zero Forever. This game is the result of 7 weeks of work, by 4 contributors: GameMaster led all the technical implementation, Shokunin (me) for the design / features, Worthy MF9 and Fennor did possibly over a hundred hours of QA. It's very probably the largest team effort in a recomp, ever.
+
 
 ## 75 races. 15 cups.
 
