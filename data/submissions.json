@@ -1227,5 +1227,24 @@
     "images": [],
     "summary": [],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "e4576e6e90b060eb",
+    "repo": "https://github.com/Steprant/LostOdysseyRecomp-Android",
+    "title": "Lost Odyssey Recomp — Steprant Android",
+    "description": "Unofficial Android fork of Lost Odyssey Recomp. Steprant 2.1 includes frame-pacing and audio recovery improvements, Qualcomm SGSR2 with SMAA, and HDMI TV mode with controller support. Tested on a Xiaomi 14. Players supply data from their own Xbox 360 copy.",
+    "owner": "Steprant",
+    "path": "data/games/113_lostodysseyrecomp-android-e4576e6e/index.md",
+    "url": "/games/lostodysseyrecomp-android-e4576e6e",
+    "createdAt": "2026-11-16T14:00:34.111Z",
+    "status": "confirmed",
+    "autoApproved": true,
+    "submittedBy": {
+      "via": "form",
+      "verified": false
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
