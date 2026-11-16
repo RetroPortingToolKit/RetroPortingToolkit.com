@@ -13,8 +13,8 @@ submissionId: "e160569f703bb25b"
 draft: false
 creator: {"github":"mstan"}
 cover: "./submission-1.png"
-release: "v2.0.1"
-download: "https://github.com/RetroPortingToolKit/F-ZeroForever/releases/tag/v2.0.1"
+release: "v2.0.2"
+download: "https://github.com/RetroPortingToolKit/F-ZeroForever/releases/tag/v2.0.2"
 ---
 
 A community game project. See the source repository for details and current progress.
