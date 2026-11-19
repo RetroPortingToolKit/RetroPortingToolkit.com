@@ -28,6 +28,7 @@ import {
   checkoutBusyReason,
   foreignWorkReason,
   retryDelay,
+  addressedContent,
   isAuthorized,
   isDestructiveRequest,
   isMassDestructiveRequest,
@@ -1721,16 +1722,17 @@ client.on("messageCreate", async (message) => {
   // A message is for the bot when it opens with the bot's mention or replies
   // to the bot. A mention mid-sentence ("I built @Bot, try it") is talk
   // about the bot, and a reply's automatic ping is not a mention at all.
-  const addressedByMention = new RegExp(`^\\s*<@!?${client.user.id}>`).test(message.content);
+  const content = addressedContent(message.content, client.user.id, message.guild?.roles?.botRoleFor?.(client.user)?.id);
+  const addressedByMention = new RegExp(`^\\s*<@!?${client.user.id}>`).test(content);
   // A mention anywhere else ("what's the status on X, @Bot?") joins the
   // conversation on the read-only answer lane. Actions (submit, update,
   // publish) still need the message to open with the mention or to reply
   // to the bot; a reply's automatic ping is neither.
-  const mentionedInText = new RegExp(`<@!?${client.user.id}>`).test(message.content);
+  const mentionedInText = new RegExp(`<@!?${client.user.id}>`).test(content);
   if (!addressedByMention && !addressedByReply && !mentionedInText) return;
   if (!addressedByMention && !addressedByReply) {
     if (!config.guildIds.has(message.guildId)) return;
-    await handleAsk(message, { channelId: message.channelId, messageId: message.id, authorId: message.author.id }, stripBotMention(message.content, client.user.id));
+    await handleAsk(message, { channelId: message.channelId, messageId: message.id, authorId: message.author.id }, stripBotMention(content, client.user.id));
     return;
   }
 
@@ -1741,7 +1743,7 @@ client.on("messageCreate", async (message) => {
     messageId: message.id,
     authorId: message.author.id,
   };
-  const request = stripBotMention(message.content, client.user.id);
+  const request = stripBotMention(content, client.user.id);
   const wiki = parseWikiRequest(request);
   try {
     if (wiki?.action === "link") {

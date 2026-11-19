@@ -31,6 +31,7 @@ import {
   replyContext,
   runnerChain,
   statusMessage,
+  addressedContent,
   stripBotMention,
   summaryHeading,
   taskPrompt,
@@ -50,6 +51,14 @@ import { classifyStatus } from "./checkout.mjs";
 describe("Discord agent core", () => {
   it("removes normal and nickname mentions", () => {
     expect(stripBotMention("<@123> fix it <@!123>", "123")).toBe("fix it");
+  });
+  it("reads the bot's own role, and a greeting before the tag, as a mention of the bot", () => {
+    expect(addressedContent("Hey <@&900> please update the page", "123", "900")).toBe("<@123> please update the page");
+    expect(addressedContent("hi, <@123> update X", "123", "900")).toBe("<@123> update X");
+    // Another role, and talk about the bot mid-sentence, stay as they are.
+    expect(addressedContent("<@&901> update X", "123", "900")).toBe("<@&901> update X");
+    expect(addressedContent("I built <@123>, try it", "123", "900")).toBe("I built <@123>, try it");
+    expect(addressedContent("<@123> go", "123", undefined)).toBe("<@123> go");
   });
 
   it("recognizes concise stop commands without swallowing ordinary requests", () => {

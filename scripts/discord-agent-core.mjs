@@ -14,6 +14,23 @@ export function stripBotMention(content, botId) {
     .trim();
 }
 
+/**
+ * The message as the bot should read it, with every way of tagging the bot
+ * turned into its user mention.
+ *
+ * Discord gives a bot a role with the bot's own name, and its autocomplete
+ * offers that role next to the bot. Picking it sends `<@&role>`, which is not a
+ * mention of the bot at all: a developer's "Hey @Bot please update the Sonic
+ * page" got silence (2026-11-19). A greeting before the tag is dropped for the
+ * same reason, so "Hey @Bot, update X" opens with the mention like "@Bot
+ * update X" does.
+ */
+export function addressedContent(content, botId, botRoleId) {
+  let text = String(content);
+  if (botRoleId) text = text.replaceAll(`<@&${botRoleId}>`, `<@${botId}>`);
+  return text.replace(new RegExp(`^\\s*(?:hey|hi|hello|yo|ok|okay|please|pls)[\\s,!]+(<@!?${botId}>)`, "i"), "$1");
+}
+
 export function isStopRequest(content) {
   return /^(?:stop|cancel|abort)(?:\s+(?:it|this(?:\s+(?:task|request))?|the\s+(?:task|request)|task|request|now))?[.!]?$/i.test(String(content).trim());
 }
