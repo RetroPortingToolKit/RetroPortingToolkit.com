@@ -408,7 +408,7 @@ function cmsDevApi(): Plugin {
 // it unset and the built HTML is byte for byte what it was. The owner gets a
 // token by registering https://retroportingtoolkit.com at Chrome's origin
 // trials console; it expires, and renewing it means rebuilding with the new
-// value. The prerenderer copies the built index.html into every route, so the
+// value. An expired token is treated as unset. The prerenderer copies the built index.html into every route, so the
 // tag reaches every page or none.
 function webmcpOriginTrialPlugin(): Plugin {
   let token = "";
@@ -418,8 +418,12 @@ function webmcpOriginTrialPlugin(): Plugin {
       const env = loadEnv(cfg.mode, process.cwd(), "");
       token = String(env.VITE_WEBMCP_OT_TOKEN ?? process.env.VITE_WEBMCP_OT_TOKEN ?? "").trim();
       const expiry = originTrialExpiry(token);
+      // An expired token only switches the trial off in Chrome. Failing the
+      // build over it stopped every publish for three days (2026-11-16), so
+      // the tag is dropped and the build goes on.
       if (token && expiry !== undefined && expiry <= Date.now()) {
-        throw new Error("VITE_WEBMCP_OT_TOKEN has expired; renew it before building");
+        cfg.logger.warn("VITE_WEBMCP_OT_TOKEN has expired; building without the origin-trial tag. Renew it at developer.chrome.com/origintrials.");
+        token = "";
       }
     },
     transformIndexHtml() {
