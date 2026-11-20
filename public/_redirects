@@ -6,3 +6,4 @@
 /admin/* /admin 200
 /docs/reference/site-tools /docs/reference 301
 /docs/reference/site-tools.md /docs/reference.md 301
+/blog/how-i-added-webmcp /blog 301
