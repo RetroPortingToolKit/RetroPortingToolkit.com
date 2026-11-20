@@ -21,7 +21,7 @@ It knows how to search its own data. It knows whether a game is in the port cata
 
 The agent should be able to ask the site directly.
 
-So every page on Retro Porting Toolkit now registers [seven typed tools](/docs/reference/site-tools) through WebMCP. WebMCP is a proposed web standard that lets a page expose named functions, input schemas, and handlers to an agent running inside the browser.
+So every page on Retro Porting Toolkit now registers seven typed tools through WebMCP. WebMCP is a proposed web standard that lets a page expose named functions, input schemas, and handlers to an agent running inside the browser.
 
 The agent calls those functions instead of reverse-engineering the HTML.
 

@@ -4,3 +4,5 @@
 /feed.xml /rss.xml 200
 /atom /atom.xml 200
 /admin/* /admin 200
+/docs/reference/site-tools /docs/reference 301
+/docs/reference/site-tools.md /docs/reference.md 301
