@@ -8,13 +8,13 @@ repo: "https://github.com/mstan/FZeroSNESRecomp"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/mstan/FZeroSNESRecomp"}]
 added: "2026-09-27"
-updated: "2026-11-16"
+updated: "2026-11-18"
 submissionId: "e160569f703bb25b"
 draft: false
 creator: {"github":"mstan"}
 cover: "./submission-1.png"
-release: "v2.0.2"
-download: "https://github.com/RetroPortingToolKit/F-ZeroForever/releases/tag/v2.0.2"
+release: "v2.1.0"
+download: "https://github.com/RetroPortingToolKit/F-ZeroForever/releases/tag/v2.1.0"
 ---
 
 A community game project. See the source repository for details and current progress.
