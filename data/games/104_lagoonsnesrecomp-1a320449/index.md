@@ -9,13 +9,13 @@ status: "Community submission"
 platform: "super-nintendo"
 links: [{"label":"Project on GitHub","href":"https://github.com/rages4calm/LagoonSNESRecomp"}]
 added: "2026-10-22"
-updated: "2026-11-13"
+updated: "2026-11-20"
 submissionId: "1a320449459261c8"
 draft: false
 creator: {"github":"rages4calm","discord":"chrono.trigger"}
 cover: "./submission-1.png"
-release: "v0.5.2"
-download: "https://github.com/rages4calm/LagoonSNESRecomp/releases/tag/v0.5.2"
+release: "v0.5.3"
+download: "https://github.com/rages4calm/LagoonSNESRecomp/releases/tag/v0.5.3"
 ---
 
 Lagoon returns on Windows with widescreen exploration, an in-game map and quality-of-life improvements. And apparently someone took a wrong turn on the way to another RPG… Bring your own clean USA ROM. No ROM is included.
