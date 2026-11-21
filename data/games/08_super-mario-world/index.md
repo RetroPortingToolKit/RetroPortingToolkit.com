@@ -18,10 +18,10 @@ links:
 cover: "./smw-wide.png"
 videoUrl: "https://www.youtube.com/watch?v=Owuku0zj4As"
 verified: "2026-08-18"
-updated: "2026-11-15"
+updated: "2026-11-21"
 added: "2026-04-01"
-release: "v0.15.10"
-download: "https://github.com/mstan/SuperMarioWorldRecomp/releases/tag/v0.15.10"
+release: "v0.15.11"
+download: "https://github.com/mstan/SuperMarioWorldRecomp/releases/tag/v0.15.11"
 ---
 
 Super Mario World was the first game [SNESRecomp](/hardware/super-nintendo) ever recompiled, and it is still the flagship core project.
