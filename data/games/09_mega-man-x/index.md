@@ -19,8 +19,8 @@ videoUrl: "https://www.youtube.com/watch?v=XRwKZ0_8u-c"
 verified: "2026-08-18"
 updated: "2026-11-21"
 added: "2026-05-22"
-release: "v2.3.14"
-download: "https://github.com/mstan/MegaManXSNESRecomp/releases/tag/v2.3.14"
+release: "v2.3.15"
+download: "https://github.com/mstan/MegaManXSNESRecomp/releases/tag/v2.3.15"
 ---
 
 Mega Man X was one of the early [SNESRecomp](/hardware/super-nintendo) titles, and it has been kept up alongside the framework.
