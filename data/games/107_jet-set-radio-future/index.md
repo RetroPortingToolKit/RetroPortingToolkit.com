@@ -17,10 +17,10 @@ links:
 cover: "./cover.webp"
 videoUrl: "https://www.youtube.com/watch?v=bxSLnD386YU"
 verified: "2026-11-04"
-updated: "2026-11-04"
+updated: "2026-11-18"
 added: "2026-11-04"
-release: "v0.5.0"
-download: "https://github.com/mstan/JSRFRecomp/releases/tag/v0.5.0"
+release: "v0.5.3"
+download: "https://github.com/mstan/JSRFRecomp/releases/tag/v0.5.3"
 ---
 
 Jet Set Radio Future runs on [XboxLLR](/hardware/xbox), the same engine as [Blinx](/games/blinxrecomp-7f8296d8).
