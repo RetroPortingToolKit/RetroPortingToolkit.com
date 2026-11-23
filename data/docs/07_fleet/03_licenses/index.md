@@ -43,6 +43,7 @@ copyright holder.
 | [mstan/ndsrecomp](https://github.com/mstan/ndsrecomp) | MIT | [`LICENSE`](https://github.com/mstan/ndsrecomp/blob/main/LICENSE) | Holder `Copyright (c) 2026 Matthew Stanley`. Covers the project's own source; the shipped `nds_runner` binary is a GPL-3.0-or-later combined work |
 | [mstan/vbrecomp](https://github.com/mstan/vbrecomp) | MIT | [`LICENSE`](https://github.com/mstan/vbrecomp/blob/master/LICENSE) | 53 lines: the MIT text plus an in-file `# Attribution` section |
 | [mstan/smsggrecomp](https://github.com/mstan/smsggrecomp) | **None** | no license file | README states the license is "Not yet declared" |
+| [mstan/xboxllr](https://github.com/mstan/xboxllr) | GPL-3.0-or-later | [`LICENSE`](https://github.com/mstan/xboxllr/blob/master/LICENSE) and [`LICENSE-SCOPE.md`](https://github.com/mstan/xboxllr/blob/master/LICENSE-SCOPE.md) | Covers owner-original source, subject to the scope file. Third-party work keeps its own terms |
 
 ## Shared services and components
 
@@ -68,6 +69,8 @@ copyright holder.
 | [mstan/MinishCapRecomp](https://github.com/mstan/MinishCapRecomp) | PolyForm Noncommercial 1.0.0 | `LICENSE` | Appended paragraph |
 | [mstan/DragonBallZBuusFuryRecomp](https://github.com/mstan/DragonBallZBuusFuryRecomp) | PolyForm Noncommercial 1.0.0 | `LICENSE` | Appended paragraph |
 | [mstan/SonicTheHedgehogRecomp](https://github.com/mstan/SonicTheHedgehogRecomp) | PolyForm Noncommercial 1.0.0 | `LICENSE.md` | No copyright holder line anywhere in the file |
+| [mstan/BlinxRecomp](https://github.com/mstan/BlinxRecomp) | GPL-3.0-or-later | `LICENSE` | Plus `LICENSE-SCOPE.md` and `THIRD_PARTY_ATTRIBUTION.md` |
+| [mstan/JSRFRecomp](https://github.com/mstan/JSRFRecomp) | GPL-3.0-or-later | `LICENSE` | Plus `LICENSE-SCOPE.md` and `THIRD_PARTY_ATTRIBUTION.md` |
 | [Shy/BoktaiRecomp](https://github.com/Shy/BoktaiRecomp) | PolyForm Noncommercial 1.0.0 | `LICENSE` | `Copyright (c) 2026 Shy (github.com/Shy)` |
 | [OpokXeno/xenogears-recomp](https://github.com/OpokXeno/xenogears-recomp) | PolyForm Noncommercial 1.0.0 | `LICENSE` | `Copyright (c) 2026 OpokXeno`. 98 lines, no appended paragraph |
 | [Alexbeav/syphon-filter-2-recompiled](https://github.com/Alexbeav/syphon-filter-2-recompiled) | PolyForm Noncommercial 1.0.0 | `LICENSE` | `Copyright (c) 2026 Matthew Stan`, not the repository owner. See below |

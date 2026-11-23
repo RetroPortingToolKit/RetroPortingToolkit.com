@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330" role="img" aria-label="Three views at a stage's left wall in Mega Man Maverick Hunter X. The original view shows X 4.89 to 175.11. A centered 21:9 view shows X -22.53 to 202.53, crossing the wall into empty space. An anchored 21:9 view shows X 4.89 to 229.96, keeping the original left edge and putting all the new width on the right.">
+  <style>
+    svg { --ink: #76767c; --acc: #cc4b45; --ok: #3f8f5a; }
+    @media (prefers-color-scheme: dark) {
+      svg { --ink: #84848a; --acc: #dc5b55; --ok: #5fb07a; }
+    }
+    text { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; fill: var(--ink); }
+    .h { font-size: 13.5px; font-weight: 600; }
+    .s { font-size: 12.5px; font-weight: 600; }
+    .m { font-size: 11px; }
+    .xs { font-size: 10.5px; }
+    .k { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: 11px; }
+    .line { fill: none; stroke: var(--ink); stroke-width: 1.25; }
+    .dash { fill: none; stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 3; }
+    .view { fill: var(--ink); fill-opacity: 0.14; stroke: var(--ink); stroke-width: 1.25; }
+    .good { fill: var(--ok); fill-opacity: 0.18; stroke: var(--ok); stroke-width: 1.5; }
+    .bad { fill: var(--acc); fill-opacity: 0.28; stroke: var(--acc); stroke-width: 1.5; }
+    .badt { fill: var(--acc); }
+    .okt { fill: var(--ok); }
+    .wall { stroke: var(--ink); stroke-width: 2.5; }
+    .hatch line { stroke: var(--ink); stroke-width: 1; stroke-opacity: 0.45; }
+    .tick { stroke: var(--ink); stroke-width: 1; }
+  </style>
+  <defs>
+    <pattern id="h" class="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="8"/>
+    </pattern>
+  </defs>
+
+  <!-- world X maps to px = 200 + 2 * X -->
+  <text class="h" x="360" y="24" text-anchor="middle">At the left wall, in world units</text>
+
+  <!-- empty space past the wall -->
+  <rect x="120" y="40" width="80" height="214" fill="url(#h)"/>
+  <text class="xs" x="160" y="268" text-anchor="middle">nothing built</text>
+  <line class="wall" x1="200" y1="36" x2="200" y2="258"/>
+  <text class="s" x="204" y="50">wall, X = 0</text>
+
+  <!-- row 1: original -->
+  <text class="s" x="16" y="88">Original</text>
+  <text class="xs" x="16" y="102">480 by 272</text>
+  <rect class="view" x="209.8" y="72" width="340.4" height="28"/>
+  <line class="dash" x1="380" y1="66" x2="380" y2="106"/>
+  <text class="k" x="374" y="91" text-anchor="end">center 90</text>
+  <text class="k" x="556" y="91">4.89 to 175.11</text>
+
+  <!-- row 2: centered -->
+  <text class="s" x="16" y="152">Centered</text>
+  <text class="xs" x="16" y="166">21:9</text>
+  <rect class="view" x="200" y="136" width="405.1" height="28"/>
+  <rect class="bad" x="154.9" y="136" width="45.1" height="28"/>
+  <line class="dash" x1="380" y1="130" x2="380" y2="170"/>
+  <text class="k" x="374" y="155" text-anchor="end">center 90</text>
+  <text class="k" x="611" y="155">-22.53 to 202.53</text>
+  <text class="m badt" x="154.9" y="182">22.53 past the wall</text>
+
+  <!-- row 3: anchored -->
+  <text class="s" x="16" y="216">Anchored</text>
+  <text class="xs" x="16" y="230">21:9</text>
+  <rect class="good" x="209.8" y="200" width="450.1" height="28"/>
+  <line class="dash" x1="434.8" y1="194" x2="434.8" y2="234"/>
+  <text class="k" x="428.8" y="219" text-anchor="end">center 117.42</text>
+  <text class="m okt" x="209.8" y="246">same left edge as the original; all new width goes right</text>
+
+  <!-- axis -->
+  <line class="line" x1="120" y1="290" x2="690" y2="290"/>
+  <line class="tick" x1="200" y1="286" x2="200" y2="294"/>
+  <text class="k" x="200" y="308" text-anchor="middle">0</text>
+  <line class="tick" x1="300" y1="286" x2="300" y2="294"/>
+  <text class="k" x="300" y="308" text-anchor="middle">50</text>
+  <line class="tick" x1="400" y1="286" x2="400" y2="294"/>
+  <text class="k" x="400" y="308" text-anchor="middle">100</text>
+  <line class="tick" x1="500" y1="286" x2="500" y2="294"/>
+  <text class="k" x="500" y="308" text-anchor="middle">150</text>
+  <line class="tick" x1="600" y1="286" x2="600" y2="294"/>
+  <text class="k" x="600" y="308" text-anchor="middle">200</text>
+  <text class="xs" x="690" y="308" text-anchor="end">world X</text>
+</svg>

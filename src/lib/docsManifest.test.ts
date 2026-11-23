@@ -23,12 +23,9 @@ describe("the body-free documentation manifest", () => {
   it("retains the section identity and order used by navigation", () => {
     const sections = DOCS_MANIFEST
       .filter((entry) => entry.isSectionIndex)
-      .sort(
-        (a, b) =>
-          a.sectionOrder - b.sectionOrder ||
-          a.order - b.order ||
-          a.slug.localeCompare(b.slug),
-      );
+      // Like DOCS_SECTIONS: a section index's own order, including an
+      // explicit `order:` override, places the whole section.
+      .sort((a, b) => a.order - b.order || a.slug.localeCompare(b.slug));
     expect(sections.map((entry) => entry.section)).toEqual(
       DOCS_SECTIONS.map((section) => section.slug),
     );

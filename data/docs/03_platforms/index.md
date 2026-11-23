@@ -4,7 +4,7 @@ summary: "Where each console toolchain stands, which ones are practical today, a
 sectionTitle: "Platforms"
 pageType: "reference"
 tags: ["Platforms"]
-updated: "2026-08-30"
+updated: "2026-11-04"
 ---
 
 These pages explain the console toolchains.
@@ -25,6 +25,7 @@ If you are trying your first port, start with the strongest path.
 - [Sega Genesis](/docs/platforms/sega-genesis). Experimental two-CPU target. Useful for native 68000 work plus Z80 sound work.
 - [Master System and Game Gear](/docs/platforms/master-system-game-gear). Experimental Z80 target. Useful for timing work, but not the first place to start.
 - [Nintendo DS](/docs/platforms/nintendo-ds). Early and experimental. Able to run commercial titles, but still needs optimization and refinement.
+- [Original Xbox](/docs/platforms/xbox). Early beta. Two public games and the Dashboard, built on a faithful low-level path with host-native replacements on top.
 
 ## Research
 

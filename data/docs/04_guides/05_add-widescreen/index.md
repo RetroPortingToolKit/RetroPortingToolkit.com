@@ -2,7 +2,7 @@
 title: "Add widescreen"
 summary: "Widen a port without breaking the faithful 4:3 path: decide whether the game is 3D or 2D, widen what the game draws, and test for culling, wrapping, spawning, and timing bugs."
 pageType: "guide"
-tags: ["Widescreen", "Enhancements", "PlayStation", "Sega Genesis", "NES", "SNES"]
+tags: ["Widescreen", "Enhancements", "PlayStation", "Sega Genesis", "NES", "SNES", "Game Boy Advance", "Original Xbox"]
 repos:
   - "https://github.com/mstan/psxrecomp"
   - "https://github.com/mstan/segagenesisrecomp"
@@ -12,7 +12,8 @@ repos:
   - "https://github.com/mstan/gbarecomp"
   - "https://github.com/mstan/ndsrecomp"
   - "https://github.com/mstan/cdirecomp"
-updated: "2026-08-30"
+  - "https://github.com/mstan/xboxllr"
+updated: "2026-11-04"
 ---
 
 Widescreen is easy to see and hard to finish.
@@ -20,6 +21,8 @@ Widescreen is easy to see and hard to finish.
 Making the output surface wider is only the first step. The game may still draw only a 4:3 world. It may cull objects too early. It may wrap sprite positions. It may spawn enemies at the wrong time. It may reveal art that was never meant to be visible.
 
 The default rule is simple: widescreen is optional, off by default, and the normal 4:3 path stays faithful.
+
+When widescreen is on, the default shape is **Fit to screen**: the view follows the window, from the original 4:3 up to a maximum the game sets. Fixed 16:9, 21:9 and 32:9 presets are extras. The reusable patterns this guide refers to, such as [Fit to screen widescreen](/docs/tricks/fit-to-screen-widescreen), [HUD anchoring](/docs/tricks/hud-anchoring) and [camera anchoring](/docs/tricks/camera-anchoring), each have their own page under [Common tricks](/docs/tricks).
 
 ## Before you start
 
@@ -40,7 +43,7 @@ Do not begin by changing generated code. Put widescreen behavior in runtime code
 | 2D | Make the engine draw more columns or rows. Then fix sprite wrapping, tile buffers, spawning, and collision. |
 | Mixed | Treat each scene type separately. Menus, FMV, maps, and gameplay may need different handling. |
 
-Do not assume there is hidden content outside the 4:3 frame. Some games truly draw only the original view.
+Do not assume there is hidden content outside the 4:3 frame. Some games truly draw only the original view. In a 2D game, the edges of each room are the first place this shows. See [Camera anchoring](/docs/tricks/camera-anchoring) and [Fill the edges](/docs/tricks/fill-the-edges).
 
 Some games need a more direct answer: a custom renderer. [StarFoxSNESRecomp](https://github.com/mstan/StarFoxSNESRecomp) is the first example here. Its authentic 4:3 path stays on the stock renderer, while wider modes use a separate native renderer adapted from Star Fox Enhanced.
 
@@ -85,6 +88,8 @@ A good widescreen pass keeps gameplay wider while keeping health bars, text boxe
 
 Check menus and overlays separately from gameplay. A fix that looks right while playing can still stretch a pause menu, split a dialogue box, or move a prompt too far from the action.
 
+The usual pattern is to sort each HUD piece into a left, center or right group and pin each group to its edge. See [HUD anchoring](/docs/tricks/hud-anchoring).
+
 **Checkpoint.** HUD elements are readable, stable, and not stretched by accident.
 
 ## Step 6. Capture what changed
@@ -116,7 +121,7 @@ Some games tie spawning to the camera edge. In those games, widening the edge ca
 
 That is not true for every game. Test it before changing it. If a spawn change causes a softlock, early trigger, RNG shift, or broken route, treat that as a correctness bug.
 
-The safe goal is that widening presentation does not silently change progression.
+The safe goal is that widening presentation does not silently change progression. See [Widen spawn and cull bounds](/docs/tricks/widen-spawn-and-culling) for how ports split ordinary enemies from scripted encounters.
 
 ## Step 9. Test dense and ugly scenes
 

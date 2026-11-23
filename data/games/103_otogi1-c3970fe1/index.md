@@ -4,6 +4,7 @@ desc: "Static recompilation of the original Xbox release. Boots the retail XBE o
 kicker: "Community submission"
 tags: ["Community"]
 provenance: "community"
+platform: "xbox"
 repo: "https://github.com/sigods/otogi1"
 status: "Community submission"
 links: [{"label":"Project on GitHub","href":"https://github.com/sigods/otogi1"}]

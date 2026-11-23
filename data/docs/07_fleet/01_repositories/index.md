@@ -11,7 +11,8 @@ repos:
   - "https://github.com/mstan/recomp-ui"
   - "https://github.com/mstan/m68k-recomp-core"
   - "https://github.com/mstan/z80-recomp-core"
-updated: "2026-08-31"
+  - "https://github.com/mstan/xboxllr"
+updated: "2026-11-04"
 ---
 
 The fleet includes per-console projects, shared components and game ports. Each one is listed here with its role and the toolchain it belongs to. That attribution is usually the first fact you need, and no single repository states it. For what a console's toolchain does rather than where it lives, read the [platform pages](/docs/platforms).
@@ -33,6 +34,7 @@ Most of these are a recompiler and a runtime for one machine. A game port is a t
 | [mstan/vbrecomp](https://github.com/mstan/vbrecomp) | Virtual Boy | NEC V810 to C, plus a runtime, a TCP debug server and a Beetle VB oracle harness. No V810 interpreter exists in the project at all | The framework carries no status banner. Its downstream port states "**Status: Playable.**" |
 | [mstan/ndsrecomp](https://github.com/mstan/ndsrecomp) | Nintendo DS | Both DS processors lifted to C ahead of time and interleaved on one event scheduler | "Status: very early pre-alpha (v0.0.1)" |
 | [mstan/cdirecomp](https://github.com/mstan/cdirecomp) | CD-i | SCC68070 to C, recompiling and running the console's entire CD-RTOS system ROM rather than stubbing it | "Very early development" and "**Gameplay is not yet reachable.**" |
+| [mstan/xboxllr](https://github.com/mstan/xboxllr) | Original Xbox | x86 to C ahead of time, with no fallback interpreter, plus shared native console services set by low-level reference paths, a native title host and an Xbox-style launcher. Formerly xboxlle | "**XboxLLR is an early beta**" |
 
 ## Shared components
 
@@ -153,6 +155,15 @@ Fourteen repositories, all pinning gbarecomp as a submodule at path `gbarecomp`.
 | [mstan/MarioTennisVirtualBoyRecomp](https://github.com/mstan/MarioTennisVirtualBoyRecomp) | Virtual Boy | vbrecomp | The only vbrecomp port. Its license is scoped to build glue, CMake wiring and documentation only |
 | [mstan/MetroidPrimeHuntersRecomp](https://github.com/mstan/MetroidPrimeHuntersRecomp) | Nintendo DS | ndsrecomp | The only ndsrecomp port, and it consumes the framework through an `ndsrecomp.pin` file rather than a submodule |
 
+### Original Xbox, on XboxLLR
+
+Two public repositories. Each pins xboxllr as a submodule, at path `xboxlle` in BlinxRecomp and `xboxllr` in JSRFRecomp. The Dashboard has no repository of its own; its profile lives in xboxllr under `titles/dashboard/`.
+
+| Repository | Note |
+|---|---|
+| [mstan/BlinxRecomp](https://github.com/mstan/BlinxRecomp) | The first publicly supported title. Owns the exact-revision bindings, mods and the tested framework pin |
+| [mstan/JSRFRecomp](https://github.com/mstan/JSRFRecomp) | Supports the USA standalone release and NTSC-U certificate revision 4 |
+
 ## What consumes what
 
 Some repositories declare no submodules at all. The rest declare at least one, and this table collapses every declaration to one row per shared component. It tells you how far a change to a shared repository reaches.
@@ -170,6 +181,7 @@ Some repositories declare no submodules at all. The rest declare at least one, a
 | [smsggrecomp](https://github.com/mstan/smsggrecomp) | 2 | Both Sega 8-bit ports |
 | [vbrecomp](https://github.com/mstan/vbrecomp) | 1 | The Virtual Boy port |
 | [retcomm-rbengine](https://github.com/TechnicallyComputers/retcomm-rbengine) | 1 | psxrecomp, at `lib/retcomm-rbengine` |
+| [xboxllr](https://github.com/mstan/xboxllr) | 2 | BlinxRecomp and JSRFRecomp |
 
 A shared component is not the same everywhere it is used. Three details.
 
@@ -187,5 +199,5 @@ A shared component is not the same everywhere it is used. Three details.
 
 - The repository list, the toolchain attribution per game port and the canonical port layout come from each repository's `.gitmodules`, from the `*.pin` files used where a framework is not a submodule, and from each README.
 - The dependency map comes from every `.gitmodules` file and every gitlink in the fleet, read together.
-- Status quotations come from the README of the repository being quoted. Toolchain READMEs: [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/README.md), [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/README.md), [snesrecomp](https://github.com/mstan/snesrecomp/blob/main/README.md), [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/README.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/README.md), [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/README.md), [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/README.md), [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/README.md), [cdirecomp](https://github.com/mstan/cdirecomp/blob/master/README.md).
+- Status quotations come from the README of the repository being quoted. Toolchain READMEs: [psxrecomp](https://github.com/mstan/psxrecomp/blob/master/README.md), [nesrecomp](https://github.com/mstan/nesrecomp/blob/master/README.md), [snesrecomp](https://github.com/mstan/snesrecomp/blob/main/README.md), [gbarecomp](https://github.com/mstan/gbarecomp/blob/main/README.md), [segagenesisrecomp](https://github.com/mstan/segagenesisrecomp/blob/master/README.md), [smsggrecomp](https://github.com/mstan/smsggrecomp/blob/main/README.md), [vbrecomp](https://github.com/mstan/vbrecomp/blob/master/README.md), [ndsrecomp](https://github.com/mstan/ndsrecomp/blob/main/README.md), [cdirecomp](https://github.com/mstan/cdirecomp/blob/master/README.md), [xboxllr](https://github.com/mstan/xboxllr/blob/master/README.md).
 - Shared component descriptions: [`m68k-recomp-core/README.md`](https://github.com/mstan/m68k-recomp-core/blob/main/README.md), [`z80-recomp-core/README.md`](https://github.com/mstan/z80-recomp-core/blob/main/README.md), [`recomp-ui/README.md`](https://github.com/mstan/recomp-ui/blob/master/README.md), [`retcomm-rbengine/README.md`](https://github.com/TechnicallyComputers/retcomm-rbengine/blob/main/README.md), [`retcomm-catalog/README.md`](https://github.com/TechnicallyComputers/retcomm-catalog/blob/main/README.md).

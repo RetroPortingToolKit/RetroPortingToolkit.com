@@ -3,7 +3,7 @@ title: "How to check AI work"
 summary: "How to decide whether an AI-generated recomp change was actually proven."
 pageType: "reference"
 tags: ["Agents", "Testing", "Verification"]
-updated: "2026-08-30"
+updated: "2026-11-04"
 ---
 
 Do not ask whether the agent "tested it."
@@ -98,6 +98,8 @@ If the project has multiple capture paths, use the one closest to what the playe
 Performance needs repeatability.
 
 Use the same route, same build type, same settings, and similar host conditions. Run more than once.
+
+Compare two builds on the same PC, playing the same stretch back to back. Report CPU time per frame for the whole process, not FPS, when the game is locked to its original speed. Run the unchanged build twice first: that gap is your noise floor, and a smaller "win" is not a result. Measure per game, and never let a gain in one game cancel a loss in another. The full procedure is [Optimize a port without losing accuracy](/docs/guides/optimize-a-port).
 
 For later systems, optimization is usually not one pass. It can take weeks of profiling and focused fixes. Avoid claiming victory from one faster boot unless that was the exact target.
 
