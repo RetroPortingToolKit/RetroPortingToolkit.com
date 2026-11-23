@@ -15,8 +15,8 @@ verified: "2026-08-18"
 updated: "2026-11-23"
 added: "2026-08-02"
 cover: "./buus-fury-adaptive.webp"
-release: "v0.0.8"
-download: "https://github.com/mstan/DragonBallZBuusFuryRecomp/releases/tag/v0.0.8"
+release: "v0.0.9"
+download: "https://github.com/mstan/DragonBallZBuusFuryRecomp/releases/tag/v0.0.9"
 ---
 
 Dragon Ball Z: Buu's Fury is an early [GBARecomp](/hardware/game-boy-advance) project.
