@@ -15,9 +15,9 @@ links:
   - { label: "Project on GitHub", href: "https://github.com/DerrickGold/ar-recomp" }
 verified: "2026-08-31"
 cover: "./actraiser-recompiled.webp"
-release: "v0805"
-download: "https://github.com/DerrickGold/ar-recomp/releases/tag/v0805"
-updated: "2026-10-30"
+release: "v0950"
+download: "https://github.com/DerrickGold/ar-recomp/releases/tag/v0950"
+updated: "2026-11-22"
 ---
 
 ActRaiser is a community [SNESRecomp](/hardware/super-nintendo) project by DerrickGold.

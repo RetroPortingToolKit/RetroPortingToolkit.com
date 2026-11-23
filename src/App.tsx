@@ -182,7 +182,12 @@ function AppRoutes() {
     for (;;) {
       const bg = (loc.state as BgState | null)?.background;
       const itemMatch = loc.pathname.match(ITEM_PATH_RE);
+      // Inside the editor's preview frame an item is a plain page that scrolls
+      // with the document. As a modal it sits in a fixed layer over a locked
+      // body, and Safari on iOS does not scroll that inside an iframe: the
+      // preview showed the top of the article and could not be moved.
       const modalish =
+        !(IS_CMS_PREVIEW && itemMatch) &&
         MODALISH_RE.test(loc.pathname) &&
         (!!bg || COLLECTION_PATH_RE.test(loc.pathname) || !!itemMatch);
       if (!modalish) {

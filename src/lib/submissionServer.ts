@@ -140,7 +140,9 @@ export async function submitRepository(store: SubmissionStore, input: Record<str
     }
     const record: Submission = { id, repo, title: plainText(input.name, 100) || metadata.title,
       description: plainText(input.description, 500) || metadata.description || 'A community game project. See the source repository for details and current progress.',
-      owner: metadata.owner, ...(plainText(input.discord, 80) ? { discord: plainText(input.discord, 80) } : {}), path: `data/games/${String(order).padStart(2, '0')}_${slug}/index.md`, url: `/games/${slug}`, createdAt: now.toISOString(), status: 'pending',
+      owner: metadata.owner, ...(plainText(input.discord, 80) ? { discord: plainText(input.discord, 80) } : {}), path: `data/games/${String(order).padStart(2, '0')}_${slug}/index.md`, url: `/games/${slug}`, createdAt: now.toISOString(),
+      // Published as it arrives: nobody reviews a submission first.
+      status: 'confirmed', autoApproved: true,
       // Who sent this, as far as this endpoint can honestly tell: it is public
       // and unauthenticated, so a handle typed into the form is a claim and
       // nothing more. The bridge replaces this with a verified identity when

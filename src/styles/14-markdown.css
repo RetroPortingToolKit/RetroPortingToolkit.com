@@ -331,8 +331,7 @@ a.md-anchor:hover {
 .modal-body--article .modal-content > .md-code,
 .modal-body--article .modal-content > .md-table-wrap,
 .modal-body--article .modal-content > .md-callout {
-  max-width: 680px;
-  margin-inline: auto;
+  margin-inline: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

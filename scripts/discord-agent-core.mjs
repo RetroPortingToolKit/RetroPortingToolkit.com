@@ -14,6 +14,23 @@ export function stripBotMention(content, botId) {
     .trim();
 }
 
+/**
+ * The message as the bot should read it, with every way of tagging the bot
+ * turned into its user mention.
+ *
+ * Discord gives a bot a role with the bot's own name, and its autocomplete
+ * offers that role next to the bot. Picking it sends `<@&role>`, which is not a
+ * mention of the bot at all: a developer's "Hey @Bot please update the Sonic
+ * page" got silence (2026-11-19). A greeting before the tag is dropped for the
+ * same reason, so "Hey @Bot, update X" opens with the mention like "@Bot
+ * update X" does.
+ */
+export function addressedContent(content, botId, botRoleId) {
+  let text = String(content);
+  if (botRoleId) text = text.replaceAll(`<@&${botRoleId}>`, `<@${botId}>`);
+  return text.replace(new RegExp(`^\\s*(?:hey|hi|hello|yo|ok|okay|please|pls)[\\s,!]+(<@!?${botId}>)`, "i"), "$1");
+}
+
 export function isStopRequest(content) {
   return /^(?:stop|cancel|abort)(?:\s+(?:it|this(?:\s+(?:task|request))?|the\s+(?:task|request)|task|request|now))?[.!]?$/i.test(String(content).trim());
 }
@@ -319,7 +336,7 @@ export function isRunnerUnavailable(output) {
   // identity-linked one the CLI cannot present a workspace for. That is a
   // credential the runner cannot use, not a failed task, so it hands over and
   // the exhausted-chain alert still reaches a maintainer.
-  return /(?:usage|weekly|daily|session) limit|purchase more credits|out of credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)|access token has (?:expired|been revoked)|failed to authenticate|invalid api key|authentication_error|anthropic-workspace-id is required|401 |command not found|enoent/.test(
+  return /(?:usage|weekly|daily|session) limit|purchase more credits|out of credits|insufficient (?:credit|quota)|quota (?:exceeded|reached)|access token has (?:expired|been revoked)|refresh token was revoked|token_revoked|log out and sign in again|failed to authenticate|invalid api key|authentication_error|anthropic-workspace-id is required|401 |command not found|enoent/.test(
     text,
   );
 }

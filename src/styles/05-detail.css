@@ -325,10 +325,15 @@
   --article-display: "Fraunces", "SF Pro Display", -apple-system, Georgia, serif;
 }
 
-/* The centered editorial column, shared by writing + body-only blog + sources. */
+/* The article column, shared by writing + body-only blog + sources.
+   One column, one left edge (owner, 2026-11-14): the kicker, the title, the
+   byline, the cover, the prose and every block inside it start at the same
+   place. The earlier shape centred the headline over a narrower text measure
+   and let media step out past it, and one stray `margin` shorthand then pinned
+   paragraphs 94px left of their own headings. A single width has no such seam. */
 .modal-body--article {
   position: relative;
-  max-width: 980px;
+  max-width: 832px;
   margin: 0 auto;
   padding-top: 72px;
   padding-bottom: 96px;
@@ -356,7 +361,7 @@
 .modal-body--article .modal-kicker,
 .modal-body--article .modal-title,
 .modal-body--article .modal-meta {
-  text-align: center;
+  text-align: left;
 }
 
 /* Eyebrow: a serif caps label + short centered rule (the "publication mark"),
@@ -381,7 +386,7 @@
   display: block;
   width: 28px;
   height: 2px;
-  margin: 10px auto 0;
+  margin: 10px 0 0;
   border-radius: 2px;
   background: color-mix(in srgb, var(--article-accent, var(--hairline)) 70%, transparent);
 }
@@ -390,9 +395,9 @@
 .modal-body--article .modal-title {
   font-family: var(--article-display);
   font-weight: 600;
-  font-size: clamp(38px, 4.6vw, 58px);
-  line-height: 1.04;
-  letter-spacing: -0.018em;
+  font-size: clamp(32px, 3.4vw, 44px);
+  line-height: 1.12;
+  letter-spacing: -0.016em;
   text-wrap: balance;
   margin-bottom: 16px;
 }
@@ -408,9 +413,8 @@
 }
 .modal-body--article .article-byline,
 .modal-body--article .modal-meta {
-  justify-content: center;
-  max-width: 680px;
-  margin: 6px auto 32px;
+  justify-content: flex-start;
+  margin: 6px 0 28px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--hairline);
 }
@@ -450,29 +454,19 @@
    Sits INSIDE the masthead (inside .modal-body--article) so the desktop modal's
    click-outside bounds still contain it. */
 .article-cover {
-  max-width: 1000px;
-  margin: 20px auto 8px;
+  margin: 0 0 32px;
 }
 .article-cover .img {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: 18px;
+  border-radius: 10px;
   display: block;
   outline: 1px solid var(--hairline);
   outline-offset: -1px;
-  box-shadow:
-    0 1px 0 color-mix(in srgb, var(--article-accent, var(--ink)) 20%, transparent),
-    0 24px 60px -30px rgba(0, 0, 0, 0.35);
-}
-[data-theme="dark"] .article-cover .img {
-  box-shadow: 0 1px 0
-    color-mix(in srgb, var(--article-accent, var(--ink)) 32%, transparent);
 }
 .article-cover-cap {
-  max-width: 680px;
-  margin-inline: auto;
-  text-align: center;
+  text-align: left;
 }
 
 /* ---------- prose (Apple-Newsroom shape: narrow column, media steps out) ---------- */
@@ -487,19 +481,15 @@
 .modal-body--article .modal-content > ol,
 .modal-body--article .modal-content > pre,
 .modal-body--article .modal-content > blockquote {
-  max-width: 680px;
-  margin-inline: auto;
+  margin-inline: 0;
 }
 .modal-body--article .modal-content > p {
   margin: 0 0 22px;
 }
-.modal-body--article .modal-content > p:has(.md-figure) {
-  max-width: 880px;
-}
 /* Lead paragraph -> a proper deck: larger, darker, no accent. */
 .modal-body--article .modal-content > p:first-child {
-  font-size: 22px;
-  line-height: 1.5;
+  font-size: 20px;
+  line-height: 1.55;
   color: var(--ink);
   font-weight: 450;
   letter-spacing: -0.004em;
@@ -517,7 +507,7 @@
   letter-spacing: -0.012em;
   line-height: 1.15;
   color: var(--ink);
-  margin: 52px auto 16px;
+  margin: 48px 0 14px;
   position: relative;
   scroll-margin-top: 24px;
 }
@@ -527,7 +517,7 @@
   font-size: 21px;
   letter-spacing: -0.008em;
   color: var(--ink);
-  margin: 36px auto 12px;
+  margin: 32px 0 10px;
 }
 
 /* "**Lead-in.** body" pattern: a small accent dot before direct-paragraph
@@ -535,16 +525,6 @@
 .modal-body--article .modal-content > p.md-leadin > strong:first-child {
   color: var(--ink);
   font-weight: 650;
-}
-.modal-body--article .modal-content > p.md-leadin > strong:first-child::before {
-  content: "";
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 9px;
-  vertical-align: 0.12em;
-  background: var(--article-accent, var(--muted));
 }
 
 /* Tinted body selection. */
@@ -561,13 +541,13 @@
 /* ---------- inline article media ---------- */
 .md-figure {
   display: block;
-  margin: 30px auto 10px;
+  margin: 28px 0 10px;
 }
 .md-figure img,
 .md-figure video {
   display: block;
   width: 100%;
-  border-radius: 16px;
+  border-radius: 10px;
 }
 .md-figcaption {
   display: block;
@@ -575,7 +555,7 @@
   font-size: 13px;
   line-height: 1.5;
   color: var(--muted);
-  text-align: center;
+  text-align: left;
 }
 .modal-kicker {
   display: inline-block;
@@ -720,8 +700,7 @@
   overflow: auto;
   font-size: 14px;
   line-height: 1.55;
-  max-width: 760px;
-  margin-inline: auto;
+  margin-inline: 0;
 }
 .modal-body--article .modal-content pre code {
   background: none;
@@ -732,8 +711,7 @@
 /* ---------- author end-card (blog sign-off) ----------
    Accent-tinted 2px top border closes symmetrically with the eyebrow rule. */
 .article-endcard {
-  max-width: 680px;
-  margin: 56px auto 8px;
+  margin: 56px 0 8px;
   padding: 24px 26px;
   border-radius: 18px;
   background: var(--bg-soft);
@@ -783,8 +761,7 @@
    reading measure and set their titles in the display serif. */
 .modal-body--article .adjacent-row,
 .modal-body--article .modal-links {
-  max-width: 680px;
-  margin-inline: auto;
+  margin-inline: 0;
 }
 .modal-body--article .modal-links {
   margin-top: 40px;
@@ -1949,9 +1926,9 @@ button {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
-  margin: 14px 0 6px;
+  margin: 0 0 24px;
 }
 .article-projectmeta .project-cta {
   /* In the article masthead the button is one item in a flex row, and the row

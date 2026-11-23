@@ -28,6 +28,7 @@ import {
   checkoutBusyReason,
   foreignWorkReason,
   retryDelay,
+  addressedContent,
   isAuthorized,
   isDestructiveRequest,
   isMassDestructiveRequest,
@@ -51,7 +52,7 @@ import {
 } from "./discord-agent-core.mjs";
 import { createTaskContext } from "./discord-task-context.mjs";
 import { verifyCompletion, outcomeReaction } from "./discord-completion.mjs";
-import { submissionBridge, moderateSubmission } from "./submissions-discord.mjs";
+import { submissionBridge } from "./submissions-discord.mjs";
 import { siteChangeWatcher } from "./site-changes.mjs";
 import { repoUpdateWatcher, applyRepoUpdates, releasesAnnouncement } from "./repo-updates.mjs";
 import { parseOwnerRequest, findGamePage, applyOwnerUpdate } from "./owner-updates.mjs";
@@ -90,17 +91,13 @@ const config = {
   guildIds: parseCsv(process.env.DISCORD_ALLOWED_GUILD_IDS),
   channelIds: parseCsv(process.env.DISCORD_ALLOWED_CHANNEL_IDS),
   publicChannelIds: parseCsv(process.env.DISCORD_PUBLIC_CHANNEL_IDS),
-  // The moderation lane is a stable Discord channel for this project; an env
-  // override keeps the bridge reusable in the harness or another server.
+  // Stable Discord channels for this project; an env override keeps the
+  // bridge reusable in the harness or another server.
   // The website channel: only announcements of changes to the site itself.
   adminChannelId: process.env.DISCORD_ADMIN_CHANNEL_ID ?? "1523871171551039649",
-  // The bot channel: everything the bot did. Task reports, submission review
-  // notices and moderation, and (by hand) notes on the bot's own changes.
+  // The bot channel: everything the bot did. Task reports and (by hand) notes on the bot's own changes.
   botChannelId: process.env.DISCORD_BOT_CHANNEL_ID ?? "1549838020163797052",
   userIds: parseCsv(process.env.DISCORD_ALLOWED_USER_IDS),
-  // Team members whose repository submissions publish as confirmed without a
-  // moderation pass. Overridable, but the team roster is the default.
-  trustedSubmitterIds: new Set(parseCsv(process.env.DISCORD_TRUSTED_SUBMITTER_IDS ?? "71388029540900864,174355715551526912,398336732287991808,121056800341491712")),
   roleIds: parseCsv(process.env.DISCORD_ALLOWED_ROLE_IDS),
   destructiveUserIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_USER_IDS),
   destructiveRoleIds: parseCsv(process.env.DISCORD_DESTRUCTIVE_ROLE_IDS),
@@ -167,7 +164,6 @@ const ATTACHMENT_FETCH_MS = 60_000;
 const SITE_CHANGE_POLL_MS = envMs("DISCORD_SITE_CHANGE_POLL_MS", 30 * 60 * 1_000);
 const REPO_UPDATE_POLL_MS = envMs("DISCORD_REPO_UPDATE_POLL_MS", 15 * 60 * 1_000);
 const CONTRIBUTOR_SYNC_MS = envMs("DISCORD_CONTRIBUTOR_SYNC_MS", 60 * 60 * 1_000);
-const SUBMISSION_POLL_MS = envMs("DISCORD_SUBMISSION_POLL_MS", 10 * 60 * 1_000);
 // Where newly added contributors are mentioned once; empty disables the mention.
 const CONTRIBUTOR_ANNOUNCE_CHANNEL_ID = process.env.DISCORD_CONTRIBUTOR_ANNOUNCE_CHANNEL_ID ?? "1514467451201523846";
 // The GitHub repository whose main branch deploys the site.
@@ -246,7 +242,6 @@ function jobRecord(job) {
     ref: job.ref,
     messageUrl: job.messageUrl ?? null,
     request: job.request,
-    submissionModeration: job.submissionModeration ?? null,
     repoUpdate: job.repoUpdate ?? null,
     ownerUpdate: job.ownerUpdate ?? null,
     wiki: job.wiki ?? null,
@@ -442,7 +437,12 @@ function markWaiting(job, reason = "") {
   // admin notice stays one-time.
   job.waitingReason = reason || job.waitingReason || "";
   job.waitingSince ??= Date.now();
-  if (job.ref?.messageId) void updateStatus(job);
+  if (job.ref?.messageId && !noStatusLine(job)) void updateStatus(job);
+}
+
+/** Anything replying into the read-only website channel. */
+function noStatusLine(job) {
+  return job.ref?.channelId === config.adminChannelId;
 }
 
 async function gitSnapshot() {
@@ -473,17 +473,13 @@ async function gitSnapshot() {
  */
 /** The files a structured job will write, so it can wait only for those.
  *
- * A release recording touches the game pages it names; a moderation touches
- * one page and the submissions index; an owner update touches one page. None
- * of them goes near whatever anyone happens to be editing, and all three stage
- * and commit by name. Every one of the 148 give-ups in the log was one of
+ * A release recording touches the game pages it names; an owner update
+ * touches one page. Neither goes near whatever anyone happens to be editing,
+ * and both stage and commit by name. Every one of the 148 give-ups in the log was one of
  * these waiting for an edit that had nothing to do with it. */
 function writeSetOf(job) {
   if (job.repoUpdate) return (job.repoUpdate.updates ?? [job.repoUpdate]).map((u) => u.path).filter(Boolean);
   if (job.ownerUpdate?.path) return [job.ownerUpdate.path];
-  // Moderation resolves its page from data/submissions.json at run time; the
-  // index itself is always written, and the page is under data/games.
-  if (job.submissionModeration) return null;
   return null; // the free-form lane writes whatever it likes: wait for everything
 }
 
@@ -1415,7 +1411,6 @@ async function assertJobAccess(job) {
   const access = await wikiBridge(TOKEN, job.ref.authorId, "status");
   if (job.ownerUpdate) return wikiBridge(TOKEN, job.ref.authorId, "game-owner", { id: job.ownerUpdate.path });
   if (job.wiki) { if (!access.docs) throw new Error("Docs access revoked."); }
-  else if (job.submissionModeration) { if (!access.destructive) throw new Error("Moderation access revoked."); }
   else if (!access.publish) throw new Error("Discord publishing access revoked.");
 }
 
@@ -1460,14 +1455,18 @@ async function drainQueue() {
     // A scheduled job has no requester: no status line, no progress, no
     // completion reply. Its result shows up as the change it made.
     const scheduled = !job.ref?.messageId;
-    if (!job.status && !scheduled) {
+    // Moderation and anything replying into the website channel get no status
+    // line either: it was posted and then deleted moments later, which left
+    // everyone in that read-only channel with an unread for nothing.
+    const silent = scheduled || noStatusLine(job);
+    if (!job.status && !silent) {
       await updateStatus(job, job.resumed ? resumedMessage() : `On it.${queue.length ? ` ${queue.length} queued.` : ""}`);
       // Persist again now that the status line exists: a restart during the
       // wait reads its id from here to tidy it, and the first persist above
       // happened before it was posted.
       await persistJobs();
     }
-    if (!scheduled) startStatusTicker(job);
+    if (!silent) startStatusTicker(job);
     let report;
     if (job.ref?.authorId) await assertJobAccess(job);
     if (job.wiki) {
@@ -1485,12 +1484,6 @@ async function drainQueue() {
         } finally { activeChild = null; await taskLog.close(); await fs.rm(temp, { recursive: true, force: true }); }
       }});
       report = { outcome: "complete", heading: "✅ Saved.", body: `Documentation saved. The site is rebuilding. ${job.wiki.id ? SITE.url + job.wiki.id : SITE.url + "/docs/" + result.section + "/" + result.slug}`, published: true };
-    } else if (job.submissionModeration) {
-      const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); }, { writeSet: writeSetOf(job) });
-      if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
-      job.phase = "running";
-      const summary = await moderateSubmission({ root: ROOT, action: job.submissionModeration, siteUrl: SITE.url, exec: checkedExec(job) });
-      report = { outcome: "complete", heading: "✅ Done.", body: summary, published: true };
     } else if (job.ownerUpdate) {
       const pulse = await waitForQuietCheckout(CHECKOUT_WAIT_MS, (reason) => { markWaiting(job, reason); }, { writeSet: writeSetOf(job) });
       if (pulse.busyReason) throw new CheckoutBusyError(pulse.busyReason);
@@ -1514,7 +1507,7 @@ async function drainQueue() {
     } else report = await runPublish(job);
     if (scheduled) console.log(`[discord-agent] ${job.request}: ${report.body}`);
     else await replyChunks(job.ref, report.heading, report.body, { suppressMentions: true });
-    if (!job.submissionModeration && !job.repoUpdate && !job.ownerUpdate && report.published) await notifyAdminChannel(job, `${report.heading}\n${report.body}`);
+    if (!job.repoUpdate && !job.ownerUpdate && report.published) await notifyAdminChannel(job, `${report.heading}\n${report.body}`);
     outcome = outcomeReaction(report.outcome);
   } catch (error) {
     outcome = "❌";
@@ -1558,12 +1551,10 @@ async function drainQueue() {
         return;
       }
       outcome = "⏸️";
-      // Nobody to tell: a scheduled job has no requester, a moderation job's
-      // "requester" is the bot's own notice, and the bot channel records what
-      // the bot did rather than what went wrong. Each of those still gets its
-      // reaction and a log line. Twelve "Blocked." replies landed on one
-      // submission notice over two days before this held.
-      if (!job.ref?.messageId || job.submissionModeration || job.ref.channelId === config.botChannelId) {
+      // Nobody to tell: a scheduled job has no requester, and the bot channel
+      // records what the bot did rather than what went wrong. Each still gets
+      // its reaction and a log line.
+      if (!job.ref?.messageId || job.ref.channelId === config.botChannelId) {
         // The reason is the only instrumentation that can tell a correct park
         // from pure downtime when someone reads this log back.
         console.error(`[discord-agent] blocked after ${formatElapsed(waited)} of a busy checkout (${job.waitingReason || error.message || "reason unknown"}): ${job.request}`);
@@ -1586,10 +1577,9 @@ async function drainQueue() {
       await pauseScheduledJobs(error);
       return;
     }
-    if (job.submissionModeration || job.ref.channelId === config.botChannelId) {
-      // Per-attempt replies here are the useless kind: the submission poll
-      // retries a failed moderation on its own, so one failure becomes a
-      // stream. The daily alert names the real cause instead.
+    if (job.ref.channelId === config.botChannelId) {
+      // The bot channel records what the bot did; the daily alert names the
+      // real cause instead of a reply per failure.
       console.error(`[discord-agent] job failed without a reply: ${job.request}:`, error);
       await alertPublishingBroken(error);
       return;
@@ -1610,12 +1600,7 @@ async function drainQueue() {
     }
   } finally {
     if (!parked) await clearStatus(job);
-    // A submission notice's ✅ and ❌ are the moderators' votes. Adding the
-    // job's own outcome there puts a bot ❌ beside a human one and reads as a
-    // second vote; the page is the result, and failures go to the log.
-    if (!parked && outcome && !job.submissionModeration) await markOutcome(job.ref, "🔍", outcome);
-    // After the outcome reaction: a confirmed submission deletes its notice.
-    if (!parked && job.submissionModeration) await submissions.completed(job.submissionModeration.id, outcome === "✅", job.submissionModeration.decision).catch(() => console.error("[discord-agent] could not persist moderation outcome"));
+    if (!parked && outcome) await markOutcome(job.ref, "🔍", outcome);
     // Anything this job committed is the bot's, and may need pushing later if
     // the push failed. Bounded by the head the job started from, because every
     // commit in this repository carries the same author and identity cannot
@@ -1648,7 +1633,7 @@ async function recoverInterruptedJobs() {
     await deleteById(job.ref.channelId, job.statusMessageId);
     await deleteById(job.ref.channelId, job.queuedNoticeId);
   }
-  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, submissionModeration: job.submissionModeration ?? null, repoUpdate: job.repoUpdate ?? null, ownerUpdate: job.ownerUpdate ?? null, wiki: job.wiki ?? null, context: job.context ?? "", channel: job.channel ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null, waitingSince: job.waitingSince ?? null });
+  const revive = (job) => ({ ref: job.ref, messageUrl: job.messageUrl, request: job.request, repoUpdate: job.repoUpdate ?? null, ownerUpdate: job.ownerUpdate ?? null, wiki: job.wiki ?? null, context: job.context ?? "", channel: job.channel ?? "", attachments: job.attachments ?? [], requester: job.requester ?? null, waitingSince: job.waitingSince ?? null });
   if (saved.active) {
     // An interrupted run is resumed when the tree is clean: that means it was
     // killed before it changed anything, usually while waiting for the
@@ -1702,17 +1687,7 @@ const submissions = submissionBridge({
   client, endpoint: process.env.DISCORD_SUBMISSIONS_URL ?? (process.env.DISCORD_AGENT_REPO ? "" : `${SITE.url}/api/submissions`),
   adminChannelId: config.adminChannelId, stateDir: STATE_DIR, siteUrl: SITE.url,
   authorized: (message) => isAuthorized(message, { ...config, channelIds: new Set() }),
-  moderateAuthorized: (message) => canRequestDestructive(message, config),
   send: safeSend,
-  enqueue: async (job) => {
-    if (queue.some(item => item.submissionModeration?.id === job.submissionModeration.id) || running?.submissionModeration?.id === job.submissionModeration.id) return;
-    queue.push(job);
-    await persistJobs();
-    void drainQueue().catch(error => console.error("[discord-agent] moderation queue failed", error));
-  },
-});
-client.on("messageReactionAdd", (reaction, user) => {
-  void submissions.reaction(reaction, user).catch(() => console.error("[discord-agent] submission reaction failed"));
 });
 
 /** "update /games/<slug> status: …; news: …" from the page's creator: a
@@ -1747,16 +1722,17 @@ client.on("messageCreate", async (message) => {
   // A message is for the bot when it opens with the bot's mention or replies
   // to the bot. A mention mid-sentence ("I built @Bot, try it") is talk
   // about the bot, and a reply's automatic ping is not a mention at all.
-  const addressedByMention = new RegExp(`^\\s*<@!?${client.user.id}>`).test(message.content);
+  const content = addressedContent(message.content, client.user.id, message.guild?.roles?.botRoleFor?.(client.user)?.id);
+  const addressedByMention = new RegExp(`^\\s*<@!?${client.user.id}>`).test(content);
   // A mention anywhere else ("what's the status on X, @Bot?") joins the
   // conversation on the read-only answer lane. Actions (submit, update,
   // publish) still need the message to open with the mention or to reply
   // to the bot; a reply's automatic ping is neither.
-  const mentionedInText = new RegExp(`<@!?${client.user.id}>`).test(message.content);
+  const mentionedInText = new RegExp(`<@!?${client.user.id}>`).test(content);
   if (!addressedByMention && !addressedByReply && !mentionedInText) return;
   if (!addressedByMention && !addressedByReply) {
     if (!config.guildIds.has(message.guildId)) return;
-    await handleAsk(message, { channelId: message.channelId, messageId: message.id, authorId: message.author.id }, stripBotMention(message.content, client.user.id));
+    await handleAsk(message, { channelId: message.channelId, messageId: message.id, authorId: message.author.id }, stripBotMention(content, client.user.id));
     return;
   }
 
@@ -1767,7 +1743,7 @@ client.on("messageCreate", async (message) => {
     messageId: message.id,
     authorId: message.author.id,
   };
-  const request = stripBotMention(message.content, client.user.id);
+  const request = stripBotMention(content, client.user.id);
   const wiki = parseWikiRequest(request);
   try {
     if (wiki?.action === "link") {
@@ -1791,7 +1767,7 @@ client.on("messageCreate", async (message) => {
     await safeSend({ ...ref, content: error.message, suppressMentions: true });
     return;
   }
-  if (addressedByMention && await submissions.intake(message, ref, request, config.trustedSubmitterIds.has(message.author.id))) return;
+  if (addressedByMention && await submissions.intake(message, ref, request)) return;
   if (addressedByMention && await ownerUpdate(message, ref, request)) return;
   // Anyone who is not a trusted developer gets the answer lane, in any
   // channel the bot can read: questions are welcome everywhere, and
@@ -1866,9 +1842,6 @@ client.on("messageCreate", async (message) => {
     const cleared = queue.splice(0, queue.length);
     for (const job of cleared) {
       await clearStatus(job);
-      // Without this the bridge still believes the moderation is in flight,
-      // and no later reaction on that notice is ever queued again.
-      if (job.submissionModeration) await submissions.completed(job.submissionModeration.id, false).catch(() => {});
     }
     await persistJobs();
     await safeSend({
@@ -1996,11 +1969,6 @@ client.once(Events.ClientReady, async () => {
     console.error("[discord-agent] interrupted-job recovery failed", error),
   );
   await submissions.start().catch(() => console.error("[discord-agent] submission recovery failed"));
-  // A poll is a serverless invocation that reads the whole catalogue from
-  // GitHub. Intake already polls right after a submission, so this is only
-  // the safety net for one that arrived through the website form.
-  const submissionTimer = setInterval(() => void submissions.poll().catch(() => console.error("[discord-agent] submission notice retry failed")), SUBMISSION_POLL_MS);
-  submissionTimer.unref();
   // Every push to main, from wherever it came, is announced in the website
   // channel. Unauthenticated, so the poll stays well inside GitHub's limit.
   const siteChanges = siteChangeWatcher({ repo: SITE_REPO, stateDir: STATE_DIR, send: safeSend, channelId: config.adminChannelId, siteUrl: SITE.url });
@@ -2008,7 +1976,7 @@ client.once(Events.ClientReady, async () => {
   const siteChangeTimer = setInterval(() => void siteChanges.tick().catch((error) => console.error("[discord-agent] site change watch failed", error)), SITE_CHANGE_POLL_MS);
   siteChangeTimer.unref();
   // Repositories are checked in slices for new releases; each finding is a
-  // queued page update, run on the shared checkout like moderation.
+  // queued page update, run on the shared checkout.
   // Every repository is checked about once an hour: a quarter of them per tick.
   // One job, one commit and one deployment per tick, however many releases
   // it found: every commit to main is a production build.

@@ -1,5 +1,4 @@
 import { useAbout } from "@/lib/about";
-import { SITE_TOOLS_PATH } from "@/lib/siteToolPaths";
 import { SmartLink } from "./SmartLink";
 import { FeedFooterLink } from "./FeedLink";
 import { DiscordFooterLink } from "./DiscordLink";
@@ -24,14 +23,9 @@ export function Footer() {
     <footer className="site-footer">
       <div className="site-footer-inner container">
         <div className="site-footer-right">
-          {/* The WebMCP tools this site registers for an agentic browser. One
-              quiet line, in the muted footer style the other links use, on
-              every page: someone whose browser just offered them "site tools"
-              needs somewhere to read what those are. */}
           <div className="site-footer-elsewhere">
             <SubmitRecompLink />
             <SmartLink href="/creators">Creators</SmartLink>
-            <SmartLink href={SITE_TOOLS_PATH}>Site tools for browser agents</SmartLink>
             {/* The org every project on this site is published from. A plain
                 <a>: it leaves the site, so it is a real navigation. */}
             <a

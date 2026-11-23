@@ -23,7 +23,7 @@ describe('submission publishing', () => {
   it('fills optional fields from public metadata and creates a normal game page', async () => {
     const { store } = fixture();
     const result = await submitRepository(store, { repo });
-    expect(result.record).toMatchObject({ title: 'Recomp', description: 'A playable port.', owner: 'example', status: 'pending' });
+    expect(result.record).toMatchObject({ title: 'Recomp', description: 'A playable port.', owner: 'example', status: 'confirmed', autoApproved: true });
     expect(result.record.path).toMatch(/^data\/games\/01_recomp-[a-f0-9]+\/index.md$/);
     // An anonymous submission still records how it arrived. Recording nothing
     // is what left "who submitted this?" unanswerable.

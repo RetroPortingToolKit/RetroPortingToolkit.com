@@ -49,18 +49,3 @@ createRoot(rootEl).render(
     <App />
   </div>,
 );
-
-// WebMCP is useful only in browsers that expose a model-context registrar.
-// Keep its schemas, handlers and documentation data out of every other
-// visitor's startup graph; the old eager import made all of that bootstrap
-// code even though registration immediately did nothing in ordinary browsers.
-const webmcpDocument = document as Document & {
-  modelContext?: { registerTool?: unknown } | null;
-};
-const webmcpNavigator = navigator as Navigator & {
-  modelContext?: { registerTool?: unknown } | null;
-};
-const webmcpContext = webmcpDocument.modelContext ?? webmcpNavigator.modelContext;
-if (webmcpContext && typeof webmcpContext.registerTool === "function") {
-  void import("./lib/webmcp").then(({ registerSiteTools }) => registerSiteTools());
-}

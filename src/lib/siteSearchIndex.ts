@@ -4,11 +4,8 @@ import { buildSiteSearchIndex, type SiteSearchIndex } from "./siteSearch";
 /**
  * The one site-wide search index, built once per page load and shared.
  *
- * TWO surfaces read it now: the command palette
- * (src/components/SearchPalette.tsx) and the WebMCP `search_site` tool
- * (src/lib/webmcp.ts). They must rank the same corpus the same way, so the
- * index is built here rather than once in each, and the promise is cached so
- * the second caller reuses the first caller's work.
+ * The command palette (src/components/SearchPalette.tsx) reads it; the promise
+ * is cached so a second caller reuses the first caller's work.
  *
  * Nothing is fetched at runtime, which is the rule for this whole site. Games,
  * Platforms and News are already in the bundle (catalogContent.ts reads data/
