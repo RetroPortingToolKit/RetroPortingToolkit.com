@@ -1246,5 +1246,24 @@
     "images": [],
     "summary": [],
     "mediaNote": "No supported images could be imported. The page is publishing without artwork."
+  },
+  {
+    "id": "934fd74fe4102680",
+    "repo": "https://github.com/JonathanDC64/Soulbrandt",
+    "title": "Soulbrandt",
+    "description": "Soulbrandt: Demon's Souls, running natively on PC",
+    "owner": "JonathanDC64",
+    "path": "data/games/114_soulbrandt-934fd74f/index.md",
+    "url": "/games/soulbrandt-934fd74f",
+    "createdAt": "2026-11-28T14:59:23.631Z",
+    "status": "confirmed",
+    "autoApproved": true,
+    "submittedBy": {
+      "via": "form",
+      "verified": false
+    },
+    "images": [],
+    "summary": [],
+    "mediaNote": "No supported images could be imported. The page is publishing without artwork."
   }
 ]
